@@ -1,0 +1,28 @@
+class Game():
+    """General gaming mechanics."""
+
+    def __init__(self):
+
+class GameEndings(Game):
+    """Different endings that you get based on your decisions while playing the game."""
+
+    def __init__(self):
+
+    def good_ending(self):
+        """You became a developer and landed your first real job, you won the game!"""
+
+    def bad_ending(self):
+        """You had no other choice, but to return back to OOP Varnsdorf to serve as policeman, abandoning your dreams."""
+
+    def constellium_ending(self):
+        """You had to return to Constellium, compared to police, this is a dream job, but still not what you wanted."""
+
+    def drug_addict_ending(self):
+        """Your abuse of nootropics went too far and now people can't tell if you are crazy or genius or both."""
+
+    def homeless_ending(self):
+        """You are out of money and no one will lend you cash anymore, you cannot code on paper crates in snow."""
+
+    def secret_ending(self):
+        """?"""
+        # will print Pavel Schwarz in console in ASCII code.
