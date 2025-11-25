@@ -57,7 +57,7 @@ class Story:
 
         report_incident_decision = (
             Decision('', ("1", "2")))
-        Decision.create_decision_variable(report_incident_decision)
+        Decision.create_decision(report_incident_decision)
 
         if report_incident_decision.decision_variable_name == "1":
             if roll_1 >= 80:
@@ -113,9 +113,9 @@ class Story:
                 )
                 choose_to_call_a_lawyer = (
                     Decision('', ("1", "2")))
-                Decision.create_decision_variable(choose_to_call_a_lawyer)
+                Decision.create_decision(choose_to_call_a_lawyer)
 
-                from jb_game.jb_dev_car_incident import CarIncident
+                from jb_game.jb_dev_car_incident_event import CarIncident
 
                 if choose_to_call_a_lawyer.decision_variable_name == "1":
                     CarIncident.lawyer_paul_goodman_is_called(stats)
@@ -185,9 +185,9 @@ class Story:
                 )
                 choose_to_call_a_lawyer = (
                     Decision('', ("1", "2")))
-                Decision.create_decision_variable(choose_to_call_a_lawyer)
+                Decision.create_decision(choose_to_call_a_lawyer)
 
-                from jb_game.jb_dev_car_incident import CarIncident
+                from jb_game.jb_dev_car_incident_event import CarIncident
 
                 if choose_to_call_a_lawyer.decision_variable_name == "1":
                     CarIncident.lawyer_paul_goodman_is_called(stats)

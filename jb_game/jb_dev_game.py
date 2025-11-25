@@ -4,16 +4,18 @@ from random import randint
 from jb_dev_stats import JBStats
 from jb_dev_day_cycle import DayCycle
 from jb_dev_decision import Decision
+from jb_dev_random_events import RandomEvents
 
 
 class Game:
     """Sets the basic gaming mechanics, rules, win/loose conditions, difficulty levels."""
 
     def __init__(self, stats:
-    JBStats, day_cycle: DayCycle):
+    JBStats, day_cycle: DayCycle, events_list: RandomEvents):
         """Initialise self based on JB Stats class."""
         self.stats = stats
         self.day_cycle = day_cycle
+        self.events_list = events_list
         self.selected_difficulty = None
         self.activity_selected = False
         self.python_bootcamp = False
@@ -90,10 +92,9 @@ class Game:
                            )
             menu_select_decision = (
                 Decision('', ("1", "2", "3", "4")))
-            Decision.create_decision_variable(menu_select_decision)
+            Decision.create_decision(menu_select_decision)
 
             if menu_select_decision.decision_variable_name == "1":
-                # CALL METHOD ON JBStats INSTANCE
                 print(f"\nCurrent day: #{self.day_cycle.current_day}/30.")
                 self.stats.get_stats_command()
 
@@ -114,14 +115,26 @@ class Game:
                 )  # later: self.show_contacts()
 
             elif menu_select_decision.decision_variable_name == "4":
-                # CALL METHOD ON DayCycle INSTANCE
+                while not self.activity_selected:
+                    end_day_with_no_activity = (
+                        input("\nYou haven't selected your daily activity, are you sure you want to continue?"
+                          "\n(y/n): "))
+                    if end_day_with_no_activity == "y":
+                        break
+                    else:
+                        Game.main_menu(self)
                 print(f"\nEnding day #{self.day_cycle.current_day}...")
                 self.day_cycle.next_day()
                 print(f"\nStarting day #{self.day_cycle.current_day}/30")
+                if self.day_cycle.current_day % 3 == 0:
+                    self.events_list.select_random_event(self.stats)
+                    print(f"\nStarting day #{self.day_cycle.current_day}/30")
+                    self.day_cycle.next_day()
                 self.activity_selected = False
                 self.stats.increment_stats_pcr_hatred(+5)
                 if self.python_bootcamp:
-                    self.stats.increment_stats_coding_skill(+3)
+                    self.stats.increment_stats_coding_skill(+5)
+
             else:
                 print("Wrong input, try again.")
 
@@ -139,7 +152,7 @@ class Game:
             )
             menu_select_decision_activity = (
                 Decision('', ("1", "2", "3", "4", "5")))
-            Decision.create_decision_variable(menu_select_decision_activity)
+            Decision.create_decision(menu_select_decision_activity)
 
             choice = menu_select_decision_activity.decision_variable_name
 
@@ -164,11 +177,11 @@ class Game:
               "\n1. [33/33/33%] WE GO GYM!"
               "\n2. RETURN TO MENU"
               "\nSELECT YOUR OPTION (1-2):")
-        menu_select_decision_activity_bouncer = (
+        activity_is_selected = (
             Decision('', ("1", "2")))
-        Decision.create_decision_variable(menu_select_decision_activity_bouncer)
+        Decision.create_decision(activity_is_selected)
 
-        if menu_select_decision_activity_bouncer.decision_variable_name == "1":
+        if activity_is_selected.decision_variable_name == "1":
             activity_roll = randint(1, 3)
             if activity_roll == 1:
                 self.stats.increment_stats_value_money(-400)
@@ -190,7 +203,7 @@ class Game:
             self.stats.get_stats_command()
             input("\nCONTINUE...")
             self.activity_selected = True
-        elif menu_select_decision_activity_bouncer.decision_variable_name == "2":
+        elif activity_is_selected.decision_variable_name == "2":
             self.main_menu()
 
     def activity_meditate(self):
@@ -200,11 +213,11 @@ class Game:
               "\n1. [90/10%] BREATHE IN, BREATHE OUT..."
               "\n2. RETURN TO MENU"
               "\nSELECT YOUR OPTION (1-2):")
-        menu_select_decision_activity_bouncer = (
+        activity_is_selected = (
             Decision('', ("1", "2")))
-        Decision.create_decision_variable(menu_select_decision_activity_bouncer)
+        Decision.create_decision(activity_is_selected)
 
-        if menu_select_decision_activity_bouncer.decision_variable_name == "1":
+        if activity_is_selected.decision_variable_name == "1":
             activity_roll = randint(1, 10)
             if activity_roll <= 9:
                 self.stats.increment_stats_pcr_hatred(-15)
@@ -218,7 +231,7 @@ class Game:
             self.stats.get_stats_command()
             input("\nCONTINUE...")
             self.activity_selected = True
-        elif menu_select_decision_activity_bouncer.decision_variable_name == "2":
+        elif activity_is_selected.decision_variable_name == "2":
             self.main_menu()
 
     def activity_bouncer(self):
@@ -230,12 +243,11 @@ class Game:
               "\n2. [5/20/50/20/5%]WORK AS A BOUNCER AT A STRIP BAR"
               "\n3. RETURN TO MENU"
               "\nSELECT YOUR OPTION (1-3):")
-        activity_from_menu_is_selected = (
+        activity_is_selected = (
             Decision('', ("1", "2", "3")))
-        Decision.create_decision_variable(activity_from_menu_is_selected)
+        Decision.create_decision(activity_is_selected)
 
-        # BOUNCER NIGHT CLUB
-        if activity_from_menu_is_selected.decision_variable_name == "1":
+        if activity_is_selected.decision_variable_name == "1":
             activity_roll = randint(1, 100)
             if activity_roll <= 70:
                 self.stats.increment_stats_pcr_hatred(10)
@@ -248,7 +260,7 @@ class Game:
                 self.stats.increment_stats_value_money(7500)
                 self.stats.increment_stats_pcr_hatred(-10)
                 print("\nThe night shift was great! You gained extra tip from your boss today."
-                      "\nThis made you feel so good, that you even forgot about the PCR at all."
+                      "\nThis made you feel so good, that you even forgot about completely about PCR."
                       "\n[OUTCOME]: +7.500 CZK, -10 PCR HATRED")
             elif activity_roll <= 100:
                 self.stats.increment_stats_pcr_hatred(20)
@@ -263,11 +275,10 @@ class Game:
             input("\nCONTINUE...")
             self.activity_selected = True
 
-        # BOUNCER STRIP BAR
-        elif activity_from_menu_is_selected.decision_variable_name == "2":
+        elif activity_is_selected.decision_variable_name == "2":
             activity_roll = randint(1, 100)
             if activity_roll <= 5:
-                self.stats.increment_stats_value_money(25000)
+                self.stats.increment_stats_value_money(35000)
                 self.stats.increment_stats_pcr_hatred(-15)
                 print(
                     "\nA famous regular shows up drunk and paranoid. Two guys try to drag him outside, but you"
@@ -279,14 +290,14 @@ class Game:
                     "\n[OUTCOME]: +25.000 CZK, -15 PCR HATRED"
                 )
             elif activity_roll <= 25:
-                self.stats.increment_stats_value_money(6500)
+                self.stats.increment_stats_value_money(12500)
                 self.stats.increment_stats_coding_skill(2)
                 print(
                     "\nSteady crowds, few arguments, no real threats. You handle everything with routine precision."
                     "\nYou even use downtime at the door to mentally rehearse OOP concepts "
                     "\nand class hierarchies — weirdly effective."
-                    "\nBoss gives you the standard payout, nods at you, no drama.."
-                    "\n[OUTCOME]: +6.500 CZK, +2 CODING SKILLS"
+                    "\nBoss gives you something extra for showing up, nods at you, no drama.."
+                    "\n[OUTCOME]: +12.500 CZK, +2 CODING SKILLS"
                 )
 
             elif activity_roll <= 75:
@@ -335,7 +346,7 @@ class Game:
             self.activity_selected = True
 
 
-        elif activity_from_menu_is_selected.decision_variable_name == "3":
+        elif activity_is_selected.decision_variable_name == "3":
             self.main_menu()
 
     def activity_python(self):
@@ -350,12 +361,12 @@ class Game:
               "\n3. [50.000CZK] JOIN AN ON-LINE BOOTCAMP (GAIN BUFF FOR THE REST OF THE GAME)"
               "\n4. RETURN TO MENU"
               "\nSELECT YOUR OPTION (1-4):")
-        menu_select_decision_activity_bouncer = (
+        activity_is_selected = (
             Decision('', ("1", "2", "3", "4")))
-        Decision.create_decision_variable(menu_select_decision_activity_bouncer)
+        Decision.create_decision(activity_is_selected)
 
         # 1) FREE STUDY – 80% +5, 20% +10
-        if menu_select_decision_activity_bouncer.decision_variable_name == "1":
+        if activity_is_selected.decision_variable_name == "1":
             activity_roll = randint(1, 100)
             if activity_roll <= 80:
                 self.stats.increment_stats_coding_skill(5)
@@ -381,7 +392,7 @@ class Game:
             self.activity_selected = True
 
         # 2) PAID TUTOR – 60% +10, 30% +15, 10% +25
-        elif menu_select_decision_activity_bouncer.decision_variable_name == "2":
+        elif activity_is_selected.decision_variable_name == "2":
             # Pay for the session
             self.stats.increment_stats_value_money(-1500)
             activity_roll = randint(1, 100)
@@ -419,14 +430,14 @@ class Game:
             self.activity_selected = True
 
         # 3) ONLINE BOOTCAMP – PLACEHOLDER FOR PERMANENT BUFF
-        elif menu_select_decision_activity_bouncer.decision_variable_name == "3":
+        elif activity_is_selected.decision_variable_name == "3":
             self.stats.increment_stats_value_money(-50000)
             print(
                 "\nYou sign a contract and pay for an on-line Python bootcamp."
                 "\nDeadlines, assignments, code reviews, community, mentors – the full package."
                 "\nFrom now on, every single day in this game, your coding skills will grow if you keep showing up."
                 "\nThis is no longer a hobby. This is a commitment."
-                "\n[OUTCOME]: -50.000 CZK, [BOOTCAMP BUFF ACTIVATED +3 CODING SKILL EVERYDAY]"
+                "\n[OUTCOME]: -50.000 CZK, [BOOTCAMP BUFF ACTIVATED +5 CODING SKILL EVERYDAY]"
             )
 
             self.python_bootcamp = True
@@ -436,7 +447,7 @@ class Game:
             self.activity_selected = True
 
         # 4) RETURN TO MAIN MENU
-        elif menu_select_decision_activity_bouncer.decision_variable_name == "4":
+        elif activity_is_selected.decision_variable_name == "4":
             self.main_menu()
 
         else:

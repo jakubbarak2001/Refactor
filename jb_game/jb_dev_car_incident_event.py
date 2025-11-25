@@ -124,7 +124,7 @@ class CarIncident:
         )
 
         continue_with_lawyer_or_without_him = Decision('', ("1", "2"))
-        Decision.create_decision_variable(continue_with_lawyer_or_without_him)
+        Decision.create_decision(continue_with_lawyer_or_without_him)
 
         if continue_with_lawyer_or_without_him.decision_variable_name == "1":
             stats.increment_stats_pcr_hatred(40)

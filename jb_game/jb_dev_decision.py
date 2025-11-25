@@ -5,10 +5,10 @@ class Decision:
         self.decision_variable_name = decision_variable_name
         self.viable_options = decision_viable_options
 
-    def create_decision_variable(self):
+    def create_decision(self):
         """Creates the option to choose different paths in your decision branches."""
         while True:
-            self.decision_variable_name  = input("> ").strip()
+            self.decision_variable_name = input("> ").strip()
             if self.decision_variable_name in self.viable_options:
                 break
-            print(f"Invalid choice. Please enter '{self.viable_options}'.")
+            print(f"Invalid choice. Please enter one of: {self.viable_options}.")
