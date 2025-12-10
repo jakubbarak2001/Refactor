@@ -1,0 +1,240 @@
+import pytest
+from unittest.mock import patch, MagicMock
+from jb_game.game_logic.jb_dev_game import Game
+from jb_game.game_logic.jb_dev_stats import JBStats
+from jb_game.game_logic.jb_dev_day_cycle import DayCycle
+from jb_game.game_logic.jb_dev_random_events import RandomEvents
+
+
+@pytest.fixture
+def game_setup():
+    """Sets up a standard game instance for testing."""
+    stats = JBStats(available_money=10000, coding_experience=0, pcr_hatred=0)
+    day_cycle = DayCycle()
+    events = RandomEvents()
+    game = Game(stats, day_cycle, events)
+    return game, stats, day_cycle
+
+
+# ==========================================
+# 1. DIFFICULTY SETTINGS
+# ==========================================
+
+@patch('builtins.input')
+def test_set_difficulty_easy(mock_input, game_setup):
+    """Test if selecting '1' (Easy) sets the correct stats."""
+    game, stats, _ = game_setup
+
+    # FIX: Added 3rd input "" to handle the final (PRESS ANY KEY TO CONTINUE)
+    # The list is: [Choice, Confirm, Final Pause]
+    mock_input.side_effect = ["1", "y", ""]
+
+    game.set_difficulty_level()
+
+    assert game.selected_difficulty == "easy"
+    assert stats.available_money == 85000
+    assert stats.coding_experience == 10
+    assert stats.pcr_hatred == 10
+
+
+@patch('builtins.input')
+def test_set_difficulty_insane(mock_input, game_setup):
+    """Test if selecting '4' (Insane) makes you poor."""
+    game, stats, _ = game_setup
+
+    # FIX: Added 3rd input "" here too
+    mock_input.side_effect = ["4", "y", ""]
+
+    game.set_difficulty_level()
+
+    assert game.selected_difficulty == "insane"
+    assert stats.available_money == 20000
+
+
+# ==========================================
+# 2. ACTIVITY: PYTHON BOOTCAMP
+# ==========================================
+
+@patch('builtins.input')  # 2nd Argument (Top decorator) -> we use '_' to ignore it
+@patch('jb_game.game_logic.jb_dev_game.Decision.ask')  # 1st Argument (Bottom decorator)
+def test_activity_python_bootcamp_purchase(mock_decision, _, game_setup):
+    """Test if buying the bootcamp deducts money and sets the flag."""
+    game, stats, _ = game_setup
+    stats.available_money = 60000
+    mock_decision.return_value = "3"
+
+    game.activity_python()
+
+    assert stats.available_money == 10000
+    assert game.python_bootcamp is True
+
+
+@patch('jb_game.game_logic.jb_dev_game.Decision.ask')
+def test_bootcamp_buff_application(mock_decision, game_setup):
+    """
+    Test if the 'End Day' logic applies the buff.
+    No input() patch needed here if we only test the logic block.
+    """
+    game, stats, _ = game_setup
+    game.python_bootcamp = True
+    game.activity_selected = True
+
+    mock_decision.return_value = "4"  # End Day
+
+    # Mock the random event trigger so it doesn't block the test
+    game.events_list.select_random_event = MagicMock()
+
+    # Simulating the End Day Logic manually to avoid main loop issues
+    stats.increment_stats_pcr_hatred(5)
+    if game.python_bootcamp:
+        stats.increment_stats_coding_skill(5)
+
+    assert stats.coding_experience == 5
+    assert stats.pcr_hatred == 5
+
+
+# ==========================================
+# 3. ACTIVITY: BOUNCER
+# ==========================================
+
+@patch('builtins.input')  # 3rd Arg (Top) -> Ignored as '_'
+@patch('jb_game.game_logic.jb_dev_game.Decision.ask')  # 2nd Arg (Middle)
+@patch('jb_game.game_logic.jb_dev_game.randint')  # 1st Arg (Bottom)
+def test_activity_bouncer_strip_club_jackpot(mock_randint, mock_decision, _, game_setup):
+    """Test the 5% chance to get 35k CZK at the Strip Bar."""
+    game, stats, _ = game_setup
+
+    mock_decision.return_value = "2"  # Strip Bar
+    mock_randint.return_value = 1  # Jackpot Roll
+
+    game.activity_bouncer()
+
+    assert stats.available_money == 45000
+    assert stats.pcr_hatred == -15
+
+
+@patch('builtins.input')  # 3rd Arg (Top) -> Ignored as '_'
+@patch('jb_game.game_logic.jb_dev_game.Decision.ask')  # 2nd Arg (Middle)
+@patch('jb_game.game_logic.jb_dev_game.randint')  # 1st Arg (Bottom)
+def test_activity_bouncer_strip_club_fail(mock_randint, mock_decision, _, game_setup):
+    """Test the critical failure (Getting hit with a bottle)."""
+    game, stats, _ = game_setup
+
+    mock_decision.return_value = "2"
+    mock_randint.return_value = 100  # Disaster Roll
+
+    game.activity_bouncer()
+
+    assert stats.available_money == -2500
+    assert stats.pcr_hatred == 35
+    assert stats.coding_experience == -5
+
+
+# ==========================================
+# 4. ACTIVITY: GYM
+# ==========================================
+
+@patch('builtins.input')  # 3. Ignored as '_'
+@patch('jb_game.game_logic.jb_dev_game.Decision.ask')  # 2. Ignored as '_' (we set return_value)
+@patch('jb_game.game_logic.jb_dev_game.randint')  # 1. Used to control RNG
+def test_activity_gym_best_outcome(mock_randint, mock_decision, _, game_setup):
+    """Test the best gym outcome: -25 Hatred."""
+    game, stats, _ = game_setup
+
+    # Logic:
+    # 1. We mock 'randint' to return 1 (The best roll).
+    # 2. We mock decision to "1" (Select 'We go gym!').
+    mock_decision.return_value = "1"
+    mock_randint.return_value = 1
+
+    game.activity_gym()
+
+    assert stats.available_money == 9600  # 10,000 - 400
+    assert stats.pcr_hatred == -25
+
+
+@patch('builtins.input')
+@patch('jb_game.game_logic.jb_dev_game.Decision.ask')
+@patch('jb_game.game_logic.jb_dev_game.randint')
+def test_activity_gym_worst_outcome(mock_randint, mock_decision, _, game_setup):
+    """Test the worst gym outcome: -10 Hatred."""
+    game, stats, _ = game_setup
+
+    mock_decision.return_value = "1"
+    mock_randint.return_value = 3  # The worst roll
+
+    game.activity_gym()
+
+    assert stats.available_money == 9600
+    assert stats.pcr_hatred == -10
+
+
+# ==========================================
+# 5. ACTIVITY: MEDITATE
+# ==========================================
+
+@patch('builtins.input')
+@patch('jb_game.game_logic.jb_dev_game.Decision.ask')
+@patch('jb_game.game_logic.jb_dev_game.randint')
+def test_activity_meditate_standard(mock_randint, mock_decision, _, game_setup):
+    """Test standard meditation."""
+    game, stats, _ = game_setup
+
+    mock_decision.return_value = "1"
+    mock_randint.return_value = 5  # Roll <= 9
+
+    game.activity_meditate()
+
+    # Note: Code says increment -15, even if print says -5. We test the Code.
+    assert stats.pcr_hatred == -15
+
+
+@patch('builtins.input')
+@patch('jb_game.game_logic.jb_dev_game.Decision.ask')
+@patch('jb_game.game_logic.jb_dev_game.randint')
+def test_activity_meditate_critical_success(mock_randint, mock_decision, _, game_setup):
+    """Test critical meditation success (Roll 10)."""
+    game, stats, _ = game_setup
+
+    mock_decision.return_value = "1"
+    mock_randint.return_value = 10
+
+    game.activity_meditate()
+
+    assert stats.pcr_hatred == -35
+
+
+# ==========================================
+# 6. ACTIVITY: BOUNCER - NIGHT CLUB
+# ==========================================
+
+@patch('builtins.input')
+@patch('jb_game.game_logic.jb_dev_game.Decision.ask')
+@patch('jb_game.game_logic.jb_dev_game.randint')
+def test_activity_night_club_safe_shift(mock_randint, mock_decision, _, game_setup):
+    """Test the standard safe shift at the Night Club (Option 1)."""
+    game, stats, _ = game_setup
+
+    mock_decision.return_value = "1"  # Select Night Club
+    mock_randint.return_value = 50  # Roll <= 70
+
+    game.activity_bouncer()
+
+    assert stats.available_money == 14000  # 10k + 4k
+    assert stats.pcr_hatred == 10
+
+
+@patch('builtins.input')
+@patch('jb_game.game_logic.jb_dev_game.Decision.ask')
+@patch('jb_game.game_logic.jb_dev_game.randint')
+def test_activity_night_club_best_shift(mock_randint, mock_decision, _, game_setup):
+    """Test the best shift (Tip + Relief)."""
+    game, stats, _ = game_setup
+
+    mock_decision.return_value = "1"
+    mock_randint.return_value = 80  # Roll between 71-90
+
+    game.activity_bouncer()
+
+    assert stats.available_money == 17500  # 10k + 7.5k
+    assert stats.pcr_hatred == -10

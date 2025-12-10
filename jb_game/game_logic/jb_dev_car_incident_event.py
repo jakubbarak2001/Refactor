@@ -1,7 +1,8 @@
 """Module used for representing the first major decision branch at the start of the game, regarding the car accident."""
 from random import randint
-from jb_dev_stats import JBStats
-from jb_dev_decision import Decision
+
+from jb_game.game_logic.jb_dev_stats import JBStats
+from jb_game.game_logic.jb_dev_decision import Decision
 import jb_game.game_logic.jb_dev_story as jb_story_module
 
 

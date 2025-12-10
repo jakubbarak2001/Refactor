@@ -1,10 +1,10 @@
 """Module for starting message and especially for selecting the difficulty level, gaming mechanics, checks and limits."""
 from random import randint
 
-from jb_dev_stats import JBStats
-from jb_dev_day_cycle import DayCycle
-from jb_dev_decision import Decision
-from jb_dev_random_events import RandomEvents
+from jb_game.game_logic.jb_dev_stats import JBStats
+from jb_game.game_logic.jb_dev_day_cycle import DayCycle
+from jb_game.game_logic.jb_dev_decision import Decision
+from jb_game.game_logic.jb_dev_random_events import RandomEvents
 
 
 class Game:

@@ -33,7 +33,7 @@ class JBStats:
 
         # LOGIC: Iterate through the list to find the first match
         for limit, description in money_levels:
-            if self.available_money > limit:
+            if self.available_money >= limit:
                 return description
 
         # Fallback for anything <= 0 (since the loop checks > 0)
