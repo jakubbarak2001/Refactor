@@ -1,199 +1,209 @@
-"""Module used for representing the first major decision branch at the start of the game, regarding the car accident."""
+"""
+Module representing the Car Incident Event.
+Contains ALL logic, text, and outcomes for this specific story arc.
+Refactored for High Cohesion, Dark Humor, and Better Balancing.
+"""
 from random import randint
-
 from jb_game.game_logic.jb_dev_stats import JBStats
 from jb_game.game_logic.jb_dev_decision import Decision
-import jb_game.game_logic.jb_dev_story as jb_story_module
-
 
 class CarIncident:
-    """Namespace for all logic of the car incident event."""
+    """
+    Encapsulates the entire Car Incident story arc.
+    """
 
     @staticmethod
     def car_incident_event(stats: JBStats) -> None:
-        """First introduction event to the game, with multiple choices."""
-        story = jb_story_module.Story(stats)
-        story.start_the_car_incident_event(stats)
-        CarIncident.car_incident_final_message()
-
-    @staticmethod
-    def car_incident_final_message() -> None:
-        """Message for whenever you reach the end of this event."""
+        """The main entry point for this event."""
         red = "\033[91m"
         reset = "\033[0m"
-        car_incident_end_of_the_event_message = (
-            "\n\nIt has been a very long day indeed. No matter what the outcome of this incident "
-            "has been,\nyou started to notice something much darker, something that was lurking there all along. "
-            "\nYou begin to understand, that no one will help you. \nAfter what "
-            "happened, you feel as if this was supposed to be a warning for you.\nWarning, that bad "
-            "things will most likely happen here in the future and no one from your colleagues will be "
-            "here to defend you.\nBut it's just a thought that occurred in your mind and you don't really give it that much "
-            "attention as it would probably deserve."
-            f"\n\n{red}FROM THIS MOMENT, YOU WILL GAIN +5 PCR HATRED DAILY.{reset}"
-        )
-        input("\n(CONTINUE...)")
-        print(car_incident_end_of_the_event_message)
 
-    @staticmethod
-    def make_a_punishment_roll_for_the_car_incident(stats: JBStats) -> None:
-        """Random int roll for deciding the level of player's punishment."""
-        car_incident_pcr_hate = 0
-        car_incident_money_punishment_roll = randint(2500, 7500)
+        print(f"\n{red}ARC I. - THE INCIDENT{reset}")
+        print("DAY I. - 06:45 AM")
 
-        if car_incident_money_punishment_roll <= 4500:
-            car_incident_pcr_hate = 10
-        elif car_incident_money_punishment_roll <= 6500:
-            car_incident_pcr_hate = 15
-        elif car_incident_money_punishment_roll <= 7500:
-            car_incident_pcr_hate = 25
+        CarIncident._play_intro_scene()
 
-        stats.increment_stats_pcr_hatred(car_incident_pcr_hate)
-        stats.increment_stats_value_money(-car_incident_money_punishment_roll)
+        # --- THE CHOICE: Risk vs. Safety ---
+        print("\nYou stand between the cars. The silence of the parking lot is heavy.")
+        print("You have a split second decision to make before a colleague walks out with a cigarette.")
+        print("\n1. [RISK: 50%] THE 'MACGYVER' MANEUVER. Try to buff out the scratch with spit and your sleeve. If it works, you saw nothing.")
+        print("2. [SAFE] THE 'GOOD SOLDIER'. Go inside, report it, fill out the forms, and accept the humiliation.")
 
-        input(
-            "\nYou tell your boss that you are sorry, that you did a mistake and you will accept "
-            "whatever punishment to come.\nYour apology is accepted but, your resentment towards "
-            "this organization has grown rapidly. \nYou were charged with abandoning a traffic incident "
-            "(that happened on a parking lot) and not reporting it. \nBecause you admitted your guilt "
-            "only after the crime was reported by someone else, it doesn't shine a really good light on you."
-            "\nAt least that is what they told you...\nOn the other hand, the punishment will be resolved "
-            "swiftly and most likely it won't hurt you that much over the long term. \nDespite all of that, "
-            "you feel great deal of anger, coming in."
-            "\n\n(CONTINUE...)"
-        )
-
-        print(
-            f"\n\nOUTCOME: \nMONEY - {car_incident_money_punishment_roll}, "
-            f"\nPCR HATRED + {car_incident_pcr_hate}"
-        )
-        print(
-            f"\n\nYou have {stats.available_money},- CZK money left."
-            f"\nYour PCR Hatred is: {stats.pcr_hatred}."
-        )
-
-    @staticmethod
-    def lawyer_paul_goodman_is_called(stats: JBStats) -> None:
-        """Using the lawyer option."""
-        input(
-            "\nYou won't let anyone push you around, so you end the boss's call and immediately call "
-            "\nThe best lawyer out there, to fight for your cause - PAUL GOODMAN. \nYou explain him what "
-            "happened and even though this lawyer is very costly, he finds your case intriguing, so he "
-            "offers his services for free!\nAfter that he tells you he will study your case closely and "
-            "from now on, you can consider him your ally. \nBefore the call is cancelled, he tells you "
-            "one final message: 'no matter what they offer, don't trust them, THEY ONLY LIE.'"
-            "\n\n(PRESS ANY KEY TO CONTINUE.)"
-        )
-        input(
-            "\n\nYou take a walk outdoors, to consider your next steps and to clean your head from this "
-            "mess, you ask yourself, how could this even happen? How could it go so wrong quickly?"
-            "\nYou hear the sound of your phone again, after 3 years of service, you've learned to "
-            "anticipate the worst, when you look at the phone display, for a brief moment, you think "
-            "your eyes are deceiving you.\nYou can make out the letters, saying only: 'POLICE COLONEL'"
-            "\n'FUCK', you could almost hear yourself that, despite you only thought of it in your mind."
-            "\n'If he's calling, something is seriously wrong' you think. \nAfter that you reluctantly press "
-            "the green button, to accept the call, and put the phone next to your ear..."
-            "\n\n(PRESS ANY KEY TO CONTINUE.)"
-        )
-        input(
-            "\n'Hello JB! It has been so long... I have heard about that little ... accident you had, hope "
-            "everything is all-right?'\nYou can feel your knees shaking and your heart beating louder, "
-            "despite your best efforts to stop this.\nWhy would he call me? What can this mean? "
-            "You have so many questions right now and no answers at all..."
-            "\n\n'JB, I have heard some disturbing news and I've wanted to know whether my sources are reliable..."
-            "\nI've been told that you didn't agree to the way we classified the incident and that you will "
-            "try to sue with us.'\nEven though you haven't said a word yet, it didn't stop the colonel "
-            "from his monologue.\n'I know, I know, it's been a hard day for you... I just wanted to remind "
-            "you of something, that you should keep in mind.' \nHe then pauses for a brief moment, as if "
-            "to let you breathe and prepare for what he is about to say.\n\n(PRESS ANY KEY TO CONTINUE.)"
-        )
-        print(
-            "\n'JB, you know that when I've offered you to work at the station you are currently at, I did "
-            "that with my best intentions towards you.\nYou can also know that right now I'm talking to you "
-            "as if you were my own son and that I really do care about you."
-            "\nJB, don't do something you might regret later on.\n\nAs a matter of fact, I like you, I mean that, you "
-            "are still young and can achieve great things... but this is a dark path you are heading to.\n"
-            "We are still on the good terms...but keep in mind that today's enemies "
-            "were yesterday's friends once. \nIf you accept my offer, I can promise you "
-            "I will do whatever I can to reduce the punishment to bare minimum or even cancel it completely. "
-            "\n\nOn the other hand... if you choose to fight with us, remember that you can win a battle but not a war."
-            "\nThat is not a threat, but just a friendly reminder."
-            "\nKeep that in mind, before you make your decision.'"
-            "\n\nYou have the following options:"
-            "\n1. [?%] FIGHT (This will have big consequences!.)"
-            "\n2. [50/50%] BACK DOWN (You can still back down and hope for the best.)"
-            "\n\nWHAT IS YOUR DECISION?: "
-        )
-
-        # REFACTORED: ONE LINE to capture choice
         choice = Decision.ask(("1", "2"))
 
         if choice == "1":
-            stats.increment_stats_pcr_hatred(40)
-            print(
-                "\nYou manage to collect your thoughts, and with a single breath, you tell him:\n\n"
-                "'Thanks for the offer, but I'll rather stick to my decision.'"
-                "\nFor a brief moment, you don't hear any response, colonel wasn't probably prepared for this."
-                "'Very well, do as you wish.' He responds calmly.\nFROM NOW ON, COLONEL WILL BE HOSTILE TOWARDS YOU!"
-            )
-            print("\nOUTCOME: \nPCR HATRED + 40, PAUL GOODMAN ACQUIRED!")
-            print(f"\nYour PCR Hatred is: {stats.pcr_hatred}.")
-            input("\n(CONTINUE...)")
-            print(
-                "\nPaul Goodman contacts you once again. He explains, that suing the police is not going to be easy, "
-                "but certainly not impossible.\nSince you haven't accepted any punishment, you will have 30 more days "
-                "to prepare for the case.\nYour attorney mentions that your cooperation and time will be required, and "
-                "in the end, the more evidence you gain, the stronger your case will become."
-            )
+            CarIncident._path_cover_up(stats)
+        else:
+            CarIncident._path_confession(stats)
+
+        # Final Daily Effect Message
+        print(f"\n\n{red}FROM THIS MOMENT, THE GRIND BEGINS: YOU WILL GAIN +5 PCR HATRED DAILY.\n"
+              f"YOUR MAIN OBJECTIVE: IN NEXT 30 DAYS, YOU NEED TO BECOME A FULLSTACK DEVELOPER.{reset}")
+        input("\n(PRESS ENTER TO FINISH EVENT)")
+
+
+    @staticmethod
+    def _play_intro_scene():
+        """Handles the text intro with updated text."""
+        input(
+            "\nIt is 06:45 AM. The sun is technically rising, but in this part of Bohemia, "
+            "it just looks like the sky is slowly bruising purple.\n"
+            "You just parked your private car. You are already late for the overtime shift at the other station.\n"
+            "Your brain is running on 3 hours of sleep and a protein bar that tasted like chalk."
+            "\n\n(PRESS ENTER)"
+        )
+        print(
+            "\nYou rush to the service vehicle—a battered Octavia that smells permanently of wet dog and criminals.\n"
+            "You throw it into reverse, trusting your muscle memory more than your eyes.\n"
+            "You are a professional driver, right? You did the course."
+        )
+        input("\nCRUNCH.\n\n(PRESS ENTER)")
+        print(
+            "\nIt wasn't a loud noise. It was a sickeningly polite *crunch*.\n"
+            "Like stepping on a very large, very expensive beetle.\n"
+            "You freeze. You look in the mirror. You see nothing."
+            "\n\nYou get out. You look."
+            "\n\nYour bumper is intimately kissing the door of the Commandant's brand new Superb."
+            "\nIt's not just a scratch. It's a statement."
+        )
+
+    @staticmethod
+    def _path_confession(stats: JBStats):
+        """
+        The Safe Path. Guaranteed loss of money/pride, but no risk of disaster.
+        """
+        print("\nYou sigh. You are an adult. You take responsibility.")
+        print("You walk inside, find the shift commander, and tell him.")
+
+        input("\n(PRESS ENTER)")
+
+        print(
+            "\nHe looks at you over his glasses. Then at the clock. Then back at you."
+            "\n'Great start to the morning, JB. Really stellar performance.'"
+            "\n\nHe hands you a stack of papers thick enough to kill a rat."
+            "\n'Fill these out. Insurance will cover most of it, but you're paying the deductible.'"
+            "\n'And don't expect a Christmas bonus.'"
+        )
+
+        stats.increment_stats_pcr_hatred(10)
+        stats.increment_stats_value_money(-2000)
+
+        print("\n[OUTCOME]: -2.000 CZK (Deductible), +10 PCR HATRED (Humiliation).")
+        print("At least it's over. No lawyers. No Colonel. Just pure, unadulterated bureaucracy.")
+
+    @staticmethod
+    def _path_cover_up(stats: JBStats):
+        """
+        The Risk Path. 50/50 Chance.
+        """
+        print("\nYou look around. The parking lot is empty.")
+        print("You lick your thumb and furiously rub the scratch on the Superb.")
+        print("It's not working. In fact, you're pretty sure you just made it shinier.")
+
+        roll = randint(1, 100)
+
+        if roll <= 50:
+            # SUCCESS
+            print("\nWait... it's just paint transfer!")
+            print("You spit on your sleeve and scrub harder. The white mark disappears.")
+            print("There is a tiny dent left, but you'd have to look for it with a microscope.")
+            print("\nYou jump into your car and drive away, heart pounding.")
+            print("You got away with it. You magnificent bastard.")
+
+            stats.increment_stats_pcr_hatred(-5) # Feeling of victory reduces hatred
+            print("\n[OUTCOME]: 0 CZK LOST, -5 PCR HATRED (The thrill of crime).")
+
+        else:
+            # FAILURE
+            CarIncident._scenario_caught_red_handed(stats)
+
+    @staticmethod
+    def _scenario_caught_red_handed(stats: JBStats):
+        """
+        The disaster scenario leading to the Paul Goodman / Colonel choice.
+        """
+        input(
+            "\n'HEY! WHAT ARE YOU DOING?!'"
+            "\n\nYou freeze. You turn around."
+            "\nIt's not a colleague. It's the traffic camera you completely forgot about."
+            "\nAnd standing right under it is the Shift Commander, holding his morning coffee, watching you."
+            "\n\n(PRESS ENTER)"
+        )
+        print(
+            "\nFast forward 2 hours."
+            "\nYou are in The Office. The air conditioning is humming."
+            "\nThey aren't calling it an accident. They are calling it 'Leaving the scene of a traffic incident'."
+            "\nThat's a crime. That's 'Lose your badge' territory."
+        )
+        print(
+            "\nThe Boss slides a piece of paper across the table."
+            "\n'Sign this admission of guilt. Pay the full damages (8.000 CZK). We forget the disciplinary charge.'"
+            "\n'Or... you can fight it.'"
+        )
+
+        print("\n1. [SAFE] SUBMIT. Pay the money. Eat the dirt. Keep your job.")
+        print("2. [RISK: 30% WIN] CALL PAUL GOODMAN. Sue the department. Burn the bridge.")
+
+        choice = Decision.ask(("1", "2"))
+
+        if choice == "1":
+            stats.increment_stats_pcr_hatred(25)
+            stats.increment_stats_value_money(-8000)
+            print("\nYou sign the paper. Your hand is shaking.")
+            print("You walk out 8.000 CZK poorer and with a hatred for this place that burns like acid.")
+            print("\n[OUTCOME]: -8.000 CZK, +25 PCR HATRED.")
 
         elif choice == "2":
-            colonel_helps_you_chance_roll = randint(1, 2)
-            input(
-                "\nWith the deepest regret, you announced to him: 'I'm sorry and I accept your offer.'"
-                "\n'I knew you would make the right decision' came from the phone with a subtle hint of laughter."
-                "\nDespite your anger and your resentment... you accept the vague promises that the colonel "
-                "has fed you with.\nYou don't know if he will keep up with his words, but you have little hope "
-                "left, and even less resolution to fight this system.\nYou obey and put your destiny into "
-                "his hands, you decided to go through the path of least resistance..."
-                "\n\n(CONTINUE...)"
-            )
+            CarIncident._scenario_better_call_paul(stats)
 
-            if colonel_helps_you_chance_roll == 1:
-                stats.increment_stats_pcr_hatred(-10)
-                input(
-                    "\n[SUCCESS]"
-                    "\nNot even one hour passes and your phone rings again, it is the colonel. This time, when you "
-                    "accept this call, he tells you that he has great news!\nHe spoke to some lawyers and since the "
-                    "accident happened on a parking lot, it is not considered as a part of a road communication,\n"
-                    "meaning your incident cannot be even classified as a road accident.\nYou won't have to pay "
-                    "anything, since the damage falls under insurance, which you actively pay."
-                    "\n\n(CONTINUE...)"
-                )
-                input(
-                    "\n\nYou are glad this nightmare that started so quickly, ended even faster."
-                    "\nNow, you can enjoy your free time however you want...\nNo matter what, you still have "
-                    "to think about this incident and for some reason you have a feeling,\nthat soon some big "
-                    "things are going to happen and the consequences will be much larger."
-                    "\n\n(CONTINUE...)"
-                )
-                print("\n\nOUTCOME: PCR HATRED -10, COLONEL'S AFFECTION GAINED!")
-                print(f"\nYour PCR Hatred is: {stats.pcr_hatred}.")
-            else:
-                stats.increment_stats_pcr_hatred(20)
-                stats.increment_stats_value_money(-3500)
-                input(
-                    "\n[FAILURE]"
-                    "\nNot even one hour passes and you start to have a bad feeling about this, you feel as if "
-                    "it was really a bad idea to put your fate into Colonel's hand. Then your phone rings.\nIt's him "
-                    "again and he sounds more less confident then he did last time. He tells you he was able to only "
-                    "reduce the penalty to the lowest possible amount\nhe tells you this information most politely, "
-                    "just as if he were announcing a death of someone close to you.\nHe tries to prolong the call a "
-                    "multiple times, as if he was expecting you to say 'thank you, I'm grateful'.\nBut you are not, "
-                    "you are not happy with this.\nThis outcome is not the worst one, but what angers you the most, "
-                    "were his false promises."
-                    "\n\n(CONTINUE...)"
-                )
-                print("\n\nOUTCOME: MONEY -3500, PCR HATRED +20.")
-                print(
-                    f"\nYour PCR Hatred is: {stats.pcr_hatred}."
-                    f"\nYour Total money is: {stats.available_money}"
-                )
+    @staticmethod
+    def _scenario_better_call_paul(stats: JBStats):
+        """
+        The High Stakes Gambler Path.
+        """
+        input(
+            "\nYou look the Boss in the eye and push the paper back."
+            "\n'No. I'm calling my lawyer.'"
+            "\nThe Boss laughs. 'Lawyer? JB, you can't afford a lawyer.'"
+            "\n'You clearly haven't heard of Paul Goodman,' you reply."
+            "\n\n(PRESS ENTER)"
+        )
+
+        print("\nYou call Paul. He answers on the first ring.")
+        print("'Did you say Police Department? Discrimination? Emotional distress? Say no more.'")
+        print("'I'll take the case Pro Bono. We go to war.'")
+
+        input("\n...ONE WEEK LATER...\n(PRESS ENTER)")
+
+        # 30% Chance to Win big, 70% chance to lose hard.
+        win_roll = randint(1, 100)
+
+        if win_roll <= 30:
+            # THE BIG WIN
+            print("\nPaul Goodman is a shark in a cheap suit.")
+            print("He found a loophole in the parking lot regulations.")
+            print("He threatened to sue the Colonel for 'Unsafe Workplace Environment'.")
+            print("The Department settled to make him go away.")
+
+            payout = 15000
+            stats.increment_stats_value_money(payout)
+            stats.increment_stats_pcr_hatred(-30)
+
+            print(f"\n[CRITICAL SUCCESS]: You received a settlement of {payout} CZK!")
+            print("Your boss refuses to make eye contact with you.")
+            print("[OUTCOME]: +15.000 CZK, -30 PCR HATRED (Justice tastes sweet).")
+
+        else:
+            # THE BIG LOSS
+            print("\nThe Colonel called in a favor.")
+            print("The judge was his old drinking buddy.")
+            print("Paul Goodman got held in contempt of court for wearing a neon tie.")
+            print("You lost. Badly.")
+
+            court_fees = 12000
+            stats.increment_stats_value_money(-court_fees)
+            stats.increment_stats_pcr_hatred(50)
+
+            print(f"\n[CRITICAL FAILURE]: You have to pay court fees of {court_fees} CZK.")
+            print("The entire station is laughing at you. The Colonel sends you a 'Get Well Soon' card.")
+            print("[OUTCOME]: -12.000 CZK, +50 PCR HATRED (Maximum Salt).")

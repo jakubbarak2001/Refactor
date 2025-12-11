@@ -14,3 +14,15 @@ class DayCycle:
     def next_day(self):
         """Skips to the next day."""
         self.current_day += 1
+
+    def day_start_message(self):
+        """Prints message about starting a new day."""
+        yellow = "\033[93m"
+        reset = "\033[0m"
+        print(f"\n{yellow}Starting day #{self.current_day}/30{reset}")
+
+    def day_end_message(self):
+        """Prints message about ending the current day."""
+        yellow = "\033[93m"
+        reset = "\033[0m"
+        print(f"\n{yellow}Ending day #{self.current_day}/30{reset}")

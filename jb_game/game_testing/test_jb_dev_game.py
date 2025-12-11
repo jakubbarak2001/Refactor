@@ -25,25 +25,24 @@ def test_set_difficulty_easy(mock_input, game_setup):
     """Test if selecting '1' (Easy) sets the correct stats."""
     game, stats, _ = game_setup
 
-    # FIX: Added 3rd input "" to handle the final (PRESS ANY KEY TO CONTINUE)
     # The list is: [Choice, Confirm, Final Pause]
     mock_input.side_effect = ["1", "y", ""]
 
     game.set_difficulty_level()
 
     assert game.selected_difficulty == "easy"
-    assert stats.available_money == 85000
+    assert stats.available_money == 55000
     assert stats.coding_experience == 10
-    assert stats.pcr_hatred == 10
+    assert stats.pcr_hatred == 15
 
 
 @patch('builtins.input')
 def test_set_difficulty_insane(mock_input, game_setup):
-    """Test if selecting '4' (Insane) makes you poor."""
+    """Test if selecting '3' (Insane) makes you poor."""
     game, stats, _ = game_setup
 
     # FIX: Added 3rd input "" here too
-    mock_input.side_effect = ["4", "y", ""]
+    mock_input.side_effect = ["3", "y", ""]
 
     game.set_difficulty_level()
 

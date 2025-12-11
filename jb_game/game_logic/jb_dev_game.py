@@ -11,11 +11,10 @@ class Game:
     """Sets the basic gaming mechanics, rules, win/loose conditions, difficulty levels."""
 
     DIFFICULTY_SETTINGS = {
-        "1": {"name": "EASY", "money": 85000, "coding": 10, "hatred": 10},
-        "2": {"name": "MEDIUM", "money": 65000, "coding": 5, "hatred": 15},
-        "3": {"name": "HARD", "money": 35000, "coding": 0, "hatred": 25},
-        "4": {"name": "INSANE", "money": 20000, "coding": 0, "hatred": 50},
-        # 5 NIGHTMARE difficulty placeholder
+        "1": {"name": "EASY", "money": 55000, "coding": 10, "hatred": 15},
+        "2": {"name": "HARD", "money": 35000, "coding": 5, "hatred": 25},
+        "3": {"name": "INSANE", "money": 20000, "coding": 0, "hatred": 35},
+        # 4 NIGHTMARE difficulty placeholder
     }
 
     def __init__(self, stats: JBStats, day_cycle: DayCycle, events_list: RandomEvents):
@@ -108,16 +107,18 @@ class Game:
                         continue  # <--- This jumps back to the main menu loop safely!
 
                 # End of Day Logic
-                print(f"\nEnding day #{self.day_cycle.current_day}...")
+                self.day_cycle.day_end_message()
                 self.day_cycle.next_day()
 
                 # Random Event Trigger (Every 3 days)
                 if self.day_cycle.current_day % 3 == 0:
-                    print(f"\nStarting day #{self.day_cycle.current_day}/30")
+                    self.day_cycle.day_start_message()
                     self.events_list.select_random_event(self.stats)
-                    # Note: You might not need next_day() again here unless events consume a day
+                    self.day_cycle.day_end_message()
+                    self.day_cycle.next_day()
+                    self.day_cycle.day_start_message()
                 else:
-                    print(f"\nStarting day #{self.day_cycle.current_day}/30")
+                    self.day_cycle.day_start_message()
 
                 # Reset Daily Flags
                 self.activity_selected = False
@@ -202,7 +203,6 @@ class Game:
               "\n2. RETURN TO MENU"
               "\nSELECT YOUR OPTION (1-2):")
 
-        # REFACTOR: One line decision
         choice = Decision.ask(("1", "2"))
 
         if choice == "1":
@@ -232,7 +232,6 @@ class Game:
               "\n3. RETURN TO MENU"
               "\nSELECT YOUR OPTION (1-3):")
 
-        # REFACTOR: One line decision
         choice = Decision.ask(("1", "2", "3"))
 
         if choice == "1":
@@ -350,7 +349,6 @@ class Game:
               "\n4. RETURN TO MENU"
               "\nSELECT YOUR OPTION (1-4):")
 
-        # REFACTOR: One line decision
         choice = Decision.ask(("1", "2", "3", "4"))
 
         # 1) FREE STUDY – 80% +5, 20% +10
@@ -417,7 +415,7 @@ class Game:
             input("\nCONTINUE...")
             self.activity_selected = True
 
-        # 3) ONLINE BOOTCAMP – PLACEHOLDER FOR PERMANENT BUFF
+        # 3) ONLINE BOOTCAMP – PERMA BUFF
         elif choice == "3":
             self.stats.increment_stats_value_money(-50000)
             print(

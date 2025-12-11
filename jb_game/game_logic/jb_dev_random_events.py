@@ -41,7 +41,6 @@ class RandomEvents:
               "\n2. [GAIN RANDOM AMOUNT OF CODING SKILLS] STAY AT HOME AND CODE."
               "\n\nWHAT IS YOUR DECISION?: ")
 
-        # REFACTOR: One line decision
         select_choice = Decision.ask(('1', '2'))
 
         if select_choice == "1":
@@ -102,16 +101,16 @@ class RandomEvents:
             input("\n'No...I don't want to contribute'"
                   "\nShe pauses, her mouth opens, she stares at you. You always thought that she is around her 40s, "
                   "\nBut as she started to glare at you without saying anything for few seconds, you think she "
-                  "\nlooks more close to her 70s. "
+                  "\nlooks more close to her 70s.\n "
                   "\nYou don't react and hold your cold hearted expression towards her, "
                   "\nnot breaking the contact with her even for a mere second."
                   "\nAfter that short moment, that felt to you like eternity. She puts her hands on her hips, and tilts "
-                  "\nher head slightly towards, after which she says with a motherly tone 'JB...'"
+                  "\nher head slightly towards, after which she says with a motherly tone 'JB...\n'"
                   "\nAfter that, another moment of silence occurs, you respond only by staring directly into her soul. "
                   "\nSuddenly, she recognises, that something is really wrong with you."
                   "\nYou are no longer taking anything from anyone. "
                   "\nIn a last ditch attempt, she says that 'it's not really nice from you'."
-                  "\nYou pause for a while and reply 'could say the same about that cheap perfume on you'. "
+                  "\nYou pause for a while and reply 'could say the same about that cheap perfume on you'.\n"
                   "\nAfter that she finally lets you be, as she retreats to her work."
                   "\n'Fuck them all...' you think for yourself."
                   "\n[OUTCOME]: +10 PCR HATRED."
@@ -338,7 +337,7 @@ class RandomEvents:
                   "\nSomething inside you just… snaps, but in a quiet way. Not dramatic. Just final."
                   "\n'No. I’m done for today,' you say. 'If there’s a penalty, I’ll pay it.'"
                   "\nYour boss stares at you, surprised. He expected begging, excuses, submissive guilt."
-                  "\nInstead, he gets a calm, dead stare."
+                  "\nInstead, he gets a calm, dead stare.\n"
                   "\nHe exhales through his nose, annoyed. 'Fine. I warned you. You’ll deal with the consequences.'"
                   "\nYou shrug. There’s nothing left to say."
                   "\nYou walk past the day shift, past their jokes and their fresh faces, like a ghost leaving a party "
@@ -436,109 +435,70 @@ class RandomEvents:
                   f"\n\n[OUTCOME]: CODING SKILLS +10."
                   "\n\n(CONTINUE...)")
 
-
     @staticmethod
     def random_event_nightmare_wolf(stats: JBStats) -> None:
-        """Nightmare event about accident, bodies and wolf-like husky. Increases PCR hatred."""
+        """
+        Nightmare event based on a real dream.
+        Refactored to be shorter, punchier, and focused on dissociation/gaslighting.
+        """
         input("\nRANDOM EVENT!"
               "\n\n(CONTINUE...)")
-        print("\nIt begins like any other day.")
-        print("\nThe morning air is cold. You rub your eyes, step outside, and feel that quiet village numbness "
-              "that always hits before a long shift. You get into the patrol car with your colleague, "
-              "engine humming like an old animal trying to wake up.")
-        print("\nDispatch calls you in that monotone voice you’ve heard thousands of times:")
-        print("\n'Unit 715, proceed to the nearby village. Possible accident.'")
-        input("\n(PRESS ANY KEY TO CONTINUE...)")
 
-        print("\nYou nod. Nothing unusual. Routine. Another pointless call.")
-        print("You drive.")
-        print("\nThe early light cuts through the trees like thin blades. Birds. Road. Silence. Everything is normal.")
-        input("\n(PRESS ANY KEY TO CONTINUE...)")
+        print("\n04:00 AM. You are on patrol. The world is grey and cold.")
+        print("Dispatch sends you to an accident nearby. Routine procedure.")
+        print("Your colleague drives. He doesn't say a word.")
 
-        print("\nUntil it isn’t.")
-        print("\nAs you approach the village, you see one ambulance… then two… then a third… "
-              "and something else — a massive emergency truck, one of those that only come out when something "
-              "catastrophic happens.")
-        print("\nYour colleague mutters: 'Jesus… what the hell happened here?'")
-        print("You don’t answer.")
-        input("\n(PRESS ANY KEY TO CONTINUE...)")
+        input("\n(PRESS ENTER)")
 
-        print("\nYou don’t need to — because you already saw it.")
-        print("Next to the road, lined up like a nightmare parade, are body bags.")
-        print("Small ones. Tiny ones.")
-        print("\nYou try not to look but your eyes betray you. The bags move slightly — or maybe it’s just the wind — "
-              "but it looks like something inside is waving at you, like little limbs pressing against the fabric, "
-              "reaching out, trying to escape or ask for help you can’t give.")
-        print("\nA paramedic walks past with dead eyes and says nothing. "
-              "He knows you saw. You know he won’t explain.")
-        input("\n(PRESS ANY KEY TO CONTINUE...)")
+        print("\nArrival. There are too many flashing lights for a simple crash.")
+        print("You see the body bags lined up on the wet asphalt. Small ones.")
+        print("\nYou look away, but you swear one of the bags moves.")
+        print("Just a twitch. A hand pressing against the black plastic.")
+        print("You look at the paramedic. He lights a cigarette and looks right through you.")
+        print("You get back in the car. We are leaving.")
 
-        print("\nYou swallow hard and drive back to the station in silence.")
-        print("\nWhen you enter the station, fluorescent lights hit your skull like a hammer.")
-        print("You see her.")
-        print("\nA woman sitting at the far wall — long black hair, hands on her lap, calm face.")
-        print("You recognize her instantly.")
-        print("\nYou saw her photo last week. International search. Killed her husband. Ran away. Extremely dangerous.")
-        print("You blink and she’s still there.")
-        input("\n(PRESS ANY KEY TO CONTINUE...)")
+        input("\n(PRESS ENTER)")
 
-        print("\nYou tell your colleagues immediately:")
-        print("'She’s here. That woman. The murderer. She’s right there.'")
-        print("\nThey stare at you.")
-        print("Then they laugh. Hard.")
-        print("\n'Bro, what the fuck are you talking about?'")
-        print("'Are you delusional?'")
-        print("'Jesus JB, go get some sleep.'")
-        print("\nYou point at the wall. She’s still sitting there. Looking at you.")
-        input("\n(PRESS ANY KEY TO CONTINUE...)")
+        print("\nBack at the station. You walk into the main room.")
+        print("She is sitting there.")
+        print("\nThe woman from the briefing. The murderer. Black hair, calm hands.")
+        print("She is sitting on the bench, un-cuffed, watching you.")
 
-        print("\nYour colleagues slap your shoulder, laughing harder, telling you to stop making things up.")
-        print("One of them taps your temple: 'Anyone home? Hello? Wake up.'")
-        print("\nYou look back at the window.")
-        print("There’s a giant dog outside. A wolf. No — a husky, but enormous, muscular, glowing eyes staring "
-              "directly at you as if it has been waiting all night.")
-        print("\nYou freeze.")
-        print("'Guys… look outside. Look at the window.'")
-        input("\n(PRESS ANY KEY TO CONTINUE...)")
+        print("\n'That's her,' you whisper. 'That's the fugitive.'")
+        print("\nYour colleagues stop drinking coffee. They look at you, then at the empty bench.")
+        print("Then they start laughing.")
+        print("'JB, you look like hell. Go wash your face.'")
 
-        print("\nYour colleague smacks the back of your head.")
-        print("'Enough. You’re losing it.'")
-        print("\nBefore you can respond, he grabs your arms, twists them behind the chair, and ties you to it.")
-        print("Another puts tape across your mouth. They don’t even hide the contempt on their faces — "
-              "disappointment, disgust, tired amusement.")
-        print("\nThree of them stand in front of you. Silent. Arms crossed. "
-              "Looking at you as if you don’t belong here. As if you never did.")
-        print("Their eyes say: you are the problem.")
-        input("\n(PRESS ANY KEY TO CONTINUE...)")
+        input("\n(PRESS ENTER)")
 
-        print("\nYou breathe fast. You try to talk through the tape but only muffled sounds escape.")
-        print("You look back at the window.")
-        print("\nThe husky is gone.")
-        print("No… No, it’s not.")
-        print("\nThe glass fractures. A spiderweb crack spreads across the window.")
-        print("\nThen— BOOM.")
-        print("The creature bursts through the glass with the force of a grenade, shards raining everywhere.")
-        print("\nBefore anyone can even reach for their gun, the wolf is already on top of the first officer, "
-              "its jaws tearing into his throat. Blood sprays across the wall.")
-        print("The second officer barely raises his arm before the animal leaps again, ripping him open like paper.")
-        print("The third doesn’t even get a scream out.")
-        print("\nIt is over in seconds.")
-        input("\n(PRESS ANY KEY TO CONTINUE...)")
+        print("\nYou point at the window. 'LOOK.'")
+        print("Standing outside, pressing its nose against the glass, is a Husky.")
+        print("But it's wrong. It's too big. It's staring directly at you.")
 
-        print("\nThe room is silent except for your ragged breathing and the sound of your heart pounding "
-              "so violently it hurts.")
-        print("\nThe wolf turns toward you. Slowly. Deliberately.")
-        print("It steps closer, each footstep heavy as thunder. Its eyes burn into yours.")
-        print("It leans forward. You feel its breath on your face. Hot. Slow. Alive.")
-        print("\nAs it gathers strength to leap at you—")
-        input("\n(PRESS ANY KEY TO CONTINUE...)")
+        print("\n'Enough,' your colleague says. His voice is dead serious.")
+        print("Before you can react, they grab you.")
+        print("You struggle, but they force you into a chair. Duct tape over your mouth.")
+        print("They aren't angry. They look... bored. Disappointed.")
+
+        input("\n(PRESS ENTER)")
+
+        print("\nYou try to scream through the tape.")
+        print("CRASH.")
+        print("The window shatters. The Husky is inside.")
+        print("\nIt doesn't bark. It just tears the first officer's throat out.")
+        print("Blood sprays on the wall. The others don't even reach for their guns.")
+        print("They just stand there and die.")
+
+        print("\nThe Wolf turns to you. It walks over the bodies. It puts its face right next to yours.")
+        print("You can smell its breath. Hot. Metallic.")
+
+        input("\n(PRESS ENTER)")
 
         print("\nYou wake up.")
-        print("Drenched in sweat. Heart racing. Sheets twisted around you like restraints. Room spinning. Mouth dry.")
-        print("\nYou sit up, hands trembling. The dream felt real. Too real.")
-        print("You whisper to yourself the only thing that comes out:")
-        print("\n'I have to get out.'")
+        print("You are tangled in your sheets, soaking wet. Your heart is hammering against your ribs.")
+        print("The room is silent. But you can still feel the phantom pressure of the tape on your mouth.")
+
         stats.increment_stats_pcr_hatred(20)
-        input("\n[OUTCOME]: PCR HATRED +20."
+        input("\n[OUTCOME]: PCR HATRED +20 (Night terror)."
               "\n\n(CONTINUE...)")
 
