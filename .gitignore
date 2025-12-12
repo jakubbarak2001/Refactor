@@ -1,0 +1,14 @@
+# --- Python & PyCharm ---
+__pycache__/
+*.py[cod]
+.venv/
+.idea/
+
+# --- PyInstaller ---
+build/
+dist/
+*.spec
+
+# --- OS Junk ---
+.DS_Store
+Thumbs.db

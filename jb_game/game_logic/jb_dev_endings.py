@@ -41,6 +41,7 @@ class GameEndings:
         GameEndings._slow_print("You lost your badge. You lost your gun. But finally... there is silence.")
 
         GameEndings._slow_print(f"\n{red}[BAD ENDING: INSTITUTIONALISED]{reset}")
+        input("Try again?")
         sys.exit()
 
     @staticmethod
@@ -61,4 +62,5 @@ class GameEndings:
         GameEndings._slow_print("You cannot code on paper crates in the snow.")
 
         GameEndings._slow_print(f"\n{red}[BAD ENDING: THE STREETS]{reset}")
+        input("Try again?")
         sys.exit()
