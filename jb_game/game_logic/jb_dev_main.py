@@ -1,8 +1,8 @@
 from jb_game.game_logic.jb_dev_car_incident_event import CarIncident
 from jb_game.game_logic.jb_dev_random_events import RandomEvents
 from jb_game.game_logic.jb_dev_stats import JBStats
-from jb_dev_day_cycle import DayCycle
-from jb_dev_game import Game
+from jb_game.game_logic.jb_dev_day_cycle import DayCycle
+from jb_game.game_logic.jb_dev_game import Game
 from jb_game.game_logic.jb_dev_story import Story
 
 
@@ -20,7 +20,6 @@ def main():
     CarIncident.car_incident_event(stats)
 
     game.main_menu()
-
 
 if __name__ == "__main__":
     main()
