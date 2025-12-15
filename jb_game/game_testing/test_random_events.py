@@ -22,6 +22,7 @@ def stats():
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
 @patch('jb_game.game_logic.jb_dev_random_events.randint')
 def test_event_overtime_take_money(mock_randint, mock_decision, _, events, stats):
+    """Accept the overtime and receive money."""
     # Note the '_' above. It replaces 'mock_input'
     mock_decision.return_value = '1'
     mock_randint.return_value = 5000
@@ -33,6 +34,7 @@ def test_event_overtime_take_money(mock_randint, mock_decision, _, events, stats
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
 @patch('jb_game.game_logic.jb_dev_random_events.randint')
 def test_event_overtime_study_python(mock_randint, mock_decision, _, events, stats):
+    """Decline the offer and code at home instead."""
     mock_decision.return_value = '2'
     mock_randint.return_value = 20
     events.overtime_offer(stats)
@@ -46,6 +48,7 @@ def test_event_overtime_study_python(mock_randint, mock_decision, _, events, sta
 @patch('builtins.input')
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
 def test_event_birthday_pay(mock_decision, _, events, stats):
+    """Pay for the B-day present, loose money."""
     mock_decision.return_value = '1'
     events.birthday_gift(stats)
     assert stats.available_money == 9000
@@ -55,6 +58,7 @@ def test_event_birthday_pay(mock_decision, _, events, stats):
 @patch('builtins.input')
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
 def test_event_birthday_refuse(mock_decision, _, events, stats):
+    """Don't pay for the present, gain hatred."""
     mock_decision.return_value = '2'
     events.birthday_gift(stats)
     assert stats.pcr_hatred == 15
@@ -93,6 +97,7 @@ def test_event_small_talk_vent_fail(mock_randint, mock_decision, _, events, stat
 @patch('builtins.input')
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
 def test_event_small_talk_keep_inside(mock_decision, _, events, stats):
+    """Keep your hate inside and say nothing."""
     mock_decision.return_value = '2'
     events.civilian_small_talk(stats)
     assert stats.pcr_hatred == 10
@@ -106,11 +111,10 @@ def test_event_small_talk_keep_inside(mock_decision, _, events, stats):
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
 @patch('jb_game.game_logic.jb_dev_random_events.randint')
 def test_event_corpse_refuse_success(mock_randint, mock_decision, _, events, stats):
+    """Refuse to grab the corpse and succeed."""
     mock_decision.return_value = '1'
     mock_randint.return_value = 20
     events.corpse_in_care_home(stats)
-    # Based on code logic: Prints "0 PCR HATRED" but does not subtract existing.
-    # If stats started at 0, adding +10 for entering room means result is 10.
     assert stats.pcr_hatred == 10
 
 
@@ -118,10 +122,10 @@ def test_event_corpse_refuse_success(mock_randint, mock_decision, _, events, sta
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
 @patch('jb_game.game_logic.jb_dev_random_events.randint')
 def test_event_corpse_drag_disaster(mock_randint, mock_decision, _, events, stats):
+    """You grab the corpse and the corpse spills."""
     mock_decision.return_value = '2'
     mock_randint.return_value = 3
     events.corpse_in_care_home(stats)
-    # Enter room (+10) + Disaster (+30) = 40
     assert stats.pcr_hatred == 40
 
 
@@ -129,13 +133,12 @@ def test_event_corpse_drag_disaster(mock_randint, mock_decision, _, events, stat
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
 @patch('jb_game.game_logic.jb_dev_random_events.randint')
 def test_event_corpse_refuse_fail_then_ok(mock_randint, mock_decision, _, events, stats):
+    """Refuse to grab the corpse, but it doesn't spill."""
     mock_decision.return_value = '1'
-    # side_effect: First roll=80 (Refuse Fail), Second roll=90 (Drag Safe)
     mock_randint.side_effect = [80, 90]
 
     events.corpse_in_care_home(stats)
-    # Enter (+10) + Fail Refuse (+5) + Drag Safe (+20) = 35
-    assert stats.pcr_hatred == 35
+    assert stats.pcr_hatred == 30
 
 
 # ==========================================
@@ -145,6 +148,7 @@ def test_event_corpse_refuse_fail_then_ok(mock_randint, mock_decision, _, events
 @patch('builtins.input')
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
 def test_event_admin_mistake_leave(mock_decision, _, events, stats):
+    """You leave and loose money and loose hatred."""
     mock_decision.return_value = '1'
     stats.pcr_hatred = 20
     events.admin_mistake_after_shift(stats)
@@ -155,6 +159,7 @@ def test_event_admin_mistake_leave(mock_decision, _, events, stats):
 @patch('builtins.input')
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
 def test_event_admin_mistake_stay(mock_decision, _, events, stats):
+    """You stay and fix your mistake."""
     mock_decision.return_value = '2'
     events.admin_mistake_after_shift(stats)
     assert stats.pcr_hatred == 20
@@ -167,6 +172,7 @@ def test_event_admin_mistake_stay(mock_decision, _, events, stats):
 @patch('builtins.input')
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
 def test_event_dev_low_skill(mock_decision, _, events, stats):
+    """You meet the israeli dev, but you have low skill."""
     stats.coding_experience = 10
     mock_decision.return_value = '2'
     events.israeli_developer(stats)
@@ -176,6 +182,7 @@ def test_event_dev_low_skill(mock_decision, _, events, stats):
 @patch('builtins.input')
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
 def test_event_dev_high_skill_success(mock_decision, _, events, stats):
+    """You meet the dev, and you pass the skill check."""
     stats.coding_experience = 60
     mock_decision.return_value = '1'
     events.israeli_developer(stats)
@@ -188,7 +195,7 @@ def test_event_dev_high_skill_success(mock_decision, _, events, stats):
 
 @patch('builtins.input')
 def test_event_nightmare_wolf(_, events, stats):
-    # Only patched 'input', so only one '_' needed
+    """Test if the nightmare gives +10 pcr hatred"""
     events.nightmare_wolf(stats)
     assert stats.pcr_hatred == 10
 
@@ -200,20 +207,20 @@ def test_event_nightmare_wolf(_, events, stats):
 @patch('builtins.input')
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
 def test_event_citizen_ignore(mock_decision, _, events, stats):
-    """Scenario: Ignore the sovereign citizen (Choice 1)."""
+    """Tests if ignoring him gives you pcr hatred"""
     mock_decision.return_value = '1'
     events.citizen_of_czechoslovakia(stats)
-    assert stats.pcr_hatred == 15  # +15 Humiliation
+    assert stats.pcr_hatred == 15
 
 
 @patch('builtins.input')
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
 def test_event_citizen_arrest(mock_decision, _, events, stats):
-    """Scenario: Arrest him (Choice 2)."""
+    """Tests if arresting him fines you and gives you hatred."""
     mock_decision.return_value = '2'
     events.citizen_of_czechoslovakia(stats)
-    assert stats.pcr_hatred == 5  # +5 (Silenced him)
-    assert stats.available_money == 9000  # 10k - 1000 Fine
+    assert stats.pcr_hatred == 5
+    assert stats.available_money == 9000
 
 
 # ==========================================
@@ -224,13 +231,13 @@ def test_event_citizen_arrest(mock_decision, _, events, stats):
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
 @patch('jb_game.game_logic.jb_dev_random_events.randint')
 def test_event_printer_fix_success(mock_randint, mock_decision, _, events, stats):
-    """Scenario: Fix printer (Choice 1) -> Success (Roll <= Skill*2)."""
-    stats.coding_experience = 30  # 30 * 2 = 60% chance
+    """Tests fix printer (Choice 1) -> Success (Roll <= Skill*2)."""
+    stats.coding_experience = 30
     mock_decision.return_value = '1'
-    mock_randint.return_value = 50  # Success (< 60)
+    mock_randint.return_value = 50
 
     events.printer_incident(stats)
-    assert stats.coding_experience == 40  # 30 + 10
+    assert stats.coding_experience == 40
 
 
 @patch('builtins.input')
@@ -238,12 +245,12 @@ def test_event_printer_fix_success(mock_randint, mock_decision, _, events, stats
 @patch('jb_game.game_logic.jb_dev_random_events.randint')
 def test_event_printer_fix_fail(mock_randint, mock_decision, _, events, stats):
     """Scenario: Fix printer (Choice 1) -> Failure."""
-    stats.coding_experience = 10  # 20% chance
+    stats.coding_experience = 10
     mock_decision.return_value = '1'
-    mock_randint.return_value = 80  # Fail
+    mock_randint.return_value = 80
 
     events.printer_incident(stats)
-    assert stats.available_money == 8000  # 10k - 2k
+    assert stats.available_money == 8000
     assert stats.pcr_hatred == 15
 
 
@@ -299,7 +306,7 @@ def test_event_usb_risk_fail(mock_randint, mock_decision, _, events, stats):
     stats.coding_experience = 50
 
     events.forgotten_usb(stats)
-    assert stats.coding_experience == 25  # 50 - 25
+    assert stats.coding_experience == 25
 
 
 @patch('builtins.input')
@@ -311,7 +318,7 @@ def test_event_usb_risk_success(mock_randint, mock_decision, _, events, stats):
     mock_randint.return_value = 90
 
     events.forgotten_usb(stats)
-    assert stats.available_money == 35000  # 10k + 25k
+    assert stats.available_money == 35000
 
 
 # ==========================================
@@ -320,10 +327,12 @@ def test_event_usb_risk_success(mock_randint, mock_decision, _, events, stats):
 
 @patch('builtins.input')
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
-def test_event_turkish_success(mock_decision, _, events, stats):
-    """Scenario: Track scammer (Choice 1) with High Skill (>= 75)."""
+@patch('jb_game.game_logic.jb_dev_random_events.randint')
+def test_event_turkish_success(mock_randint, mock_decision, _, events, stats):
+    """Scenario: Track scammer (Choice 1), win the roll."""
     mock_decision.return_value = '1'
-    stats.coding_experience = 80
+    mock_randint.return_value = 50
+    stats.coding_experience = 40
 
     events.turkish_fraud(stats)
     assert stats.daily_btc_income == 5000
@@ -332,14 +341,18 @@ def test_event_turkish_success(mock_decision, _, events, stats):
 
 @patch('builtins.input')
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
-def test_event_turkish_fail(mock_decision, _, events, stats):
-    """Scenario: Track scammer (Choice 1) with Low Skill (< 75)."""
+@patch('jb_game.game_logic.jb_dev_random_events.randint')
+def test_event_turkish_fail(mock_randint, mock_decision, _, events, stats):
+    """Scenario: Track scammer (Choice 1), loose the roll"""
     mock_decision.return_value = '1'
-    stats.coding_experience = 50
+    mock_randint.return_value = 100
+    stats.coding_experience = 20
 
     events.turkish_fraud(stats)
     assert stats.daily_btc_income == 0
     assert stats.pcr_hatred == 10
+    assert stats.available_money == 7500
+    assert stats.coding_experience == 10
 
 
 # ==========================================
@@ -373,22 +386,55 @@ def test_event_dispatch_fix_fail(mock_decision, _, events, stats):
 # 14. TECH BRO SPEEDING
 # ==========================================
 
+@patch('jb_game.game_logic.jb_dev_random_events.randint')
 @patch('builtins.input')
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
-def test_event_tech_bro_ticket(mock_decision, _, events, stats):
-    """Scenario: Ticket him (Choice 1)."""
+def test_event_tech_bro_coding_success(mock_decision, _, mock_randint, events, stats):
+    """
+    Scenario: User chooses Coding (1).
+    Calculation: XP 35 -> (35*100)//70 = 50% chance.
+    Roll: 40 (Success because 50 >= 40).
+    """
     mock_decision.return_value = '1'
+    stats.coding_experience = 35
+    mock_randint.return_value = 40
+
     events.tech_bro_speeding(stats)
-    assert stats.pcr_hatred == 15
+
+    assert stats.coding_experience == 50
+
+
+@patch('jb_game.game_logic.jb_dev_random_events.randint')
+@patch('builtins.input')
+@patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
+def test_event_tech_bro_coding_fail(mock_decision, _, mock_randint, events, stats):
+    """
+    Scenario: User chooses Coding (1).
+    Calculation: XP 35 -> 50% chance.
+    Roll: 60 (Failure because 50 < 60).
+    """
+    mock_decision.return_value = '1'
+    stats.coding_experience = 35
+    mock_randint.return_value = 60
+
+    events.tech_bro_speeding(stats)
+
+    assert stats.coding_experience == 30
+    assert stats.pcr_hatred == 5
 
 
 @patch('builtins.input')
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
-def test_event_tech_bro_network(mock_decision, _, events, stats):
-    """Scenario: Network with him (Choice 2)."""
+def test_event_tech_bro_duty(mock_decision, _, events, stats):
+    """
+    Scenario: User chooses Duty/Ticket (2).
+    Logic: Ignores skill check, just gives Hatred.
+    """
     mock_decision.return_value = '2'
+
     events.tech_bro_speeding(stats)
-    assert stats.coding_experience == 15  # +15
+
+    assert stats.pcr_hatred == 5
 
 
 # ==========================================

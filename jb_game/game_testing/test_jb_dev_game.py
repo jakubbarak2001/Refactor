@@ -55,16 +55,16 @@ def test_set_difficulty_insane(mock_input, game_setup):
 # ==========================================
 
 @patch('builtins.input')  # 2nd Argument (Top decorator) -> we use '_' to ignore it
-@patch('jb_game.game_logic.jb_dev_game.Decision.ask')  # 1st Argument (Bottom decorator)
+@patch('jb_game.game_logic.jb_dev_game.Decision.ask')
 def test_activity_python_bootcamp_purchase(mock_decision, _, game_setup):
     """Test if buying the bootcamp deducts money and sets the flag."""
     game, stats, _ = game_setup
-    stats.available_money = 60000
+    stats.available_money = 50000
     mock_decision.return_value = "3"
 
     game.activity_python()
 
-    assert stats.available_money == 10000
+    assert stats.available_money == 15000
     assert game.python_bootcamp is True
 
 
@@ -120,7 +120,7 @@ def test_activity_bouncer_strip_club_fail(mock_randint, mock_decision, _, game_s
     game, stats, _ = game_setup
 
     mock_decision.return_value = "2"
-    mock_randint.return_value = 100  # Disaster Roll
+    mock_randint.return_value = 100
 
     game.activity_bouncer()
 
@@ -169,38 +169,21 @@ def test_activity_gym_worst_outcome(mock_randint, mock_decision, _, game_setup):
 
 
 # ==========================================
-# 5. ACTIVITY: MEDITATE
+# 5. ACTIVITY: THERAPY
 # ==========================================
 
 @patch('builtins.input')
 @patch('jb_game.game_logic.jb_dev_game.Decision.ask')
-@patch('jb_game.game_logic.jb_dev_game.randint')
-def test_activity_meditate_standard(mock_randint, mock_decision, _, game_setup):
-    """Test standard meditation."""
+def test_activity_therapy_session(mock_decision, _, game_setup):
+    """Test therapy session."""
     game, stats, _ = game_setup
 
     mock_decision.return_value = "1"
-    mock_randint.return_value = 5  # Roll <= 9
 
-    game.activity_meditate()
+    game.activity_therapy()
 
-    # Note: Code says increment -15, even if print says -5. We test the Code.
-    assert stats.pcr_hatred == -15
-
-
-@patch('builtins.input')
-@patch('jb_game.game_logic.jb_dev_game.Decision.ask')
-@patch('jb_game.game_logic.jb_dev_game.randint')
-def test_activity_meditate_critical_success(mock_randint, mock_decision, _, game_setup):
-    """Test critical meditation success (Roll 10)."""
-    game, stats, _ = game_setup
-
-    mock_decision.return_value = "1"
-    mock_randint.return_value = 10
-
-    game.activity_meditate()
-
-    assert stats.pcr_hatred == -35
+    assert stats.pcr_hatred == -25
+    assert stats.available_money == 8500
 
 
 # ==========================================
