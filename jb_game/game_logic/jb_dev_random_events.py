@@ -31,13 +31,13 @@ class RandomEvents:
         Returns True if an event ran, False if the list was empty.
         """
         if not self.random_events_list:
-            return False  # <--- List is empty, tell the Game class nothing happened!
+            return False
 
         else:
             random_event_selection = choice(self.random_events_list)
             self.random_events_list.remove(random_event_selection)
             random_event_selection(stats)
-            return True  # <--- Event successfully ran
+            return True
 
     @staticmethod
     def overtime_offer(stats: JBStats) -> None:
@@ -47,7 +47,7 @@ class RandomEvents:
         print("\nYour boss calls you very early in the morning, he says he needs you to "
               "\narrive at the police station urgently.\nBoth of your colleagues who were supposed to work today "
               "suddenly became sick.\nYou would get extra money for this overtime.\nOn the other hand, you "
-              "don't have to accept this and perhaps you could use the time to code at home."
+              "don't have to accept this and perhaps the time would be better used, if you were to code at home."
               "\n\nYou have the following options:"
               "\n1. [GAIN RANDOM AMOUNT OF MONEY] DO OVERTIME."
               "\n2. [GAIN RANDOM AMOUNT OF CODING SKILLS] STAY AT HOME AND CODE."
@@ -58,8 +58,8 @@ class RandomEvents:
         if select_choice == "1":
             random_event_chance_roll = randint(3500, 12500)
             stats.increment_stats_value_money(random_event_chance_roll)
-            input("\nYou've reluctantly agreed to the overtime, at least the shift was calm."
-                  "\nThe money is nice, but don't forget that your mission is to leave this job."
+            input("\nYou've agreed to the overtime, at least the shift was calm."
+                  "\nThe money is nice, but don't forget that your mission is to leave this job once and for all."
                   f"\n[OUTCOME]: +{random_event_chance_roll} MONEY."
                   "\n\n(CONTINUE...)")
 
@@ -67,8 +67,7 @@ class RandomEvents:
             random_event_chance_roll = randint(15, 40)
             stats.increment_stats_coding_skill(random_event_chance_roll)
             input("\nAlthough your boss wasn't happy with your decision, you've decided to stay at home"
-                  "\nand to use your time for studying Python. In the end you've earned a great deal of knowledge, "
-                  "so this was indeed worth the time."
+                  "\nand to use your time for studying Python. \nIn the end you've earned a great deal of knowledge."
                   f"\n[OUTCOME]: +{random_event_chance_roll} CODING SKILLS."
                   "\n\n(CONTINUE...)")
 
@@ -84,22 +83,21 @@ class RandomEvents:
               "\nstill at the ceiling. Until your middle-aged secretary arrives, she puts her fake smile on, "
               "\nThe one, even tiny children would see through. "
               "\nYou put on your mask again and force a smile on your face, with utter joy, she announces "
-              "\nthat two of your colleagues you really don't give a shit about are celebrating their "
+              "\nthat two of your colleagues you don't give a damm about are celebrating their "
               "\nbirthdays this week and asks you, if you want to contribute to their gifts."
-              "\nYou pause for a moment and think for yourself - 'no I don't give a damm about those two retards' "
-              "\nbut if I won't give anything to them, they will hate me here even more. "
-              "\nWhat shall I do..."
+              "\nYou pause for a moment and think for yourself - 'Why should I contribute? I am gonna quit anyway... "
+              "\nbut if I won't give anything to them, they will hate me here even more.' "
+              "\n\nWhat shall I do..."
               "\n1. [-1000,- CZK, PCR HATRED +5] PAY FOR THE GIFTS."
               "\n2. [PCR HATRED + 10] DON't PAY ANYTHING."
               "\n\nWHAT IS YOUR DECISION?: ")
 
-        # REFACTOR: One line decision
         select_choice = Decision.ask(('1', '2'))
 
         if select_choice == "1":
             stats.increment_stats_pcr_hatred(5)
             stats.increment_stats_value_money(-1000)
-            input("\n'Sure, buy them something nice'. "
+            input("\n'Sure, buy them something nice.' "
                   "\nYou don't even look in her eyes as you torment yourself with those words you've just said."
                   "\nShe is satisfied, but you are still obliged to to listen to her rantings\nand about "
                   "her children for another 15 minutes, after that, she finally leaves."
@@ -117,12 +115,12 @@ class RandomEvents:
                   "\nYou don't react and hold your cold hearted expression towards her, "
                   "\nnot breaking the contact with her even for a mere second."
                   "\nAfter that short moment, that felt to you like eternity. She puts her hands on her hips, and tilts "
-                  "\nher head slightly towards, after which she says with a motherly tone 'JB...'\n"
+                  "\nher head slightly towards, after which she says with a imitation of motherly tone '...JB...'\n"
                   "\nAfter that, another moment of silence occurs, you respond only by staring directly into her soul. "
                   "\nSuddenly, she recognises, that something is really wrong with you."
                   "\nYou are no longer taking anything from anyone. "
                   "\nIn a last ditch attempt, she says that 'it's not really nice from you'."
-                  "\nYou pause for a while and reply 'could say the same about that cheap perfume on you'.\n"
+                  "\n'I don't care'\n"
                   "\nAfter that she finally lets you be, as she retreats to her work."
                   "\n'Fuck them all...' you think for yourself."
                   "\n[OUTCOME]: +10 PCR HATRED."
@@ -152,7 +150,7 @@ class RandomEvents:
               "\nOr you can put your mask back on and say the neutral PR answer you've said a hundred times before."
               "\n\nYou have the following options:"
               "\n1. [80/20%] VENT OUT AND TELL HIM THE TRUTH."
-              "\n2. [PCR HATRED +10] KEEP IT INSIDE AND SAY GENERAL INFORMATION."
+              "\n2. [SAFE OPTION] KEEP IT INSIDE AND SAY GENERAL INFORMATION."
               "\n\nWHAT IS YOUR DECISION?: ")
 
         # REFACTOR: One line decision
@@ -185,7 +183,7 @@ class RandomEvents:
                       "\nYou describe the leadership that moves only when someone up there needs a good photo for the news."
                       "\nThe old man listens, nods, pretends he understands."
                       "\n\nThe next day, your boss calls you in. On his desk lies a phone, screen turned towards you."
-                      "\nYou see yourself on video, hear your own voice verbatim describing your 'dream job'."
+                      "\nYou see yourself on video, hear your own voice describing your 'dream job'."
                       "\nThe old man sent the recording to the city hall, 'out of concern for the state of the police'."
                       "\nYou listen to every sentence you said, but this time as evidence."
                       "\nBy the end of the week, you receive a written reprimand and a nice little financial penalty."
@@ -206,7 +204,7 @@ class RandomEvents:
                   f"\n\n[OUTCOME]: PCR HATRED +10."
                   "\n\n(CONTINUE...)")
 
-    @staticmethod
+    @staticmethod #ADD FLY BUZZING SOUND
     def corpse_in_care_home(stats: JBStats) -> None:
         """Event involving a decomposing corpse found in a care home."""
         input("\nRANDOM EVENT!"
@@ -254,12 +252,11 @@ class RandomEvents:
                       "\n'Fine… I'll get someone else. Just… wait outside.'"
                       "\nYou step back into the hallway, leaning against the peeling wall, "
                       "breathing through your mouth until your lungs stop screaming."
-                      f"\n\n[OUTCOME]: 0 PCR HATRED (you avoid dragging him)."
+                      f"\n\n[OUTCOME]: you avoid dragging it..."
                       "\n\n(CONTINUE...)")
                 return
 
             else:
-                # 80% failure → extra hatred + forced to drag anyway
                 stats.increment_stats_pcr_hatred(5)
                 input("\nYou take a step back and shake your head again. "
                       "'No, seriously. I can’t do this. I can't handle this one.'"
@@ -282,7 +279,6 @@ class RandomEvents:
 
         if drag_roll <= 5:
             stats.increment_stats_pcr_hatred(30)
-            stats.increment_stats_pcr_hatred_daily_debuff = 5  # trauma placeholder
             input("\nYou lift him and the worst happens. A wet tearing sound."
                   "\nHis abdomen ruptures. Warm, thick fluids splash over your shoes and pants."
                   "\nThe smell becomes a physical force pressing on your lungs."
@@ -290,25 +286,25 @@ class RandomEvents:
                   "Your brain shuts down in self-defense."
                   "\nYour colleague coughs a laugh: 'Yep… seen that before.'"
                   "\nYou stare at the mess on your shoes, unable to move."
-                  f"\n\n[OUTCOME]: +30 PCR HATRED, TRAUMA DEBUFF (+5 PCR DAILY)."
+                  f"\n\nFUCK!!! FUCK!!! FUCK!!! FUCK!!! +30 PCR HATRED."
                   "\n\n(CONTINUE...)")
             return
 
         elif drag_roll <= 80:
-            stats.increment_stats_pcr_hatred(20)
+            stats.increment_stats_pcr_hatred(15)
             input("\nYou and the team lift him. He’s heavy — unbelievably heavy — "
                   "but he doesn’t rupture."
                   "\nThe smell, the warmth, the texture of the room… it will stay in your mind forever."
                   "\nBut at least nothing spilled."
-                  f"\n\n[OUTCOME]: +20 PCR HATRED."
+                  f"\n\n[OUTCOME]: +15 PCR HATRED."
                   "\n\n(CONTINUE...)")
             return
 
         else:
-            stats.increment_stats_pcr_hatred(20)
+            stats.increment_stats_pcr_hatred(15)
             input("\nYou lift him carefully. Everything stays intact. "
                   "Still a nightmare — but survivable."
-                  f"\n\n[OUTCOME]: +20 PCR HATRED."
+                  f"\n\n[OUTCOME]: +15 PCR HATRED."
                   "\n\n(CONTINUE...)")
 
     @staticmethod
@@ -339,7 +335,6 @@ class RandomEvents:
               "\n2. [PCR HATRED +20] STAY, FIX THE MISTAKE AND DESTROY WHAT’S LEFT OF YOUR SOUL."
               "\n\nWHAT IS YOUR DECISION?: ")
 
-        # REFACTOR: One line decision
         select_choice = Decision.ask(('1', '2'))
 
         if select_choice == "1":
@@ -401,23 +396,20 @@ class RandomEvents:
         print("\nHe looks at you with a sharp, analyzing gaze, ignoring your uniform entirely."
               "\n'You have intelligent eyes. You are not just a traffic cone stand. Tell me... do you write code?'")
 
-        # LOGIC: Check if player qualifies
-        can_code = stats.coding_experience > 50
+        can_code = stats.coding_experience >= 35
 
-        # Display options based on skill
         if can_code:
-            print("\n1. [SKILL CHECK: PASSED] 'Actually, I am something of a developer myself.'")
+            print("\n1. [SKILL CHECK >= 35 CODING SKILL: PASSED] 'Actually, I am something of a developer myself.'")
             print("2. [IMPOSTER SYNDROME] Stay silent. 'Me? No. I just... work here.'")
             valid_options = ('1', '2')
         else:
-            print(f"\n1. [LOCKED - REQUIRES 51 CODING SKILL] (Current: {stats.coding_experience})")
+            print(f"\n1. [SKILL CHECK >= 35 CODING SKILL: LOCKED] (Current: {stats.coding_experience})")
             print("2. 'Me? No. I just... work here.'")
             valid_options = ('2',)
 
         print("\nWHAT IS YOUR DECISION?: ")
         select_choice = Decision.ask(valid_options)
 
-        # OPTION 1: THE DEVELOPER PATH
         if select_choice == "1":
             stats.increment_stats_coding_skill(30)  # High reward
             input("\nYou adjust your belt, look around to make sure your colleague isn't listening, and reply:"
@@ -432,7 +424,6 @@ class RandomEvents:
                   f"\n\n[OUTCOME]: CODING SKILLS +30."
                   "\n\n(CONTINUE...)")
 
-        # OPTION 2: THE IMPOSTER SYNDROME PATH
         elif select_choice == "2":
             stats.increment_stats_coding_skill(10)  # Small reward
             input("\nYou feel the words forming in your throat—'I study Python', 'I want to build apps'—but "
@@ -450,8 +441,7 @@ class RandomEvents:
     @staticmethod
     def nightmare_wolf(stats: JBStats) -> None:
         """
-        Nightmare event based on a real dream.
-        Refactored to be shorter, punchier, and focused on dissociation/gaslighting.
+        Nightmare event based on a dream.
         """
         input("\nRANDOM EVENT!"
               "\n\n(CONTINUE...)")
@@ -517,8 +507,7 @@ class RandomEvents:
     @staticmethod
     def citizen_of_czechoslovakia(stats: JBStats) -> None:
         """
-        Event 6: The 'Influencer' / Sovereign Citizen.
-        Flavor: Absurd bureaucracy meets YouTube harassment.
+        Sovereign citizen of Czechoslovakia / Influencer event.
         """
         input("\nRANDOM EVENT!"
               "\n\n(CONTINUE...)")
@@ -555,8 +544,7 @@ class RandomEvents:
     @staticmethod
     def printer_incident(stats: JBStats) -> None:
         """
-        Event 1: The Printer.
-        Mechanic: Coding Skill RNG Check (Skill * 2 = % Chance).
+        Printer event.
         """
         input("\nRANDOM EVENT!"
               "\n\n(CONTINUE...)")
@@ -601,8 +589,7 @@ class RandomEvents:
     @staticmethod
     def ethics_seminar(stats: JBStats) -> None:
         """
-        Event 2: Mandatory Ethics.
-        Mechanic: Pure RNG Risk/Reward.
+        Mandatory ethics seminar event.
         """
         input("\nRANDOM EVENT!"
               "\n\n(CONTINUE...)")
@@ -610,7 +597,7 @@ class RandomEvents:
         print("It's a 4-hour PowerPoint presentation in a non-ventilated room.")
         print("The lecturer is reading every single bullet point out loud.")
 
-        print("\n1. [RISK] Sleep in the back row (Recover mental health).")
+        print("\n1. [RISK] Sleep in the back row.")
         print("2. [SAFE] Listen and suffer.")
 
         select_choice = Decision.ask(('1', '2'))
@@ -641,8 +628,7 @@ class RandomEvents:
     @staticmethod
     def forgotten_usb(stats: JBStats) -> None:
         """
-        Event 21: The USB Stick.
-        Mechanic: Virus (-Skill) vs Crypto (+Money).
+        USB Stick event
         """
         input("\nRANDOM EVENT!"
               "\n\n(CONTINUE...)")
@@ -650,7 +636,7 @@ class RandomEvents:
         print("You feel a lump. It's a black USB drive with a taped label: 'DO NOT TOUCH'.")
         print("Curiosity kills the cat... but satisfaction brought it back.")
 
-        print("\n1. [RISK] Plug it into your personal laptop.")
+        print("\n1. [RISK] Plug it into your own personal laptop.")
         print("2. [SAFE] Don't touch it.")
 
         select_choice = Decision.ask(('1', '2'))
@@ -680,9 +666,13 @@ class RandomEvents:
     @staticmethod
     def turkish_fraud(stats: JBStats) -> None:
         """
-        NEW EVENT: Internet Fraud / Heritage.
-        Mechanic: Requires 75+ Coding to unlock Passive Income.
+        Internet Fraud / Heritage scam.
         """
+        success_chance = stats.coding_experience * 2
+        if success_chance >= 100:
+            success_chance = 100
+        roll = randint(1, 100)
+
         input("\nRANDOM EVENT!"
               "\n\n(CONTINUE...)")
         print("\nAn old man comes to the station, shaking and crying.")
@@ -693,7 +683,7 @@ class RandomEvents:
         print("But you look at the email headers the victim printed out.")
         print("You recognize the IP masking. It's lazy.")
 
-        print(f"\n[REQ: 75 CODING SKILL] Current Skill: {stats.coding_experience}")
+        print(f"\n[ROLL CHANCE: {success_chance}%] Current coding skill: {stats.coding_experience}")
 
         print("1. [CODING] Track the scammer and turn the tables.")
         print("2. [GENERIC] 'I'm sorry sir, the money is gone.'")
@@ -701,9 +691,8 @@ class RandomEvents:
         select_choice = Decision.ask(('1', '2'))
 
         if select_choice == "1":
-            if stats.coding_experience >= 75:
-                # SUCCESS
-                stats.daily_btc_income += 5000  # Add to stats object
+            if success_chance >= roll:
+                stats.daily_btc_income += 5000
                 stats.increment_stats_pcr_hatred(-20)
                 print("\nYou tell the old man to wait. You open your laptop.")
                 print("You trace the packet route, bypass their cheap VPN, and find their real server.")
@@ -711,15 +700,18 @@ class RandomEvents:
                 print(
                     "\nYou send them one email: 'I know who you are. Send me 5k CZK a day in BTC, or I send this to the Turkish police.'")
                 print("\nFive minutes later, your wallet pings.")
-                print("\n[CRITICAL SUCCESS]: You gained PASSIVE INCOME! (+5.000 CZK Daily).")
+                print("\n[SUCCESS]: You gained PASSIVE INCOME! (+5.000 CZK Daily), -20 PCR HATRED")
                 print("You tell the old man you'll 'look into it' and send him home.")
             else:
-                # FAILED SKILL CHECK
                 print("\nYou try to track them, but their encryption is too good.")
-                print("You just wasted an hour staring at a matrix screen.")
-                print("You have to tell the old man the truth.")
+                print("On top of that, the fraudster noticed you are trying to hack him,.")
+                print("So he returned the favor - he broke into your bank account and stole some of your money..")
+                print("This didn't went well.")
+                print("You have to tell the old man the truth that his money is lost - just as yours.")
                 stats.increment_stats_pcr_hatred(10)
-                print("\n[FAILURE]: +10 PCR HATRED.")
+                stats.increment_stats_value_money(-2500)
+                stats.increment_stats_coding_skill(-10)
+                print("\n[FAILURE]: +10 PCR HATRED. -10 CODING SKILLS, -2.500 CZK")
 
         elif select_choice == "2":
             stats.increment_stats_pcr_hatred(10)
@@ -732,8 +724,7 @@ class RandomEvents:
     @staticmethod
     def dispatch_blue_screen(stats: JBStats) -> None:
         """
-        Event: The Dispatch System Crash.
-        Theme: Chaos vs. Competence.
+        The Dispatch System Crash.
         """
         input("\nRANDOM EVENT!"
               "\n\n(CONTINUE...)")
@@ -778,36 +769,62 @@ class RandomEvents:
     @staticmethod
     def tech_bro_speeding(stats: JBStats) -> None:
         """
-        Event: The Porsche Taycan Driver.
-        Theme: Networking opportunity vs. Ego.
+        Event: The Arch User & The Regex.
         """
+        success_chance = (stats.coding_experience * 100) // 70
+
+        if success_chance >= 100:
+            success_chance = 100
+
+        roll = randint(1, 100)
+
         input("\nRANDOM EVENT!"
               "\n\n(CONTINUE...)")
-        print("\nYou clock a Porsche Taycan doing 180 km/h in a 90 zone.")
-        print("You pull him over. The driver is younger than you, wearing pajamas.")
-        print("His laptop is open on the passenger seat. VS Code is running.")
-        print("\n'Officer, make it quick,' he says, not looking up. 'I'm deploying to production.'")
+        print("\nYou clock a Porsche Taycan doing 150 km/h in a 90 zone.")
+        print("You pull him over. The driver is shaking, pale, wearing a hoodie.")
+        print("He has a faded 'I use Arch btw' sticker on the rear bumper.")
+        print("\n'Officer, I wasn't speeding, I'm compiling!' he yells.")
+        print("'My regex parser is failing on production logs and the CTO is going to kill me.'")
+        print("He shoves a laptop in your face. It's a terminal. Red text everywhere.")
 
-        print("\n1. [DUTY] Ticket him.")
-        print("2. [CURIOSITY] Ask him about his stack.")
+        print(f"\n[ROLL CHANCE: {success_chance}%] Current coding skill: {stats.coding_experience}")
+
+        print("1. [CODING] 'Move over. I know Regex.'")
+        print("2. [DUTY] 'License and registration. Now.'")
 
         select_choice = Decision.ask(('1', '2'))
 
         if select_choice == "1":
-            stats.increment_stats_pcr_hatred(15)
-            print("\nYou write him a ticket for 5000 CZK.")
-            print("He scans the QR code and pays it instantly without blinking.")
-            print("'Cool. Bye.' He zooms off.")
-            print("You realize your monthly salary is his hourly rate.")
-            print("\n[OUTCOME]: +15 PCR HATRED (Reality check).")
+            if success_chance >= roll:
+                stats.increment_stats_coding_skill(15)
+                print("\nYou lean in through the window and look at the chaos.")
+                print("'You're missing a positive lookahead for the special characters,' you say.")
+                print("\nYou reach over, push his hands away, and type from memory:")
+                print(">> ^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$")
+                print("\nYou hit Enter. The wall of red text turns into a stream of green 'PASS'.")
+                print("\nThe driver stares at the screen. Then at you. Then back at the screen.")
+                print("'You... you fixed it? In one line? From your head?'")
+                print("He is absolutely fucking mind-blown. He looks at you like you are a god.")
+                print("'I'm sorry about the speed, Officer. I... I need to rethink my life.'")
+                print("He drives away slowly, too in awe to speed.")
+                print("\n[SUCCESS]: +15 CODING SKILL (Regex God).")
+            else:
+                stats.increment_stats_pcr_hatred(5)
+                stats.increment_stats_coding_skill(-5)
+                print("\nYou try to look cool. 'You just need a backslash here...'")
+                print("You type a command. The terminal freezes. The kernel panics.")
+                print("\nThe driver screams. 'YOU BRICKED MY BUILD! DO YOU KNOW HOW LONG THIS TAKES?'")
+                print("He laughs in your face. 'Stick to writing tickets, cop. Leave the code to the pros.'")
+                print("He peels off, leaving you in a cloud of dust and humiliation.")
+                print("\n[FAILURE]: +5 PCR HATRED, -5 CODING SKILL.")
 
         elif select_choice == "2":
-            stats.increment_stats_coding_skill(15)
-            print("\n'You deploying on Friday?' you ask. 'That's brave.'")
-            print("He stops typing. He looks at you. 'You code?'")
-            print("\nYou talk for 10 minutes. He shows you a trick for optimizing Docker containers.")
-            print("He drives off with a warning, but you learned something valuable.")
-            print("\n[OUTCOME]: +15 CODING SKILL.")
+            stats.increment_stats_pcr_hatred(5)
+            print("\nYou ignore his laptop and write him a ticket for 2000 CZK.")
+            print("'Typical,' he mutters, scanning the payment QR code.")
+            print("'I bet your ticket system runs on Windows Server 2008. Disgusting.'")
+            print("He zooms off.")
+            print("\n[OUTCOME]: +5 PCR HATRED.")
 
         input("\n(CONTINUE...)")
 

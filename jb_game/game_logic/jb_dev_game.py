@@ -152,8 +152,8 @@ class Game:
                                 self.stats.increment_stats_coding_skill(5)
 
                             if self.stats.ai_paperwork_buff:
-                                print("\n[AI AUTOMATION] Your script handled the paperwork efficiently. (-2 Hatred)")
-                                self.stats.increment_stats_pcr_hatred(-2)
+                                print("\n[AI AUTOMATION] Your script handled the paperwork efficiently. (-5 Hatred)")
+                                self.stats.increment_stats_pcr_hatred(-5)
 
                             if self.stats.daily_btc_income > 0:
                                 print(
@@ -173,7 +173,7 @@ class Game:
             print(
                 "\nYou think about what activity to do today (You can select only one per day):"
                 "\n1.GYM"
-                "\n2.MEDITATE"
+                "\n2.THERAPY"
                 "\n3.BOUNCER NIGHT SHIFT"
                 "\n4.LEARN PYTHON"
                 "\n5.RETURN TO MENU"
@@ -186,7 +186,7 @@ class Game:
             if choice == "1":
                 self.activity_gym()
             elif choice == "2":
-                self.activity_meditate()
+                self.activity_therapy()
             elif choice == "3":
                 self.activity_bouncer()
             elif choice == "4":
@@ -201,11 +201,10 @@ class Game:
         """Daily activity accessible from menu, allows you to go to gym and lowers PCR Hatred, costs money."""
         print("\nYou've selected to go to the gym with your trainer."
               "\nTraining will help you to relax, but it will cost you some money."
-              "\n1. [33/33/33%] WE GO GYM!"
+              "\n1. [PAY 400CZK: (33/33/33%)] WE GO GYM!"
               "\n2. RETURN TO MENU"
               "\nSELECT YOUR OPTION (1-2):")
 
-        # REFACTOR: One line decision
         choice = Decision.ask(("1", "2"))
 
         if choice == "1":
@@ -233,30 +232,27 @@ class Game:
         elif choice == "2":
             self.main_menu()
 
-    def activity_meditate(self):
-        """Daily activity accessible from menu, allows you to meditate and lowers PCR Hatred for free."""
-        print("\nYou've selected to meditate quietly in your room."
-              "\nTraining will help you to reduce stress, and is completely free."
-              "\n1. [90/10%] BREATHE IN, BREATHE OUT..."
+    def activity_therapy(self):
+        """Daily activity accessible from menu, allows you to visit a therapist and lower your PCR hatred for money."""
+        print("\nYou've selected to go to a therapy, something that might actually help you lower your stress."
+              "\nPaying for a therapist is actually somewhat expensive, but the results are worth it."
+              "\n1. [PAY 1500CZK: -25 PCR HATRED] GET HELP. "
               "\n2. RETURN TO MENU"
               "\nSELECT YOUR OPTION (1-2):")
 
         choice = Decision.ask(("1", "2"))
 
         if choice == "1":
-            activity_roll = randint(1, 10)
-            if activity_roll <= 9:
-                self.stats.increment_stats_pcr_hatred(-15)
-                print("\nYou feel somewhat calmer after your meditation."
-                      "\n[OUTCOME]: -5 PCR HATRED")
-            elif activity_roll == 10:
-                self.stats.increment_stats_pcr_hatred(-35)
-                print("\nThis meditation went really well! "
-                      "\nYou felt as if most of the hatred evaporated into thin air."
-                      "\n[OUTCOME]: -35 PCR HATRED")
-            self.stats.get_stats_command()
-            input("\nCONTINUE...")
+            self.stats.increment_stats_pcr_hatred(-25)
+            self.stats.increment_stats_value_money(-1500)
+            print("\nYou call your therapist, you can finally vent out, it's a great relief.")
+            print("\nShe listens to you and actually tries to help you.")
+            print("\nShe reminds you that your situation is only temporary and that what job you do doesn't define who you are.")
+            print("\nYou feel a great sense of relief after this session.")
+            print(f"\n[OUTCOME]: -1500 CZK, -25 PCR HATRED")
             self.activity_selected = True
+            self.stats.get_stats_command()
+
         elif choice == "2":
             self.main_menu()
 
@@ -383,13 +379,12 @@ class Game:
               "\nPaying a tutor is costly but highly effective."
               "\n1. [FREE - 80/20%] STUDY ON YOUR OWN"
               "\n2. [2.500CZK - 65/25/10%] BUY A STUDY SESSION ON FIVERR"
-              "\n3. [50.000CZK] JOIN AN ON-LINE BOOTCAMP (GAIN BUFF FOR THE REST OF THE GAME)"
+              "\n3. [35.000CZK] JOIN AN ON-LINE BOOTCAMP (GAIN BUFF FOR THE REST OF THE GAME)"
               "\n4. RETURN TO MENU"
               "\nSELECT YOUR OPTION (1-4):")
 
         choice = Decision.ask(("1", "2", "3", "4"))
 
-        # 1) FREE STUDY – 80% +5, 20% +10
         if choice == "1":
             activity_roll = randint(1, 100)
             if activity_roll <= 80:
@@ -415,9 +410,7 @@ class Game:
             input("\nCONTINUE...")
             self.activity_selected = True
 
-        # 2) PAID TUTOR – 60% +10, 30% +15, 10% +25
         elif choice == "2":
-            # Pay for the session
             self.stats.increment_stats_value_money(-1500)
             activity_roll = randint(1, 100)
 
@@ -453,15 +446,14 @@ class Game:
             input("\nCONTINUE...")
             self.activity_selected = True
 
-        # 3) ONLINE BOOTCAMP – PERMA BUFF
         elif choice == "3":
-            self.stats.increment_stats_value_money(-50000)
+            self.stats.increment_stats_value_money(-35000)
             print(
                 "\nYou sign a contract and pay for an on-line Python bootcamp."
                 "\nDeadlines, assignments, code reviews, community, mentors – the full package."
                 "\nFrom now on, every single day in this game, your coding skills will grow if you keep showing up."
                 "\nThis is no longer a hobby. This is a commitment."
-                "\n[OUTCOME]: -50.000 CZK, [BOOTCAMP BUFF ACTIVATED +5 CODING SKILL EVERYDAY]"
+                "\n[OUTCOME]: -35.000 CZK, [BOOTCAMP BUFF ACTIVATED +5 CODING SKILL EVERYDAY]"
             )
 
             self.python_bootcamp = True
