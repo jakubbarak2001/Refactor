@@ -61,17 +61,14 @@ class JBStats:
             (0, "Non-Existent. You think 'Python' is just a snake in the zoo."),
         ]
 
-        # LOGIC: Iterate through the list to find the first match
         for limit, description in coding_levels:
             if self.coding_experience > limit:
                 return description
 
-        # Fallback for 0 or negative (no skill in coding)
         return "You are just starting. Ideally, keep the computer turned on."
 
     def stats_description_police_hatred(self):
         """Stats description message, describing the value of police hatred stat in plain language."""
-        # DATA: The thresholds and their corresponding messages
         hatred_levels = [
             (95, "PSYCHOTIC BREAK. HAHAHAHDAHHAHAHAHA! The siren sounds like music! The paperwork is confetti!"),
             (85, "CRITICAL MASS. You are physically shaking. One more stupid order and you will scream."),
@@ -85,12 +82,10 @@ class JBStats:
             (0, "FRESH MEAT. You love your job! You are going to save the world! (You fool)."),
         ]
 
-        # LOGIC: Iterate through the list to find the first match
         for limit, description in hatred_levels:
             if self.pcr_hatred > limit:
                 return description
 
-        # Fallback for 0 or negative (pure love for the job)
         return "You are suspiciously happy. Are you sure you work here?"
     def get_stats_command(self):
         """Input command for getting current stats of the main character."""

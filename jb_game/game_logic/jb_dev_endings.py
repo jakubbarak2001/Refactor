@@ -1,12 +1,40 @@
 import sys
 import time
+import os
+import pygame  # <--- NEW IMPORT
 
+def resource_path(relative_path):
+    """ Get absolute path to resource (Works for Dev & EXE) """
+    base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
+    return os.path.join(base_path, relative_path)
 
 class GameEndings:
     """
     Handles all Win/Loss states.
     Uses 'sys.exit()' to actually close the program after the story ends.
     """
+
+    @staticmethod
+    def _play_ending_music(track_name):
+        """
+        Helper to stop current music and play the ending theme.
+        """
+        try:
+            # Ensure mixer is initialized
+            if not pygame.mixer.get_init():
+                pygame.mixer.init()
+
+            # Stop the game loop music
+            pygame.mixer.music.stop()
+            pygame.mixer.music.unload()
+
+            # Load the new tragic theme
+            path = resource_path(track_name)
+            pygame.mixer.music.load(path)
+            pygame.mixer.music.play(-1)  # Loop forever until they close the window
+            pygame.mixer.music.set_volume(0.6)  # Slightly louder for dramatic effect
+        except Exception as e:
+            print(f"[Audio Error]: {e}")
 
     @staticmethod
     def _slow_print(text, delay=0.03):
@@ -20,6 +48,9 @@ class GameEndings:
     @staticmethod
     def mental_breakdown_ending(stats):
         """Triggered when PCR Hatred >= 100."""
+        # 1. PLAY MUSIC
+        GameEndings._play_ending_music("breakdown_theme.mp3")
+
         red = "\033[91m"
         reset = "\033[0m"
 
@@ -47,6 +78,9 @@ class GameEndings:
     @staticmethod
     def homeless_ending(stats):
         """Triggered when Money <= 0."""
+        # 1. PLAY MUSIC
+        GameEndings._play_ending_music("coding_in_snow_theme.mp3")
+
         red = "\033[91m"
         reset = "\033[0m"
 

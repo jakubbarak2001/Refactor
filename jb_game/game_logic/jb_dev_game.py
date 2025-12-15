@@ -134,6 +134,18 @@ class Game:
                 self.stats.increment_stats_pcr_hatred(5)
                 if self.python_bootcamp:
                     self.stats.increment_stats_coding_skill(5)
+                    if self.python_bootcamp:
+                        print("\n[PYTHON BOOTCAMP] Your investment is starting to pay off! (+5 Coding Skills).")
+                        self.stats.increment_stats_coding_skill(5)
+
+                    if self.stats.ai_paperwork_buff:
+                        print("\n[AI AUTOMATION] Your script handled the paperwork efficiently. (-5 Hatred)")
+                        self.stats.increment_stats_pcr_hatred(-5)
+
+                    if self.stats.daily_btc_income > 0:
+                        print(
+                            f"\n[PASSIVE INCOME] The Turkish fraudster sent his daily tribute: +{self.stats.daily_btc_income} CZK.")
+                        self.stats.increment_stats_value_money(self.stats.daily_btc_income)
 
                 self.day_cycle.next_day()
 

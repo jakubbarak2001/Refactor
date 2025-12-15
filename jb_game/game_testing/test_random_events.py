@@ -335,7 +335,7 @@ def test_event_turkish_success(mock_randint, mock_decision, _, events, stats):
     stats.coding_experience = 40
 
     events.turkish_fraud(stats)
-    assert stats.daily_btc_income == 5000
+    assert stats.daily_btc_income == 2500
     assert stats.pcr_hatred == -20
 
 

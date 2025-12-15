@@ -692,7 +692,7 @@ class RandomEvents:
 
         if select_choice == "1":
             if success_chance >= roll:
-                stats.daily_btc_income += 5000
+                stats.daily_btc_income += 2500
                 stats.increment_stats_pcr_hatred(-20)
                 print("\nYou tell the old man to wait. You open your laptop.")
                 print("You trace the packet route, bypass their cheap VPN, and find their real server.")
@@ -700,7 +700,7 @@ class RandomEvents:
                 print(
                     "\nYou send them one email: 'I know who you are. Send me 5k CZK a day in BTC, or I send this to the Turkish police.'")
                 print("\nFive minutes later, your wallet pings.")
-                print("\n[SUCCESS]: You gained PASSIVE INCOME! (+5.000 CZK Daily), -20 PCR HATRED")
+                print("\n[SUCCESS]: You gained PASSIVE INCOME! (+2.500 CZK Daily), -20 PCR HATRED")
                 print("You tell the old man you'll 'look into it' and send him home.")
             else:
                 print("\nYou try to track them, but their encryption is too good.")

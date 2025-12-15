@@ -1,3 +1,6 @@
+import pygame  # <--- NEW IMPORT
+import os  # <--- NEW IMPORT
+import sys  # <--- NEW IMPORT
 from jb_game.game_logic.jb_dev_car_incident_event import CarIncident
 from jb_game.game_logic.jb_dev_random_events import RandomEvents
 from jb_game.game_logic.jb_dev_stats import JBStats
@@ -6,7 +9,32 @@ from jb_game.game_logic.jb_dev_game import Game
 from jb_game.game_logic.jb_dev_story import Story
 
 
+def resource_path(relative_path):
+    """ Get absolute path to resource (Works for Dev & EXE) """
+    base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
+    return os.path.join(base_path, relative_path)
+
+
+def play_background_music():
+    """Starts the main game loop music."""
+    # CHANGE THIS to the name of your in-game music file
+    MUSIC_FILE = "enter_the_code_theme.mp3"
+
+    try:
+        music_path = resource_path(MUSIC_FILE)
+        pygame.mixer.init()
+        pygame.mixer.music.load(music_path)
+        pygame.mixer.music.play(-1)  # Loop forever
+        pygame.mixer.music.set_volume(0.3)  # Lower volume for background
+    except Exception as e:
+        print(f"\n[SYSTEM] Audio Warning: Could not play music ({e})")
+
+
 def main():
+    # 1. Start Music immediately
+    play_background_music()
+
+    # 2. Initialize Game Logic
     stats = JBStats()
     day_cycle = DayCycle()
     events_list = RandomEvents()
@@ -21,53 +49,6 @@ def main():
 
     game.main_menu()
 
+
 if __name__ == "__main__":
     main()
-
-
-# 10.12.2025 - State of the game.
-
-# DONE:
-
-# CAR INCIDENT EVENT, MULTIPLE DECISIONS.
-# 20-30 MINS OF GAMEPLAY
-# 3 FULLY WORKING STATS: CODING, MONEY, HATRED
-# GAME MENU
-# RANDOM EVENTS WORKING: 7 RANDOM EVENTS
-# DAY CYCLE FULLY WORKING.
-# DEBUFFS AND BUFFS
-# GAME REFACTORED FOR BETTER SCALING
-# TO BE DONE:
-
-# HIGH PRIORITY:
-
-# DAY24 - MM LUNCH EVENT - GOOD/NEUTRAL/BAD ENDING - NO RNG, ONLY YOUR CHOICES, OPTIONS BASED ON PREREQUIREMENTS
-# (1. DO YOU HAVE ENOUGH MONEY TO LEAVE NOW? "HELL YEAH (>100k, +2MM POINTS, >50k, +1MM POINTS)" ETC...)...POSSIBLE OUTCOMES:
-# (2. HOW MUCH DO YOU ACTUALLY HATE POLICE NOW? (>75, 2+MM POINTS, >30, 1+MM POINTS) ETC...
-# (3. HOW MUCH DO YOU KNOW ABOUT CODING NOW? (>75, 2+MM POINTS, > 50, 1+MM POINTS) ETC...
-# (4. HOW YOU APPROACH THE MEETING (1. PAY FOR THE LUNCH, BUY NEW CLOTHES -2500, 2+MM POINTS, 2. COME IN CASUAL
-# CLOTHES)
-# (5. WHAT YOU TALK ABOUT: (1. TALK ABOUT HIM +2MM POINTS, 2. SHOW HIM YOUR CODING KNOWLEDGE +25 CODING SKILLS,
-# 3. RANT ABOUT HOW YOU HATE YOUR JOB - 50 PCR HATRED
-# GOOD - FULL SUPPORT FROM MM - 50% STAT INCREASE, -30 PCR HATRED
-# NEUTRAL - PARTIAL HELP FROM MM - 25% STAT INCREASE, -15 PCR HATRED
-# BAD - NO BONUSES FROM MM
-# DAY25-29 - ADD SECRET MENU OPTION AFTER MEETING WITH MM CALLED 'PREPARATION EFFORTS': INCLUDES WAYS TO COMBAT
-#THE COLONEL WITH MONEY, HATRED AND CODING SKILLS (WILL GIVE YOU BUFFS AND NEW OPTIONS AT DAY30)
-# DAY30 - COLONEL ARRIVES EVENT - ...
-# FIX BETTER CALL PAUL EVENT
-
-
-# MEDIUM PRIORITY:
-
-# PERKS GAINED AFTER DOING ANY ACTIVITY X TIMES (I.E. BRAWLER - GO TO GYM 10 TIMES...)
-# PERKS WILL ALLOW SECRET OPTIONS IN THE LAST MAIN EVENT OF THE GAME.
-
-# LOW PRIORITY:
-
-# ADD NIGHTMARE DIFFICULTY
-# PS EASTER EGG
-
-
-
-
