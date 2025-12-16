@@ -1,4 +1,10 @@
 """Define most important stats for JB."""
+from rich.console import Console
+from rich.table import Table
+from rich import box
+
+console = Console()
+
 class JBStats:
     """Creates stats for JB."""
     def __init__(self, available_money=0, coding_experience=0, pcr_hatred=0):
@@ -12,21 +18,8 @@ class JBStats:
         self.daily_btc_income = 0
         self.ai_paperwork_buff = False
 
-    def try_spend_money(self, amount: int) -> bool:
-        """
-        Attempts to spend a specific amount of money.
-        Returns True if successful (money deducted).
-        Returns False if insufficient funds (no money deducted).
-        """
-        if self.available_money >= amount:
-            self.increment_stats_value_money(-amount)
-            return True
-        else:
-            return False
-
     def stats_description_money(self):
         """Stats description message, describing the value of available money stat in plain language."""
-        # DATA: The thresholds and their corresponding messages
         money_levels = [
             (1000000, "YOU ARE A MILLIONAIRE! Why are you still working at the police?!"),
             (500000, "Half a million... you could actually buy a small garage in your city now."),
@@ -43,21 +36,15 @@ class JBStats:
             (1000, "You are basically broke. You check your pockets for loose change."),
             (0, "YOU HAVE NO MONEY LEFT. You are one crisis away from homelessness."),
         ]
-
-        # LOGIC: Iterate through the list to find the first match
         for limit, description in money_levels:
             if self.available_money >= limit:
                 return description
-
-        # Fallback for anything <= 0 (since the loop checks > 0)
         return "YOU HAVE NO MONEY LEFT."
 
     def stats_description_coding_experience(self):
         """Stats description message, describing the value of coding experience stat in plain language."""
-        # DATA: The thresholds and their corresponding messages
         coding_levels = [
-            (250,
-             "S̵̟͚̐͘Č̸͕͌H̵̙̕I̸̟̐Z̷̮̈́O̶̝̐.̷͈̐ R̷E̷A̷L̷I̷T̷Y̷ ̷I̷S̷ ̷C̷O̷D̷E̷.̷ ̷I̷ ̷A̷M̷ ̷T̷H̷E̷ ̷C̷O̷M̷P̷I̷L̷E̷R̷.̷ ̷0̷1̷0̷1̷0̷1̷"),
+            (250, "S̵̟͚̐͘Č̸͕͌H̵̙̕I̸̟̐Z̷̮̈́O̶̝̐.̷͈̐ R̷E̷A̷L̷I̷T̷Y̷ ̷I̷S̷ ̷C̷O̷D̷E̷.̷ ̷I̷ ̷A̷M̷ ̷T̷H̷E̷ ̷C̷O̷M̷P̷I̷L̷E̷R̷.̷ ̷0̷1̷0̷1̷0̷1̷"),
             (225, "SINGULARITY. You no longer type. You stare at the screen and the code writes itself."),
             (200, "GOD TIER. You see the Matrix. You don't write code, you manifest logic."),
             (175, "Principal Engineer. You spend more time drawing boxes on whiteboards than typing."),
@@ -72,11 +59,9 @@ class JBStats:
             (5, "Hello World. You made the computer print text. You feel like a hacker."),
             (0, "Non-Existent. You think 'Python' is just a snake in the zoo."),
         ]
-
         for limit, description in coding_levels:
             if self.coding_experience > limit:
                 return description
-
         return "You are just starting. Ideally, keep the computer turned on."
 
     def stats_description_police_hatred(self):
@@ -93,41 +78,74 @@ class JBStats:
             (5, "Routine. There are things you dislike, but overall, it's a stable job."),
             (0, "FRESH MEAT. You love your job! You are going to save the world! (You fool)."),
         ]
-
         for limit, description in hatred_levels:
             if self.pcr_hatred > limit:
                 return description
-
         return "You are suspiciously happy. Are you sure you work here?"
+
+
     def get_stats_command(self):
-        """Input command for getting current stats of the main character."""
-        print(
-            f"STATS: "
-            f"\n$$$  Money amount: {self.available_money} - {JBStats.stats_description_money(self)}"
-            f"\n</>  Coding skill: {self.coding_experience} - {JBStats.stats_description_coding_experience(self)}"
-            f"\n𝟙𝟛𝟙𝟚 Police hatred: {self.pcr_hatred} - {JBStats.stats_description_police_hatred(self)}"
+        """Input command for getting current stats using Rich Table."""
+
+        # Create a table
+        table = Table(title="[bold underline]CURRENT STATUS[/bold underline]", box=box.ROUNDED, show_lines=True)
+
+        # FIX: Explicit width for Icon column fixes alignment
+        table.add_column("Icon", justify="center", width=4)
+        table.add_column("Stat Name", style="cyan", no_wrap=True)
+        table.add_column("Value", style="magenta", justify="right")
+        # FIX: Allow description to wrap naturally
+        table.add_column("Status Description", style="green", overflow="fold")
+
+        # Add Money Row
+        table.add_row(
+            "💰",
+            "Money",
+            f"[bold green]{self.available_money} CZK[/bold green]",
+            self.stats_description_money()
         )
 
+        # Add Coding Row
+        table.add_row(
+            "💻",
+            "Coding Skill",
+            f"[bold blue]{self.coding_experience}[/bold blue]",
+            self.stats_description_coding_experience()
+        )
+
+        # Add Hatred Row
+        hatred_style = "bold red" if self.pcr_hatred > 70 else "white"
+        table.add_row(
+            "🤬",
+            "Police Hatred",
+            f"[{hatred_style}]{self.pcr_hatred}%[/{hatred_style}]",
+            self.stats_description_police_hatred()
+        )
+
+        print()
+        console.print(table)
+
+    # --- Setters and Incrementers (Kept same as before) ---
     def change_stats_value_money(self, set_money_value):
-        """Change the value of stats available money to different number."""
         self.available_money = set_money_value
 
     def change_stats_coding_skill(self, set_coding_skill_value):
-        """Change the value of stats coding skill to different number."""
         self.coding_experience= set_coding_skill_value
 
     def change_stats_pcr_hatred(self, set_pcr_hatred):
-        """Change the value of stats pcr hatred to different number."""
         self.pcr_hatred = set_pcr_hatred
 
     def increment_stats_value_money(self, increment_money_value):
-        """Change the value of stats available money to different number."""
         self.available_money += increment_money_value
 
     def increment_stats_coding_skill(self, increment_coding_skill_value):
-        """Change the value of stats coding skill to different number."""
         self.coding_experience += increment_coding_skill_value
 
+    def try_spend_money(self, amount: int) -> bool:
+        if self.available_money >= amount:
+            self.increment_stats_value_money(-amount)
+            return True
+        return False
+
     def increment_stats_pcr_hatred(self, increment_pcr_hatred):
-        """Change the value of stats pcr hatred to different number."""
         self.pcr_hatred += increment_pcr_hatred

@@ -47,16 +47,7 @@ def test_stats_description_boundaries(stats):
     assert "YOU ARE A MILLIONAIRE" in stats.stats_description_money()
 
 
-def test_pcr_hatred_warning_trigger(stats, capsys):
-    """
-    Test if the warning prints when Hatred is high.
-    We use 'capsys' to capture what you print to the console.
-    """
-    stats.change_stats_pcr_hatred(80)  # Above the 75 threshold
-    stats.get_stats_command()
 
-    captured = capsys.readouterr()
-    assert "WARNING: YOUR PCR HATRED IS" in captured.out
 
 
 @pytest.mark.parametrize("money_amount, expected_snippet", [

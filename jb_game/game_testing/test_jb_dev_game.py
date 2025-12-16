@@ -30,7 +30,7 @@ def test_set_difficulty_easy(mock_input, game_setup):
 
     game.set_difficulty_level()
 
-    assert game.selected_difficulty == "easy"
+    assert game.selected_difficulty == "\x1b[92measy\x1b[0m"
     assert stats.available_money == 55000
     assert stats.coding_experience == 10
     assert stats.pcr_hatred == 15
@@ -46,7 +46,7 @@ def test_set_difficulty_insane(mock_input, game_setup):
 
     game.set_difficulty_level()
 
-    assert game.selected_difficulty == "insane"
+    assert game.selected_difficulty == "\x1b[91minsane\x1b[0m"
     assert stats.available_money == 20000
 
 
