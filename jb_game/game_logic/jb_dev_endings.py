@@ -96,5 +96,5 @@ class GameEndings:
         GameEndings._slow_print("You cannot code on paper crates in the snow.")
 
         GameEndings._slow_print(f"\n{red}[BAD ENDING: THE STREETS]{reset}")
-        input("Try again?")
+        restart = input("Try again?")
         sys.exit()

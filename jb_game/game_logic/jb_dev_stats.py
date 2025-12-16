@@ -90,25 +90,11 @@ class JBStats:
     def get_stats_command(self):
         """Input command for getting current stats of the main character."""
         print(
-            f"\nYour stats are: "
-            f"\n\nMoney amount: {self.available_money} - {JBStats.stats_description_money(self)}"
-            f"\nCoding skill: {self.coding_experience} - {JBStats.stats_description_coding_experience(self)}"
-            f"\nPolice hatred: {self.pcr_hatred} - {JBStats.stats_description_police_hatred(self)}"
+            f"STATS: "
+            f"\n$$$  Money amount: {self.available_money} - {JBStats.stats_description_money(self)}"
+            f"\n</>  Coding skill: {self.coding_experience} - {JBStats.stats_description_coding_experience(self)}"
+            f"\n𝟙𝟛𝟙𝟚 Police hatred: {self.pcr_hatred} - {JBStats.stats_description_police_hatred(self)}"
         )
-        red = "\033[91m"
-        reset = "\033[0m"
-
-        if self.pcr_hatred >= 75:
-            print(
-                f"\n{red}WARNING: YOUR PCR HATRED IS {self.pcr_hatred}! "
-                f"IF IT REACHES 100, YOU WILL LOSE!{reset}"
-            )
-
-        if self.available_money < 5000:
-            print(
-                f"\n{red}WARNING: YOUR MONEY IS {self.available_money}! "
-                f"IF IT REACHES 0, YOU WILL LOSE!{reset}"
-            )
 
     def change_stats_value_money(self, set_money_value):
         """Change the value of stats available money to different number."""

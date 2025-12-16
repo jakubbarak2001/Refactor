@@ -9,11 +9,15 @@ from jb_game.game_logic.jb_dev_endings import GameEndings
 
 class Game:
     """Sets the basic gaming mechanics, rules, win/loose conditions, difficulty levels."""
+    red = "\033[91m"
+    green = "\033[92m"
+    yellow = "\033[93m"
+    reset = "\033[0m"
 
     DIFFICULTY_SETTINGS = {
-        "1": {"name": "EASY", "money": 55000, "coding": 10, "hatred": 15},
-        "2": {"name": "HARD", "money": 35000, "coding": 5, "hatred": 25},
-        "3": {"name": "INSANE", "money": 20000, "coding": 0, "hatred": 35},
+        "1": {"name": f"{green}EASY{reset}", "money": 55000, "coding": 10, "hatred": 15},
+        "2": {"name": f"{yellow}HARD{reset}", "money": 35000, "coding": 5, "hatred": 25},
+        "3": {"name": f"{red}INSANE{reset}", "money": 20000, "coding": 0, "hatred": 35},
         # 4 NIGHTMARE difficulty placeholder
     }
 
@@ -49,13 +53,12 @@ class Game:
             print(f"\n{yellow}[WARNING] LOW FUNDS ({self.stats.available_money} CZK). POVERTY IMMINENT.{reset}")
 
     def set_difficulty_level(self):
-        """Lets user choose what difficulty level he wants using the dictionary."""
+        """Lets the user choose difficulty level from the dictionary."""
         while True:
-            print("\nPlease, select the game's difficulty:")
+            print("\nSELECT THE DIFFICULTY:")
 
             for key, setting in self.DIFFICULTY_SETTINGS.items():
-                print(
-                    f"{key}. {setting['name']} - {setting['money']},- CZK, Coding Skills {setting['coding']}, PCR Hatred {setting['hatred']}")
+                print(f"{key}. {setting['name']}: {setting['money']},- CZK, Coding Skills {setting['coding']}, PCR Hatred {setting['hatred']}")
 
             print("\n(Enter a number from the list above): ")
 
@@ -71,7 +74,7 @@ class Game:
                     continue
 
                 # Apply the settings
-                print(f"\n{settings['name']} mode selected.")
+                print(f"\n{settings['name']} mode selected.\n")
                 self.selected_difficulty = settings['name'].lower()
                 self.stats.available_money = settings['money']
                 self.stats.coding_experience = settings['coding']
@@ -103,7 +106,7 @@ class Game:
             choice = Decision.ask(("1", "2", "3", "4"))
 
             if choice == "1":
-                print(f"\nCurrent day: #{self.day_cycle.current_day}/30.")
+                print(f"\nDAY: #{self.day_cycle.current_day}/30.")
                 self.stats.get_stats_command()
 
             elif choice == "2":
@@ -243,11 +246,13 @@ class Game:
             self.activity_selected = True
         elif choice == "2":
             self.main_menu()
+        else:
+            self.main_menu()
 
     def activity_therapy(self):
         """Daily activity accessible from menu, allows you to visit a therapist and lower your PCR hatred for money."""
         print("\nYou've selected to go to a therapy, something that might actually help you lower your stress."
-              "\nPaying for a therapist is actually somewhat expensive, but the results are worth it."
+              "\nPaying for a therapist is somewhat expensive, but the results are worth it."
               "\n1. [PAY 1500CZK: -25 PCR HATRED] GET HELP. "
               "\n2. RETURN TO MENU"
               "\nSELECT YOUR OPTION (1-2):")
@@ -463,7 +468,7 @@ class Game:
             print(
                 "\nYou sign a contract and pay for an on-line Python bootcamp."
                 "\nDeadlines, assignments, code reviews, community, mentors – the full package."
-                "\nFrom now on, every single day in this game, your coding skills will grow if you keep showing up."
+                "\nFrom now on, your coding skill will keep on growing daily!."
                 "\nThis is no longer a hobby. This is a commitment."
                 "\n[OUTCOME]: -35.000 CZK, [BOOTCAMP BUFF ACTIVATED +5 CODING SKILL EVERYDAY]"
             )

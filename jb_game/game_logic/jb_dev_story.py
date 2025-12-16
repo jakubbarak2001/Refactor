@@ -11,13 +11,15 @@ class Story:
 
     @staticmethod
     def start_game_message():
-        """Gives a neatly formatted welcoming message, for whenever you start a game."""
-        print("\nWelcome to JB - the game! \n\nIn this game, you will be playing as a young and perspective police "
-              "officer in northern part of Bohemia, where sun never rises and criminality is growing rapidly. "
-              "\nThe game begins in 1.7.2025, at start you love your job, but that is soon to change, due to the "
-              "unforeseen consequences. \nSoon, you will realise your path lies elsewhere - in software development. "
-              "Your time and resources are limited - you have to end your job as police officer soon!"
-              "\n\nYou will have to balance between 3 main stats: \n1. Money, \n2. Coding skills, \n3. Hatred of Police "
-              "\n\nThe most important rule for you is always have more than 0 money and to keep your "
-              "hatred of police under 100."
-              "\nIn the following section, you will be able to choose your difficulty level, good luck and have fun!")
+        """Gives a neatly formatted welcoming message, for whenever you start the game."""
+        print("\nRise and shine, rise and shine JB...it's your big day today.")
+        input("(Press any key to continue...)")
+        print("\nWelcome to JB - the game!")
+        print("In this game, you will be playing as a young police officer, in northern part of Bohemia.")
+        print("Initially, you love your job, but everything is about to change very soon...")
+        print("\nWill you become a victim of a broken system, or an architect who will create his own?")
+        print("In this game, that is up to you...")
+        input("(Press any key to continue...)")
+        print("Your time and resources are limited - you have to end your job as police officer soon!")
+        print("You have three main stats: \n1. Money, \n2. Coding skills, \n3. Hatred of Police")
+        print("If you have less than 0 Money, or more than 100 Hatred of Police - you will loose!")
