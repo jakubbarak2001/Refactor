@@ -11,7 +11,7 @@ def stats():
 def test_initial_values(stats):
     """Test that the game starts with the correct values."""
     assert stats.available_money == 1000
-    assert stats.coding_experience == 10
+    assert stats.coding_skill == 10
     assert stats.pcr_hatred == 0
 
 

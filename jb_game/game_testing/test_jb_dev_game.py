@@ -32,7 +32,7 @@ def test_set_difficulty_easy(mock_input, game_setup):
 
     assert game.selected_difficulty == "easy"
     assert stats.available_money == 55000
-    assert stats.coding_experience == 10
+    assert stats.coding_skill == 10
     assert stats.pcr_hatred == 15
 
 
@@ -88,7 +88,7 @@ def test_bootcamp_buff_application(mock_decision, game_setup):
     if game.python_bootcamp:
         stats.increment_stats_coding_skill(5)
 
-    assert stats.coding_experience == 5
+    assert stats.coding_skill == 5
     assert stats.pcr_hatred == 5
 
 
@@ -126,7 +126,7 @@ def test_activity_bouncer_strip_club_fail(mock_randint, mock_decision, _, game_s
 
     assert stats.available_money == -2500
     assert stats.pcr_hatred == 35
-    assert stats.coding_experience == -5
+    assert stats.coding_skill == -5
 
 
 # ==========================================

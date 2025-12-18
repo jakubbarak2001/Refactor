@@ -77,7 +77,7 @@ class Game:
                 print(f"\n{settings['name']} mode selected.\n")
                 self.selected_difficulty = settings['name'].lower()
                 self.stats.available_money = settings['money']
-                self.stats.coding_experience = settings['coding']
+                self.stats.coding_skill = settings['coding']
                 self.stats.pcr_hatred = settings['hatred']
 
                 # Show the stats and exit loop
@@ -176,6 +176,9 @@ class Game:
                                 self.stats.increment_stats_value_money(self.stats.daily_btc_income)
 
                             self.day_cycle.next_day()
+
+                    if self.day_cycle.current_day == 24:
+                        self.day_cycle.day_start_message()#MM EVENT
 
                 self.day_cycle.day_start_message()
 

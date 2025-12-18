@@ -7,7 +7,7 @@ class JBStats:
         Initialise the loose game conditions based on amount of those resources.
         """
         self.available_money = available_money
-        self.coding_experience = coding_experience
+        self.coding_skill = coding_experience
         self.pcr_hatred = pcr_hatred
         self.daily_btc_income = 0
         self.ai_paperwork_buff = False
@@ -74,7 +74,7 @@ class JBStats:
         ]
 
         for limit, description in coding_levels:
-            if self.coding_experience > limit:
+            if self.coding_skill > limit:
                 return description
 
         return "You are just starting. Ideally, keep the computer turned on."
@@ -104,7 +104,7 @@ class JBStats:
         print(
             f"STATS: "
             f"\n$$$  Money amount: {self.available_money} - {JBStats.stats_description_money(self)}"
-            f"\n</>  Coding skill: {self.coding_experience} - {JBStats.stats_description_coding_experience(self)}"
+            f"\n</>  Coding skill: {self.coding_skill} - {JBStats.stats_description_coding_experience(self)}"
             f"\n𝟙𝟛𝟙𝟚 Police hatred: {self.pcr_hatred} - {JBStats.stats_description_police_hatred(self)}"
         )
 
@@ -114,11 +114,13 @@ class JBStats:
 
     def change_stats_coding_skill(self, set_coding_skill_value):
         """Change the value of stats coding skill to different number."""
-        self.coding_experience= set_coding_skill_value
+        self.coding_skill= set_coding_skill_value
 
     def change_stats_pcr_hatred(self, set_pcr_hatred):
         """Change the value of stats pcr hatred to different number."""
         self.pcr_hatred = set_pcr_hatred
+        if self.pcr_hatred <= 0:
+            self.pcr_hatred = 0
 
     def increment_stats_value_money(self, increment_money_value):
         """Change the value of stats available money to different number."""
@@ -126,7 +128,7 @@ class JBStats:
 
     def increment_stats_coding_skill(self, increment_coding_skill_value):
         """Change the value of stats coding skill to different number."""
-        self.coding_experience += increment_coding_skill_value
+        self.coding_skill += increment_coding_skill_value
 
     def increment_stats_pcr_hatred(self, increment_pcr_hatred):
         """Change the value of stats pcr hatred to different number."""

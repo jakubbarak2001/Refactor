@@ -38,7 +38,7 @@ def test_event_overtime_study_python(mock_randint, mock_decision, _, events, sta
     mock_decision.return_value = '2'
     mock_randint.return_value = 20
     events.overtime_offer(stats)
-    assert stats.coding_experience == 20
+    assert stats.coding_skill == 20
 
 
 # ==========================================
@@ -173,20 +173,20 @@ def test_event_admin_mistake_stay(mock_decision, _, events, stats):
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
 def test_event_dev_low_skill(mock_decision, _, events, stats):
     """You meet the israeli dev, but you have low skill."""
-    stats.coding_experience = 10
+    stats.coding_skill = 10
     mock_decision.return_value = '2'
     events.israeli_developer(stats)
-    assert stats.coding_experience == 20
+    assert stats.coding_skill == 20
 
 
 @patch('builtins.input')
 @patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
 def test_event_dev_high_skill_success(mock_decision, _, events, stats):
     """You meet the dev, and you pass the skill check."""
-    stats.coding_experience = 60
+    stats.coding_skill = 60
     mock_decision.return_value = '1'
     events.israeli_developer(stats)
-    assert stats.coding_experience == 90
+    assert stats.coding_skill == 90
 
 
 # ==========================================
@@ -232,12 +232,12 @@ def test_event_citizen_arrest(mock_decision, _, events, stats):
 @patch('jb_game.game_logic.jb_dev_random_events.randint')
 def test_event_printer_fix_success(mock_randint, mock_decision, _, events, stats):
     """Tests fix printer (Choice 1) -> Success (Roll <= Skill*2)."""
-    stats.coding_experience = 30
+    stats.coding_skill = 30
     mock_decision.return_value = '1'
     mock_randint.return_value = 50
 
     events.printer_incident(stats)
-    assert stats.coding_experience == 40
+    assert stats.coding_skill == 40
 
 
 @patch('builtins.input')
@@ -245,7 +245,7 @@ def test_event_printer_fix_success(mock_randint, mock_decision, _, events, stats
 @patch('jb_game.game_logic.jb_dev_random_events.randint')
 def test_event_printer_fix_fail(mock_randint, mock_decision, _, events, stats):
     """Scenario: Fix printer (Choice 1) -> Failure."""
-    stats.coding_experience = 10
+    stats.coding_skill = 10
     mock_decision.return_value = '1'
     mock_randint.return_value = 80
 
@@ -303,10 +303,10 @@ def test_event_usb_risk_fail(mock_randint, mock_decision, _, events, stats):
     """Scenario: Plug in (Choice 1) -> Virus (Roll <= 50)."""
     mock_decision.return_value = '1'
     mock_randint.return_value = 10
-    stats.coding_experience = 50
+    stats.coding_skill = 50
 
     events.forgotten_usb(stats)
-    assert stats.coding_experience == 25
+    assert stats.coding_skill == 25
 
 
 @patch('builtins.input')
@@ -332,7 +332,7 @@ def test_event_turkish_success(mock_randint, mock_decision, _, events, stats):
     """Scenario: Track scammer (Choice 1), win the roll."""
     mock_decision.return_value = '1'
     mock_randint.return_value = 50
-    stats.coding_experience = 40
+    stats.coding_skill = 40
 
     events.turkish_fraud(stats)
     assert stats.daily_btc_income == 2500
@@ -346,13 +346,13 @@ def test_event_turkish_fail(mock_randint, mock_decision, _, events, stats):
     """Scenario: Track scammer (Choice 1), loose the roll"""
     mock_decision.return_value = '1'
     mock_randint.return_value = 100
-    stats.coding_experience = 20
+    stats.coding_skill = 20
 
     events.turkish_fraud(stats)
     assert stats.daily_btc_income == 0
     assert stats.pcr_hatred == 10
     assert stats.available_money == 7500
-    assert stats.coding_experience == 10
+    assert stats.coding_skill == 10
 
 
 # ==========================================
@@ -364,11 +364,11 @@ def test_event_turkish_fail(mock_randint, mock_decision, _, events, stats):
 def test_event_dispatch_fix_success(mock_decision, _, events, stats):
     """Scenario: Fix BSOD (Choice 1) with High Skill (>= 30)."""
     mock_decision.return_value = '1'
-    stats.coding_experience = 35
+    stats.coding_skill = 35
 
     events.dispatch_blue_screen(stats)
     assert stats.pcr_hatred == -10
-    assert stats.coding_experience == 40  # 35 + 5
+    assert stats.coding_skill == 40  # 35 + 5
 
 
 @patch('builtins.input')
@@ -376,7 +376,7 @@ def test_event_dispatch_fix_success(mock_decision, _, events, stats):
 def test_event_dispatch_fix_fail(mock_decision, _, events, stats):
     """Scenario: Fix BSOD (Choice 1) with Low Skill (< 30)."""
     mock_decision.return_value = '1'
-    stats.coding_experience = 10
+    stats.coding_skill = 10
 
     events.dispatch_blue_screen(stats)
     assert stats.pcr_hatred == 10
@@ -396,12 +396,12 @@ def test_event_tech_bro_coding_success(mock_decision, _, mock_randint, events, s
     Roll: 40 (Success because 50 >= 40).
     """
     mock_decision.return_value = '1'
-    stats.coding_experience = 35
+    stats.coding_skill = 35
     mock_randint.return_value = 40
 
     events.tech_bro_speeding(stats)
 
-    assert stats.coding_experience == 50
+    assert stats.coding_skill == 50
 
 
 @patch('jb_game.game_logic.jb_dev_random_events.randint')
@@ -414,12 +414,12 @@ def test_event_tech_bro_coding_fail(mock_decision, _, mock_randint, events, stat
     Roll: 60 (Failure because 50 < 60).
     """
     mock_decision.return_value = '1'
-    stats.coding_experience = 35
+    stats.coding_skill = 35
     mock_randint.return_value = 60
 
     events.tech_bro_speeding(stats)
 
-    assert stats.coding_experience == 30
+    assert stats.coding_skill == 30
     assert stats.pcr_hatred == 5
 
 
@@ -446,11 +446,11 @@ def test_event_tech_bro_duty(mock_decision, _, events, stats):
 def test_event_paperwork_automate_success(mock_decision, _, events, stats):
     """Scenario: Automate (Choice 1) with High Skill (>= 40)."""
     mock_decision.return_value = '1'
-    stats.coding_experience = 45
+    stats.coding_skill = 45
 
     events.paperwork_overload(stats)
     assert stats.ai_paperwork_buff is True
-    assert stats.coding_experience == 50  # 45 + 5
+    assert stats.coding_skill == 50  # 45 + 5
 
 
 @patch('builtins.input')
@@ -458,7 +458,7 @@ def test_event_paperwork_automate_success(mock_decision, _, events, stats):
 def test_event_paperwork_automate_fail(mock_decision, _, events, stats):
     """Scenario: Automate (Choice 1) with Low Skill (< 40)."""
     mock_decision.return_value = '1'
-    stats.coding_experience = 20
+    stats.coding_skill = 20
 
     events.paperwork_overload(stats)
     assert stats.ai_paperwork_buff is False

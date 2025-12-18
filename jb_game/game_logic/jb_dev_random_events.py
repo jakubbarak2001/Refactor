@@ -396,14 +396,14 @@ class RandomEvents:
         print("\nHe looks at you with a sharp, analyzing gaze, ignoring your uniform entirely."
               "\n'You have intelligent eyes. You are not just a traffic cone stand. Tell me... do you write code?'")
 
-        can_code = stats.coding_experience >= 35
+        can_code = stats.coding_skill >= 35
 
         if can_code:
             print("\n1. [SKILL CHECK >= 35 CODING SKILL: PASSED] 'Actually, I am something of a developer myself.'")
             print("2. [IMPOSTER SYNDROME] Stay silent. 'Me? No. I just... work here.'")
             valid_options = ('1', '2')
         else:
-            print(f"\n1. [SKILL CHECK >= 35 CODING SKILL: LOCKED] (Current: {stats.coding_experience})")
+            print(f"\n1. [SKILL CHECK >= 35 CODING SKILL: LOCKED] (Current: {stats.coding_skill})")
             print("2. 'Me? No. I just... work here.'")
             valid_options = ('2',)
 
@@ -553,7 +553,7 @@ class RandomEvents:
         print("The 'IT Guy' is on vacation in Croatia for the next 2 weeks.")
         print("\nYou look at the error code: 'PC LOAD LETTER'.")
 
-        success_chance = stats.coding_experience * 2
+        success_chance = stats.coding_skill * 2
         if success_chance > 100: success_chance = 100
 
         print(f"\n1. [CODING CHECK: {success_chance}%] Try to fix the driver logic and spooler.")
@@ -668,7 +668,7 @@ class RandomEvents:
         """
         Internet Fraud / Heritage scam.
         """
-        success_chance = stats.coding_experience * 2
+        success_chance = stats.coding_skill * 2
         if success_chance >= 100:
             success_chance = 100
         roll = randint(1, 100)
@@ -683,7 +683,7 @@ class RandomEvents:
         print("But you look at the email headers the victim printed out.")
         print("You recognize the IP masking. It's lazy.")
 
-        print(f"\n[ROLL CHANCE: {success_chance}%] Current coding skill: {stats.coding_experience}")
+        print(f"\n[ROLL CHANCE: {success_chance}%] Current coding skill: {stats.coding_skill}")
 
         print("1. [CODING] Track the scammer and turn the tables.")
         print("2. [GENERIC] 'I'm sorry sir, the money is gone.'")
@@ -734,7 +734,7 @@ class RandomEvents:
         print("\nThe Commander starts hitting the monitor with his baton.")
         print("'IT SUPPORT IS CLOSED! WE ARE BLIND!'")
 
-        print(f"\n[REQ: 30 CODING SKILL] Current: {stats.coding_experience}")
+        print(f"\n[REQ: 30 CODING SKILL] Current: {stats.coding_skill}")
 
         print("1. [CODING] Push him aside and fix it via PowerShell.")
         print("2. [CHAOS] Watch it burn. Enjoy the silence.")
@@ -742,7 +742,7 @@ class RandomEvents:
         select_choice = Decision.ask(('1', '2'))
 
         if select_choice == "1":
-            if stats.coding_experience >= 30:
+            if stats.coding_skill >= 30:
                 stats.increment_stats_pcr_hatred(-10)
                 stats.increment_stats_coding_skill(5)
                 print("\nYou type `Restart-Service DispatchCore -Force`.")
@@ -771,7 +771,7 @@ class RandomEvents:
         """
         Event: The Arch User & The Regex.
         """
-        success_chance = (stats.coding_experience * 100) // 70
+        success_chance = (stats.coding_skill * 100) // 70
 
         if success_chance >= 100:
             success_chance = 100
@@ -787,7 +787,7 @@ class RandomEvents:
         print("'My regex parser is failing on production logs and the CTO is going to kill me.'")
         print("He shoves a laptop in your face. It's a terminal. Red text everywhere.")
 
-        print(f"\n[ROLL CHANCE: {success_chance}%] Current coding skill: {stats.coding_experience}")
+        print(f"\n[ROLL CHANCE: {success_chance}%] Current coding skill: {stats.coding_skill}")
 
         print("1. [CODING] 'Move over. I know Regex.'")
         print("2. [DUTY] 'License and registration. Now.'")
@@ -841,7 +841,7 @@ class RandomEvents:
         print("The admin lady smirks. 'Boss wants this done by tomorrow morning.'")
         print("\nIt looks like 12 hours of manual data entry. A nightmare.")
 
-        print(f"\n[REQ: 40 CODING SKILL] Current: {stats.coding_experience}")
+        print(f"\n[REQ: 40 CODING SKILL] Current: {stats.coding_skill}")
 
         print("1. [CODING] 'Fuck it.' Write a Python script to automate the forms.")
         print("2. [MANUAL] Grind through it. Suffering is part of the job.")
@@ -849,7 +849,7 @@ class RandomEvents:
         select_choice = Decision.ask(('1', '2'))
 
         if select_choice == "1":
-            if stats.coding_experience >= 40:
+            if stats.coding_skill >= 40:
                 stats.ai_paperwork_buff = True
                 stats.increment_stats_coding_skill(5)
                 print("\nYou lock the door. You open your laptop.")
