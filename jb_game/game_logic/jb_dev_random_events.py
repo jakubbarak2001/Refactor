@@ -857,7 +857,7 @@ class RandomEvents:
                 print("You hit ENTER. The computer starts doing the work for you.")
                 print("You spend the rest of the shift drinking coffee and watching the progress bar.")
                 print("\n[CRITICAL SUCCESS]: AI AUTOMATION UNLOCKED!")
-                print("Your script will now handle reports daily. (-2 Hatred per day).")
+                print("Your script will now handle reports daily. (-5 Hatred per day).")
             else:
                 stats.increment_stats_pcr_hatred(20)
                 print("\nYou try to automate it, but you mess up the regex.")

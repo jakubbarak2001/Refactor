@@ -6,6 +6,7 @@ from jb_game.game_logic.jb_dev_day_cycle import DayCycle
 from jb_game.game_logic.jb_dev_decision import Decision
 from jb_game.game_logic.jb_dev_random_events import RandomEvents
 from jb_game.game_logic.jb_dev_endings import GameEndings
+from jb_game.game_logic.jb_dev_mm_event import MMEvent
 
 class Game:
     """Sets the basic gaming mechanics, rules, win/loose conditions, difficulty levels."""
@@ -178,7 +179,9 @@ class Game:
                             self.day_cycle.next_day()
 
                     if self.day_cycle.current_day == 24:
-                        self.day_cycle.day_start_message()#MM EVENT
+                        self.day_cycle.day_start_message()
+
+
 
                 self.day_cycle.day_start_message()
 
