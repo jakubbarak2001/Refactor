@@ -39,6 +39,7 @@ class MMEvent:
         self._coding_reality_check(stats)
         self._financial_reality_check(stats)
         self._hatred_motivation_check(stats)
+        self._ending_phase(stats)
 
         return
 
@@ -52,21 +53,32 @@ class MMEvent:
         print("\nMM always cared about image. High-end fashion, perfumes, good posture.")
         print("You could stop by the mall and buy something sharp to show him you aren't completely dead inside yet.")
 
-        print("\n1. [PAY 2.500 CZK] BUY A NEW OUTFIT. Impress him.")
-        print("2. [FREE] GO AS IS. Sweatpants and a hoodie. You don't have energy to pretend.")
+        print("\n1. [PAY 12.500 CZK] ORIGINAL FIT MASH POLO SHIRT + TOBACCO HONEY GUERLAIN EDP, he has no idea what is coming... ")
+        print("\n2. [PAY 2.500 CZK] GET A NEW CUT AND BUY NEW COOL SHIRT")
+        print("3. [FREE] GO AS IS. Sweatpants and a hoodie. You don't have energy to pretend.")
 
-        choice = Decision.ask(("1", "2"))
+        choice = Decision.ask(("1", "2" "3"))
 
         if choice == "1":
+            if stats.try_spend_money(12500):
+                self.mm_points += 2
+                print("\nYou look at yourself in the mirror and question yourself whether you actually really work at Police or Prada.")
+                print("Impressive. Very nice.")
+                print("Let's see MM's clothes.")
+                print("\n[OUTCOME]: -12.500 CZK, +MM AFFECTION (He will love the effort you put into your outfit).")
+            else:
+                print("\nYou check your card balance... declined. Embarrassing.")
+                print("You go in your old clothes anyway.")
+        elif choice == "2":
             if stats.try_spend_money(2500):
                 self.mm_points += 1
-                print("\nYou buy a sharp shirt and new chinos. You look in the mirror.")
+                print("\nThe barber played his part really well, you also buy a new sharp shirt. You look in the mirror.")
                 print("For a second, you don't look like a tired cop. You look like a civilian.")
                 print("\n[OUTCOME]: -2.500 CZK, +MM AFFECTION (He will appreciate the effort).")
             else:
                 print("\nYou check your card balance... declined. Embarrassing.")
                 print("You go in your old clothes anyway.")
-        elif choice == "2":
+        elif choice == "3":
             print("\nYou splash some cold water on your face. This is who you are right now.")
             print("If he's really your friend, he won't care about the hoodie.")
             print("\n[OUTCOME]: NO CHANGE.")
@@ -260,14 +272,14 @@ class MMEvent:
             print("\nYour eyes flash with anger. You practically spit the words out.")
             print("'I hate them so much it hurts. Every second in that uniform is torture.'")
             print("MM smiles. A genuine, shark-like smile. 'Good. Use that anger.'")
-            print("\n[OUTCOME]: +2 MM POINTS, +25 PCR HATRED (Fuel for the fire).")
+            print("\n[OUTCOME]: +MM AFFECTION, +25 PCR HATRED (Fuel for the fire).")
 
         elif choice == "2":
             stats.increment_stats_pcr_hatred(10)
             self.mm_points += 1
             print("\nYou sigh. 'I hate it. I hate the politics, the lies. I need out.'")
             print("MM nods. 'That's the spirit.'")
-            print("\n[OUTCOME]: +1 MM POINT, +10 PCR HATRED.")
+            print("\n[OUTCOME]: +MM AFFECTION, +10 PCR HATRED.")
 
         elif choice == "3":
             print("\nYou shrug. 'It's business. We just aren't a good fit.'")
@@ -279,7 +291,7 @@ class MMEvent:
             self.mm_points -= 1
             print("\n'They gave me a chance. Maybe I'm just weak.'")
             print("MM frowns. 'Don't do that. Don't blame yourself for their toxicity.'")
-            print("\n[OUTCOME]: -1 MM POINT, -10 PCR HATRED.")
+            print("\n[OUTCOME]: -MM AFFECTION, -10 PCR HATRED.")
 
         elif choice == "5":
             stats.increment_stats_pcr_hatred(-25)
@@ -289,4 +301,156 @@ class MMEvent:
             print("You sound like a brainwashed cadet.")
             print("MM stares at you in disbelief. He almost laughs.")
             print("'Wow. Stockholm Syndrome much? You are defending the cage you are trapped in.'")
-            print("\n[OUTCOME]: -2 MM POINTS, -25 PCR HATRED (Pathetic).")
+            print("\n[OUTCOME]: -MM AFFECTION, -25 PCR HATRED (Pathetic).")
+
+    def _timing_decision_phase(self, stats: JBStats):
+        """Phase 7: The Decision. When do you face the Final Boss?"""
+        red = "\033[91m"
+        bold = "\033[1m"
+        reset = "\033[0m"
+
+        print("\nMM's expression darkens. The nostalgia is gone.")
+        time.sleep(1)
+        print(f"\n'One last thing, JB. {bold}The Colonel.{reset}'")
+        time.sleep(1.5)
+
+        print("'I know you think he is just a bureaucrat. But don't underestimate him.'")
+        print(f"'He is the one who hired you, remember? He personally admitted you to the academy.'")
+        time.sleep(1.0)
+
+        print(f"'He sees you as his project. His success story. His {bold}'Good Soldier'{reset}.'")
+        time.sleep(1.5)
+
+        print(f"\n'When you hand him that resignation... he won't see it as paperwork.'")
+        time.sleep(0.5)
+        self._slow_print(f"{bold}{red}'He will take it as a betrayal.'{reset}", delay=0.12)
+        time.sleep(1.0)
+
+        print(f"\n'He will come at you with everything. Guilt, threats, regulations, maybe even empathy.'")
+        self._slow_print(f"'It won't be an easy fight. It might be the hardest thing you've ever done.'", delay=0.08)
+
+        print("\nHe looks at you intently.")
+        time.sleep(1.0)
+        print(f"{bold}'Are you ready to face him? Do you want to rip the band-aid off now?'{reset}")
+        print("'Or do you need time to prepare your mind and your wallet?'")
+
+        print("\n1. [BRAVE] 'I'm doing it tomorrow. I want it over with.' (Trigger Event Day 25, GAIN MM AFFECTION)")
+        print("2. [REASONABLE] 'I need more time. I'll wait until the last moment.' (Trigger Event Day 30, NEUTRAL)")
+
+        choice = Decision.ask(("1", "2"))
+
+        if choice == "1":
+            self.mm_points += 2
+            # Add dynamic attribute to stats for Game class to read later
+            stats.colonel_day = 25
+            print("\nYou clench your fist. 'Tomorrow. I'm not waiting.'")
+            print("MM nods, impressed. 'Good. Strike while the iron is hot. Don't let the fear settle.'")
+            print("\n[OUTCOME]: +2 MM POINTS, FINAL BOSS SET FOR DAY 25.")
+
+        elif choice == "2":
+            stats.colonel_day = 30
+            print("\nYou take a deep breath. 'I need to be sure. I'll wait... I have to do it till the end of this month.'")
+            print("MM nods understandingly. 'Smart. Don't rush into a war you aren't ready for.'")
+            print("'Use the time wisely. Save money. Code. Prepare.'")
+            print("\n[OUTCOME]: FINAL BOSS SET FOR DAY 30.")
+
+    def _ending_phase(self, stats: JBStats):
+        """
+        Phase 8: The Parting Gift.
+        Based on MM_Points, determines what 'Weapon' or 'Status' you take to the final boss.
+        """
+        red = "\033[91m"
+        bold = "\033[1m"
+        reset = "\033[0m"
+
+        print("\nThe lunch is over. You pay the bill.")
+        print("You walk out into the cold street. The wind hits your face.")
+
+        # High Score: The "Good Ending" with 5 choices
+        if self.mm_points > 8:
+            print(f"\n{bold}MM stops you before you leave.{reset}")
+            print("'Wait, JB. I have a good feeling about this. You are actually ready.'")
+            print("'I want to help you. I can't fight him for you, but I can give you an edge.'")
+            print("'What do you need the most? Information? Security? Or a weapon?'")
+
+            self._good_ending_selection(stats)
+
+        # Medium Score: Neutral Ending
+        elif self.mm_points >= 5:
+            print(f"\nMM shakes your hand. His grip is firm.")
+            print("'It’s going to be hell, JB. He will try to break you.'")
+            print("'But if you get overwhelmed, just remember that I made it.'")
+            print("'I'm waiting on the other side. Don't let him win.'")
+
+            stats.final_boss_buff = "STOIC_ANCHOR"
+            print(f"\n{bold}[STATUS ACQUIRED]: STOIC ANCHOR{reset}")
+            print("(Passive: The Colonel's fear attacks deal 25% less damage to your Mental State.)")
+
+        # Low Score: Bad Ending
+        else:
+            print(f"\nMM looks at you with pity. He doesn't shake your hand.")
+            print("'JB, you remind me of that one dude from HS,'")
+            print("who saw Fast and Furious and had that dream of opening a car tuning shop, but never actually did...'")
+            print("'If you go in there like this, he's going to eat you alive.'")
+            print("'Good luck. You are going to need it.'")
+
+            stats.final_boss_buff = "IMPOSTER_SYNDROME"
+            print(f"\n{red}[STATUS ACQUIRED]: IMPOSTER SYNDROME{reset}")
+            print("(Debuff: You start the boss fight with a DEBUFF.)")
+
+    def _good_ending_selection(self, stats: JBStats):
+        """The 5-choice menu for the Good Ending."""
+        green = "\033[92m"
+        bold = "\033[1m"
+        reset = "\033[0m"
+
+        print(f"\n{green}CHOOSE YOUR FINAL BOSS ADVANTAGE:{reset}")
+
+        print(f"\n1. {bold}[THE LEGAL NUKE]{reset}")
+        print("   MM gives you a file proving the 80k debt is void via 'Paragraph 4B'.")
+        print("   (Effect: Instantly deals 35 HP DMG + Disables Money Threats)")
+
+        print(f"\n2. {bold}[GHOST OF THE PAST]{reset}")
+        print("   MM reveals the Colonel tried to quit 10 years ago and failed.")
+        print("   (Effect: Unlocks 'Pity' Dialogue. Bleed Damage to Colonel's Ego)")
+
+        print(f"\n3. {bold}[PRODUCTION READY SHIELD]{reset}")
+        print("   MM vouches for you and writes a salary figure on a napkin.")
+        print("   (Effect: -50% DMG from Anxiety/Fear attacks. You have a future.)")
+
+        print(f"\n4. {bold}[STOIC REFACTOR]{reset}")
+        print("   MM teaches you the 'Grey Rock' method to emotionally debug the Colonel.")
+        print("   (Effect: Ability to Heal +40 Sanity once per fight)")
+
+        print(f"\n5. {bold}[AGGRESSIVE OPENING]{reset}")
+        print("   MM hypes you up to take the initiative and strike first.")
+        print("   (Effect: Colonel starts with -20 HP. Skip the intimidation intro.)")
+
+        choice = Decision.ask(("1", "2", "3", "4", "5"))
+
+        if choice == "1":
+            print("\nMM hands you a crumpled digital file printout.")
+            print("'He lies about the contract. Quote this paragraph. Watch him choke.'")
+            stats.final_boss_buff = "LEGAL_NUKE"
+
+        elif choice == "2":
+            print("\nMM leans in and whispers the Colonel's dirty secret.")
+            print("You smile. suddenly, the Colonel doesn't look like a monster. He looks like a failure.")
+            stats.final_boss_buff = "GHOST_SECRET"
+
+        elif choice == "3":
+            print("\nMM makes a call. He hands you a napkin with a number on it.")
+            print("'That's your starting salary. He can't threaten a man who has options.'")
+            stats.final_boss_buff = "JOB_OFFER"
+
+        elif choice == "4":
+            print("\nMM grabs your shoulders. He teaches you to breathe. To detach.")
+            print("'He is just broken code, JB. Don't get angry. Just debug him.'")
+            stats.final_boss_buff = "STOIC_HEAL"
+
+        elif choice == "5":
+            print("\nMM slaps your back hard. The adrenaline hits.")
+            print("'Don't let him speak. Throw the badge on the table. Be the alpha.'")
+            stats.final_boss_buff = "FIRST_STRIKE"
+
+        print(f"\n{green}{bold}[ACE IN THE HOLE ACQUIRED]{reset}")

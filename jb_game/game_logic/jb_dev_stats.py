@@ -121,6 +121,7 @@ class JBStats:
         self.pcr_hatred = set_pcr_hatred
         if self.pcr_hatred <= 0:
             self.pcr_hatred = 0
+            print("Your hatred cannot be lower than 0!")
 
     def increment_stats_value_money(self, increment_money_value):
         """Change the value of stats available money to different number."""
