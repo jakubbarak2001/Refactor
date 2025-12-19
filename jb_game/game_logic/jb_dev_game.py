@@ -47,10 +47,10 @@ class Game:
         if self.stats.available_money <= 0:
             GameEndings.homeless_ending(self.stats)
 
-        if self.stats.pcr_hatred > 70:
-            print(f"\n{red}[WARNING] HATRED AT {self.stats.pcr_hatred}%! ONE BAD DAY WILL BREAK YOU.{reset}")
+        if self.stats.pcr_hatred >= 65:
+            print(f"\n{red}[WARNING] HATRED AT {self.stats.pcr_hatred}%! YOU WILL BREAK DOWN SOON IF YOU DON'T SLOW DOWN. {reset}")
 
-        if self.stats.available_money < 5000:
+        if self.stats.available_money < 7500:
             print(f"\n{yellow}[WARNING] LOW FUNDS ({self.stats.available_money} CZK). POVERTY IMMINENT.{reset}")
 
     def set_difficulty_level(self):
@@ -176,6 +176,8 @@ class Game:
                             self.day_cycle.next_day()
 
                     if self.day_cycle.current_day == 24:
+                        self.day_cycle.next_day()
+                        self.day_cycle.day_start_message()
                         mm_event = MMEvent()
                         mm_event.trigger_event(self.stats)
 

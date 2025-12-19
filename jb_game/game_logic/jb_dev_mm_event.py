@@ -69,81 +69,84 @@ class MMEvent:
 
     def _preparation_phase(self, stats: JBStats):
         """Phase 1: Preparation and clothing choice."""
-        print("\nYou decided to call MM. It's been almost 9 months since you saw him last.")
-        print("He quit the force abruptly. Everyone said he was crazy. Now, rumors say he's doing great.")
-        print("\nYou agreed to meet for lunch at a decent restaurant in the city center.")
-        print("You look at yourself in the mirror. You look like a mess. Bags under your eyes, pale skin,")
-        print("post-shift exhaustion vibrating in your hands.")
-        print("\nMM always cared about image. High-end fashion, perfumes, good posture.")
-        print("You could stop by the mall and buy something sharp to show him you aren't completely dead inside yet.\n")
+        self._slow_print("\nYou decided to call MM. It's been almost 9 months since you saw him last.", delay=0.03)
+        self._slow_print("He quit the force abruptly. Everyone said he was crazy. Now, rumors say he's doing great.", delay=0.03)
+        self._slow_print("\nYou agreed to meet for lunch at a decent restaurant in the city center.", delay=0.03)
+        self._slow_print("You look at yourself in the mirror. You look like a mess. Bags under your eyes, pale skin,", delay=0.03)
+        self._slow_print("post-shift exhaustion vibrating in your hands.", delay=0.03)
+        self._slow_print("\nMM always cared about image. High-end fashion, perfumes, good posture.", delay=0.03)
+        self._slow_print("You could stop by the mall and buy something sharp to show him you aren't completely dead inside yet.\n", delay=0.03)
 
-        print("1. [PAY 12.500 CZK] ORIGINAL FIT MASH POLO SHIRT + TOBACCO HONEY GUERLAIN EDP, he has no idea what is coming... ")
-        print("2. [PAY 2.500 CZK] GET A NEW CUT AND BUY NEW COOL SHIRT")
-        print("3. [FREE] GO AS IS. Sweatpants and a hoodie. You don't have energy to pretend.")
+        self._slow_print("1. [PAY 12.500 CZK] ORIGINAL FIT MASH POLO SHIRT + TOBACCO HONEY GUERLAIN EDP, he has no idea what is coming... ", delay=0.02)
+        self._slow_print("2. [PAY 2.500 CZK] GET A NEW CUT AND BUY NEW COOL SHIRT", delay=0.02)
+        self._slow_print("3. [FREE] GO AS IS. Sweatpants and a hoodie. You don't have energy to pretend.", delay=0.02)
 
         choice = Decision.ask(("1", "2" "3"))
 
         if choice == "1":
             if stats.try_spend_money(12500):
                 self.mm_points += 2
-                print("\nYou look at yourself in the mirror and question yourself whether you actually really work at Police or Prada.")
-                print("Impressive. Very nice.")
-                print("Let's see MM's clothes.")
-                print("\n[OUTCOME]: -12.500 CZK, +MM AFFECTION (He will love the effort you put into your outfit).")
+                self._slow_print("\nYou look at yourself in the mirror and question yourself whether you actually really work at Police or Prada.", delay=0.05)
+                time.sleep(1)
+                self._slow_print("'Impressive. Very nice.'", delay=0.03)
+                time.sleep(1)
+                self._slow_print("'Let's see MM's style.'", delay=0.03)
+                self._slow_print("\n[OUTCOME]: -12.500 CZK, +MM AFFECTION (He will love the effort you put into your outfit).", delay=0.01)
             else:
-                print("\nYou check your card balance... declined. Embarrassing.")
-                print("You go in your old clothes anyway.")
+                self._slow_print("\nYou check your card balance... declined. Embarrassing.", delay=0.05)
+                self._slow_print("You go in your old clothes anyway.", delay=0.03)
         elif choice == "2":
             if stats.try_spend_money(2500):
                 self.mm_points += 1
-                print("\nThe barber played his part really well, you also buy a new sharp shirt. You look in the mirror.")
-                print("For a second, you don't look like a tired cop. You look like a civilian.")
-                print("\n[OUTCOME]: -2.500 CZK, +MM AFFECTION (He will appreciate the effort).")
+                self._slow_print("\nThe barber played his part really well, you also buy a new sharp shirt. You look in the mirror.", delay=0.05)
+                self._slow_print("For a second, you don't look like a tired cop. You look like a civilian.", delay=0.03)
+                self._slow_print("\n[OUTCOME]: -2.500 CZK, +MM AFFECTION (He will appreciate the effort).", delay=0.01)
             else:
-                print("\nYou check your card balance... declined. Embarrassing.")
-                print("You go in your old clothes anyway.")
+                self._slow_print("\nYou check your card balance... declined. Embarrassing.", delay=0.05)
+                self._slow_print("You go in your old clothes anyway.", delay=0.05)
         elif choice == "3":
-            print("\nYou splash some cold water on your face. This is who you are right now.")
-            print("If he's really your friend, he won't care about the hoodie.")
-            print("\n[OUTCOME]: NO CHANGE.")
+            self._slow_print("\nYou splash some cold water on your face. This is who you are right now.", delay=0.05)
+            time.sleep(1)
+            self._slow_print("If he's really your friend, he won't care about the hoodie.", delay=0.03)
+            self._slow_print("\n[OUTCOME]: NO CHANGE.", delay=0.01)
 
         input("\n(PRESS ENTER)")
 
     def _meeting_phase(self, stats: JBStats):
         """Phase 2: The Meeting and conversation topic."""
-        print("\nYou arrive at the restaurant. You see him in the distance.")
-        print("It's a shock. He looks... different. Bigger. Buffed.")
-        print("His skin has color. He is smiling at the waitress.")
-        print("He looks like a totally different person compared to the wreck you remember from the service.")
-
-        print("\nYou sit down. Your brain is running on cheap caffeine and 2 hours of sleep after a 24hr shift.")
-        print("He orders a steak. You order a coffee.")
-        print("\nBefore the food arrives, you need to break the ice. What do you talk about?")
-
-        print("\n1. [VENT OUT] Complain about the police, the Colonel, and the bureaucracy.")
-        print("2. [BRAG] Talk about your Python projects and how much you've learned.")
-        print("3. [LISTEN] Let him talk. Ask him how he did it.")
+        self._slow_print("\nYou arrive at the restaurant. You see him in the distance.", delay=0.05)
+        self._slow_print("It's a shock. He looks... different. Bigger. Buffed.", delay=0.02)
+        self._slow_print("His skin has color. He is smiling at the waitress.", delay=0.02)
+        self._slow_print("He looks like a totally different person compared to the wreck you remember from the service.", delay=0.02)
+        time.sleep(1)
+        self._slow_print("\nYou sit down. Your brain is running on cheap caffeine and 2 hours of sleep after a 24hr shift.", delay=0.03)
+        self._slow_print("He orders a steak. You order a coffee.", delay=0.02)
+        self._slow_print("\nBefore the food arrives, you need to break the ice. What do you talk about?", delay=0.02)
+        time.sleep(1)
+        self._slow_print("\n1. [VENT OUT] Complain about the police, the Colonel, and the bureaucracy.", delay=0.01)
+        self._slow_print("2. [BRAG] Talk about your Python projects and how much you've learned.", delay=0.01)
+        self._slow_print("3. [LISTEN] Let him talk. Ask him how he did it.", delay=0.01)
 
         choice = Decision.ask(("1", "2", "3"))
 
         if choice == "1":
             stats.increment_stats_pcr_hatred(-50)
-            print("\nYou unload everything. The broken printers, the bodies, the admin mistakes.")
-            print("It feels good to say it to someone who understands.")
-            print("\n[OUTCOME]: -50 PCR HATRED.")
+            self._slow_print("\nYou unload everything. The broken printers, the bodies, the admin mistakes.", delay=0.03)
+            self._slow_print("It feels good to say it to someone who understands.", delay=0.02)
+            self._slow_print("\n[OUTCOME]: -50 PCR HATRED.", delay=0.01)
 
         elif choice == "2":
             stats.increment_stats_coding_skill(25)
-            print("\nYou start talking about OOP, classes, and the automation script you wrote.")
-            print("You try to sound professional, to show you are ready.")
-            print("\n[OUTCOME]: +25 CODING SKILL.")
+            self._slow_print("\nYou start talking about OOP, classes, and the automation script you wrote.", delay=0.03)
+            self._slow_print("You try to sound professional, to show you are ready.", delay=0.02)
+            self._slow_print("\n[OUTCOME]: +25 CODING SKILL.", delay=0.01)
 
         elif choice == "3":
             self.mm_points += 1
-            print("\nYou stay quiet. You ask him about his life.")
-            print("He talks about his freedom. About sleeping 8 hours a day. About respect.")
-            print("He appreciates that you actually listen.")
-            print("\n[OUTCOME]: +MM AFFECTION.")
+            self._slow_print("\nYou stay quiet. You ask him about his life.", delay=0.03)
+            self._slow_print("He talks about his freedom. About sleeping 8 hours a day. About respect.", delay=0.02)
+            self._slow_print("He appreciates that you actually listen.", delay=0.02)
+            self._slow_print("\n[OUTCOME]: +MM AFFECTION.", delay=0.01)
 
         input("\n(PRESS ENTER)")
 
@@ -153,13 +156,13 @@ class MMEvent:
         bold = "\033[1m"
         reset = "\033[0m"
 
-        print("\nThe food arrives. The smell of steak fills the air, but your stomach is tied in a knot.")
-        print("You put down your fork. It's time.")
-        print("\n'You know, MM,' you start, your voice cracking slightly. 'It was really inspiring when you left.'")
-        print("'I don't really know what to do next, I'm kind of lost, and...'")
-
-        print("\nHe puts his hand up. He stops you mid-sentence.")
-        print("He looks you dead in the eye. The restaurant noise fades away.")
+        self._slow_print("\nThe food arrives. The smell of steak fills the air, but your stomach is tied in a knot.", delay=0.05)
+        self._slow_print("You put down your fork. It's time.", delay=0.02)
+        self._slow_print("\n'You know, MM,' you start, your voice cracking slightly. 'It was really inspiring when you left.'", delay=0.02)
+        self._slow_print("'I don't really know what to do next, I'm kind of lost, and...'", delay=0.01)
+        time.sleep(1)
+        self._slow_print("\nHe puts his hand up. He stops you mid-sentence.", delay=0.03)
+        self._slow_print("He looks you dead in the eye. The restaurant noise fades away.", delay=0.02)
         input("\n(PRESS ENTER)")
 
         print(f"\n{bold}'Stop lying to yourself, JB.'{reset}")
@@ -179,27 +182,27 @@ class MMEvent:
         self._slow_print(f"{bold}The truth hits you like a physical blow.{reset}", delay=0.05)
         self._slow_print(f"{bold}You look down at the table. You whisper it.{reset}", delay=0.05)
         time.sleep(0.5)
-        self._slow_print(f"{bold}{red}'You are right...'{reset}", delay=0.15)
+        self._slow_print(f"\n{bold}{red}'You are right...'{reset}", delay=0.15)
         time.sleep(0.5)
         self._slow_print(f"{bold}{red}'I... I want to quit.'{reset}", delay=0.20)
 
         self._slow_print("\nAs you say those words, the reality of your debt and the Colonel's face flash before your eyes.", delay=0.05)
         if stats.pcr_hatred >= 60:
-            print(f"\n{red}[RELIEF]: -15 PCR HATRED (It feels so good to say aloud what you already knew).{reset} ")
+            print(f"\n{red}[RELIEF]: -15 PCR HATRED (It feels so good to say aloud what you already knew).{reset}")
         else:
             stats.increment_stats_pcr_hatred(15)
-            print(f"\n{red}[CRITICAL EFFECT]: +15 PCR HATRED (The Fear of leaving is now real).{reset}")
+            print(f"\n{red}[CRITICAL EFFECT]: +15 PCR HATRED (The Fear of leaving is now real). {reset}")
 
-        print(f"\n{stats.get_stats_command()}")
+        print(f"\nYour current hatred is: {stats.pcr_hatred}.")
         input("\n(PRESS ENTER)")
 
 
     def _coding_reality_check(self, stats: JBStats):
         """Phase 4: The Skill Check based on coding experience."""
-        print("\nMM leans back. 'Okay. You said it. Now, can you actually do it?'")
-        print("'Do you have the skills? If you leave tomorrow, can you feed yourself?'")
+        self._slow_print("\nMM leans back. 'Okay. You said it. Now, can you actually do it?'", delay=0.03)
+        self._slow_print("'Do you have the skills? If you leave tomorrow, can you feed yourself?'", delay=0.01)
 
-        print(f"\n[REALITY CHECK] Current Coding Experience: {stats.coding_skill}")
+        self._slow_print(f"\n[REALITY CHECK] Current Coding Experience: {stats.coding_skill}", delay=0.01)
         input("\n(PRESS ENTER TO EVALUATE)")
 
         if stats.coding_skill >= 200:
