@@ -8,8 +8,27 @@ class TestMMEvent(unittest.TestCase):
 
     def setUp(self):
         """Setup a fresh stats object and event instance before each test."""
+        # --- FIX 1: Mock input() to prevent OSError crash ---
+        self.input_patcher = patch('builtins.input', return_value='')
+        self.mock_input = self.input_patcher.start()
+
+        # --- FIX 2: Mock time.sleep() to make tests run instantly ---
+        self.sleep_patcher = patch('time.sleep')
+        self.mock_sleep = self.sleep_patcher.start()
+
+        # --- FIX 3: Mock _play_music to avoid audio driver checks/errors ---
+        self.music_patcher = patch.object(MMEvent, '_play_music')
+        self.mock_music = self.music_patcher.start()
+
+        # Initialize the objects
         self.stats = JBStats(available_money=50000, coding_experience=100, pcr_hatred=50)
         self.event = MMEvent()
+
+    def tearDown(self):
+        """Stop all patchers after each test to clean up."""
+        self.input_patcher.stop()
+        self.sleep_patcher.stop()
+        self.music_patcher.stop()
 
     # --- PHASE 1: PREPARATION (Money & Outfits) ---
     @patch('jb_game.game_logic.jb_dev_decision.Decision.ask')
