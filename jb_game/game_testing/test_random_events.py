@@ -264,35 +264,6 @@ def test_event_printer_ignore(mock_decision, _, events, stats):
 
 
 # ==========================================
-# 10. ETHICS SEMINAR
-# ==========================================
-
-@patch('builtins.input')
-@patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
-@patch('jb_game.game_logic.jb_dev_random_events.randint')
-def test_event_ethics_sleep_fail(mock_randint, mock_decision, _, events, stats):
-    """Scenario: Sleep (Choice 1) -> Caught (Roll <= 50)."""
-    mock_decision.return_value = '1'
-    mock_randint.return_value = 40
-
-    events.ethics_seminar(stats)
-    assert stats.available_money == 9500  # 10k - 500
-    assert stats.pcr_hatred == 10
-
-
-@patch('builtins.input')
-@patch('jb_game.game_logic.jb_dev_random_events.Decision.ask')
-@patch('jb_game.game_logic.jb_dev_random_events.randint')
-def test_event_ethics_sleep_success(mock_randint, mock_decision, _, events, stats):
-    """Scenario: Sleep (Choice 1) -> Success (Roll > 50)."""
-    mock_decision.return_value = '1'
-    mock_randint.return_value = 60
-
-    events.ethics_seminar(stats)
-    assert stats.pcr_hatred == -15
-
-
-# ==========================================
 # 11. FORGOTTEN USB
 # ==========================================
 

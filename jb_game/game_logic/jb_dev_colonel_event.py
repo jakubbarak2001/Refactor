@@ -175,12 +175,12 @@ class ColonelEvent:
         self._slow_print(f"Your Savings: {stats.available_money} CZK", delay=0.01)
 
         options = []
-        if stats.available_money >= 250000:
+        if stats.available_money >= 200000:
             options.append("1. [PAY 80k] 'Here. Keep the change.' (Deals 20 HP DMG)")
             options.append("2. [SHOW BALANCE] 'I have enough to bury you in court.' (Deals 10 HP DMG, Save Money)")
 
         if not options:
-            self._slow_print("\n[PANIC]: You don't have enough to feel safe (Need >250k).", delay=0.02)
+            self._slow_print("\n[PANIC]: You don't have enough to feel safe (Need >200k).", delay=0.02)
             self._slow_print("1. [STAMMER] 'I... I will pay you later.'", delay=0.02)
             choice = Decision.ask(("1",))
             self.jb_hp -= 10
@@ -246,14 +246,16 @@ class ColonelEvent:
             success_chance = chance_money
             dmg_type = "Financial Shield"
 
-        self._slow_print(f"\n[ROLLING]: You need <= {success_chance}... Rolled: {roll}", delay=0.05)
+        self._slow_print(f"\n[ROLLING]: Rolled: {roll}", delay=0.05)
 
         if roll <= success_chance:
-            damage = 20 + success_chance
+            bonus_damage = max(0, success_chance - 100)
+            damage = 20 + bonus_damage
+
             self.colonel_hp -= damage
             self._slow_print(f"\n{self.green}[SUCCESS]: Your {dmg_type} hits him hard!{self.reset}")
             self._slow_print(
-                f"{self.green}CRITICAL STRIKE: 20 Base + {success_chance} Bonus = {damage} DMG!{self.reset}")
+                f"{self.green}CRITICAL STRIKE: 20 Base + {bonus_damage} Bonus (Excess Chance) = {damage} DMG!{self.reset}")
         else:
             self.jb_hp -= 20
             self._slow_print(f"\n{self.red}[FAILURE]: Your voice cracks. He smells weakness.{self.reset}")
@@ -455,22 +457,51 @@ class ColonelEvent:
 
     def _check_fight_outcome(self, stats):
         """
-        Modified Outcome Check.
-        If Colonel reaches 0 HP, he doesn't die. He loops.
+        [UPDATED]: Logic for when attacks run out (Stalemate).
         """
+        # 1. Player Defeated
         if self.jb_hp <= 0:
             self._slow_print(f"\n{self.red}{self.bold}DEFEAT. You crumble under the pressure.{self.reset}", delay=0.05)
-            # Game Over logic
+            # In your main game loop, handle the Game Over here
             return
 
+        # 2. Colonel Defeated (Standard)
         if self.colonel_hp <= 0:
-            # TRIGGER THE GLITCH PHASE
             self._glitch_phase(stats)
+            return
+
+        # 3. SUDDEN DEATH / ATTACKS EXHAUSTED (Both > 0 HP)
+        # This triggers when the loop finishes and no one is at 0 HP.
+        print("\n" + "=" * 50)
+        self._slow_print(f"{self.bold}THE SILENCE{self.reset}")
+        print("=" * 50)
+
+        self._slow_print("\nThe Colonel stops. He has run out of threats.", delay=0.04)
+        self._slow_print("He stares at you, breathing heavily. He has nothing left to say.", delay=0.04)
+
+        time.sleep(1)
+        print(f"\n{self.green}JB HP: {self.jb_hp}{self.reset}  VS  {self.red}COLONEL HP: {self.colonel_hp}{self.reset}")
+        time.sleep(1)
+
+        # LOGIC: If JB_HP >= COLONEL_HP -> WIN
+        if self.jb_hp >= self.colonel_hp:
+            self._slow_print(f"\n{self.green}VERDICT: YOU ARE STRONGER.{self.reset}", delay=0.05)
+            self._slow_print("You withstood the barrage. The Colonel realizes he cannot break you.", delay=0.04)
+
+            # Force Victory
+            self.colonel_hp = 0
+            self._glitch_phase(stats)
+
+        else:
+            # LOGIC: If JB_HP < COLONEL_HP -> LOSS
+            self._slow_print(f"\n{self.red}VERDICT: YOU ARE BROKEN.{self.reset}", delay=0.05)
+            self._slow_print("You survived the argument, but the stress was too much.", delay=0.04)
+            self._slow_print("You don't have the energy to fight anymore. You slowly sit back down.", delay=0.04)
+            self._slow_print(f"\n{self.red}{self.bold}DEFEAT.{self.reset}", delay=0.05)
 
     def _glitch_phase(self, stats):
         """
-        The narrative turning point.
-        The Colonel resets, revealing he is just a loop.
+        [FIXED]: Loop logic for the menu now works correctly.
         """
         # --- MUSIC SWITCH: GLITCH / MATRIX THEME ---
         self._play_music("sevirra_lenoloc.mp3")
@@ -496,28 +527,27 @@ class ColonelEvent:
         self._slow_print(f"{self.bold}He is looping.{self.reset}", delay=0.06)
         self._slow_print("He doesn't see you. He CANNOT see you.", delay=0.04)
         self._slow_print("He is just a script running 'police_bureaucracy.exe'.", delay=0.04)
-        self._slow_print("He believes he is fighting for the world, but he is just a pawn in a while-loop.", delay=0.04)
 
         time.sleep(1.5)
         self._slow_print("\nHe prepares his biggest attack yet. The Final Insult.", delay=0.05)
         self._slow_print(f"{self.red}'You are a COWARD, JB! You were never fit for this force!'{self.reset}",
                          delay=0.04)
-        self._slow_print(f"{self.red}'You are my biggest mistake! You will be NOTHING without me!'{self.reset}",
-                         delay=0.04)
 
-        print("\nCHOOSE YOUR REACTION:")
-        print("1. [ARGUE] 'That's not true! I gave you everything!' (Restart the loop)")
-        print(f"2. {self.green}[sys.exit()] WAKE UP.{self.reset}")
-
+        # FIX: Loop properly handles re-displaying options
         while True:
+            print("\nCHOOSE YOUR REACTION:")
+            print("1. [ARGUE] 'That's not true! I gave you everything!' (Restart the loop)")
+            print(f"2. {self.green}[sys.exit()] WAKE UP.{self.reset}")
+
             choice = input("\n> ")
 
             if choice == "1":
                 self._slow_print("\nYou try to argue, but he just pours another coffee...", delay=0.03)
                 self._slow_print("The loop tightens around your neck.", delay=0.03)
                 self._slow_print(f"{self.red}You are trapped in the argument forever.{self.reset}")
-                # Ideally, this loops back or gives game over, but for effect, let's just push them to 2 eventually
-                print("(You realize arguing is pointless. Try again.)")
+                self._slow_print("(You realize arguing is pointless. Try again.)\n", delay=0.02)
+                time.sleep(1)
+                # Loop continues, showing menu again
 
             elif choice == "2":
                 # TRIGGER THE GOOD ENDING MODULE

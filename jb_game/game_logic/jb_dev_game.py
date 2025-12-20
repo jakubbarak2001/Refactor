@@ -437,11 +437,11 @@ class Game:
     def activity_python(self):
         """Daily activity accessible from menu, allows you to code and gain coding experience."""
         CODING_LEVEL = {
-            "TIER 0": {"CODING SKILL": 50, "STANDARD RATE": 0, "HOUR RATE": 0},
-            "TIER 1": {"CODING SKILL": 100, "STANDARD RATE": 2500, "HOUR RATE": 25},
-            "TIER 2": {"CODING SKILL": 150, "STANDARD RATE": 5000, "HOUR RATE": 50},
-            "TIER 3": {"CODING SKILL": 200, "STANDARD RATE": 7500, "HOUR RATE": 75},
-            "TIER 4": {"CODING SKILL": 200, "STANDARD RATE": 10000, "HOUR RATE": 100},
+            "TIER 0": {"CODING SKILL": "0-49", "STANDARD RATE": 0, "HOUR RATE": 0},
+            "TIER 1": {"CODING SKILL": "50-99", "STANDARD RATE": 2500, "HOUR RATE": 25},
+            "TIER 2": {"CODING SKILL": "100-149", "STANDARD RATE": 5000, "HOUR RATE": 50},
+            "TIER 3": {"CODING SKILL": "150-199", "STANDARD RATE": 7500, "HOUR RATE": 75},
+            "TIER 4": {"CODING SKILL": "200+", "STANDARD RATE": 10000, "HOUR RATE": 100},
         }
 
         skill = getattr(self.stats, 'coding_skill', 0)

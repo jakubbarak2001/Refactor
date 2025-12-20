@@ -1,7 +1,7 @@
 import sys
 import time
 import os
-import pygame  # <--- NEW IMPORT
+import pygame
 
 def resource_path(relative_path):
     """ Get absolute path to resource (Works for Dev & EXE) """
@@ -28,7 +28,7 @@ class GameEndings:
             pygame.mixer.music.stop()
             pygame.mixer.music.unload()
 
-            # Load the new tragic theme
+            # Load the new tragic/epic theme
             path = resource_path(track_name)
             pygame.mixer.music.load(path)
             pygame.mixer.music.play(-1)  # Loop forever until they close the window
@@ -132,6 +132,9 @@ class GoodEnding:
         The Final Sequence.
         JB laughs at the absurdity, types the exit command, and walks into reality.
         """
+        # --- MUSIC START: ROAD TO FREEDOM ---
+        # Starts playing immediately as the relief hits you
+        GameEndings._play_ending_music("road_to_freedom.mp3")
 
         # --- THE LAUGHTER ---
         print("\n")

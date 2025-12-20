@@ -17,7 +17,6 @@ class RandomEvents:
             RandomEvents.corpse_in_care_home,
             RandomEvents.forgotten_usb,
             RandomEvents.turkish_fraud,
-            RandomEvents.ethics_seminar,
             RandomEvents.printer_incident,
             RandomEvents.citizen_of_czechoslovakia,
             RandomEvents.paperwork_overload,
@@ -583,45 +582,6 @@ class RandomEvents:
             print("\nYou decide not to risk it. You hand write your report.")
             print("It takes 45 minutes longer.")
             print("\n[OUTCOME]: +5 PCR HATRED.")
-
-        input("\n(CONTINUE...)")
-
-    @staticmethod
-    def ethics_seminar(stats: JBStats) -> None:
-        """
-        Mandatory ethics seminar event.
-        """
-        input("\nRANDOM EVENT!"
-              "\n\n(CONTINUE...)")
-        print("\nMandatory Training: 'Synergy and Ethics in Modern Policing'.")
-        print("It's a 4-hour PowerPoint presentation in a non-ventilated room.")
-        print("The lecturer is reading every single bullet point out loud.")
-
-        print("\n1. [RISK] Sleep in the back row.")
-        print("2. [SAFE] Listen and suffer.")
-
-        select_choice = Decision.ask(('1', '2'))
-
-        if select_choice == "1":
-            roll = randint(1, 100)
-            if roll <= 50:
-                stats.increment_stats_value_money(-500)
-                stats.increment_stats_pcr_hatred(10)
-                print("\nYou drift off... peaceful darkness...")
-                print("'JB! WAKE UP!'")
-                print("Everyone is staring at you. The lecturer writes your name down.")
-                print("\n[FAILURE]: -500 CZK (Salary deduction), +10 PCR HATRED.")
-            else:
-                stats.increment_stats_pcr_hatred(-15)
-                print("\nYou master the art of sleeping with your eyes open.")
-                print("You wake up refreshed just as the applause starts.")
-                print("\n[SUCCESS]: -15 PCR HATRED (Best nap ever).")
-
-        elif select_choice == "2":
-            stats.increment_stats_pcr_hatred(10)
-            print("\nYou force yourself to listen. It's agony.")
-            print("You learn nothing, but you survive.")
-            print("\n[OUTCOME]: +10 PCR HATRED.")
 
         input("\n(CONTINUE...)")
 

@@ -81,7 +81,7 @@ class MMEvent:
         self._slow_print("2. [PAY 2.500 CZK] GET A NEW CUT AND BUY NEW COOL SHIRT", delay=0.02)
         self._slow_print("3. [FREE] GO AS IS. Sweatpants and a hoodie. You don't have energy to pretend.", delay=0.02)
 
-        choice = Decision.ask(("1", "2" "3"))
+        choice = Decision.ask(("1", "2", "3"))
 
         if choice == "1":
             if stats.try_spend_money(12500):
@@ -454,23 +454,27 @@ class MMEvent:
 
         self._slow_print(f"\n1. {bold}[THE LEGAL NUKE]{reset}", delay=0.01)
         self._slow_print("   MM gives you a file proving the 80k debt is void via 'Paragraph 4B'.", delay=0.01)
-        self._slow_print("   (Effect: Instantly deals 35 HP DMG + Disables Money Threats)", delay=0.01)
+        self._slow_print("   (Effect: Colonel starts -35 HP. Auto-Counters 'Training Debt' attack for +15 DMG.)",
+                         delay=0.01)
 
         self._slow_print(f"\n2. {bold}[GHOST OF THE PAST]{reset}", delay=0.01)
         self._slow_print("   MM reveals the Colonel tried to quit 10 years ago and failed.", delay=0.01)
-        self._slow_print("   (Effect: Unlocks 'Pity' Dialogue. Bleed Damage to Colonel's Ego)", delay=0.01)
+        self._slow_print("   (Effect: Immune to Round 1 Fear. Unlocks -40 HP FATAL STRIKE on 'Car Incident'.)",
+                         delay=0.01)
 
         self._slow_print(f"\n3. {bold}[PRODUCTION READY SHIELD]{reset}", delay=0.01)
         self._slow_print("   MM vouches for you and writes a salary figure on a napkin.", delay=0.01)
-        self._slow_print("   (Effect: -50% DMG from Anxiety/Fear attacks. You have a future.)", delay=0.01)
+        self._slow_print("   (Effect: Immune to Round 1 Fear. Auto-Wins 'Blacklist' (-30 HP) & 'Motivation' (-20 HP).)",
+                         delay=0.01)
 
         self._slow_print(f"\n4. {bold}[STOIC REFACTOR]{reset}", delay=0.01)
         self._slow_print("   MM teaches you the 'Grey Rock' method to emotionally debug the Colonel.", delay=0.01)
-        self._slow_print("   (Effect: Ability to Heal +40 Sanity once per fight)", delay=0.01)
+        self._slow_print("   (Effect: Immune to Round 1 Fear (-10 HP saved). No other effects in current version.)",
+                         delay=0.01)
 
         self._slow_print(f"\n5. {bold}[AGGRESSIVE OPENING]{reset}", delay=0.01)
         self._slow_print("   MM hypes you up to take the initiative and strike first.", delay=0.01)
-        self._slow_print("   (Effect: Colonel starts with -20 HP. Skip the intimidation intro.)", delay=0.01)
+        self._slow_print("   (Effect: Colonel starts -20 HP. Immune to Round 1 Fear.)", delay=0.01)
 
         choice = Decision.ask(("1", "2", "3", "4", "5"))
 
@@ -481,7 +485,8 @@ class MMEvent:
 
         elif choice == "2":
             self._slow_print("\nMM leans in and whispers the Colonel's dirty secret.", delay=0.02)
-            self._slow_print("You smile. suddenly, the Colonel doesn't look like a monster. He looks like a failure.", delay=0.02)
+            self._slow_print("You smile. Suddenly, the Colonel doesn't look like a monster. He looks like a failure.",
+                             delay=0.02)
             stats.final_boss_buff = "GHOST_SECRET"
 
         elif choice == "3":
