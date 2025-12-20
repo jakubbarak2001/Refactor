@@ -12,3 +12,6 @@ dist/
 # --- OS Junk ---
 .DS_Store
 Thumbs.db
+
+# --- QODO
+.qodo

@@ -218,3 +218,144 @@ def test_activity_night_club_best_shift(mock_randint, mock_decision, _, game_set
 
     assert stats.available_money == 17500  # 10k + 7.5k
     assert stats.pcr_hatred == -10
+
+
+# ==========================================
+# 7. SALARY DAY
+# ==========================================
+
+@patch('builtins.input')
+def test_receive_salary_tiers(mock_input, game_setup):
+    """Validate salary payouts based on hatred tiers."""
+    game, stats, _ = game_setup
+    mock_input.return_value = ""  # Swallow pause prompts
+
+    # Tier 1: <= 25 -> +40k
+    stats.change_stats_value_money(10000)
+    stats.change_stats_pcr_hatred(25)
+    game.receive_salary()
+    assert stats.available_money == 50000
+
+    # Tier 2: <= 50 -> +30k
+    stats.change_stats_value_money(10000)
+    stats.change_stats_pcr_hatred(40)
+    game.receive_salary()
+    assert stats.available_money == 40000
+
+    # Tier 3: > 50 -> +20k
+    stats.change_stats_value_money(10000)
+    stats.change_stats_pcr_hatred(60)
+    game.receive_salary()
+    assert stats.available_money == 30000
+
+
+# ==========================================
+# 8. DIFFICULTY RE-PROMPT FLOW
+# ==========================================
+
+@patch('builtins.input')
+def test_set_difficulty_reprompt_then_confirm(mock_input, game_setup):
+    """Should re-ask on 'n' confirmation and accept next valid choice."""
+    game, stats, _ = game_setup
+
+    # First attempt: choose '1' then decline. Second attempt: choose '2' and confirm.
+    mock_input.side_effect = ["1", "n", "2", "y", ""]
+
+    game.set_difficulty_level()
+
+    clean_difficulty = re.sub(r'\x1b\[[0-9;]*m', '', game.selected_difficulty)
+    assert clean_difficulty == "hard"
+    assert stats.available_money == 35000
+    assert stats.coding_skill == 5
+    assert stats.pcr_hatred == 25
+
+
+# ==========================================
+# 9. END-OF-DAY: DOUBLE NIGHT ON RANDOM EVENT
+# ==========================================
+
+@patch('jb_game.game_logic.jb_dev_game.Game._apply_nightly_passives')
+def test_end_of_day_triggers_second_night_on_event(mock_passives, game_setup):
+    """Every 3rd day (<22) with event occurrence should trigger two night cycles."""
+    game, stats, day_cycle = game_setup
+
+    # Prepare state: day 2 -> after first night becomes day 3 (eligible)
+    day_cycle.current_day = 2
+    game.activity_selected = True  # Skip confirmation dialog
+
+    # Stub event to happen
+    game.events_list.select_random_event = MagicMock(return_value=True)
+
+    # Mock day cycle methods for call counting and to avoid prints
+    day_cycle.day_end_message = MagicMock()
+    day_cycle.day_start_message = MagicMock()
+    # Keep next_day real to advance the day counter. But also track calls by wrapping.
+    original_next_day = day_cycle.next_day
+    call_counter = {"count": 0}
+
+    def wrapped_next_day():
+        call_counter["count"] += 1
+        return original_next_day()
+
+    day_cycle.next_day = wrapped_next_day
+
+    game._handle_end_of_day_routine()
+
+    # Two nights -> _apply_nightly_passives called twice and next_day twice
+    assert mock_passives.call_count == 2
+    assert call_counter["count"] == 2
+
+
+# ==========================================
+# 10. NIGHTLY PASSIVES EFFECTS
+# ==========================================
+
+def test_apply_nightly_passives_ai_and_btc(game_setup):
+    """Nightly passives should tick hatred, apply AI buff, and credit BTC income; bootcamp adds coding skill."""
+    game, stats, _ = game_setup
+
+    # Setup passives
+    stats.ai_paperwork_buff = True
+    stats.daily_btc_income = 2000
+    game.python_bootcamp = True
+
+    # Baseline
+    stats.change_stats_pcr_hatred(10)
+    stats.change_stats_value_money(10000)
+    stats.change_stats_coding_skill(0)
+
+    game._apply_nightly_passives()
+
+    # Hatred: +5 base, -5 AI buff => net 0 change
+    assert stats.pcr_hatred == 10
+    # Money: + BTC income
+    assert stats.available_money == 12000
+    # Coding: +5 from bootcamp
+    assert stats.coding_skill == 5
+
+
+# ==========================================
+# 11. MM EVENT TRIGGER ON DAY 24
+# ==========================================
+
+@patch('jb_game.game_logic.jb_dev_game.MMEvent')
+def test_mm_event_trigger_day_24(mock_mm_cls, game_setup):
+    """Should trigger MMEvent on day 24 and call trigger_event(stats)."""
+    game, stats, day_cycle = game_setup
+
+    # Start at day 23 so first night moves to 24
+    day_cycle.current_day = 23
+    game.activity_selected = True
+
+    # Ensure no random event path is taken (<22 condition won't match at 24)
+    game.events_list.select_random_event = MagicMock(return_value=False)
+
+    # Avoid noisy prints
+    day_cycle.day_end_message = MagicMock()
+    day_cycle.day_start_message = MagicMock()
+
+    game._handle_end_of_day_routine()
+
+    # Verify MM event flow
+    mock_mm_instance = mock_mm_cls.return_value
+    mock_mm_instance.trigger_event.assert_called_once_with(stats)
