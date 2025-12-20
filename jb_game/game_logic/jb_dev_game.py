@@ -7,6 +7,7 @@ from jb_game.game_logic.jb_dev_decision import Decision
 from jb_game.game_logic.jb_dev_random_events import RandomEvents
 from jb_game.game_logic.jb_dev_endings import GameEndings
 from jb_game.game_logic.jb_dev_mm_event import MMEvent
+from jb_game.game_logic.jb_dev_colonel_event import ColonelEvent
 
 class Game:
     """Sets the basic gaming mechanics, rules, win/loose conditions, difficulty levels."""
@@ -130,8 +131,8 @@ class Game:
         if self.day_cycle.current_day % 3 == 0 and self.day_cycle.current_day < 22:
             event_happened = self.events_list.select_random_event(self.stats)
 
-            # Logic Note: In your original code, if an event happens,
-            # the day ends AGAIN immediately after. I have preserved this behavior.
+            # Logic Note: If an event happens, the day ends AGAIN immediately after in original code.
+            # Preserved this behavior as it simulates the event taking up time.
             if event_happened:
                 self._trigger_night_cycle()
 
@@ -142,7 +143,13 @@ class Game:
             mm_event = MMEvent()
             mm_event.trigger_event(self.stats)
 
-        # 6. Start the new day
+        # 6. Check for Colonel Event (Final Boss)
+        # This checks if the current day matches the scheduled Boss Fight day (25 or 30).
+        if self.day_cycle.current_day == self.stats.colonel_day:
+            colonel_event = ColonelEvent()
+            colonel_event.trigger_event(self.stats)
+
+        # 7. Start the new day
         self.day_cycle.day_start_message()
         self.activity_selected = False
 

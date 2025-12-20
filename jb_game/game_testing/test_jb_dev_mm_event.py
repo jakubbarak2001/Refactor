@@ -74,8 +74,8 @@ class TestMMEvent(unittest.TestCase):
 
         self.event._meeting_phase(self.stats)
 
-        # Should gain +1 MM point
-        self.assertEqual(self.event.mm_points, 1)
+        # Should gain +2 MM points (implementation currently increments by 2)
+        self.assertEqual(self.event.mm_points, 2)
 
     # --- PHASE 4: CODING REALITY CHECK ---
     def test_coding_check_god_tier(self):

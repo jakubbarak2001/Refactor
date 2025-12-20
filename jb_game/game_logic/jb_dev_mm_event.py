@@ -86,7 +86,7 @@ class MMEvent:
         if choice == "1":
             if stats.try_spend_money(12500):
                 self.mm_points += 2
-                self._slow_print("\nYou look at yourself in the mirror and question yourself whether you actually really work at Police or Prada.", delay=0.05)
+                self._slow_print("\nYou look at yourself in the mirror and question whether you actually really work at Police or Prada.", delay=0.05)
                 time.sleep(1)
                 self._slow_print("'Impressive. Very nice.'", delay=0.03)
                 time.sleep(1)
@@ -361,18 +361,18 @@ class MMEvent:
         self._slow_print("\nMM's expression darkens. The nostalgia is gone.", delay=0.02)
         time.sleep(1)
         self._slow_print(f"\n'One last thing, JB. {bold}The Colonel.{reset}'", delay=0.02)
-        time.sleep(2.5)
+        time.sleep(2.0)
 
         self._slow_print("'I know you think he is just a bureaucrat. But don't underestimate him.'", delay=0.02)
         self._slow_print(f"'He is the one who hired you, remember? He personally admitted you to the academy.'", delay=0.02)
-        time.sleep(3.0)
+        time.sleep(2.0)
 
         self._slow_print(f"'He sees you as his project. His success story. His {bold}'Good Soldier'{reset}.'", delay=0.02)
         time.sleep(1.5)
 
         self._slow_print(f"\n'When you hand him that resignation... he won't see it as paperwork.'", delay=0.02)
         time.sleep(0.5)
-        self._slow_print(f"{bold}{red}'He will take it as a betrayal.'{reset}", delay=0.12)
+        self._slow_print(f"{bold}{red}'He will take it as a betrayal.'{reset}", delay=0.10)
         time.sleep(1.0)
 
         self._slow_print(f"\n'He will come at you with everything. Guilt, threats, regulations, maybe even empathy.'", delay=0.02)
@@ -431,7 +431,7 @@ class MMEvent:
 
             stats.final_boss_buff = "STOIC_ANCHOR"
             self._slow_print(f"\n{bold}[STATUS ACQUIRED]: STOIC ANCHOR{reset}", delay=0.04)
-            self._slow_print("(Passive: The Colonel's fear attacks deal 25% less damage to your Mental State.)", delay=0.01)
+            self._slow_print("(Passive: You are more resistant to Colonel's attacks.)", delay=0.01)
 
         else:
             self._slow_print(f"\nMM looks at you with pity. He doesn't shake your hand.", delay=0.02)
