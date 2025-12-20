@@ -110,6 +110,7 @@ class MMEvent:
             self._slow_print("If he's really your friend, he won't care about the hoodie.", delay=0.03)
             self._slow_print("\n[OUTCOME]: NO CHANGE.", delay=0.01)
 
+        print(f"\nCurrent MM points [{self.mm_points}/12]")
         input("\n(PRESS ENTER)")
 
     def _meeting_phase(self, stats: JBStats):
@@ -142,12 +143,13 @@ class MMEvent:
             self._slow_print("\n[OUTCOME]: +25 CODING SKILL.", delay=0.01)
 
         elif choice == "3":
-            self.mm_points += 1
+            self.mm_points += 2
             self._slow_print("\nYou stay quiet. You ask him about his life.", delay=0.03)
             self._slow_print("He talks about his freedom. About sleeping 8 hours a day. About respect.", delay=0.02)
             self._slow_print("He appreciates that you actually listen.", delay=0.02)
             self._slow_print("\n[OUTCOME]: +MM AFFECTION.", delay=0.01)
 
+        print(f"\nCurrent MM points [{self.mm_points}/12]")
         input("\n(PRESS ENTER)")
 
     def _drop_the_bomb_phase(self, stats: JBStats):
@@ -194,6 +196,7 @@ class MMEvent:
             self._slow_print(f"\n{red}[CRITICAL EFFECT]: +15 PCR HATRED (The Fear of leaving is now real). {reset}", delay=0.01)
 
         self._slow_print(f"\nYour current hatred is: {stats.pcr_hatred}.", delay=0.01)
+        print(f"\nCurrent MM points [{self.mm_points}/12]")
         input("\n(PRESS ENTER)")
 
 
@@ -244,6 +247,9 @@ class MMEvent:
             self._slow_print("'Jesus, JB. You have nothing prepared, do you?'", delay=0.02)
             self._slow_print("\n[OUTCOME]: -MM AFFECTION, +20 PCR HATRED (Shame).", delay=0.01)
 
+        print(f"\nCurrent MM points [{self.mm_points}/12]")
+        input("\n(PRESS ENTER)")
+
     def _financial_reality_check(self, stats: JBStats):
         """Phase 5: Money Check. Can you afford the exit fee?"""
         self._slow_print("\nMM takes a sip of his drink. 'Skills are one thing. But freedom isn't free.'", delay=0.02)
@@ -254,7 +260,6 @@ class MMEvent:
         input("\n(PRESS ENTER TO EVALUATE)")
 
         if stats.available_money >= 200000:
-            # RICH
             self.mm_points += 2
             self._slow_print("\nYou nod confidently. You have been saving aggressively.", delay=0.02)
             self._slow_print("You have a war chest. You can buy your freedom twice over.", delay=0.02)
@@ -262,7 +267,6 @@ class MMEvent:
             self._slow_print("\n[OUTCOME]: +MM AFFECTION (Financial Freedom).", delay=0.01)
 
         elif stats.available_money >= 150000:
-            # SOLID
             self.mm_points += 1
             self._slow_print("\nYou have enough. It will hurt, but you won't starve.", delay=0.02)
             self._slow_print("You can pay the exit fee and still have a buffer for a few months.", delay=0.02)
@@ -270,14 +274,12 @@ class MMEvent:
             self._slow_print("\n[OUTCOME]: +MM AFFECTION (Secure).", delay=0.01)
 
         elif stats.available_money >= 100000:
-            # TIGHT
             self._slow_print("\nYou do the math in your head. It's going to be extremely tight.", delay=0.02)
             self._slow_print("If you pay them off, you'll be eating instant noodles for weeks.", delay=0.02)
             self._slow_print("'I can scrape it together,' you admit.", delay=0.02)
             self._slow_print("\n[OUTCOME]: NEUTRAL (Survival Mode).", delay=0.01)
 
         elif stats.available_money >= 50000:
-            # RISKY
             self.mm_points -= 1
             self._slow_print("\nYou sweat a little. You don't have enough for the full fee.", delay=0.02)
             self._slow_print("You'll need a loan, or help from parents. It's messy.", delay=0.02)
@@ -285,7 +287,6 @@ class MMEvent:
             self._slow_print("\n[OUTCOME]: -MM AFFECTION (Financial Risk).", delay=0.01)
 
         else:
-            # BROKE
             self.mm_points -= 2
             self._slow_print("\nYou are broke. You have nothing.", delay=0.02)
             self._slow_print("If you quit, you will be in immediate debt with no income.", delay=0.02)
@@ -293,6 +294,7 @@ class MMEvent:
             self._slow_print("MM looks at you like you are a child. 'So you want to quit but you can't afford it?'", delay=0.02)
             self._slow_print("\n[OUTCOME]: -MM AFFECTION (Total Disaster).", delay=0.01)
 
+        print(f"\nCurrent MM points [{self.mm_points}/12]")
         input("\n(PRESS ENTER)")
 
     def _hatred_motivation_check(self, stats: JBStats):
@@ -300,7 +302,7 @@ class MMEvent:
         self._slow_print("\nMM finishes his steak. He wipes his mouth.", delay=0.02)
         self._slow_print("'One last thing. The system. The Colonel. The meaningless orders.'", delay=0.02)
         self._slow_print("'What do you really feel about them? Is this just burnout, or is it personal?'", delay=0.02)
-        self._slow_print(f"\n[REALITY CHECK] Current PCR HATRED: {stats.pcr_hatred}", delay=0.01)
+        self._slow_print(f"\n[REALITY CHECK] Current PCR HATRED: {stats.pcr_hatred}/100", delay=0.01)
 
         self._slow_print("\n1. [PURE RAGE] 'I hate them. I want to watch the station burn.'", delay=0.005)
         self._slow_print("2. [HATRED] 'I'm done. I despise what I've become here.'", delay=0.005)
@@ -331,22 +333,23 @@ class MMEvent:
             self._slow_print("\n[OUTCOME]: NEUTRAL.", delay=0.01)
 
         elif choice == "4":
-            stats.increment_stats_pcr_hatred(-10)
+            stats.increment_stats_pcr_hatred(-25)
             self.mm_points -= 1
             self._slow_print("\n'They gave me a chance. Maybe I'm just weak.'", delay=0.02)
             self._slow_print("MM frowns. 'Don't do that. Don't blame yourself for their toxicity.'", delay=0.02)
-            self._slow_print("\n[OUTCOME]: -MM AFFECTION, -10 PCR HATRED.", delay=0.01)
+            self._slow_print("\n[OUTCOME]: -MM AFFECTION, -25 PCR HATRED.", delay=0.01)
 
         elif choice == "5":
-            stats.increment_stats_pcr_hatred(-25)
+            stats.increment_stats_pcr_hatred(-50)
             self.mm_points -= 2
             self._slow_print("\nYou start rambling.", delay=0.02)
             self._slow_print("'I mean, the Thin Blue Line... hierarchy is important... order... discipline...'", delay=0.02)
             self._slow_print("You sound like a brainwashed cadet.", delay=0.02)
             self._slow_print("MM stares at you in disbelief. He almost laughs.", delay=0.02)
             self._slow_print("'Wow. Stockholm Syndrome much? You are defending the cage you are trapped in.'", delay=0.02)
-            self._slow_print("\n[OUTCOME]: -MM AFFECTION, -25 PCR HATRED (Pathetic).", delay=0.01)
+            self._slow_print("\n[OUTCOME]: -MM AFFECTION, -50 PCR HATRED (The mental gymnastics you do are just insane).", delay=0.01)
 
+        print(f"\nCurrent MM points [{self.mm_points}/12]")
         input("\n(PRESS ENTER)")
 
     def _timing_decision_phase(self, stats: JBStats):
@@ -412,7 +415,7 @@ class MMEvent:
         self._slow_print("\nThe lunch is over. You pay the bill.", delay=0.02)
         self._slow_print("You walk out into the cold street. The wind hits your face.", delay=0.02)
 
-        if self.mm_points > 8:
+        if self.mm_points >= 8:
             self._slow_print(f"\n{bold}MM stops you before you leave.{reset}", delay=0.02)
             self._slow_print("'Wait, JB. I have a good feeling about this. You are actually ready.'", delay=0.02)
             self._slow_print("'I want to help you. I can't fight him for you, but I can give you an edge.'", delay=0.02)
