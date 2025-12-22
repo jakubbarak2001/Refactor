@@ -1,13 +1,13 @@
 """Module for starting message and especially for selecting the difficulty level, gaming mechanics, checks and limits."""
 from random import randint
 
-from jb_game.game_logic.jb_dev_stats import JBStats
-from jb_game.game_logic.jb_dev_day_cycle import DayCycle
-from jb_game.game_logic.jb_dev_decision import Decision
-from jb_game.game_logic.jb_dev_random_events import RandomEvents
-from jb_game.game_logic.jb_dev_endings import GameEndings
-from jb_game.game_logic.jb_dev_mm_event import MMEvent
-from jb_game.game_logic.jb_dev_colonel_event import ColonelEvent
+from game.game_logic.stats import Stats
+from game.game_logic.day_cycle import DayCycle
+from game.game_logic.decision_options import Decision
+from game.game_logic.random_events import RandomEvents
+from game.game_logic.game_endings import GameEndings
+from game.game_logic.martin_meeting_event import MMEvent
+from game.game_logic.colonel_event import ColonelEvent
 
 class Game:
     """Sets the basic gaming mechanics, rules, win/loose conditions, difficulty levels."""
@@ -23,7 +23,7 @@ class Game:
         # 4 NIGHTMARE difficulty placeholder
     }
 
-    def __init__(self, stats: JBStats, day_cycle: DayCycle, events_list: RandomEvents):
+    def __init__(self, stats: Stats, day_cycle: DayCycle, events_list: RandomEvents):
         """Initialise self based on JB Stats class."""
         self.stats = stats
         self.day_cycle = day_cycle

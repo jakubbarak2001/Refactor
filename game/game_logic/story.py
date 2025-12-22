@@ -1,11 +1,11 @@
 """Contains everything regarding storytelling."""
-from jb_game.game_logic.jb_dev_stats import JBStats
+from game.game_logic.stats import Stats
 from random import randint
-from jb_game.game_logic.jb_dev_decision import Decision
+from game.game_logic.decision_options import Decision
 
 class Story:
     """Contains the most important story elements, mostly text strings."""
-    def __init__(self, stats: JBStats):
+    def __init__(self, stats: Stats):
         """Initialises itself."""
         self.stats = stats
 

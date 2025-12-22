@@ -1,20 +1,20 @@
 import pytest
 from unittest.mock import patch
-from jb_game.game_logic.jb_dev_car_incident_event import CarIncident
-from jb_game.game_logic.jb_dev_stats import JBStats
+from game.game_logic.car_incident_event import CarIncident
+from game.game_logic.stats import Stats
 
 
 @pytest.fixture
 def stats():
     """Start with enough money so penalties don't make it negative immediately."""
-    return JBStats(available_money=20000, coding_experience=0, pcr_hatred=0)
+    return Stats(available_money=20000, coding_experience=0, pcr_hatred=0)
 
 
 # ==========================================
 # PATH 1: The "Good Soldier" (Confession)
 # ==========================================
 @patch('builtins.input')
-@patch('jb_game.game_logic.jb_dev_car_incident_event.Decision.ask')
+@patch('game.game_logic.car_incident_event.Decision.ask')
 def test_incident_confession(mock_decision, _, stats):
     """
     Scenario: Player chooses Option 2 (Confess).
@@ -32,8 +32,8 @@ def test_incident_confession(mock_decision, _, stats):
 # PATH 2: The "MacGyver" (Cover Up) - SUCCESS
 # ==========================================
 @patch('builtins.input')
-@patch('jb_game.game_logic.jb_dev_car_incident_event.Decision.ask')
-@patch('jb_game.game_logic.jb_dev_car_incident_event.randint')
+@patch('game.game_logic.car_incident_event.Decision.ask')
+@patch('game.game_logic.car_incident_event.randint')
 def test_incident_coverup_success(mock_randint, mock_decision, _, stats):
     """
     Scenario: Player chooses Option 1 (Cover Up) AND Rolls Success (<= 50).
@@ -52,8 +52,8 @@ def test_incident_coverup_success(mock_randint, mock_decision, _, stats):
 # PATH 3: Cover Up Fails -> Caught -> SUBMIT
 # ==========================================
 @patch('builtins.input')
-@patch('jb_game.game_logic.jb_dev_car_incident_event.Decision.ask')
-@patch('jb_game.game_logic.jb_dev_car_incident_event.randint')
+@patch('game.game_logic.car_incident_event.Decision.ask')
+@patch('game.game_logic.car_incident_event.randint')
 def test_incident_caught_submit(mock_randint, mock_decision, _, stats):
     """
     Scenario:
@@ -78,8 +78,8 @@ def test_incident_caught_submit(mock_randint, mock_decision, _, stats):
 # PATH 4: Cover Up Fails -> Caught -> PAUL GOODMAN (WIN)
 # ==========================================
 @patch('builtins.input')
-@patch('jb_game.game_logic.jb_dev_car_incident_event.Decision.ask')
-@patch('jb_game.game_logic.jb_dev_car_incident_event.randint')
+@patch('game.game_logic.car_incident_event.Decision.ask')
+@patch('game.game_logic.car_incident_event.randint')
 def test_incident_paul_goodman_win(mock_randint, mock_decision, _, stats):
     """
     Scenario:
@@ -106,8 +106,8 @@ def test_incident_paul_goodman_win(mock_randint, mock_decision, _, stats):
 # PATH 5: Cover Up Fails -> Caught -> PAUL GOODMAN (LOSS)
 # ==========================================
 @patch('builtins.input')
-@patch('jb_game.game_logic.jb_dev_car_incident_event.Decision.ask')
-@patch('jb_game.game_logic.jb_dev_car_incident_event.randint')
+@patch('game.game_logic.car_incident_event.Decision.ask')
+@patch('game.game_logic.car_incident_event.randint')
 def test_incident_paul_goodman_loss(mock_randint, mock_decision, _, stats):
     """
     Scenario:

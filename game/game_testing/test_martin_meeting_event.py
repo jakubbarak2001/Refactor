@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from jb_game.game_logic.jb_dev_stats import JBStats
-from jb_game.game_logic.jb_dev_mm_event import MMEvent
-
+from game.game_logic.stats import Stats
+from game.game_logic.martin_meeting_event import MMEvent
+from game.game_logic.decision_options import Decision
 
 class TestMMEvent(unittest.TestCase):
 
@@ -21,7 +21,7 @@ class TestMMEvent(unittest.TestCase):
         self.mock_music = self.music_patcher.start()
 
         # Initialize the objects
-        self.stats = JBStats(available_money=50000, coding_experience=100, pcr_hatred=50)
+        self.stats = Stats(available_money=50000, coding_experience=100, pcr_hatred=50)
         self.event = MMEvent()
 
     def tearDown(self):
@@ -31,7 +31,7 @@ class TestMMEvent(unittest.TestCase):
         self.music_patcher.stop()
 
     # --- PHASE 1: PREPARATION (Money & Outfits) ---
-    @patch('jb_game.game_logic.jb_dev_decision.Decision.ask')
+    @patch('game.game_logic.decision_options.Decision.ask')
     def test_preparation_phase_expensive_outfit(self, mock_ask):
         """Test buying the expensive outfit (Option 1)."""
         mock_ask.return_value = "1"
@@ -43,7 +43,7 @@ class TestMMEvent(unittest.TestCase):
         self.assertEqual(self.stats.available_money, 7500)
         self.assertEqual(self.event.mm_points, 2)
 
-    @patch('jb_game.game_logic.jb_dev_decision.Decision.ask')
+    @patch('game.game_logic.decision_options.Decision.ask')
     def test_preparation_phase_expensive_outfit_declined(self, mock_ask):
         """Test trying to buy expensive outfit with no money."""
         mock_ask.return_value = "1"
@@ -56,7 +56,7 @@ class TestMMEvent(unittest.TestCase):
         self.assertEqual(self.event.mm_points, 0)
 
     # --- PHASE 2: MEETING (Topic Choice) ---
-    @patch('jb_game.game_logic.jb_dev_decision.Decision.ask')
+    @patch('game.game_logic.decision_options.Decision.ask')
     def test_meeting_phase_brag_coding(self, mock_ask):
         """Test Option 2: Bragging about Python."""
         mock_ask.return_value = "2"
@@ -67,7 +67,7 @@ class TestMMEvent(unittest.TestCase):
         # Should gain +25 Coding Skill
         self.assertEqual(self.stats.coding_skill, initial_skill + 25)
 
-    @patch('jb_game.game_logic.jb_dev_decision.Decision.ask')
+    @patch('game.game_logic.decision_options.Decision.ask')
     def test_meeting_phase_listen(self, mock_ask):
         """Test Option 3: Listening."""
         mock_ask.return_value = "3"
@@ -115,7 +115,7 @@ class TestMMEvent(unittest.TestCase):
         self.assertEqual(self.event.mm_points, -2)
 
     # --- PHASE 7: TIMING DECISION ---
-    @patch('jb_game.game_logic.jb_dev_decision.Decision.ask')
+    @patch('game.game_logic.decision_options.Decision.ask')
     def test_timing_brave(self, mock_ask):
         """Test choosing to fight tomorrow (Option 1)."""
         mock_ask.return_value = "1"
@@ -126,7 +126,7 @@ class TestMMEvent(unittest.TestCase):
         self.assertEqual(self.stats.colonel_day, 25)
         self.assertEqual(self.event.mm_points, 2)
 
-    @patch('jb_game.game_logic.jb_dev_decision.Decision.ask')
+    @patch('game.game_logic.decision_options.Decision.ask')
     def test_timing_wait(self, mock_ask):
         """Test choosing to wait (Option 2)."""
         mock_ask.return_value = "2"
@@ -138,7 +138,7 @@ class TestMMEvent(unittest.TestCase):
         self.assertEqual(self.event.mm_points, 0)
 
     # --- PHASE 8: ENDINGS ---
-    @patch('jb_game.game_logic.jb_dev_decision.Decision.ask')
+    @patch('game.game_logic.decision_options.Decision.ask')
     def test_good_ending_selection(self, mock_ask):
         """Test achieving >8 points and selecting the 'Legal Nuke'."""
         self.event.mm_points = 10

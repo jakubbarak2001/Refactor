@@ -1,14 +1,14 @@
 import pytest
 from unittest.mock import patch
-from jb_game.game_logic.jb_dev_game import Game
-from jb_game.game_logic.jb_dev_stats import JBStats
-from jb_game.game_logic.jb_dev_day_cycle import DayCycle
-from jb_game.game_logic.jb_dev_random_events import RandomEvents
+from game.game_logic.game_rules import Game
+from game.game_logic.stats import Stats
+from game.game_logic.day_cycle import DayCycle
+from game.game_logic.random_events import RandomEvents
 
 
 @pytest.fixture
 def game_setup():
-    stats = JBStats(available_money=10000, coding_experience=0, pcr_hatred=0)
+    stats = Stats(available_money=10000, coding_experience=0, pcr_hatred=0)
     day_cycle = DayCycle()
     events = RandomEvents()
     game = Game(stats, day_cycle, events)
@@ -19,7 +19,7 @@ def game_setup():
 # 1. PSYCHOSIS ENDING (Hatred >= 100)
 # ==========================================
 
-@patch('jb_game.game_logic.jb_dev_game.GameEndings')
+@patch('game.game_logic.game_rules.GameEndings')
 def test_game_over_psychosis(mock_endings, game_setup):
     """
     Scenario: Hatred hits 100.
@@ -37,7 +37,7 @@ def test_game_over_psychosis(mock_endings, game_setup):
     mock_endings.mental_breakdown_ending.assert_called_once_with(stats)
 
 
-@patch('jb_game.game_logic.jb_dev_game.GameEndings')
+@patch('game.game_logic.game_rules.GameEndings')
 def test_game_over_psychosis_boundary(mock_endings, game_setup):
     """
     Scenario: Hatred is 99 (Safe) vs 101 (Dead).
@@ -60,7 +60,7 @@ def test_game_over_psychosis_boundary(mock_endings, game_setup):
 # 2. BANKRUPTCY ENDING (Money <= 0)
 # ==========================================
 
-@patch('jb_game.game_logic.jb_dev_game.GameEndings')
+@patch('game.game_logic.game_rules.GameEndings')
 def test_game_over_bankruptcy(mock_endings, game_setup):
     """
     Scenario: Money hits 0.
@@ -75,7 +75,7 @@ def test_game_over_bankruptcy(mock_endings, game_setup):
     mock_endings.homeless_ending.assert_called_once_with(stats)
 
 
-@patch('jb_game.game_logic.jb_dev_game.GameEndings')
+@patch('game.game_logic.game_rules.GameEndings')
 def test_game_over_bankruptcy_negative(mock_endings, game_setup):
     """
     Scenario: Debt (Negative Money).

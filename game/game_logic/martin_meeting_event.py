@@ -2,8 +2,8 @@ import sys
 import time
 import os
 import pygame
-from jb_game.game_logic.jb_dev_stats import JBStats
-from jb_game.game_logic.jb_dev_decision import Decision
+from game.game_logic.stats import Stats
+from game.game_logic.decision_options import Decision
 
 
 def resource_path(relative_path):
@@ -44,11 +44,11 @@ class MMEvent:
         except Exception as e:
             print(f"\n[SYSTEM] Audio Warning: Could not play music '{track_name}' ({e})")
 
-    def trigger_event(self, stats: JBStats):
+    def trigger_event(self, stats: Stats):
         """Main entry point for the Day 24 event."""
 
         # --- MUSIC START: THE ARRIVAL ---
-        self._play_music("mm_event_the_arrival.mp3")
+        self._play_music("martin_meeting_event_the_arrival.mp3")
 
         red = "\033[91m"
         reset = "\033[0m"
@@ -67,7 +67,7 @@ class MMEvent:
 
         return
 
-    def _preparation_phase(self, stats: JBStats):
+    def _preparation_phase(self, stats: Stats):
         """Phase 1: Preparation and clothing choice."""
         self._slow_print("\nYou decided to call MM. It's been almost 9 months since you saw him last.", delay=0.03)
         self._slow_print("He quit the force abruptly. Everyone said he was crazy. Now, rumors say he's doing great.", delay=0.03)
@@ -113,7 +113,7 @@ class MMEvent:
         print(f"\nCurrent MM points [{self.mm_points}/12]")
         input("\n(PRESS ENTER)")
 
-    def _meeting_phase(self, stats: JBStats):
+    def _meeting_phase(self, stats: Stats):
         """Phase 2: The Meeting and conversation topic."""
         self._slow_print("\nYou arrive at the restaurant. You see him in the distance.", delay=0.05)
         self._slow_print("It's a shock. He looks... different. Bigger. Buffed.", delay=0.02)
@@ -152,7 +152,7 @@ class MMEvent:
         print(f"\nCurrent MM points [{self.mm_points}/12]")
         input("\n(PRESS ENTER)")
 
-    def _drop_the_bomb_phase(self, stats: JBStats):
+    def _drop_the_bomb_phase(self, stats: Stats):
         """Phase 3: The realization and interruption."""
         red = "\033[91m"
         bold = "\033[1m"
@@ -179,7 +179,7 @@ class MMEvent:
         self._slow_print("Silence. Absolute silence.", delay=0.10)
 
         # --- MUSIC SWITCH: THE AWAKENING ---
-        self._play_music("mm_event_the_awakening.mp3")
+        self._play_music("martin_meeting_event_the_awakening.mp3")
 
         self._slow_print(f"{bold}The truth hits you like a physical blow.{reset}", delay=0.05)
         self._slow_print(f"{bold}You look down at the table. You whisper it.{reset}", delay=0.05)
@@ -200,7 +200,7 @@ class MMEvent:
         input("\n(PRESS ENTER)")
 
 
-    def _coding_reality_check(self, stats: JBStats):
+    def _coding_reality_check(self, stats: Stats):
         """Phase 4: The Skill Check based on coding experience."""
         self._slow_print("\nMM leans back. 'Okay. You said it. Now, can you actually do it?'", delay=0.02)
         self._slow_print("'Do you have the skills? If you leave tomorrow, can you feed yourself?'", delay=0.02)
@@ -250,7 +250,7 @@ class MMEvent:
         print(f"\nCurrent MM points [{self.mm_points}/12]")
         input("\n(PRESS ENTER)")
 
-    def _financial_reality_check(self, stats: JBStats):
+    def _financial_reality_check(self, stats: Stats):
         """Phase 5: Money Check. Can you afford the exit fee?"""
         self._slow_print("\nMM takes a sip of his drink. 'Skills are one thing. But freedom isn't free.'", delay=0.02)
         self._slow_print("'They are going to make you pay for your uniform, your training, every single koruna.'", delay=0.02)
@@ -297,7 +297,7 @@ class MMEvent:
         print(f"\nCurrent MM points [{self.mm_points}/12]")
         input("\n(PRESS ENTER)")
 
-    def _hatred_motivation_check(self, stats: JBStats):
+    def _hatred_motivation_check(self, stats: Stats):
         """Phase 6: The Motivation. How much do you hate the system?"""
         self._slow_print("\nMM finishes his steak. He wipes his mouth.", delay=0.02)
         self._slow_print("'One last thing. The system. The Colonel. The meaningless orders.'", delay=0.02)
@@ -352,7 +352,7 @@ class MMEvent:
         print(f"\nCurrent MM points [{self.mm_points}/12]")
         input("\n(PRESS ENTER)")
 
-    def _timing_decision_phase(self, stats: JBStats):
+    def _timing_decision_phase(self, stats: Stats):
         """Phase 7: The Decision. When do you face the Final Boss?"""
         red = "\033[91m"
         bold = "\033[1m"
@@ -403,7 +403,7 @@ class MMEvent:
             self._slow_print("'Use the time wisely. Save money. Code. Prepare.'", delay=0.02)
             self._slow_print("\n[OUTCOME]: FINAL BOSS SET FOR DAY 30.", delay=0.01)
 
-    def _ending_phase(self, stats: JBStats):
+    def _ending_phase(self, stats: Stats):
         """
         Phase 8: The Parting Gift.
         Based on MM_Points, determines what 'Weapon' or 'Status' you take to the final boss.
@@ -444,7 +444,7 @@ class MMEvent:
             self._slow_print(f"\n{red}[STATUS ACQUIRED]: IMPOSTER SYNDROME{reset}", delay=0.04)
             self._slow_print("(Debuff: You start the boss fight with a DEBUFF.)", delay=0.01)
 
-    def _good_ending_selection(self, stats: JBStats):
+    def _good_ending_selection(self, stats: Stats):
         """The 5-choice menu for the Good Ending."""
         green = "\033[92m"
         bold = "\033[1m"

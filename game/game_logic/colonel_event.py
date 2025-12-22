@@ -3,9 +3,9 @@ import time
 import os
 import random
 import pygame
-from jb_game.game_logic.jb_dev_stats import JBStats
-from jb_game.game_logic.jb_dev_decision import Decision
-from jb_game.game_logic.jb_dev_endings import GoodEnding
+from game.game_logic.stats import Stats
+from game.game_logic.decision_options import Decision
+from game.game_logic.game_endings import GoodEnding
 
 
 def resource_path(relative_path):
@@ -71,7 +71,7 @@ class ColonelEvent:
         print("-" * 50 + "\n")
         time.sleep(1)
 
-    def trigger_event(self, stats: JBStats):
+    def trigger_event(self, stats: Stats):
         # --- MUSIC START: TENSION THEME ---
         self._play_music("tension_theme.mp3")
 

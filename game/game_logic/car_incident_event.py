@@ -4,8 +4,8 @@ Contains ALL logic, text, and outcomes for this specific story arc.
 Refactored for High Cohesion, Dark Humor, and Better Balancing.
 """
 from random import randint
-from jb_game.game_logic.jb_dev_stats import JBStats
-from jb_game.game_logic.jb_dev_decision import Decision
+from game.game_logic.stats import Stats
+from game.game_logic.decision_options import Decision
 
 class CarIncident:
     """
@@ -13,7 +13,7 @@ class CarIncident:
     """
 
     @staticmethod
-    def car_incident_event(stats: JBStats) -> None:
+    def car_incident_event(stats: Stats) -> None:
         """The main entry point for this event."""
         red = "\033[91m"
         reset = "\033[0m"
@@ -68,7 +68,7 @@ class CarIncident:
         )
 
     @staticmethod
-    def _path_confession(stats: JBStats):
+    def _path_confession(stats: Stats):
         """
         The Safe Path. Guaranteed loss of money/pride, but no risk of disaster.
         """
@@ -92,7 +92,7 @@ class CarIncident:
         print("At least it's over. No lawyers. No Colonel. Just pure, unadulterated bureaucracy.")
 
     @staticmethod
-    def _path_cover_up(stats: JBStats):
+    def _path_cover_up(stats: Stats):
         """
         The Risk Path. 50/50 Chance.
         """
@@ -118,7 +118,7 @@ class CarIncident:
             CarIncident._scenario_caught_red_handed(stats)
 
     @staticmethod
-    def _scenario_caught_red_handed(stats: JBStats):
+    def _scenario_caught_red_handed(stats: Stats):
         """
         The disaster scenario leading to the Paul Goodman / Colonel choice.
         """
@@ -157,7 +157,7 @@ class CarIncident:
             CarIncident._scenario_better_call_paul(stats)
 
     @staticmethod
-    def _scenario_better_call_paul(stats: JBStats):
+    def _scenario_better_call_paul(stats: Stats):
         """
         The High Stakes Gambler Path.
         """

@@ -1,12 +1,12 @@
 import pygame
 import os
 import sys
-from jb_game.game_logic.jb_dev_car_incident_event import CarIncident
-from jb_game.game_logic.jb_dev_random_events import RandomEvents
-from jb_game.game_logic.jb_dev_stats import JBStats
-from jb_game.game_logic.jb_dev_day_cycle import DayCycle
-from jb_game.game_logic.jb_dev_game import Game
-from jb_game.game_logic.jb_dev_story import Story
+from game.game_logic.car_incident_event import CarIncident
+from game.game_logic.random_events import RandomEvents
+from game.game_logic.stats import Stats
+from game.game_logic.day_cycle import DayCycle
+from game.game_logic.game_rules import Game
+from game.game_logic.story import Story
 
 
 def resource_path(relative_path):
@@ -32,7 +32,7 @@ def play_background_music():
 def main():
     play_background_music()
 
-    stats = JBStats()
+    stats = Stats()
     day_cycle = DayCycle()
     events_list = RandomEvents()
     game = Game(stats, day_cycle, events_list)

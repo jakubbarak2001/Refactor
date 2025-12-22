@@ -1,5 +1,5 @@
-from jb_game.game_logic.jb_dev_stats import JBStats
-from jb_game.game_logic.jb_dev_decision import Decision
+from game.game_logic.stats import Stats
+from game.game_logic.decision_options import Decision
 from random import randint
 from random import choice
 
@@ -24,7 +24,7 @@ class RandomEvents:
             RandomEvents.tech_bro_speeding
         ]
 
-    def select_random_event(self, stats: JBStats) -> bool:
+    def select_random_event(self, stats: Stats) -> bool:
         """
         Chooses one random event at once, then removes it from the list.
         Returns True if an event ran, False if the list was empty.
@@ -39,7 +39,7 @@ class RandomEvents:
             return True
 
     @staticmethod
-    def overtime_offer(stats: JBStats) -> None:
+    def overtime_offer(stats: Stats) -> None:
         """Event with overtime offer."""
         input("\nRANDOM EVENT!"
               "\n\n(CONTINUE...)")
@@ -72,7 +72,7 @@ class RandomEvents:
 
 
     @staticmethod
-    def birthday_gift(stats: JBStats) -> None:
+    def birthday_gift(stats: Stats) -> None:
         """Event with your colleagues celebrating their B-day."""
         input("\nRANDOM EVENT!"
               "\n\n(CONTINUE...)")
@@ -127,7 +127,7 @@ class RandomEvents:
                   )
 
     @staticmethod
-    def civilian_small_talk(stats: JBStats) -> None:
+    def civilian_small_talk(stats: Stats) -> None:
         """Event where an old civilian tries to make small talk and asks about your job."""
         input("\nRANDOM EVENT!"
               "\n\n(CONTINUE...)")
@@ -204,7 +204,7 @@ class RandomEvents:
                   "\n\n(CONTINUE...)")
 
     @staticmethod #ADD FLY BUZZING SOUND
-    def corpse_in_care_home(stats: JBStats) -> None:
+    def corpse_in_care_home(stats: Stats) -> None:
         """Event involving a decomposing corpse found in a care home."""
         input("\nRANDOM EVENT!"
               "\n\n(CONTINUE...)")
@@ -307,7 +307,7 @@ class RandomEvents:
                   "\n\n(CONTINUE...)")
 
     @staticmethod
-    def admin_mistake_after_shift(stats: JBStats) -> None:
+    def admin_mistake_after_shift(stats: Stats) -> None:
         """Event where you have to stay after night shift to fix an administrative mistake."""
         input("\nRANDOM EVENT!"
               "\n\n(CONTINUE...)")
@@ -371,7 +371,7 @@ class RandomEvents:
                   "\n\n(CONTINUE...)")
 
     @staticmethod
-    def israeli_developer(stats: JBStats) -> None:
+    def israeli_developer(stats: Stats) -> None:
         """Event where you meet an Israeli senior developer who teaches CS at Tel Aviv University."""
         input("\nRANDOM EVENT!"
               "\n\n(CONTINUE...)")
@@ -438,7 +438,7 @@ class RandomEvents:
                   "\n\n(CONTINUE...)")
 
     @staticmethod
-    def nightmare_wolf(stats: JBStats) -> None:
+    def nightmare_wolf(stats: Stats) -> None:
         """
         Nightmare event based on a dream.
         """
@@ -504,7 +504,7 @@ class RandomEvents:
               "\n\n(CONTINUE...)")
 
     @staticmethod
-    def citizen_of_czechoslovakia(stats: JBStats) -> None:
+    def citizen_of_czechoslovakia(stats: Stats) -> None:
         """
         Sovereign citizen of Czechoslovakia / Influencer event.
         """
@@ -541,7 +541,7 @@ class RandomEvents:
         input("\n(CONTINUE...)")
 
     @staticmethod
-    def printer_incident(stats: JBStats) -> None:
+    def printer_incident(stats: Stats) -> None:
         """
         Printer event.
         """
@@ -586,7 +586,7 @@ class RandomEvents:
         input("\n(CONTINUE...)")
 
     @staticmethod
-    def forgotten_usb(stats: JBStats) -> None:
+    def forgotten_usb(stats: Stats) -> None:
         """
         USB Stick event
         """
@@ -624,7 +624,7 @@ class RandomEvents:
         input("\n(CONTINUE...)")
 
     @staticmethod
-    def turkish_fraud(stats: JBStats) -> None:
+    def turkish_fraud(stats: Stats) -> None:
         """
         Internet Fraud / Heritage scam.
         """
@@ -682,7 +682,7 @@ class RandomEvents:
         input("\n(CONTINUE...)")
 
     @staticmethod
-    def dispatch_blue_screen(stats: JBStats) -> None:
+    def dispatch_blue_screen(stats: Stats) -> None:
         """
         The Dispatch System Crash.
         """
@@ -727,7 +727,7 @@ class RandomEvents:
         input("\n(CONTINUE...)")
 
     @staticmethod
-    def tech_bro_speeding(stats: JBStats) -> None:
+    def tech_bro_speeding(stats: Stats) -> None:
         """
         Event: The Arch User & The Regex.
         """
@@ -789,7 +789,7 @@ class RandomEvents:
         input("\n(CONTINUE...)")
 
     @staticmethod
-    def paperwork_overload(stats: JBStats) -> None:
+    def paperwork_overload(stats: Stats) -> None:
         """
         Event: The Paperwork Mountain.
         Mechanic: Unlockable Daily Buff (AI Automation).

@@ -1,16 +1,16 @@
 import pytest
 import re
 from unittest.mock import patch, MagicMock
-from jb_game.game_logic.jb_dev_game import Game
-from jb_game.game_logic.jb_dev_stats import JBStats
-from jb_game.game_logic.jb_dev_day_cycle import DayCycle
-from jb_game.game_logic.jb_dev_random_events import RandomEvents
+from game.game_logic.game_rules import Game
+from game.game_logic.stats import Stats
+from game.game_logic.day_cycle import DayCycle
+from game.game_logic.random_events import RandomEvents
 
 
 @pytest.fixture
 def game_setup():
     """Sets up a standard game instance for testing."""
-    stats = JBStats(available_money=10000, coding_experience=0, pcr_hatred=0)
+    stats = Stats(available_money=10000, coding_experience=0, pcr_hatred=0)
     day_cycle = DayCycle()
     events = RandomEvents()
     game = Game(stats, day_cycle, events)
@@ -53,7 +53,7 @@ def test_set_difficulty_insane(mock_input, game_setup):
 # ==========================================
 
 @patch('builtins.input')  # 2nd Argument (Top decorator) -> we use '_' to ignore it
-@patch('jb_game.game_logic.jb_dev_game.Decision.ask')
+@patch('game.game_logic.game_rules.Decision.ask')
 def test_activity_python_bootcamp_purchase(mock_decision, _, game_setup):
     """Test if buying the bootcamp deducts money and sets the flag."""
     game, stats, _ = game_setup
@@ -66,7 +66,7 @@ def test_activity_python_bootcamp_purchase(mock_decision, _, game_setup):
     assert game.python_bootcamp is True
 
 
-@patch('jb_game.game_logic.jb_dev_game.Decision.ask')
+@patch('game.game_logic.game_rules.Decision.ask')
 def test_bootcamp_buff_application(mock_decision, game_setup):
     """
     Test if the 'End Day' logic applies the buff.
@@ -95,8 +95,8 @@ def test_bootcamp_buff_application(mock_decision, game_setup):
 # ==========================================
 
 @patch('builtins.input')  # 3rd Arg (Top) -> Ignored as '_'
-@patch('jb_game.game_logic.jb_dev_game.Decision.ask')  # 2nd Arg (Middle)
-@patch('jb_game.game_logic.jb_dev_game.randint')  # 1st Arg (Bottom)
+@patch('game.game_logic.game_rules.Decision.ask')  # 2nd Arg (Middle)
+@patch('game.game_logic.game_rules.randint')  # 1st Arg (Bottom)
 def test_activity_bouncer_strip_club_jackpot(mock_randint, mock_decision, _, game_setup):
     """Test the 5% chance to get 35k CZK at the Strip Bar."""
     game, stats, _ = game_setup
@@ -111,8 +111,8 @@ def test_activity_bouncer_strip_club_jackpot(mock_randint, mock_decision, _, gam
 
 
 @patch('builtins.input')  # 3rd Arg (Top) -> Ignored as '_'
-@patch('jb_game.game_logic.jb_dev_game.Decision.ask')  # 2nd Arg (Middle)
-@patch('jb_game.game_logic.jb_dev_game.randint')  # 1st Arg (Bottom)
+@patch('game.game_logic.game_rules.Decision.ask')  # 2nd Arg (Middle)
+@patch('game.game_logic.game_rules.randint')  # 1st Arg (Bottom)
 def test_activity_bouncer_strip_club_fail(mock_randint, mock_decision, _, game_setup):
     """Test the critical failure (Getting hit with a bottle)."""
     game, stats, _ = game_setup
@@ -132,8 +132,8 @@ def test_activity_bouncer_strip_club_fail(mock_randint, mock_decision, _, game_s
 # ==========================================
 
 @patch('builtins.input')  # 3. Ignored as '_'
-@patch('jb_game.game_logic.jb_dev_game.Decision.ask')  # 2. Ignored as '_' (we set return_value)
-@patch('jb_game.game_logic.jb_dev_game.randint')  # 1. Used to control RNG
+@patch('game.game_logic.game_rules.Decision.ask')  # 2. Ignored as '_' (we set return_value)
+@patch('game.game_logic.game_rules.randint')  # 1. Used to control RNG
 def test_activity_gym_best_outcome(mock_randint, mock_decision, _, game_setup):
     """Test the best gym outcome: -25 Hatred."""
     game, stats, _ = game_setup
@@ -151,8 +151,8 @@ def test_activity_gym_best_outcome(mock_randint, mock_decision, _, game_setup):
 
 
 @patch('builtins.input')
-@patch('jb_game.game_logic.jb_dev_game.Decision.ask')
-@patch('jb_game.game_logic.jb_dev_game.randint')
+@patch('game.game_logic.game_rules.Decision.ask')
+@patch('game.game_logic.game_rules.randint')
 def test_activity_gym_worst_outcome(mock_randint, mock_decision, _, game_setup):
     """Test the worst gym outcome: -10 Hatred."""
     game, stats, _ = game_setup
@@ -171,7 +171,7 @@ def test_activity_gym_worst_outcome(mock_randint, mock_decision, _, game_setup):
 # ==========================================
 
 @patch('builtins.input')
-@patch('jb_game.game_logic.jb_dev_game.Decision.ask')
+@patch('game.game_logic.game_rules.Decision.ask')
 def test_activity_therapy_session(mock_decision, _, game_setup):
     """Test therapy session."""
     game, stats, _ = game_setup
@@ -189,8 +189,8 @@ def test_activity_therapy_session(mock_decision, _, game_setup):
 # ==========================================
 
 @patch('builtins.input')
-@patch('jb_game.game_logic.jb_dev_game.Decision.ask')
-@patch('jb_game.game_logic.jb_dev_game.randint')
+@patch('game.game_logic.game_rules.Decision.ask')
+@patch('game.game_logic.game_rules.randint')
 def test_activity_night_club_safe_shift(mock_randint, mock_decision, _, game_setup):
     """Test the standard safe shift at the Night Club (Option 1)."""
     game, stats, _ = game_setup
@@ -205,8 +205,8 @@ def test_activity_night_club_safe_shift(mock_randint, mock_decision, _, game_set
 
 
 @patch('builtins.input')
-@patch('jb_game.game_logic.jb_dev_game.Decision.ask')
-@patch('jb_game.game_logic.jb_dev_game.randint')
+@patch('game.game_logic.game_rules.Decision.ask')
+@patch('game.game_logic.game_rules.randint')
 def test_activity_night_club_best_shift(mock_randint, mock_decision, _, game_setup):
     """Test the best shift (Tip + Relief)."""
     game, stats, _ = game_setup
@@ -274,7 +274,7 @@ def test_set_difficulty_reprompt_then_confirm(mock_input, game_setup):
 # 9. END-OF-DAY: DOUBLE NIGHT ON RANDOM EVENT
 # ==========================================
 
-@patch('jb_game.game_logic.jb_dev_game.Game._apply_nightly_passives')
+@patch('game.game_logic.game_rules.Game._apply_nightly_passives')
 def test_end_of_day_triggers_second_night_on_event(mock_passives, game_setup):
     """Every 3rd day (<22) with event occurrence should trigger two night cycles."""
     game, stats, day_cycle = game_setup
@@ -338,7 +338,7 @@ def test_apply_nightly_passives_ai_and_btc(game_setup):
 # 11. MM EVENT TRIGGER ON DAY 24
 # ==========================================
 
-@patch('jb_game.game_logic.jb_dev_game.MMEvent')
+@patch('game.game_logic.game_rules.MMEvent')
 def test_mm_event_trigger_day_24(mock_mm_cls, game_setup):
     """Should trigger MMEvent on day 24 and call trigger_event(stats)."""
     game, stats, day_cycle = game_setup

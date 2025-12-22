@@ -1,11 +1,11 @@
 import pytest
-from jb_game.game_logic.jb_dev_stats import JBStats
+from game.game_logic.stats import Stats
 
 
 @pytest.fixture
 def stats():
     """Creates a fresh JBStats instance for every test function."""
-    return JBStats(available_money=1000, coding_experience=10, pcr_hatred=0)
+    return Stats(available_money=1000, coding_experience=10, pcr_hatred=0)
 
 
 def test_initial_values(stats):

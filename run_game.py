@@ -1,8 +1,8 @@
 import sys
 import os
 import ctypes
-from jb_game.game_logic.jb_dev_main import main
-from jb_game.game_logic.jb_dev_gui_menu import show_startup_menu
+from game.game_logic.main import main
+from game.game_logic.gui_menu import show_startup_menu
 
 
 def enable_ansi_support():

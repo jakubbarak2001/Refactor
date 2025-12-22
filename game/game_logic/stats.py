@@ -1,5 +1,5 @@
 """Define most important stats for JB."""
-class JBStats:
+class Stats:
     """Creates stats for JB."""
     def __init__(self, available_money=0, coding_experience=0, pcr_hatred=0):
         """
@@ -105,9 +105,9 @@ class JBStats:
         """Input command for getting current stats of the main character."""
         print(
             f"STATS: "
-            f"\n$$$  Money amount: {self.available_money} - {JBStats.stats_description_money(self)}"
-            f"\n</>  Coding skill: {self.coding_skill} - {JBStats.stats_description_coding_experience(self)}"
-            f"\n𝟙𝟛𝟙𝟚 Police hatred: {self.pcr_hatred} - {JBStats.stats_description_police_hatred(self)}"
+            f"\n$$$  Money amount: {self.available_money} - {Stats.stats_description_money(self)}"
+            f"\n</>  Coding skill: {self.coding_skill} - {Stats.stats_description_coding_experience(self)}"
+            f"\n𝟙𝟛𝟙𝟚 Police hatred: {self.pcr_hatred} - {Stats.stats_description_police_hatred(self)}"
         )
 
     def change_stats_value_money(self, set_money_value):
