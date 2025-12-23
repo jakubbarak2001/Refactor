@@ -3,8 +3,9 @@ from unittest.mock import patch, MagicMock
 from game.game_logic.stats import Stats
 from game.game_logic.martin_meeting_event import MartinMeetingEvent
 from game.game_logic.decision_options import Decision
+from game.game_logic.press_enter_to_continue import continue_prompt
 
-class TestMMEvent(unittest.TestCase):
+class TestMartinMeetingEvent(unittest.TestCase):
 
     def setUp(self):
         """Setup a fresh stats object and event instance before each test."""

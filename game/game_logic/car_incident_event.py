@@ -36,7 +36,7 @@ class CarIncident:
             CarIncident._path_confession(stats)
 
         # Final Daily Effect Message
-        print("\n\n[dark red]FROM THIS MOMENT, THE GRIND BEGINS[/dark red]: YOU WILL GAIN +5 PCR HATRED DAILY.")
+        print("\n[red]FROM THIS MOMENT, THE GRIND BEGINS[/red]: YOU WILL GAIN +5 PCR HATRED DAILY.")
         print("[green]YOUR MAIN OBJECTIVE[/green]: IN NEXT 30 DAYS, YOU NEED TO BECOME A FULLSTACK DEVELOPER.")
         continue_prompt()
 
