@@ -6,7 +6,7 @@ from game.game_logic.day_cycle import DayCycle
 from game.game_logic.decision_options import Decision
 from game.game_logic.random_events import RandomEvents
 from game.game_logic.game_endings import GameEndings
-from game.game_logic.martin_meeting_event import MMEvent
+from game.game_logic.martin_meeting_event import MartinMeetingEvent
 from game.game_logic.colonel_event import ColonelEvent
 
 class Game:
@@ -140,7 +140,7 @@ class Game:
         if self.day_cycle.current_day == 24:
             self.day_cycle.next_day()
             self.day_cycle.day_start_message()
-            mm_event = MMEvent()
+            mm_event = MartinMeetingEvent()
             mm_event.trigger_event(self.stats)
 
         # 6. Check for Colonel Event (Final Boss)
