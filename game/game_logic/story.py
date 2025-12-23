@@ -1,7 +1,7 @@
 """Contains everything regarding storytelling."""
 from game.game_logic.stats import Stats
-from random import randint
-from game.game_logic.decision_options import Decision
+from game.game_logic.press_enter_to_continue import continue_prompt
+from rich import print
 
 class Story:
     """Contains the most important story elements, mostly text strings."""
@@ -12,14 +12,18 @@ class Story:
     @staticmethod
     def start_game_message():
         """Gives a neatly formatted welcoming message, for whenever you start the game."""
-        print("\nRise and shine, rise and shine JB...it's your big day today.")
-        input("(Press any key to continue...)")
-        print("\nWelcome to JB - the game!")
-        print("In this game, you will be playing as a young police officer, in northern part of Bohemia.")
-        print("Initially, you love your job, but everything is about to change very soon...")
-        print("\nWill you become a victim of a broken system, or an architect who will create his own?")
-        print("In this game, that is up to you...")
-        input("(Press any key to continue...)")
-        print("Your time and resources are limited - you have to end your job as police officer soon!")
-        print("You have three main stats: \n1. Money, \n2. Coding skills, \n3. Hatred of Police")
-        print("If you have less than 0 Money, or more than 100 Hatred of Police - you will loose!")
+        print("\nRise and shine, rise and shine JB.")
+        print("Your life is about to turn upside down.")
+        continue_prompt()
+        print("[bold]\n\tWelcome to REFACTOR![bold]")
+        print("\nYou are a young police officer, in northern part of Bohemia.")
+        print("At the beginning, being a cop is everything for you.")
+        print("But soon, you will experience big changes.")
+        print("\nYou can either become:\n")
+        print("[red]⬩ Victim[/red] of a broken system, following orders.")
+        print("[cyan]⬩ Architect[/cyan] that creates his own rules.")
+        print("\nIn this game, that is entirely up to you.")
+        continue_prompt()
+        print("[bold]Your main stats are: \n\n1. Money, \n2. Coding skills, \n3. Hatred of Police[/bold]")
+        print("\n[red][bold]0 Money / 100 Hatred == GAME OVER[/red][/bold]")
+        continue_prompt()
