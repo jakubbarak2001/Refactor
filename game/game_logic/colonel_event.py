@@ -63,7 +63,7 @@ class ColonelEvent:
         return f"[{bar_visual}] {current_hp}/{max_hp} HP"
 
     def _print_hud(self, round_name):
-        print("\n" + "=" * 50)
+        print("" + "=" * 50)
         print(f" {self.bold}{round_name.upper()}{self.reset}")
         print("=" * 50)
         print(f"{self.green}JB      {self._draw_hp_bar(self.jb_hp)}{self.reset}")

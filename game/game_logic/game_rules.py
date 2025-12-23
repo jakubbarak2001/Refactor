@@ -196,14 +196,14 @@ class Game:
             print("SALARY DAY")
             print("You have received extra money for you (pretending) being an example of a model police officer, good job!")
             print(f"You've received 40.000 CZK,-")
-            input("continue_prompt()")
+            continue_prompt()
         elif self.stats.pcr_hatred <= 50:
             self.stats.available_money += 30000
             print("SALARY DAY")
             print("Your bank just send you a notification - it's the salary day.")
             print("Since your recent work attitude diminished quite recently, so did your salary this month.")
             print(f"You've received 30.000 CZK,-")
-            input("continue_prompt()")
+            continue_prompt()
         else:
             self.stats.available_money += 20000
             print("SALARY DAY")
@@ -212,7 +212,7 @@ class Game:
             print("Disciplinary actions weren't enough, so the higher-ups decided to do what was 'required', to 'motivate' ")
             print("you towards more representative attitude to your job (which means monetary punishment).")
             print(f"You've received 20.000 CZK,-")
-            input("continue_prompt()")
+            continue_prompt()
 
 
     def select_activity(self):

@@ -4,6 +4,7 @@ import os
 import pygame
 from game.game_logic.stats import Stats
 from game.game_logic.decision_options import Decision
+from game.game_logic.press_enter_to_continue import continue_prompt
 
 
 def resource_path(relative_path):
@@ -115,7 +116,7 @@ class MartinMeetingEvent:
 
     def _meeting_phase(self, stats: Stats):
         """Phase 2: The Meeting and conversation topic."""
-        self._slow_print("\nYou arrive at the restaurant. You see him in the distance.", delay=0.05)
+        self._slow_print("You arrive at the restaurant. You see him in the distance.", delay=0.05)
         self._slow_print("It's a shock. He looks... different. Bigger. Buffed.", delay=0.02)
         self._slow_print("His skin has color. He is smiling at the waitress.", delay=0.02)
         self._slow_print("He looks like a totally different person compared to the wreck you remember from the service.", delay=0.02)
@@ -158,7 +159,7 @@ class MartinMeetingEvent:
         bold = "\033[1m"
         reset = "\033[0m"
 
-        self._slow_print("\nThe food arrives. The smell of steak fills the air, but your stomach is tied in a knot.", delay=0.05)
+        self._slow_print("The food arrives. The smell of steak fills the air, but your stomach is tied in a knot.", delay=0.05)
         self._slow_print("You put down your fork. It's time.", delay=0.02)
         self._slow_print("\n'Bro you know...,' you start, your voice cracking slightly. 'It was really inspiring when you left.'", delay=0.02)
         self._slow_print("'I don't really know what to do next, I'm kind of lost, and...'", delay=0.01)
@@ -167,14 +168,13 @@ class MartinMeetingEvent:
         self._slow_print("He looks you dead in the eye. The restaurant noise fades away.", delay=0.02)
         continue_prompt()
 
-        self._slow_print(f"\n{bold}'Stop lying to yourself, JB.'{reset}", delay=0.08)
+        self._slow_print(f"{bold}'Stop lying to yourself, JB.'{reset}", delay=0.08)
         time.sleep(1.5)
-        self._slow_print(f"\n{bold}'You exactly know what to do.'{reset}", delay=0.08)
+        self._slow_print(f"{bold}'You exactly know what to do.'{reset}", delay=0.08)
         time.sleep(1.5)
-        self._slow_print(f"\n{bold}'You are just too scared to admit it.'{reset}", delay=0.08)
+        self._slow_print(f"{bold}'You are just too scared to admit it.'{reset}", delay=0.08)
 
-        print("\n(Press any key to let that sink in...)")
-        input()
+        continue_prompt()
 
         self._slow_print("Silence. Absolute silence.", delay=0.10)
 
@@ -202,16 +202,16 @@ class MartinMeetingEvent:
 
     def _coding_reality_check(self, stats: Stats):
         """Phase 4: The Skill Check based on coding experience."""
-        self._slow_print("\nMartin leans back. 'Okay. You said it. Now, can you actually do it?'", delay=0.02)
+        self._slow_print("Martin leans back. 'Okay. You said it. Now, can you actually do it?'", delay=0.02)
         self._slow_print("'Do you have the skills? If you leave tomorrow, can you feed yourself?'", delay=0.02)
 
         self._slow_print(f"\n[REALITY CHECK] Current Coding Experience: {stats.coding_skill}", delay=0.01)
-        input("\n(PRESS ENTER TO EVALUATE)")
+        continue_prompt()
 
         if stats.coding_skill >= 200:
             self.martin_meeting_affection_points += 2
             stats.increment_stats_pcr_hatred(-20)
-            self._slow_print("\nYou smile. You don't just know syntax. You dream in code.", delay=0.02)
+            self._slow_print("You smile. You don't just know syntax. You dream in code.", delay=0.02)
             self._slow_print("You are a God Tier developer trapped in a uniform.", delay=0.02)
             self._slow_print("'I am ready,' you say. And you mean it.", delay=0.02)
             self._slow_print("\n[OUTCOME]: + 2 AFFECTION POINTS, -20 PCR HATRED (Confidence).", delay=0.01)
@@ -219,13 +219,13 @@ class MartinMeetingEvent:
         elif stats.coding_skill >= 150:
             self.martin_meeting_affection_points += 1
             stats.increment_stats_pcr_hatred(-10)
-            self._slow_print("\nYou are solid. You can build apps. You understand the backend.", delay=0.02)
+            self._slow_print("You are solid. You can build apps. You understand the backend.", delay=0.02)
             self._slow_print("You aren't a genius, but you are hireable. Today.", delay=0.02)
             self._slow_print("'I can do this,' you nod.", delay=0.02)
             self._slow_print("\n[OUTCOME]: + 1 AFFECTION POINT, -10 PCR HATRED.", delay=0.01)
 
         elif stats.coding_skill >= 100:
-            self._slow_print("\nYou are a Junior. You know enough to get into trouble, maybe enough to get an internship.", delay=0.02)
+            self._slow_print("You are a Junior. You know enough to get into trouble, maybe enough to get an internship.", delay=0.02)
             self._slow_print("It's going to be hard. But not impossible.", delay=0.02)
             self._slow_print("'I think I have a shot,' you say, hesitating slightly.", delay=0.02)
             self._slow_print("\n[OUTCOME]: NEUTRAL. (It's not great, not terrible).", delay=0.01)
@@ -233,7 +233,7 @@ class MartinMeetingEvent:
         elif stats.coding_skill >= 50:
             self.martin_meeting_affection_points -= 1
             stats.increment_stats_pcr_hatred(10)
-            self._slow_print("\nYou know the basics. Loops, functions, some libraries.", delay=0.02)
+            self._slow_print("You know the basics. Loops, functions, some libraries.", delay=0.02)
             self._slow_print("But a job? Real software? You are miles away.", delay=0.02)
             self._slow_print("You look away. 'I... I'm still learning.'", delay=0.02)
             self._slow_print("\n[OUTCOME]: - 1 AFFECTION POINT, +10 PCR HATRED (Doubt creeps in).", delay=0.01)
@@ -241,7 +241,7 @@ class MartinMeetingEvent:
         else:
             self.martin_meeting_affection_points -= 2
             stats.increment_stats_pcr_hatred(20)
-            self._slow_print("\nYou have nothing. You spent your time drinking beer instead of studying.", delay=0.02)
+            self._slow_print("You have nothing. You spent your time drinking beer instead of studying.", delay=0.02)
             self._slow_print("You are just a cop with a dream and zero skills.", delay=0.02)
             self._slow_print("Martin sees it. He sighs. It's a sigh of pity.", delay=0.02)
             self._slow_print("'Jesus, JB. You have nothing prepared, do you?'", delay=0.02)
@@ -252,43 +252,43 @@ class MartinMeetingEvent:
 
     def _financial_reality_check(self, stats: Stats):
         """Phase 5: Money Check. Can you afford the exit fee?"""
-        self._slow_print("\nYour friend takes a sip of his drink. 'Skills are one thing. But freedom isn't free.'", delay=0.02)
+        self._slow_print("Your friend takes a sip of his drink. 'Skills are one thing. But freedom isn't free.'", delay=0.02)
         self._slow_print("'They are going to make you pay for your uniform, your training, every single koruna.'", delay=0.02)
         self._slow_print("'Do you have the cash? Or are you going to be in debt the moment you walk out?'", delay=0.02)
 
         self._slow_print(f"\n[REALITY CHECK] Current Savings: {stats.available_money} CZK", delay=0.01)
-        input("\n(PRESS ENTER TO EVALUATE)")
+        continue_prompt()
 
         if stats.available_money >= 200000:
             self.martin_meeting_affection_points += 2
-            self._slow_print("\nYou nod confidently. You have been saving aggressively.", delay=0.02)
+            self._slow_print("You nod confidently. You have been saving aggressively.", delay=0.02)
             self._slow_print("You have a war chest. You can buy your freedom twice over.", delay=0.02)
             self._slow_print("Martin looks impressed. 'Smart man.'", delay=0.02)
             self._slow_print("\n[OUTCOME]: + 2 AFFECTION POINTS (Financial Freedom).", delay=0.01)
 
         elif stats.available_money >= 150000:
             self.martin_meeting_affection_points += 1
-            self._slow_print("\nYou have enough. It will hurt, but you won't starve.", delay=0.02)
+            self._slow_print("You have enough. It will hurt, but you won't starve.", delay=0.02)
             self._slow_print("You can pay the exit fee and still have a buffer for a few months.", delay=0.02)
             self._slow_print("'I'm covered,' you say.", delay=0.02)
             self._slow_print("\n[OUTCOME]: + 1 AFFECTION POINT (Secure).", delay=0.01)
 
         elif stats.available_money >= 100000:
-            self._slow_print("\nYou do the math in your head. It's going to be extremely tight.", delay=0.02)
+            self._slow_print("You do the math in your head. It's going to be extremely tight.", delay=0.02)
             self._slow_print("If you pay them off, you'll be eating instant noodles for weeks.", delay=0.02)
             self._slow_print("'I can scrape it together,' you admit.", delay=0.02)
             self._slow_print("\n[OUTCOME]: NEUTRAL (Survival Mode).", delay=0.01)
 
         elif stats.available_money >= 50000:
             self.martin_meeting_affection_points -= 1
-            self._slow_print("\nYou sweat a little. You don't have enough for the full fee.", delay=0.02)
+            self._slow_print("You sweat a little. You don't have enough for the full fee.", delay=0.02)
             self._slow_print("You'll need a loan, or help from parents. It's messy.", delay=0.02)
             self._slow_print("Martin shakes his head. 'That's dangerous ground, JB.'", delay=0.02)
             self._slow_print("\n[OUTCOME]: - 1 AFFECTION POINT (Financial Risk).", delay=0.01)
 
         else:
             self.martin_meeting_affection_points -= 2
-            self._slow_print("\nYou are broke. You have nothing.", delay=0.02)
+            self._slow_print("You are broke. You have nothing.", delay=0.02)
             self._slow_print("If you quit, you will be in immediate debt with no income.", delay=0.02)
             self._slow_print("You are trapped.", delay=0.02)
             self._slow_print("Martin looks at you like you are a child. 'So you want to quit but you can't afford it?'", delay=0.02)
@@ -299,7 +299,7 @@ class MartinMeetingEvent:
 
     def _hatred_motivation_check(self, stats: Stats):
         """Phase 6: The Motivation. How much do you hate the system?"""
-        self._slow_print("\nMartin finishes his steak. He wipes his mouth.", delay=0.02)
+        self._slow_print("Martin finishes his steak. He wipes his mouth.", delay=0.02)
         self._slow_print("'One last thing. The system. The Colonel. The meaningless orders.'", delay=0.02)
         self._slow_print("'What do you really feel about them? Is this just burnout, or is it personal?'", delay=0.02)
         self._slow_print(f"\n[REALITY CHECK] Current PCR HATRED: {stats.pcr_hatred}/100", delay=0.01)
@@ -358,7 +358,7 @@ class MartinMeetingEvent:
         bold = "\033[1m"
         reset = "\033[0m"
 
-        self._slow_print("\nMartin's expression darkens. The nostalgia is gone.", delay=0.02)
+        self._slow_print("Martin's expression darkens. The nostalgia is gone.", delay=0.02)
         time.sleep(1)
         self._slow_print(f"\n'One last thing, JB. {bold}The Colonel.{reset}'", delay=0.02)
         time.sleep(2.0)
@@ -372,11 +372,11 @@ class MartinMeetingEvent:
 
         self._slow_print(f"\n'When you hand him that resignation... he won't see it as paperwork.'", delay=0.02)
         time.sleep(0.5)
-        self._slow_print(f"{bold}{red}'He will take it as a betrayal.'{reset}", delay=0.10)
+        self._slow_print(f"{bold}{red}'He will take it as a betrayal.'{reset}", delay=0.05)
         time.sleep(1.0)
 
         self._slow_print(f"\n'He will come at you with everything. Guilt, threats, regulations, maybe even empathy.'", delay=0.02)
-        self._slow_print(f"'It won't be an easy fight. It might be the hardest thing you've ever done.'", delay=0.08)
+        self._slow_print(f"'It won't be an easy fight. It might be the hardest thing you've ever done.'", delay=0.02)
 
         self._slow_print("\nHe looks at you intently.", delay=0.02)
         time.sleep(1.0)
@@ -443,6 +443,8 @@ class MartinMeetingEvent:
             stats.final_boss_buff = "IMPOSTER_SYNDROME"
             self._slow_print(f"\n{red}[STATUS ACQUIRED]: IMPOSTER SYNDROME{reset}", delay=0.04)
             self._slow_print("(Debuff: You start the boss fight with a DEBUFF.)", delay=0.01)
+
+        continue_prompt()
 
     def _good_ending_selection(self, stats: Stats):
         """The 5-choice menu for the Good Ending."""

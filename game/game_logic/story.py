@@ -15,7 +15,7 @@ class Story:
         print("\nRise and shine, rise and shine JB.")
         print("Your life is about to turn upside down.")
         continue_prompt()
-        print("[bold]\n\tWelcome to REFACTOR![bold]")
+        print("[bold]\nWelcome to REFACTOR![bold]")
         print("\nYou are a young police officer, in northern part of Bohemia.")
         print("At the beginning, being a cop is everything for you.")
         print("But soon, you will experience big changes.")
