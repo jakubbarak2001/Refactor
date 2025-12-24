@@ -554,18 +554,32 @@ class Game:
         """Logic for Option 3: Joining Bootcamp."""
         cost = 35000
 
-        if self.python_bootcamp:
-            print("\nYou have already joined the bootcamp!")
-            continue_prompt()
-            return self.activity_python()
-
-        if not self.stats.try_spend_money(cost):
+        # 1. Check funds first.
+        # It is annoying to be asked "Do you want to buy?" and then told "You are too poor."
+        if self.stats.available_money < cost:
             print(f"\n[INSUFFICIENT FUNDS] You need {cost} CZK. Transaction Declined.")
             print("That is a lot of money. Maybe stick to free docs for now?")
             continue_prompt()
             return self.activity_python()
 
-        # Success
+        # 2. Confirmation Step
+        print(f"\n[CONFIRMATION REQUIRED]")
+        print(f"The bootcamp costs {cost} CZK. This is a massive investment.")
+        print("Do you really want to spend this amount?")
+        print("1. YES (Sign the contract)")
+        print("2. NO (I changed my mind)")
+
+        confirm = Decision.ask(("1", "2"))
+
+        if confirm == "2":
+            print("\nYou step back. It's too much money right now.")
+            continue_prompt()
+            return self.activity_python()
+
+        # 3. Process Transaction
+        # We already checked funds above, so try_spend_money will return True.
+        self.stats.try_spend_money(cost)
+
         print("\nYou sign a contract and pay for an on-line Python bootcamp.")
         print("Deadlines, assignments, code reviews. The full package.")
         print("This is no longer a hobby. This is a commitment.")
@@ -578,35 +592,67 @@ class Game:
 
     def activity_python(self):
         """Main Menu for Python Activity."""
+        # Check if activity is already done for the day
         if self.activity_selected:
             print("\nYou already did your daily activity today.")
             return self.main_menu()
 
         current_tier, tier_info = self.get_coding_tier_info()
-
         tier_display = (f"{current_tier} | SKILL: {tier_info['CODING SKILL']} | "
                         f"BASE: {tier_info['STANDARD RATE']} | HOURLY: {tier_info['HOUR RATE']}")
 
-        print("\nThere are multiple ways for you how to study Python."
-              "\nPython is now your Dojo, coding is your life!"
-              f"\n1. [{tier_display}] CODE FOR MONEY $$$"
-              "\n2. [ 2500 CZK] BUY A STUDY SESSION ON FIVERR"
-              "\n3. [ 35000 CZK] JOIN AN ON-LINE BOOTCAMP"
-              "\n4. RETURN TO MENU"
-              "\n0. VIEW CURRENT TIER DETAILS"
-              "\nSELECT YOUR OPTION (0-4):")
+        # 1. Define base options (Always available)
+        menu_text = (
+            "\nThere are multiple ways for you how to study Python."
+            "\nPython is now your Dojo, coding is your life!"
+            f"\n1. [{tier_display}] CODE FOR MONEY $$$"
+            "\n2. [ 2500 CZK] BUY A STUDY SESSION ON FIVERR"
+        )
 
-        choice = Decision.ask(("0", "1", "2", "3", "4"))
+        valid_choices = ["0", "1", "2"]
+
+        # 2. Dynamic Menu Generation
+        if not self.python_bootcamp:
+            # Scenario A: Bootcamp NOT bought yet
+            menu_text += "\n3. [ 35000 CZK] JOIN AN ON-LINE BOOTCAMP"
+            menu_text += "\n4. RETURN TO MENU"
+            valid_choices.extend(["3", "4"])
+        else:
+            # Scenario B: Bootcamp ALREADY bought
+            # Option 3 replaces the bootcamp slot with "Return to Menu"
+            menu_text += "\n3. RETURN TO MENU"
+            valid_choices.append("3")
+
+        # 3. Add Option 0 (Always at the bottom)
+        menu_text += (
+            "\n0. VIEW CURRENT TIER DETAILS"
+            "\nSELECT YOUR OPTION:"
+        )
+
+        print(menu_text)
+
+        # 4. Handle Input
+        choice = Decision.ask(tuple(valid_choices))
 
         if choice == "0":
             print(f"\n{tier_display}")
             continue_prompt()
-            return self.activity_python()  # Recursive call to reload menu
+            return self.activity_python()  # Reload menu
+
         elif choice == "1":
             self._perform_coding_work()
+
         elif choice == "2":
             self._perform_fiverr_lesson()
+
         elif choice == "3":
-            self._perform_bootcamp_enrollment()
+            if not self.python_bootcamp:
+                # If not bought, 3 is Enroll
+                self._perform_bootcamp_enrollment()
+            else:
+                # If bought, 3 is Return to Menu
+                self.main_menu()
+
         elif choice == "4":
+            # Only exists if not bought (Scenario A)
             self.main_menu()
