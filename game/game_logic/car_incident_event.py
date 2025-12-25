@@ -16,6 +16,9 @@ class CarIncident:
     """
     Encapsulates the entire Car Incident story arc.
     """
+    #
+    macgyver_odds = 50
+    paul_goodman_odds = 50
 
     @staticmethod
     def car_incident_event(stats: Stats) -> None:
@@ -25,12 +28,15 @@ class CarIncident:
 
         CarIncident._play_intro_scene()
 
-        # --- THE CHOICE: Risk vs. Safety ---
+        # Choice 1 uses macgyver_odds
+        difficulty_tag = Interaction.get_difficulty_tag(CarIncident.macgyver_odds)
+
         print("\nYou stand between the cars. The silence of the parking lot is heavy.")
         print("You have a split second decision to make before a colleague walks out with a cigarette.")
         print(
-            "\n1. [RISK: 50%] THE 'MACGYVER' MANEUVER. Try to buff out the scratch with spit and your sleeve. If it works, you saw nothing.")
-        print("2. [SAFE] THE 'GOOD SOLDIER'. Go inside, report it, fill out the forms, and accept the humiliation.")
+            f"\n1. {difficulty_tag} THE 'MACGYVER' MANEUVER. Try to buff out the scratch with spit and your sleeve. If it works, you saw nothing.")
+        print(
+            f"2. {Interaction.get_difficulty_tag()} THE 'GOOD SOLDIER'. Go inside, report it, fill out the forms, and accept the humiliation.")
 
         choice = Interaction.ask(("1", "2"))
 
@@ -39,7 +45,6 @@ class CarIncident:
         else:
             CarIncident._path_confession(stats)
 
-        # Final Daily Effect Message
         print("\n[red]FROM THIS MOMENT, THE GRIND BEGINS[/red]: YOU WILL GAIN +5 PCR HATRED DAILY.")
         print("[green]YOUR MAIN OBJECTIVE[/green]: IN NEXT 30 DAYS, YOU NEED TO BECOME A FULLSTACK DEVELOPER.")
         continue_prompt()
@@ -105,18 +110,16 @@ class CarIncident:
         roll = randint(1, 100)
 
         if roll <= 50:
-            # SUCCESS
             print("\nWait... it's just paint transfer!")
             print("You spit on your sleeve and scrub harder. The white mark disappears.")
             print("There is a tiny dent left, but you'd have to look for it with a microscope.")
             print("\nYou jump into your car and drive away, heart pounding.")
             print("You got away with it. You magnificent bastard.")
 
-            stats.increment_stats_pcr_hatred(-5)  # Feeling of victory reduces hatred
+            stats.increment_stats_pcr_hatred(-5)
             print("\n[OUTCOME]: 0 CZK LOST, -5 PCR HATRED (The thrill of crime).")
 
         else:
-            # FAILURE
             CarIncident._scenario_caught_red_handed(stats)
 
     @staticmethod
@@ -124,6 +127,10 @@ class CarIncident:
         """
         The disaster scenario leading to the Paul Goodman / Colonel choice.
         """
+
+        # Choice 2 uses paul_goodman_odds
+        difficulty_tag = Interaction.get_difficulty_tag(CarIncident.paul_goodman_odds)
+
         print(
             "\n'HEY! WHAT ARE YOU DOING?!'"
             "\n\nYou freeze. You turn around."
@@ -134,7 +141,7 @@ class CarIncident:
         print(
             "\nFast forward 2 hours."
             "\nYou are in The Office. The air conditioning is humming."
-            "\nThey aren't calling it an accident. They are calling it 'Leaving the scene of a traffic incident'."
+            "\nThey aren't calling it an accident. They are calling it [bold]'Leaving the scene of a traffic incident'[/bold]."
             "\nThat's a crime. That's 'Lose your badge' territory."
         )
         print(
@@ -143,8 +150,9 @@ class CarIncident:
             "\n'Or... you can fight it.'"
         )
 
-        print("\n1. [SAFE] SUBMIT. Pay the money. Eat the dirt. Keep your job.")
-        print("2. [RISK: 30% WIN] CALL PAUL GOODMAN. Sue the department. Burn the bridge.")
+        print(
+            f"\n1. {Interaction.get_difficulty_tag()} SUBMIT. Pay the money. Eat the dirt. Keep your job.")
+        print(f"2. {difficulty_tag} CALL PAUL GOODMAN. Sue the department. Burn the bridge.")
 
         choice = Interaction.ask(("1", "2"))
 
@@ -171,18 +179,16 @@ class CarIncident:
         )
         continue_prompt()
 
-        print("\nYou call Paul. He answers on the first ring.")
+        print("You call Paul. He answers on the first ring.")
         print("'Did you say Police Department? Discrimination? Emotional distress? Say no more.'")
         print("'Ill take the case Pro Bono. We go to war.'")
 
         continue_prompt()
 
-        # 30% Chance to Win big, 70% chance to lose hard.
         win_roll = randint(1, 100)
 
-        if win_roll <= 30:
-            # THE BIG WIN
-            print("\nPaul Goodman is a shark in a cheap suit.")
+        if win_roll <= 50:
+            print("Paul Goodman is a shark in a cheap suit.")
             print("He found a loophole in the parking lot regulations.")
             print("He threatened to sue the Colonel for 'Unsafe Workplace Environment'.")
             print("The Department settled to make him go away.")
@@ -196,7 +202,6 @@ class CarIncident:
             print("[OUTCOME]: + 15.000 CZK, -30 PCR HATRED (Justice tastes sweet).")
 
         else:
-            # THE BIG LOSS
             print("\nThe Colonel called in a favor.")
             print("The judge was his old drinking buddy.")
             print("Paul Goodman got held in contempt of court for wearing a neon tie.")

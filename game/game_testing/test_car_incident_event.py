@@ -94,9 +94,7 @@ def test_incident_paul_goodman_win(mock_randint, mock_decision, _, stats):
     # Decision 2: Call Paul ("2")
     mock_decision.side_effect = ["1", "2"]
 
-    # RNG 1: Cover Up Failure (> 50) -> e.g., 90
-    # RNG 2: Paul Win (<= 30) -> e.g., 10
-    mock_randint.side_effect = [90, 10]
+    mock_randint.side_effect = [90, 30]
 
     CarIncident.car_incident_event(stats)
 
@@ -122,9 +120,7 @@ def test_incident_paul_goodman_loss(mock_randint, mock_decision, _, stats):
     # Decision 2: Call Paul ("2")
     mock_decision.side_effect = ["1", "2"]
 
-    # RNG 1: Cover Up Failure (> 50) -> e.g., 90
-    # RNG 2: Paul Loss (> 30) -> e.g., 50
-    mock_randint.side_effect = [90, 50]
+    mock_randint.side_effect = [90, 70]
 
     CarIncident.car_incident_event(stats)
 
