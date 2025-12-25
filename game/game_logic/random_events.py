@@ -1,49 +1,80 @@
+import os
 from random import choice
 from random import randint
 
-import pyfiglet
-from rich import print
 from rich.align import Align
-from rich.console import Console
+from rich.console import Console, Group
 from rich.panel import Panel
 from rich.text import Text
-
-console = Console()
 
 from game.game_logic.interaction import Interaction
 from game.game_logic.press_enter_to_continue import continue_prompt
 from game.game_logic.stats import Stats
 
+# --- SETUP: WINDOWS CONSOLE COMPATIBILITY ---
+if os.name == 'nt':
+    os.system('mode con: cols=120 lines=40')
+    os.system('chcp 65001 > nul')
+
+# Initialize Console once
+console = Console(force_terminal=True)
+
 
 def show_random_event_banner():
-    """
-    Displays a massive, styled ASCII art banner for random events.
-    Uses 'slant' font for a dynamic, action-movie feel.
-    """
-    # 1. Generate Big ASCII Text
-    # 'slant' is a great font for action/police themes.
-    # Other good ones: 'block', 'caligraphy', 'ansi_shadow'
-    ascii_art = pyfiglet.figlet_format("RANDOM  EVENT", font="slant")
+    # 1. Clean ASCII Art Definition
+    # Note: I removed leading newlines inside the string to prevent spacing errors
+    art_top_raw = r"""
+██████╗  █████╗ ███╗   ██╗██████╗  ██████╗ ███╗   ███╗
+██╔══██╗██╔══██╗████╗  ██║██╔══██╗██╔═══██╗████╗ ████║
+██████╔╝███████║██╔██╗ ██║██║  ██║██║   ██║██╔████╔██║
+██╔══██╗██╔══██║██║╚██╗██║██║  ██║██║   ██║██║╚██╔╝██║
+██║  ██║██║  ██║██║ ╚████║██████╔╝╚██████╔╝██║ ╚═╝ ██║
+╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝  ╚═════╝ ╚═╝     ╚═╝
+"""
 
-    # 2. Create a Rich Text object to style it
-    banner_text = Text(ascii_art, style="bold")
+    art_bottom_raw = r"""
+███████╗██╗   ██╗███████╗███╗   ██╗████████╗           
+██╔════╝██║   ██║██╔════╝████╗  ██║╚══██╔══╝           
+█████╗  ██║   ██║█████╗  ██╔██╗ ██║   ██║              
+██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║╚██╗██║   ██║              
+███████╗ ╚████╔╝ ███████╗██║ ╚████║   ██║              
+╚══════╝  ╚═══╝  ╚══════╝╚═╝  ╚═══╝   ╚═╝              
+"""
 
-    # 3. Apply a 'Police Siren' Gradient (Red -> Blue -> Red)
-    # This colors the text lines to look like flashing lights
-    banner_text.stylize("color(196)", 0, len(ascii_art) // 3)  # Red
-    banner_text.stylize("color(33)", len(ascii_art) // 3, 2 * len(ascii_art) // 3)  # Blue
-    banner_text.stylize("color(196)", 2 * len(ascii_art) // 3, len(ascii_art))  # Red
+    # 2. Process "RANDOM" (Top - Red)
+    # We strip() to remove empty lines from the raw string variable,
+    # then justify="left" preserves the ASCII structure.
+    text_top = Text(art_top_raw.strip("\n"), style="bold color(196)", justify="left", no_wrap=True)
 
-    # 4. Print it inside a heavy border
+    # 3. Process "EVENT" (Bottom - Blue)
+    text_bottom = Text(art_bottom_raw.strip("\n"), style="bold color(33)", justify="left", no_wrap=True)
+
+    # 4. Group and Align
+    # We Align.center the *whole block*, not the internal text logic.
+    banner_group = Group(
+        Align.center(text_top),
+        Align.center(text_bottom)
+    )
+
+    # 5. Render
     print()
-    console.print(Panel(
-        Align.center(banner_text),
-        border_style="red",
-        subtitle="[bold white on red] ⚠  ATTENTION REQUIRED  ⚠ [/]",
-        subtitle_align="center",
-        padding=(0, 2)
-    ))
+    console.print(
+        Panel(
+            banner_group,
+            border_style="bold white",
+            title="[bold white on color(196)] ⚠  PRIORITY ALERT ⚠ [/]",
+            subtitle="[bold white on color(33)] DISPATCH INCOMING [/]",
+            padding=(1, 2),  # Added vertical padding for "breathing room"
+            expand=False  # Keeps the box tight to the content
+        ),
+        justify="center"  # Centers the Panel itself in the terminal
+    )
     print()
+
+
+if __name__ == "__main__":
+    show_random_event_banner()
+    console.input("[bold grey50](PRESS ENTER TO CONTINUE)[/]")
 
 
 class RandomEvents:
