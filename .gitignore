@@ -15,3 +15,8 @@ Thumbs.db
 
 # --- QODO
 .qodo
+
+# --- Coverage
+.coverage
+htmlcov/
+*.cover
