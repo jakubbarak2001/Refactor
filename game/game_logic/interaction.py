@@ -1,3 +1,7 @@
+"""Module for a variety of interactions with player."""
+from random import randint
+
+
 class Interaction:
     """
     Helper class for handling user input, decision formatting, and difficulty tags.
@@ -35,6 +39,28 @@ class Interaction:
             return "[SUICIDE]"  # 1-19%: You will almost certainly fail.
         else:
             return "[IMPOSSIBLE]"  # 0%: Skill is too low to even attempt.
+
+    @staticmethod
+    def attempt_action(chance: int) -> bool:
+        """
+        Performs the RNG check for a skill or luck-based action.
+
+        Args:
+            chance (int): The percentage chance of success (0-100).
+                          Values >= 100 always succeed.
+                          Values <= 0 always fail.
+
+        Returns:
+            bool: True if the action succeeded, False otherwise.
+        """
+        if chance >= 100:
+            return True
+        if chance <= 0:
+            return False
+
+        roll = randint(1, 100)
+
+        return roll <= chance
 
     @staticmethod
     def ask(options: tuple) -> str:
