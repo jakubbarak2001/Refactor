@@ -1,6 +1,9 @@
 """Module for a variety of interactions with player."""
 from random import randint
 
+from rich import print
+from rich.panel import Panel
+
 
 class Interaction:
     """
@@ -18,27 +21,27 @@ class Interaction:
                                     If None, it represents a choice with NO RNG (Guaranteed/Safe).
 
         Returns:
-            str: A formatted tag like '[SAFE]', '[RISKY]', or '[TRIVIAL]'.
+            str: A formatted tag with Rich markup colors like '[green][SAFE][/green]', '[bright_red][RISKY][/bright_red]', etc.
         """
-        # 1. Handle the "Safe Option" (No RNG involved)
+        # 1. Handle the "Safe Option" (No RNG involved) - Green
         if chance is None:
-            return "[SAFE]"
+            return "[green][SAFE][/green]"
 
         # 2. Handle Skill Checks (RNG or Stat-based)
         if chance >= 100:
-            return "[TRIVIAL]"  # Skill is so high, failure is impossible.
+            return "[bright_green][TRIVIAL][/bright_green]"  # Skill is so high, failure is impossible.
         elif chance >= 80:
-            return "[EASY]"  # 80-99%: Very high chance, but bad luck exists.
+            return "[bright_green][EASY][/bright_green]"  # 80-99%: Very high chance, but bad luck exists.
         elif chance >= 60:
-            return "[LIKELY]"  # 60-79%: Good odds.
+            return "[yellow][LIKELY][/yellow]"  # 60-79%: Good odds.
         elif chance >= 40:
-            return "[UNCERTAIN]"  # 40-59%: Coin flip.
+            return "[yellow][UNCERTAIN][/yellow]"  # 40-59%: Coin flip.
         elif chance >= 20:
-            return "[RISKY]"  # 20-39%: Odds are against you.
+            return "[bright_red][RISKY][/bright_red]"  # 20-39%: Odds are against you.
         elif chance > 0:
-            return "[SUICIDE]"  # 1-19%: You will almost certainly fail.
+            return "[bright_red][SUICIDE][/bright_red]"  # 1-19%: You will almost certainly fail.
         else:
-            return "[IMPOSSIBLE]"  # 0%: Skill is too low to even attempt.
+            return "[red][IMPOSSIBLE][/red]"  # 0%: Skill is too low to even attempt.
 
     @staticmethod
     def attempt_action(chance: int) -> bool:
@@ -74,3 +77,37 @@ class Interaction:
                 return choice
 
             print(f"Invalid choice. Please enter one of: {', '.join(options)}")
+
+    @staticmethod
+    def show_decision(option_texts: list[tuple[str, str, str]]) -> str:
+        """
+        Display decision options in a Rich Panel, clearly separated from regular text.
+        
+        Args:
+            option_texts: List of tuples (option_number, difficulty_tag, option_text)
+                         Example: [("1", "[UNCERTAIN]", "THE 'MACGYVER' MANEUVER..."), ...]
+        
+        Returns:
+            str: The selected option number
+        """
+        # Build the decision text with all options
+        decision_lines = []
+        option_numbers = []
+        
+        for option_num, difficulty_tag, option_text in option_texts:
+            decision_lines.append(f"{option_num}. {difficulty_tag} {option_text}")
+            option_numbers.append(option_num)
+        
+        decision_content = "\n".join(decision_lines)
+        
+        # Display in a Rich Panel with yellow/gold styling to match continue prompt
+        print(Panel(
+            decision_content,
+            border_style="bold yellow",
+            title="[bold white on yellow] ▶ DECISION ◀ [/]",
+            padding=(1, 2),
+            expand=False
+        ))
+        
+        # Get user choice using existing ask method
+        return Interaction.ask(tuple(option_numbers))
