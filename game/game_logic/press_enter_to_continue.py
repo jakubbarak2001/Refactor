@@ -9,7 +9,7 @@ def continue_prompt():
     and wait for the player to press Enter before continuing the game.
     Only accepts Enter key to continue (ignores all other keys)."""
     print(Panel.fit(
-        "[italic](PRESS ENTER TO CONTINUE)[/italic]",
+        "[italic yellow](PRESS ENTER TO CONTINUE)[/italic yellow]",
         border_style="bold",
         width=40
     ))

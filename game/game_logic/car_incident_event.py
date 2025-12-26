@@ -33,12 +33,12 @@ class CarIncident:
 
         print("\nYou stand between the cars. The silence of the parking lot is heavy.")
         print("You have a split second decision to make before a colleague walks out with a cigarette.")
-        print(
-            f"\n1. {difficulty_tag} THE 'MACGYVER' MANEUVER. Try to buff out the scratch with spit and your sleeve. If it works, you saw nothing.")
-        print(
-            f"2. {Interaction.get_difficulty_tag()} THE 'GOOD SOLDIER'. Go inside, report it, fill out the forms, and accept the humiliation.")
-
-        choice = Interaction.ask(("1", "2"))
+        
+        # Display decision using Rich Panel
+        choice = Interaction.show_decision([
+            ("1", difficulty_tag, "THE 'MACGYVER' MANEUVER. Try to buff out the scratch with spit and your sleeve. If it works, you saw nothing."),
+            ("2", Interaction.get_difficulty_tag(), "THE 'GOOD SOLDIER'. Go inside, report it, fill out the forms, and accept the humiliation.")
+        ])
 
         if choice == "1":
             CarIncident._path_cover_up(stats)
@@ -66,7 +66,7 @@ class CarIncident:
         )
         continue_prompt()
         print(
-            "It wasn't a loud noise. It was a sickeningly polite *crunch*.\n"
+            "It wasn't a loud noise. It was a sickeningly polite [bold]*crunch*[/bold].\n"
             "Like stepping on a very large, very expensive beetle.\n"
             "You freeze. You look in the mirror. You see nothing."
             "\n\nYou get out. You look."
@@ -85,7 +85,7 @@ class CarIncident:
         continue_prompt()
 
         print(
-            "\nHe looks at you over his glasses. Then at the clock. Then back at you."
+            "He looks at you over his glasses. Then at the clock. Then back at you."
             "\n'Great start to the morning, JB. Really stellar performance.'"
             "\n\nHe hands you a stack of papers thick enough to kill a rat."
             "\n'Fill these out. Insurance will cover most of it, but you're paying the deductible.'"
