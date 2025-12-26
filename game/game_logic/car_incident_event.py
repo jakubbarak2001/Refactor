@@ -16,7 +16,7 @@ class CarIncident:
     """
     Encapsulates the entire Car Incident story arc.
     """
-    #
+    # Odds for the MacGyver and Paul Goodman choices
     macgyver_odds = 50
     paul_goodman_odds = 50
 
@@ -28,18 +28,19 @@ class CarIncident:
 
         CarIncident._play_intro_scene()
 
-        # Choice 1 uses macgyver_odds
+        # Difficulty tag for the MacGyver choice
         difficulty_tag = Interaction.get_difficulty_tag(CarIncident.macgyver_odds)
 
         print("\nYou stand between the cars. The silence of the parking lot is heavy.")
         print("You have a split second decision to make before a colleague walks out with a cigarette.")
         
-        # Display decision using Rich Panel
+        # Display decision using Rich Panel with difficulty tags
         choice = Interaction.show_decision([
             ("1", difficulty_tag, "THE 'MACGYVER' MANEUVER. Try to buff out the scratch with spit and your sleeve. If it works, you saw nothing."),
             ("2", Interaction.get_difficulty_tag(), "THE 'GOOD SOLDIER'. Go inside, report it, fill out the forms, and accept the humiliation.")
         ])
 
+        # Handle the choice
         if choice == "1":
             CarIncident._path_cover_up(stats)
         else:
@@ -150,11 +151,11 @@ class CarIncident:
             "\n'Or... you can fight it.'"
         )
 
-        print(
-            f"\n1. {Interaction.get_difficulty_tag()} SUBMIT. Pay the money. Eat the dirt. Keep your job.")
-        print(f"2. {difficulty_tag} CALL PAUL GOODMAN. Sue the department. Burn the bridge.")
-
-        choice = Interaction.ask(("1", "2"))
+        # Display decision using Rich Panel with difficulty tags
+        choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(), "SUBMIT. Pay the money. Eat the dirt. Keep your job."),
+            ("2", difficulty_tag, "CALL PAUL GOODMAN. Sue the department. Burn the bridge.")
+        ])
 
         if choice == "1":
             stats.increment_stats_pcr_hatred(25)

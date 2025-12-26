@@ -21,7 +21,8 @@ class Interaction:
                                     If None, it represents a choice with NO RNG (Guaranteed/Safe).
 
         Returns:
-            str: A formatted tag with Rich markup colors like '[green][SAFE][/green]', '[bright_red][RISKY][/bright_red]', etc.
+            str: A formatted tag with Rich markup colors like '[green][SAFE][/green]',
+                 '[bright_red][RISKY][/bright_red]', etc.
         """
         # 1. Handle the "Safe Option" (No RNG involved) - Green
         if chance is None:

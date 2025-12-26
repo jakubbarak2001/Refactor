@@ -121,13 +121,13 @@ class RandomEvents:
         print("Your boss calls you very early in the morning, he says he needs you to "
               "\narrive at the police station urgently.\nBoth of your colleagues who were supposed to work today "
               "suddenly became sick.\nYou would get extra money for this overtime.\nOn the other hand, you "
-              "don't have to accept this and perhaps the time would be better used, if you were to code at home."
-              "\n\nYou have the following options:"
-              "\n1. [GAIN RANDOM AMOUNT OF MONEY] DO OVERTIME."
-              "\n2. [GAIN RANDOM AMOUNT OF CODING SKILLS] STAY AT HOME AND CODE."
-              "\n\nWHAT IS YOUR DECISION?: ")
+              "don't have to accept this and perhaps the time would be better used, if you were to code at home.")
 
-        select_choice = Interaction.ask(('1', '2'))
+        # Display decision using Rich Panel with difficulty tags
+        select_choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(), "DO OVERTIME. [GAIN RANDOM AMOUNT OF MONEY]"),
+            ("2", Interaction.get_difficulty_tag(), "STAY AT HOME AND CODE. [GAIN RANDOM AMOUNT OF CODING SKILLS]")
+        ])
 
         if select_choice == "1":
             random_event_chance_roll = randint(3500, 12500)
@@ -159,12 +159,13 @@ class RandomEvents:
               "\nbirthdays this week and asks you, if you want to contribute to their gifts."
               "\nYou pause for a moment and think for yourself - 'Why should I contribute? I am gonna quit anyway... "
               "\nbut if I won't give anything to them, they will hate me here even more.' "
-              "\n\nWhat shall I do..."
-              "\n1. [- 1000,- CZK, PCR HATRED +5] PAY FOR THE GIFTS."
-              "\n2. [PCR HATRED + 10] DON't PAY ANYTHING."
-              "\n\nWHAT IS YOUR DECISION?: ")
+              "\n\nWhat shall I do...")
 
-        select_choice = Interaction.ask(('1', '2'))
+        # Display decision using Rich Panel with difficulty tags
+        select_choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(), "PAY FOR THE GIFTS. [- 1000,- CZK, PCR HATRED +5]"),
+            ("2", Interaction.get_difficulty_tag(), "DON'T PAY ANYTHING. [PCR HATRED + 10]")
+        ])
 
         if select_choice == "1":
             stats.increment_stats_pcr_hatred(5)
@@ -219,12 +220,13 @@ class RandomEvents:
               "\n\nYou feel something inside you. A familiar pressure in your chest. You could finally say it."
               "\nYou could finally talk about how this job is one big circus, about the money, about the leadership..."
               "\nOr you can put your mask back on and say the neutral PR answer you've said a hundred times before."
-              "\n\nYou have the following options:"
-              "\n1. [80/20%] VENT OUT AND TELL HIM THE TRUTH."
-              "\n2. [SAFE OPTION] KEEP IT INSIDE AND SAY GENERAL INFORMATION."
-              "\n\nWHAT IS YOUR DECISION?: ")
+              "\n\nYou have the following options:")
 
-        select_choice = Interaction.ask(('1', '2'))
+        # Display decision using Rich Panel with difficulty tags (80% success chance)
+        select_choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(80), "VENT OUT AND TELL HIM THE TRUTH."),
+            ("2", Interaction.get_difficulty_tag(), "KEEP IT INSIDE AND SAY GENERAL INFORMATION. [SAFE OPTION]")
+        ])
 
         if select_choice == "1":
             vent_chance_roll = randint(1, 100)
@@ -304,12 +306,13 @@ class RandomEvents:
               "\n\nYour older colleague — bald, dead inside, veteran of 1000 night shifts — looks at you and grins."
               "\n'This one’s yours, JB. I carried worse ones,' he says. "
               "He throws you a pair of thin latex gloves as if that would help you survive a chemical disaster."
-              "\n\nYou have the following options:"
-              "\n1. OBJECT — refuse to drag him. [35% SUCCESS: 0 PCR HATRED]"
-              "\n2. ACCEPT AND DRAG HIM. [95% clean | 5% spill]"
-              "\n\nWHAT IS YOUR DECISION?: ")
+              "\n\nYou have the following options:")
 
-        select_choice = Interaction.ask(('1', '2'))
+        # Display decision using Rich Panel with difficulty tags (35% success for option 1)
+        select_choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(35), "OBJECT — refuse to drag him. [35% SUCCESS: 0 PCR HATRED]"),
+            ("2", Interaction.get_difficulty_tag(95), "ACCEPT AND DRAG HIM. [95% clean | 5% spill]")
+        ])
 
         if select_choice == "1":
             refusal_roll = randint(1, 100)
@@ -400,12 +403,13 @@ class RandomEvents:
               "\n\nYou glance at the clock. You’ve been here all night. "
               "Everyone else is just starting their nice little 7–15 shift. Full of energy. Full of life."
               "\nYou still have an hour of travel home ahead of you. And your brain already left the building."
-              "\n\nYou have two options:"
-              "\n1. [-2500 CZK, PCR HATRED - 10] TELL HIM YOU’RE DONE AND GO HOME (PAY THE PENALTY LATER)."
-              "\n2. [PCR HATRED + 20] STAY, FIX THE MISTAKE AND DESTROY WHAT’S LEFT OF YOUR SOUL."
-              "\n\nWHAT IS YOUR DECISION?: ")
+              "\n\nYou have two options:")
 
-        select_choice = Interaction.ask(('1', '2'))
+        # Display decision using Rich Panel with difficulty tags
+        select_choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(), "TELL HIM YOU'RE DONE AND GO HOME (PAY THE PENALTY LATER). [-2500 CZK, PCR HATRED - 10]"),
+            ("2", Interaction.get_difficulty_tag(), "STAY, FIX THE MISTAKE AND DESTROY WHAT'S LEFT OF YOUR SOUL. [PCR HATRED + 20]")
+        ])
 
         if select_choice == "1":
             stats.increment_stats_value_money(-2500)
@@ -469,16 +473,17 @@ class RandomEvents:
         can_code = stats.coding_skill >= 35
 
         if can_code:
-            print("\n1. [SKILL CHECK >= 35 CODING SKILL: PASSED] 'Actually, I am something of a developer myself.'")
-            print("2. [IMPOSTER SYNDROME] Stay silent. 'Me? No. I just... work here.'")
-            valid_options = ('1', '2')
+            # Display decision using Rich Panel - both options available
+            select_choice = Interaction.show_decision([
+                ("1", Interaction.get_difficulty_tag(), "'Actually, I am something of a developer myself.' [SKILL CHECK >= 35 CODING SKILL: PASSED]"),
+                ("2", Interaction.get_difficulty_tag(), "Stay silent. 'Me? No. I just... work here.' [IMPOSTER SYNDROME]")
+            ])
         else:
-            print(f"\n1. [SKILL CHECK >= 35 CODING SKILL: LOCKED] (Current: {stats.coding_skill})")
-            print("2. 'Me? No. I just... work here.'")
-            valid_options = ('2',)
-
-        print("\nWHAT IS YOUR DECISION?: ")
-        select_choice = Interaction.ask(valid_options)
+            # Only option 2 available - skill check failed
+            print(f"\n[SKILL CHECK >= 35 CODING SKILL: LOCKED] (Current: {stats.coding_skill})")
+            select_choice = Interaction.show_decision([
+                ("2", Interaction.get_difficulty_tag(), "'Me? No. I just... work here.'")
+            ])
 
         if select_choice == "1":
             stats.increment_stats_coding_skill(30)
@@ -588,10 +593,11 @@ class RandomEvents:
             "'I am a free citizen of the Federal Republic of Czechoslovakia! The Czech Republic is a corporation!'")
         print("\nHe is live-streaming to 12 viewers. He refuses to show ID because 'ID is a slave contract'.")
 
-        print("\n1. [IGNORE] Walk away. It's not worth the paperwork or the YouTube comments.")
-        print("2. [ARREST] Smash the window, drag him out. Law is Law.")
-
-        select_choice = Interaction.ask(('1', '2'))
+        # Display decision using Rich Panel with difficulty tags
+        select_choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(), "Walk away. It's not worth the paperwork or the YouTube comments. [IGNORE]"),
+            ("2", Interaction.get_difficulty_tag(), "Smash the window, drag him out. Law is Law. [ARREST]")
+        ])
 
         if select_choice == "1":
             stats.increment_stats_pcr_hatred(15)
@@ -626,10 +632,11 @@ class RandomEvents:
         success_chance = stats.coding_skill * 2
         if success_chance > 100: success_chance = 100
 
-        print(f"\n1. [CODING CHECK: {success_chance}%] Try to fix the driver logic and spooler.")
-        print("2. [IGNORE] Walk away. Not your problem.")
-
-        select_choice = Interaction.ask(('1', '2'))
+        # Display decision using Rich Panel with difficulty tags
+        select_choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(success_chance), f"Try to fix the driver logic and spooler. [CODING CHECK: {success_chance}%]"),
+            ("2", Interaction.get_difficulty_tag(), "Walk away. Not your problem. [IGNORE]")
+        ])
 
         if select_choice == "1":
             roll = randint(1, 100)
@@ -667,10 +674,11 @@ class RandomEvents:
         print("You feel a lump. It's a black USB drive with a taped label: 'DO NOT TOUCH'.")
         print("Curiosity kills the cat... but satisfaction brought it back.")
 
-        print("\n1. [RISK] Plug it into your own personal laptop.")
-        print("2. [SAFE] Don't touch it.")
-
-        select_choice = Interaction.ask(('1', '2'))
+        # Display decision using Rich Panel with difficulty tags (50% chance for USB risk)
+        select_choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(50), "Plug it into your own personal laptop. [RISK]"),
+            ("2", Interaction.get_difficulty_tag(), "Don't touch it. [SAFE]")
+        ])
 
         if select_choice == "1":
             print("\nYou boot up your laptop and insert the drive...")
@@ -714,12 +722,11 @@ class RandomEvents:
         print("But you look at the email headers the victim printed out.")
         print("You recognize the IP masking. It's lazy.")
 
-        print(f"\n[ROLL CHANCE: {success_chance}%] Current coding skill: {stats.coding_skill}")
-
-        print("1. [CODING] Track the scammer and turn the tables.")
-        print("2. [GENERIC] 'I'm sorry sir, the money is gone.'")
-
-        select_choice = Interaction.ask(('1', '2'))
+        # Display decision using Rich Panel with difficulty tags
+        select_choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(success_chance), f"Track the scammer and turn the tables. [CODING] [ROLL CHANCE: {success_chance}%] Current coding skill: {stats.coding_skill}"),
+            ("2", Interaction.get_difficulty_tag(), "'I'm sorry sir, the money is gone.' [GENERIC]")
+        ])
 
         if select_choice == "1":
             if success_chance >= roll:
@@ -765,12 +772,11 @@ class RandomEvents:
         print("\nThe Commander starts hitting the monitor with his baton.")
         print("'IT SUPPORT IS CLOSED! WE ARE BLIND!'")
 
-        print(f"\n[REQ: 30 CODING SKILL] Current: {stats.coding_skill}")
-
-        print("1. [CODING] Push him aside and fix it via PowerShell.")
-        print("2. [CHAOS] Watch it burn. Enjoy the silence.")
-
-        select_choice = Interaction.ask(('1', '2'))
+        # Display decision using Rich Panel - show both options (skill check happens in logic)
+        select_choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag() if stats.coding_skill >= 30 else Interaction.get_difficulty_tag(0), f"Push him aside and fix it via PowerShell. [CODING] [REQ: 30 CODING SKILL] Current: {stats.coding_skill}"),
+            ("2", Interaction.get_difficulty_tag(), "Watch it burn. Enjoy the silence. [CHAOS]")
+        ])
 
         if select_choice == "1":
             if stats.coding_skill >= 30:
@@ -820,12 +826,11 @@ class RandomEvents:
             "'Can you hurry up? I have to push this into production, else my CTO will kill me.'")
         print("He shoves a laptop in your face. It's a terminal. Red text everywhere.")
 
-        print(f"\n[ROLL CHANCE: {success_chance}%] Current coding skill: {stats.coding_skill}")
-
-        print("1. [CODING] 'I can help you with that.'")
-        print("2. [DUTY] 'License and registration. Now.'")
-
-        select_choice = Interaction.ask(('1', '2'))
+        # Display decision using Rich Panel with difficulty tags
+        select_choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(success_chance), f"'I can help you with that.' [CODING] [ROLL CHANCE: {success_chance}%] Current coding skill: {stats.coding_skill}"),
+            ("2", Interaction.get_difficulty_tag(), "'License and registration. Now.' [DUTY]")
+        ])
 
         if select_choice == "1":
             if success_chance >= roll:
@@ -879,12 +884,11 @@ class RandomEvents:
         print("The admin lady smirks. 'Boss wants this done by tomorrow morning.'")
         print("\nIt looks like 12 hours of manual data entry. A nightmare.")
 
-        print(f"\n[REQ: 40 CODING SKILL] Current: {stats.coding_skill}")
-
-        print("1. [CODING] 'Fuck it.' Write a Python script to automate the forms.")
-        print("2. [MANUAL] Grind through it. Suffering is part of the job.")
-
-        select_choice = Interaction.ask(('1', '2'))
+        # Display decision using Rich Panel - show both options (skill check happens in logic)
+        select_choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag() if stats.coding_skill >= 40 else Interaction.get_difficulty_tag(0), f"'Fuck it.' Write a Python script to automate the forms. [CODING] [REQ: 40 CODING SKILL] Current: {stats.coding_skill}"),
+            ("2", Interaction.get_difficulty_tag(), "Grind through it. Suffering is part of the job. [MANUAL]")
+        ])
 
         if select_choice == "1":
             if stats.coding_skill >= 40:
