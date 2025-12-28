@@ -31,12 +31,19 @@ class MartinMeetingEvent:
     def _slow_print(self, text, delay=0.1):
         """
         Prints text one character at a time to create dramatic tension.
+        If text contains Rich markup (e.g., [red]text[/red]), it will be rendered properly.
         """
-        for char in text:
-            sys.stdout.write(char)
-            sys.stdout.flush()
-            time.sleep(delay)
-        print()  # Print a newline at the end
+        # Check if text already contains Rich markup tags
+        if "[" in text and ("]" in text or "[/" in text):
+            # Text contains Rich markup, print it directly with Rich
+            print(text)
+        else:
+            # Plain text, print character-by-character
+            for char in text:
+                sys.stdout.write(char)
+                sys.stdout.flush()
+                time.sleep(delay)
+            print()  # Print a newline at the end
 
     def _play_music(self, track_name):
         """Helper to play music tracks smoothly."""
@@ -65,16 +72,33 @@ class MartinMeetingEvent:
             expand=False
         ))
 
+    def _show_reality_check(self, reality_text: str):
+        """
+        Display a reality check message in a Rich Panel with yellow styling.
+        Similar to Outcome and Affection boxes but smaller and with yellow color scheme.
+        No title bar, just the content with border (like "Press enter to continue").
+        
+        Args:
+            reality_text: The reality check message text
+                         Example: "Current Coding Experience: 150"
+        """
+        formatted_text = f"[bright_yellow][REALITY CHECK][/bright_yellow]: {reality_text}"
+        
+        # Display in a smaller Rich Panel with yellow border (using Panel.fit for compact size)
+        # No title, just content with border
+        print(Panel.fit(
+            formatted_text,
+            border_style="bold yellow",
+            padding=(1, 2)
+        ))
+
     def trigger_event(self, stats: Stats):
         """Main entry point for the Day 24 event."""
 
         # --- MUSIC START: THE ARRIVAL ---
         self._play_music("martin_meeting_event_the_arrival.mp3")
 
-        red = "\033[91m"
-        reset = "\033[0m"
-
-        print(f"\n{red}ARC II. - THE AWAKENING{reset}")
+        print("\n[red]ARC II. - THE AWAKENING[/red]")
         print("DAY 24 - 11:30 AM")
 
         self._preparation_phase(stats)
@@ -192,10 +216,6 @@ class MartinMeetingEvent:
 
     def _drop_the_bomb_phase(self, stats: Stats):
         """Phase 3: The realization and interruption."""
-        red = "\033[91m"
-        bold = "\033[1m"
-        reset = "\033[0m"
-
         self._slow_print("The food arrives. The smell of steak fills the air, but your stomach is tied in a knot.",
                          delay=0.03)
         self._slow_print("You put down your fork. It's time.", delay=0.02)
@@ -208,11 +228,11 @@ class MartinMeetingEvent:
         self._slow_print("He looks you dead in the eye. The restaurant noise fades away.", delay=0.02)
         continue_prompt()
 
-        self._slow_print(f"{bold}'Stop lying to yourself, JB.'{reset}", delay=0.05)
+        self._slow_print("[bold]'Stop lying to yourself, JB.'[/bold]", delay=0.05)
         time.sleep(1.5)
-        self._slow_print(f"{bold}'You know exactly what to do.'{reset}", delay=0.05)
+        self._slow_print("[bold]'You know exactly what to do.'[/bold]", delay=0.05)
         time.sleep(1.5)
-        self._slow_print(f"{bold}'You are just too scared to admit it.'{reset}", delay=0.05)
+        self._slow_print("[bold]'You are just too scared to admit it.'[/bold]", delay=0.05)
 
         continue_prompt()
 
@@ -222,23 +242,23 @@ class MartinMeetingEvent:
         # --- MUSIC SWITCH: THE AWAKENING ---
         self._play_music("martin_meeting_event_the_awakening.mp3")
 
-        self._slow_print(f"{bold}The truth hits you like a physical blow.{reset}", delay=0.05)
-        self._slow_print(f"{bold}You look down at the table. You whisper it.{reset}", delay=0.05)
+        self._slow_print("[bold]The truth hits you like a physical blow.[/bold]", delay=0.05)
+        self._slow_print("[bold]You look down at the table. You whisper it.[/bold]", delay=0.05)
         time.sleep(0.5)
-        self._slow_print(f"\n{bold}{red}'You are right...'{reset}", delay=0.10)
+        self._slow_print("\n[bold red]'You are right...'[/bold red]", delay=0.10)
         time.sleep(0.5)
-        self._slow_print(f"{bold}{red}'I... I want to quit.'{reset}", delay=0.10)
+        self._slow_print("[bold red]'I... I want to quit.'[/bold red]", delay=0.10)
 
         self._slow_print(
             "\nAs you say those words, the reality of your debt and the Colonel's face flash before your eyes.",
             delay=0.02)
         if stats.pcr_hatred >= 60:
             self._slow_print(
-                f"\n{red}[RELIEF]: - 15 PCR HATRED (It feels so good to say aloud what you already knew).{reset}",
+                "\n[red][RELIEF]: - 15 PCR HATRED (It feels so good to say aloud what you already knew).[/red]",
                 delay=0.01)
         else:
             stats.increment_stats_pcr_hatred(15)
-            self._slow_print(f"\n{red}[CRITICAL EFFECT]: + 15 PCR HATRED (The Fear of leaving is now real). {reset}",
+            self._slow_print("\n[red][CRITICAL EFFECT]: + 15 PCR HATRED (The Fear of leaving is now real).[/red]",
                              delay=0.01)
 
         self._slow_print(f"\nYour current hatred is: {stats.pcr_hatred}.", delay=0.01)
@@ -250,7 +270,7 @@ class MartinMeetingEvent:
         self._slow_print("Martin leans back. 'Okay. You said it. Now, can you actually do it?'", delay=0.02)
         self._slow_print("'Do you have the skills? If you leave tomorrow, can you feed yourself?'", delay=0.02)
 
-        self._slow_print(f"\n[REALITY CHECK] Current Coding Experience: {stats.coding_skill}", delay=0.01)
+        self._show_reality_check(f"Current Coding Experience: {stats.coding_skill}")
         continue_prompt()
 
         if stats.coding_skill >= 200:
@@ -304,7 +324,7 @@ class MartinMeetingEvent:
                          delay=0.02)
         self._slow_print("'Do you have the cash? Or are you going to be in debt the moment you walk out?'", delay=0.02)
 
-        self._slow_print(f"\n[REALITY CHECK] Current Savings: {stats.available_money} CZK", delay=0.01)
+        self._show_reality_check(f"Current Savings: {stats.available_money} CZK")
         continue_prompt()
 
         if stats.available_money >= 200000:
@@ -351,7 +371,7 @@ class MartinMeetingEvent:
         self._slow_print("Martin finishes his steak. He wipes his mouth.", delay=0.02)
         self._slow_print("'One last thing. The system. The Colonel. The meaningless orders.'", delay=0.02)
         self._slow_print("'What do you really feel about them? Is this just burnout, or is it personal?'", delay=0.02)
-        self._slow_print(f"\n[REALITY CHECK] Current PCR HATRED: {stats.pcr_hatred}/100", delay=0.01)
+        self._show_reality_check(f"Current PCR HATRED: {stats.pcr_hatred}/100")
 
         # Display decision using Rich Panel with difficulty tags
         choice = Interaction.show_decision([
@@ -409,27 +429,23 @@ class MartinMeetingEvent:
 
     def _timing_decision_phase(self, stats: Stats):
         """Phase 7: The Decision. When do you face the Final Boss?"""
-        red = "\033[91m"
-        bold = "\033[1m"
-        reset = "\033[0m"
-
         self._slow_print("Martin's expression darkens. The nostalgia is gone.", delay=0.02)
         time.sleep(1)
-        self._slow_print(f"\n'One last thing, JB. {bold}The Colonel.{reset}'", delay=0.02)
+        self._slow_print("\n'One last thing, JB. [bold]The Colonel.[/bold]'", delay=0.02)
         time.sleep(1.0)
 
         self._slow_print("'I know you think he is just a bureaucrat. But don't underestimate him.'", delay=0.02)
-        self._slow_print(f"'He is the one who hired you, remember? He personally admitted you to the academy.'",
+        self._slow_print("'He is the one who hired you, remember? He personally admitted you to the academy.'",
                          delay=0.02)
         time.sleep(1.0)
 
-        self._slow_print(f"'He sees you as his project. His success story. His {bold}'Good Soldier'{reset}.'",
+        self._slow_print("'He sees you as his project. His success story. His [bold]'Good Soldier'[/bold].'",
                          delay=0.02)
         time.sleep(0.5)
 
-        self._slow_print(f"\n'When you hand him that resignation... he won't see it as paperwork.'", delay=0.02)
+        self._slow_print("\n'When you hand him that resignation... he won't see it as paperwork.'", delay=0.02)
         time.sleep(0.5)
-        self._slow_print(f"{bold}{red}'He will take it as a betrayal.'{reset}", delay=0.05)
+        self._slow_print("[bold red]'He will take it as a betrayal.'[/bold red]", delay=0.05)
         time.sleep(1.5)
 
         self._slow_print(f"\n'He will come at you with everything. Guilt, threats, regulations, maybe even empathy.'",
@@ -438,7 +454,7 @@ class MartinMeetingEvent:
 
         self._slow_print("\nHe looks at you intently.", delay=0.02)
         time.sleep(1.0)
-        self._slow_print(f"{bold}'Are you ready to face him? Do you want to rip the band-aid off now?'{reset}",
+        self._slow_print("[bold]'Are you ready to face him? Do you want to rip the band-aid off now?'[/bold]",
                          delay=0.02)
         self._slow_print("'Or do you need time to prepare your mind and your wallet?'", delay=0.02)
 
@@ -483,15 +499,11 @@ class MartinMeetingEvent:
         Phase 8: The Parting Gift.
         Based on Affection points, determines what 'Weapon' or 'Status' you take to the final boss.
         """
-        red = "\033[91m"
-        bold = "\033[1m"
-        reset = "\033[0m"
-
         self._slow_print("\nThe lunch is over. You pay the bill.", delay=0.02)
         self._slow_print("You walk out into the cold street. The wind hits your face.", delay=0.02)
 
         if self.martin_meeting_affection_points >= 8:
-            self._slow_print(f"\n{bold}Martin stops you before you leave.{reset}", delay=0.02)
+            self._slow_print("\n[bold]Martin stops you before you leave.[/bold]", delay=0.02)
             self._slow_print("'Wait, JB. I have a good feeling about this. You are actually ready.'", delay=0.02)
             self._slow_print("'I want to help you. I can't fight him for you, but I can give you an edge.'", delay=0.02)
             self._slow_print("'What do you need the most? Information? Security? Or a weapon?'", delay=0.02)
@@ -499,17 +511,17 @@ class MartinMeetingEvent:
             self._good_ending_selection(stats)
 
         elif self.martin_meeting_affection_points >= 5:
-            self._slow_print(f"\nYour friend shakes your hand. His grip is firm.", delay=0.02)
-            self._slow_print("'It’s going to be hell, JB. He will try to break you.'", delay=0.02)
+            self._slow_print("\nYour friend shakes your hand. His grip is firm.", delay=0.02)
+            self._slow_print("'It's going to be hell, JB. He will try to break you.'", delay=0.02)
             self._slow_print("'But if you get overwhelmed, just remember that I made it.'", delay=0.02)
             self._slow_print("'I'm waiting on the other side. Don't let him win.'", delay=0.02)
 
             stats.final_boss_buff = "STOIC_ANCHOR"
-            self._slow_print(f"\n{bold}[STATUS ACQUIRED]: STOIC ANCHOR{reset}", delay=0.04)
+            self._slow_print("\n[bold][STATUS ACQUIRED]: STOIC ANCHOR[/bold]", delay=0.04)
             self._slow_print("(Passive: You are more resistant to Colonel's attacks.)", delay=0.01)
 
         else:
-            self._slow_print(f"\nMartin looks at you with pity. He doesn't shake your hand.", delay=0.02)
+            self._slow_print("\nMartin looks at you with pity. He doesn't shake your hand.", delay=0.02)
             self._slow_print(
                 "'JB, do you remember that one guy from high school, who always wanted to open a car tuning shop but never did anything about it?'",
                 delay=0.02)
@@ -518,16 +530,13 @@ class MartinMeetingEvent:
             self._slow_print("'Good luck. You are going to need it.'", delay=0.02)
 
             stats.final_boss_buff = "IMPOSTER_SYNDROME"
-            self._slow_print(f"\n{red}[STATUS ACQUIRED]: IMPOSTER SYNDROME{reset}", delay=0.04)
+            self._slow_print("\n[red][STATUS ACQUIRED]: IMPOSTER SYNDROME[/red]", delay=0.04)
             self._slow_print("(Debuff: You start the boss fight with a DEBUFF.)", delay=0.01)
 
         continue_prompt()
 
     def _good_ending_selection(self, stats: Stats):
         """The 5-choice menu for the Good Ending."""
-        bold = "\033[1m"
-        reset = "\033[0m"
-
         print("\n[green]CHOOSE YOUR FINAL BOSS ADVANTAGE:[/green]")
 
         # Display decision using Rich Panel with difficulty tags

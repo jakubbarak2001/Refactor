@@ -4,6 +4,10 @@ import time
 
 import pygame
 from rich import print
+from rich.panel import Panel
+from rich.text import Text
+from rich.align import Align
+from rich.console import Group, Console
 
 from game.game_logic.press_enter_to_continue import continue_prompt
 
@@ -107,30 +111,32 @@ class GoodEnding:
     """
 
     def __init__(self):
-        self.green = "\033[92m"
-        self.bold = "\033[1m"
-        self.reset = "\033[0m"
-        self.red = "\033[91m"
+        pass
 
     def _slow_print(self, text, delay=0.05, color=None, bold=False):
-        """Cinematic printing."""
-        if color:
-            sys.stdout.write(color)
-        if bold:
-            sys.stdout.write(self.bold)
+        """
+        Cinematic printing with Rich markup support.
+        If text contains Rich markup, it will be rendered properly.
+        """
+        # Check if text already contains Rich markup tags
+        if "[" in text and ("]" in text or "[/" in text):
+            # Text contains Rich markup, print it directly with Rich
+            print(text)
+        else:
+            # Plain text, apply optional styling and print
+            if bold:
+                text = f"[bold]{text}[/bold]"
+            if color:
+                text = f"[{color}]{text}[/{color}]"
+            print(text)
 
-        for char in text:
-            sys.stdout.write(char)
-            sys.stdout.flush()
-            time.sleep(delay)
-
-        sys.stdout.write(self.reset)
-        print()
-
-    def trigger_ending(self):
+    def trigger_ending(self, stats=None):
         """
         The Final Sequence.
         JB laughs at the absurdity, types the exit command, and walks into reality.
+        
+        Args:
+            stats: Stats object to calculate final score (optional)
         """
         # --- MUSIC START: ROAD TO FREEDOM ---
         # Starts playing immediately as the relief hits you
@@ -138,13 +144,13 @@ class GoodEnding:
 
         # --- THE LAUGHTER ---
         print("\n")
-        self._slow_print("You start to chuckle.", delay=0.1)
+        self._slow_print("You start to chuckle.", delay=0.05)
         time.sleep(1)
         self._slow_print("The chuckle turns into a laugh.", delay=0.05)
-        self._slow_print("A loud, liberating, uncontrollable laugh.", delay=0.05, bold=True)
+        self._slow_print("[bold]A loud, liberating, uncontrollable laugh.[/bold]", delay=0.05)
 
         time.sleep(2)
-        print(f"\n{self.red}COLONEL: 'WHY ARE YOU LAUGHING?! YOU THINK THIS IS FUNNY? YOUR LIFE IS OVER!'{self.reset}")
+        print("\n[red]COLONEL: 'WHY ARE YOU LAUGHING?! YOU THINK THIS IS FUNNY? YOUR LIFE IS OVER!'[/red]")
         time.sleep(1)
 
         # --- THE REALIZATION ---
@@ -152,14 +158,14 @@ class GoodEnding:
         self._slow_print("'My life isn't over.'", delay=0.06)
         time.sleep(1)
 
-        self._slow_print(f"\n{self.green}'It's just compiling.'{self.reset}", delay=0.1, bold=True)
+        self._slow_print("\n[bold green]'It's just compiling.'[/bold green]", delay=0.1)
         time.sleep(2)
 
         # --- THE EXIT ---
         print("\n" + "=" * 60)
-        self._slow_print(f" > EXECUTING: sys.exit(0) ...", delay=0.05, color=self.green)
-        self._slow_print(f" > TEARING DOWN: police_station_module.py ...", delay=0.05, color=self.green)
-        self._slow_print(f" > RELEASING RESOURCES ...", delay=0.05, color=self.green)
+        self._slow_print("[green] > EXECUTING: sys.exit(0) ...[/green]", delay=0.05)
+        self._slow_print("[green] > TEARING DOWN: police_station_module.py ...[/green]", delay=0.05)
+        self._slow_print("[green] > RELEASING RESOURCES ...[/green]", delay=0.05)
         print("=" * 60 + "\n")
         time.sleep(2)
 
@@ -175,7 +181,7 @@ class GoodEnding:
 
         # --- THE WHEAT FIELD (Truman Show Theme) ---
         print("\n")
-        self._slow_print(f"{self.bold}The blinding light hits you.{self.reset}", delay=0.1)
+        self._slow_print("[bold]The blinding light hits you.[/bold]", delay=0.05)
         time.sleep(2)
 
         self._slow_print("You step out. You expect the grey, dirty street of the city.", delay=0.05)
@@ -196,13 +202,143 @@ class GoodEnding:
         self._slow_print("You take a deep breath.", delay=0.06)
 
         print("\n")
-        self._slow_print(f"{self.green}SYSTEM: BUILD SUCCESSFUL.{self.reset}", delay=0.08, bold=True)
-        self._slow_print(f"{self.green}WELCOME TO PRODUCTION, JB.{self.reset}", delay=0.08, bold=True)
+        self._slow_print("[bold green]SYSTEM: BUILD SUCCESSFUL.[/bold green]", delay=0.08)
+        self._slow_print("[bold green]WELCOME TO PRODUCTION, JB.[/bold green]", delay=0.08)
 
         time.sleep(3)
+        
+        # Create EPIC ending display with ASCII art and multiple panels
+        print("\n\n\n")
+        
+        # ASCII Art for "THE END"
+        the_end_art = r"""
+████████╗██╗  ██╗███████╗    ███████╗███╗   ██╗██████╗ 
+╚══██╔══╝██║  ██║██╔════╝    ██╔════╝████╗  ██║██╔══██╗
+   ██║   ███████║█████╗      █████╗  ██╔██╗ ██║██║  ██║
+   ██║   ██╔══██║██╔══╝      ██╔══╝  ██║╚██╗██║██║  ██║
+   ██║   ██║  ██║███████╗    ███████╗██║ ╚████║██████╔╝
+   ╚═╝   ╚═╝  ╚═╝╚══════╝    ╚══════╝╚═╝  ╚═══╝╚═════╝ 
+"""
+        
+        # Process ASCII art with gradient effect (green to gold)
+        art_lines = the_end_art.strip("\n").split("\n")
+        styled_art = Text()
+        for i, line in enumerate(art_lines):
+            if line.strip():  # Skip empty lines
+                # Create gradient from bright green to bright yellow
+                if i < len(art_lines) / 2:
+                    style = "bold bright_green"
+                else:
+                    style = "bold bright_yellow"
+                styled_art.append(line + "\n", style=style)
+        
+        # Create the main ending panel with ASCII art
+        console = Console()
+        ending_panel = Panel(
+            Align.center(styled_art, vertical="middle"),
+            border_style="bold bright_white",
+            title="[bold bright_white on black] ═══ FINAL SCENE ═══ [/]",
+            subtitle="[bold bright_green] YOU ESCAPED THE SIMULATION [/]",
+            padding=(2, 4),
+            expand=False
+        )
+        
+        # Create final score panel (replaces SYSTEM LOG)
+        if stats:
+            # Calculate base final score: (money / 100) + (coding_skill * 100)
+            base_score = (stats.available_money / 100) + (stats.coding_skill * 100)
+            
+            # Apply difficulty multiplier
+            difficulty_multiplier = 1.0
+            difficulty_name = "Unknown"
+            if stats.difficulty == "easy":
+                difficulty_multiplier = 1.0
+                difficulty_name = "Easy"
+            elif stats.difficulty == "hard":
+                difficulty_multiplier = 2.5
+                difficulty_name = "Hard"
+            elif stats.difficulty == "insane":
+                difficulty_multiplier = 5.0
+                difficulty_name = "Insane"
+            
+            final_score = base_score * difficulty_multiplier
+            final_score = int(final_score)  # Convert to integer for display
+            
+            score_text = Text()
+            score_text.append("💰 Total Money: ", style="bold cyan")
+            score_text.append(f"{stats.available_money:,} CZK\n", style="bright_white")
+            score_text.append("💻 Coding Skill: ", style="bold cyan")
+            score_text.append(f"{stats.coding_skill} points\n", style="bright_white")
+            score_text.append("🎚️  Difficulty: ", style="bold cyan")
+            score_text.append(f"{difficulty_name} (x{difficulty_multiplier:.1f})\n", style="bright_white")
+            score_text.append("═" * 35 + "\n", style="dim white")
+            score_text.append("🏆 FINAL SCORE: ", style="bold bright_yellow")
+            score_text.append(f"{final_score:,}", style="bold bright_yellow")
+            
+            message_panel = Panel(
+                score_text,
+                border_style="bold bright_yellow",
+                title="[bold white on bright_yellow] > FINAL SCORE < [/]",
+                padding=(1, 3),
+                expand=False
+            )
+        else:
+            # Fallback if stats not provided
+            message_text = Text()
+            message_text.append("FINAL SCORE: ", style="bold cyan")
+            message_text.append("N/A", style="bright_white")
+            
+            message_panel = Panel(
+                message_text,
+                border_style="bold cyan",
+                title="[bold white on cyan] > FINAL SCORE < [/]",
+                padding=(1, 3),
+                expand=False
+            )
+        
+        # Create final credits panel
+        credits_text = Text()
+        credits_text.append("Thank you for playing\n", style="bold white")
+        credits_text.append("REFACTOR\n", style="bold bright_yellow")
+        credits_text.append("\n\"Code your way out, or lose your mind trying.\"\n", style="italic dim white")
+        credits_text.append("\n- Jakub Barák", style="dim white")
+        
+        credits_panel = Panel(
+            Align.center(credits_text),
+            border_style="bold yellow",
+            title="[bold white on yellow] > CREDITS < [/]",
+            padding=(1, 4),
+            expand=False
+        )
+        
+        # Group all panels and center them
+        final_group = Group(
+            Align.center(ending_panel),
+            Text(),  # Empty line for spacing
+            Align.center(message_panel),
+            Text(),  # Empty line for spacing
+            Align.center(credits_panel)
+        )
+        
+        console.print(final_group, justify="center")
         print("\n\n")
-        print("=" * 30)
-        print("       THE END")
-        print("=" * 30)
-        input("\n(PRESS ENTER TO EXIT GAME)")
+        
+        # Display exit prompt using Panel like continue_prompt
+        print(Panel.fit(
+            "[italic yellow](PRESS ENTER TO EXIT GAME)[/italic yellow]",
+            border_style="bold",
+            width=40
+        ))
+        
+        # Wait for Enter key (similar to continue_prompt)
+        if sys.platform == "win32":
+            import msvcrt
+            while True:
+                key = msvcrt.getwch()
+                if key == '\r':  # Enter key
+                    break
+        else:
+            import getpass
+            getpass.getpass("")
+        
         sys.exit()

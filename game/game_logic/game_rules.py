@@ -4,6 +4,9 @@ from random import randint
 
 from rich import print
 from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
+from rich.align import Align
 
 from game.game_logic.colonel_event import ColonelEvent
 from game.game_logic.day_cycle import DayCycle
@@ -25,9 +28,9 @@ class Game:
     reset = "\033[0m"
 
     DIFFICULTY_SETTINGS = {
-        "1": {"name": "[green]EASY[/green]", "money": 55000, "coding": 10, "hatred": 15},
-        "2": {"name": "[yellow]HARD[/yellow]", "money": 35000, "coding": 5, "hatred": 25},
-        "3": {"name": "[red]INSANE[/red]", "money": 20000, "coding": 0, "hatred": 35},
+        "1": {"name": "EASY", "color": "bright_green", "money": 55000, "coding": 10, "hatred": 15},
+        "2": {"name": "HARD", "color": "yellow", "money": 35000, "coding": 5, "hatred": 25},
+        "3": {"name": "INSANE", "color": "bright_red", "money": 20000, "coding": 0, "hatred": 35},
         # 4 NIGHTMARE difficulty placeholder
     }
 
@@ -54,44 +57,187 @@ class Game:
             GameEndings.homeless_ending(self.stats)
 
         if self.stats.pcr_hatred >= 65:
-            print(
-                f"\n[red][WARNING] HATRED AT {self.stats.pcr_hatred}%! YOU WILL BREAK DOWN SOON IF YOU DON'T SLOW DOWN. [/red]")
+            warning_text = Text()
+            warning_text.append("⚠️  ", style="bold bright_red")
+            warning_text.append(f"HATRED AT {self.stats.pcr_hatred}%!", style="bold bright_red")
+            warning_text.append("\nYOU WILL BREAK DOWN SOON IF YOU DON'T SLOW DOWN.", style="bold red")
+            
+            print("\n")
+            print(Panel(
+                warning_text,
+                border_style="bold bright_red",
+                title="[bold white on bright_red] > WARNING < [/]",
+                padding=(1, 2),
+                expand=False
+            ))
 
         if self.stats.available_money < 7500:
-            print(f"\n[yellow][WARNING] LOW FUNDS ({self.stats.available_money} CZK). POVERTY IMMINENT.[/yellow]")
+            funds_warning_text = Text()
+            funds_warning_text.append("⚠️  ", style="bold bright_yellow")
+            funds_warning_text.append(f"LOW FUNDS: {self.stats.available_money:,} CZK", style="bold bright_yellow")
+            funds_warning_text.append("\nPOVERTY IMMINENT.", style="bold yellow")
+            
+            print("\n")
+            print(Panel(
+                funds_warning_text,
+                border_style="bold yellow",
+                title="[bold white on yellow] > WARNING < [/]",
+                padding=(1, 2),
+                expand=False
+            ))
 
     def set_difficulty_level(self):
-        """Lets the user choose difficulty level from the dictionary."""
+        """Lets the user choose difficulty level from the dictionary with beautiful Rich TUI."""
         while True:
-            console.print("\nSELECT THE DIFFICULTY:")
+            print("\n")
             
-            # Print each difficulty option directly
+            # Create difficulty options text with styling
+            options_text = Text()
+            options_text.append("SELECT YOUR DIFFICULTY\n", style="bold white")
+            options_text.append("═" * 50 + "\n", style="dim white")
+            
+            # Build each difficulty option with styling
             for key in sorted(self.DIFFICULTY_SETTINGS.keys()):
                 setting = self.DIFFICULTY_SETTINGS[key]
-                console.print(f"{key}. {setting['name']}: {setting['money']},- CZK, Coding Skills {setting['coding']}, PCR Hatred {setting['hatred']}")
-
-            console.print("\n(Enter a number from the list above):")
-
-            choice = input("> ").strip()
+                color = setting['color']
+                
+                # Option number with difficulty name
+                options_text.append(f"\n[{key}] ", style=f"bold {color}")
+                options_text.append(f"{setting['name']}", style=f"bold {color}")
+                
+                # Stats display
+                options_text.append("\n   ", style="")
+                options_text.append("💰 Money: ", style="bold cyan")
+                options_text.append(f"{setting['money']:,} CZK\n", style="bright_white")
+                options_text.append("   ", style="")
+                options_text.append("💻 Coding: ", style="bold cyan")
+                options_text.append(f"{setting['coding']} points\n", style="bright_white")
+                options_text.append("   ", style="")
+                options_text.append("😡 Hatred: ", style="bold cyan")
+                options_text.append(f"{setting['hatred']}/100\n", style="bright_white")
+            
+            options_text.append("\n" + "═" * 50, style="dim white")
+            
+            # Display in a styled panel
+            print(Panel(
+                options_text,
+                border_style="bold yellow",
+                title="[bold white on yellow] > DIFFICULTY SELECTION < [/]",
+                padding=(1, 3),
+                expand=False
+            ))
+            
+            # Get user input
+            choice = console.input("\n[bold cyan]Enter your choice[/bold cyan] [dim](1-3)[/dim]: ").strip()
 
             if choice in self.DIFFICULTY_SETTINGS:
                 settings = self.DIFFICULTY_SETTINGS[choice]
-
-                confirm_select = console.input(f"\nYou selected '{settings['name']}', is that correct? (y/n): ")
-                if confirm_select.lower() != "y":
+                color = settings['color']
+                
+                # Create confirmation message
+                confirm_text = Text()
+                confirm_text.append("You selected: ", style="bold white")
+                confirm_text.append(f"{settings['name']}", style=f"bold {color}")
+                confirm_text.append("\n\n", style="")
+                confirm_text.append("Starting Stats:\n", style="bold cyan")
+                confirm_text.append(f"  💰 Money: {settings['money']:,} CZK\n", style="bright_white")
+                confirm_text.append(f"  💻 Coding: {settings['coding']} points\n", style="bright_white")
+                confirm_text.append(f"  😡 Hatred: {settings['hatred']}/100\n", style="bright_white")
+                confirm_text.append("\nProceed with this difficulty?", style="italic")
+                
+                print("\n")
+                print(Panel(
+                    confirm_text,
+                    border_style=f"bold {color}",
+                    title=f"[bold white on {color}] > CONFIRM SELECTION < [/]",
+                    padding=(1, 3),
+                    expand=False
+                ))
+                
+                confirm_select = console.input("\n[bold](y/n)[/bold]: ").strip().lower()
+                if confirm_select != "y":
                     continue
 
-                print(f"\n{settings['name']} mode selected.\n")
+                # Apply settings
                 self.selected_difficulty = settings['name'].lower()
+                self.stats.difficulty = settings['name'].lower()  # Store in stats for access in endings
                 self.stats.available_money = settings['money']
                 self.stats.coding_skill = settings['coding']
                 self.stats.pcr_hatred = settings['hatred']
 
+                # Display confirmation
+                print("\n")
+                success_text = Text()
+                success_text.append(f"{settings['name']}", style=f"bold {color}")
+                success_text.append(" mode selected!", style="bold white")
+                
+                print(Panel(
+                    Align.center(success_text),
+                    border_style=f"bold {color}",
+                    padding=(1, 4),
+                    expand=False
+                ))
+                print()
+                
                 self.stats.get_stats_command()
                 continue_prompt()
                 break
             else:
-                print("\nWrong input, try again.")
+                error_text = Text("Invalid choice! Please enter 1, 2, or 3.", style="bold red")
+                print("\n")
+                print(Panel(
+                    error_text,
+                    border_style="bold red",
+                    title="[bold white on red] > ERROR < [/]",
+                    padding=(1, 2),
+                    expand=False
+                ))
+                print()
+
+    def _show_buffs(self):
+        """
+        Display current active buffs in a Rich Panel.
+        Shows all active passive buffs that affect nightly stats.
+        Only displays if there are active buffs.
+        """
+        active_buffs = []
+        
+        # Check Python Bootcamp buff
+        if self.python_bootcamp:
+            active_buffs.append(("💻 Python Bootcamp", "+5 Coding Skills per night", "bright_cyan"))
+        
+        # Check AI Paperwork Automation buff
+        if self.stats.ai_paperwork_buff:
+            active_buffs.append(("🤖 AI Automation", "-5 Hatred per night", "bright_green"))
+        
+        # Check Passive BTC Income
+        if self.stats.daily_btc_income > 0:
+            active_buffs.append(("💰 Passive Income", f"+{self.stats.daily_btc_income} CZK per night", "bright_yellow"))
+        
+        # Only display if there are active buffs
+        if not active_buffs:
+            return
+        
+        buffs_text = Text()
+        buffs_text.append("Active Buffs:\n", style="bold white")
+        buffs_text.append("═" * 40 + "\n", style="dim white")
+        
+        for i, (name, effect, color) in enumerate(active_buffs):
+            if i > 0:
+                buffs_text.append("\n", style="")
+            buffs_text.append(f"• {name}", style=f"bold {color}")
+            buffs_text.append(f"\n  {effect}", style="dim white")
+        
+        buffs_text.append("\n" + "═" * 40, style="dim white")
+        
+        print("\n")
+        print(Panel(
+            buffs_text,
+            border_style="bold color(129)",
+            title="[bold white on color(129)] > BUFFS < [/]",
+            padding=(1, 2),
+            expand=False
+        ))
 
     def _apply_nightly_passives(self):
         """Calculates and applies overnight stat changes (buffs/debuffs)."""
@@ -99,15 +245,11 @@ class Game:
 
         if self.python_bootcamp:
             self.stats.increment_stats_coding_skill(5)
-            print("\n[PYTHON BOOTCAMP] Your investment is starting to pay off! ( + 5 Coding Skills).")
 
         if self.stats.ai_paperwork_buff:
-            print("\n[AI AUTOMATION] Your script handled the paperwork efficiently. ( - 5 Hatred)")
             self.stats.increment_stats_pcr_hatred(-5)
 
         if self.stats.daily_btc_income > 0:
-            print(
-                f"\n[PASSIVE INCOME] The Turkish fraudster sent his daily tribute: + {self.stats.daily_btc_income} CZK.")
             self.stats.increment_stats_value_money(self.stats.daily_btc_income)
 
     def _trigger_night_cycle(self):
@@ -131,11 +273,15 @@ class Game:
         # 2. Process the standard night cycle
         self._trigger_night_cycle()
 
-        # 3. Check for Salary (Day 14)
+        # 3. Show the new day message and buffs (before any events)
+        self.day_cycle.day_start_message()
+        self._show_buffs()
+
+        # 4. Check for Salary (Day 14)
         if self.day_cycle.current_day == 14:
             self.receive_salary()
 
-        # 4. Check for Random Events (Every 3rd day, before day 22)
+        # 5. Check for Random Events (Every 3rd day, before day 22)
         if self.day_cycle.current_day % 3 == 0 and self.day_cycle.current_day < 22:
             event_happened = self.events_list.select_random_event(self.stats)
 
@@ -143,99 +289,223 @@ class Game:
             # Preserved this behavior as it simulates the event taking up time.
             if event_happened:
                 self._trigger_night_cycle()
+                # Show the new day message again after the event-triggered night cycle
+                self.day_cycle.day_start_message()
+                self._show_buffs()
 
-        # 5. Check for MM Event (Day 24)
+        # 6. Check for MM Event (Day 24)
+        # Note: Day is already 24 after night cycle from day 23, so don't call next_day() again
         if self.day_cycle.current_day == 24:
-            self.day_cycle.next_day()
-            self.day_cycle.day_start_message()
             mm_event = MartinMeetingEvent()
             mm_event.trigger_event(self.stats)
 
-        # 6. Check for Colonel Event (Final Boss)
+        # 7. Check for Colonel Event (Final Boss)
         # This checks if the current day matches the scheduled Boss Fight day (25 or 30).
         if self.day_cycle.current_day == self.stats.colonel_day:
             colonel_event = ColonelEvent()
             colonel_event.trigger_event(self.stats)
 
-        # 7. Start the new day
-        self.day_cycle.day_start_message()
+        # 8. Reset activity flag for the new day
         self.activity_selected = False
 
     def main_menu(self):
-        """Basic UI, acts as a router for selectable options."""
+        """Beautiful Rich TUI main menu that acts as a router for selectable options."""
         while True:
             self.check_game_status()
 
-            print(
-                "\nMAIN MENU:"
-                "\n1. SHOW STATS"
-                "\n2. SELECT ACTIVITY"
-                "\n3. SHOW CONTACTS"
-                "\n4. END THE DAY"
-                "\nSELECT YOUR OPTION (1-4): "
-            )
-
+            # Create menu options with styling
+            menu_text = Text()
+            menu_text.append("SELECT AN OPTION\n", style="bold white")
+            menu_text.append("═" * 40 + "\n", style="dim white")
+            
+            # Menu options with icons
+            menu_text.append("\n[1] ", style="bold cyan")
+            menu_text.append("📊 SHOW STATS", style="bold bright_white")
+            menu_text.append("\n   View your current stats", style="dim white")
+            
+            menu_text.append("\n\n[2] ", style="bold cyan")
+            menu_text.append("⚙️  SELECT ACTIVITY", style="bold bright_white")
+            menu_text.append("\n   Choose your daily activity", style="dim white")
+            
+            menu_text.append("\n\n[3] ", style="bold cyan")
+            menu_text.append("📞 SHOW CONTACTS", style="bold bright_white")
+            menu_text.append("\n   View your contact list", style="dim white")
+            
+            menu_text.append("\n\n[4] ", style="bold cyan")
+            menu_text.append("🌙 END THE DAY", style="bold bright_white")
+            menu_text.append("\n   Progress to the next day", style="dim white")
+            
+            menu_text.append("\n\n" + "═" * 40, style="dim white")
+            
+            # Display day information at the top
+            day_info = Text()
+            day_info.append(f"DAY ", style="bold white")
+            day_info.append(f"#{self.day_cycle.current_day}", style="bold bright_yellow")
+            day_info.append(f"/30", style="bold white")
+            
+            # Create the main menu panel
+            print("\n")
+            print(Panel(
+                menu_text,
+                border_style="bold blue",
+                title="[bold white on blue] > MAIN MENU < [/]",
+                subtitle=day_info,
+                padding=(1, 3),
+                expand=False
+            ))
+            
             choice = Interaction.ask(("1", "2", "3", "4"))
 
             if choice == "1":
-                print(f"\nDAY: #{self.day_cycle.current_day}/30.")
                 self.stats.get_stats_command()
+                continue_prompt()
 
             elif choice == "2":
                 self.select_activity()
 
             elif choice == "3":
                 # Placeholder for future implementation
-                print(
-                    "\nYou open up your phone list (CONTACTS WIP):"
-                    "\n1. MM\n2. MK\n3. PS\n4. PAUL GOODMAN\n5. COLONEL"
-                    "\n(Press any key to return)"
-                )
-                input()
+                contacts_text = Text()
+                contacts_text.append("You open up your phone list:\n", style="bold white")
+                contacts_text.append("═" * 30 + "\n", style="dim white")
+                contacts_text.append("\n1. MM\n", style="bright_white")
+                contacts_text.append("2. MK\n", style="bright_white")
+                contacts_text.append("3. PS\n", style="bright_white")
+                contacts_text.append("4. PAUL GOODMAN\n", style="bright_white")
+                contacts_text.append("5. COLONEL\n", style="bright_white")
+                contacts_text.append("\n" + "═" * 30, style="dim white")
+                
+                print("\n")
+                print(Panel(
+                    contacts_text,
+                    border_style="bold cyan",
+                    title="[bold white on cyan] > CONTACTS < [/]",
+                    subtitle="[dim](WIP - Press ENTER to return)[/dim]",
+                    padding=(1, 3),
+                    expand=False
+                ))
+                print()
+                continue_prompt()
 
             elif choice == "4":
                 self._handle_end_of_day_routine()
 
     def receive_salary(self):
-        """Gives the player money based on level of hatred"""
+        """Beautiful Rich TUI salary day message with money based on level of hatred"""
         if self.stats.pcr_hatred <= 25:
             self.stats.available_money += 40000
-            print("SALARY DAY")
-            print(
-                "You have received extra money for you (pretending) being an example of a model police officer, good job!")
-            print(f"You've received 40000 CZK,-")
+            salary_amount = 40000
+            
+            salary_text = Text()
+            salary_text.append("💰 ", style="bold bright_green")
+            salary_text.append("SALARY DAY", style="bold bright_green")
+            salary_text.append("\n\n", style="")
+            salary_text.append("You have received extra money for you (pretending) being\n", style="white")
+            salary_text.append("an example of a model police officer, good job!\n\n", style="white")
+            salary_text.append("Amount Received: ", style="bold cyan")
+            salary_text.append(f"{salary_amount:,} CZK", style="bold bright_green")
+            
+            print("\n")
+            print(Panel(
+                salary_text,
+                border_style="bold bright_green",
+                title="[bold white on bright_green] > SALARY DAY < [/]",
+                padding=(1, 3),
+                expand=False
+            ))
             continue_prompt()
+            
         elif self.stats.pcr_hatred <= 50:
             self.stats.available_money += 30000
-            print("SALARY DAY")
-            print("Your bank just send you a notification - it's the salary day.")
-            print("Since your recent work attitude diminished quite recently, so did your salary this month.")
-            print(f"You've received 30000 CZK,-")
+            salary_amount = 30000
+            
+            salary_text = Text()
+            salary_text.append("💰 ", style="bold yellow")
+            salary_text.append("SALARY DAY", style="bold yellow")
+            salary_text.append("\n\n", style="")
+            salary_text.append("Your bank just sent you a notification - it's the salary day.\n", style="white")
+            salary_text.append("Since your recent work attitude diminished quite recently,\n", style="white")
+            salary_text.append("so did your salary this month.\n\n", style="white")
+            salary_text.append("Amount Received: ", style="bold cyan")
+            salary_text.append(f"{salary_amount:,} CZK", style="bold yellow")
+            
+            print("\n")
+            print(Panel(
+                salary_text,
+                border_style="bold yellow",
+                title="[bold white on yellow] > SALARY DAY < [/]",
+                padding=(1, 3),
+                expand=False
+            ))
             continue_prompt()
+            
         else:
             self.stats.available_money += 20000
-            print("SALARY DAY")
-            print("Your bank just send you a notification - it's the salary day.")
-            print("It has became obvious to everyone around you that you hate this job so much.")
-            print(
-                "Disciplinary actions weren't enough, so the higher-ups decided to do what was 'required', to 'motivate' ")
-            print("you towards more representative attitude to your job (which means monetary punishment).")
-            print(f"You've received 20000 CZK,-")
+            salary_amount = 20000
+            
+            salary_text = Text()
+            salary_text.append("💰 ", style="bold red")
+            salary_text.append("SALARY DAY", style="bold red")
+            salary_text.append("\n\n", style="")
+            salary_text.append("Your bank just sent you a notification - it's the salary day.\n", style="white")
+            salary_text.append("It has become obvious to everyone around you that you hate this job so much.\n", style="white")
+            salary_text.append("Disciplinary actions weren't enough, so the higher-ups decided to do\n", style="white")
+            salary_text.append("what was 'required', to 'motivate' you towards more representative\n", style="white")
+            salary_text.append("attitude to your job (which means monetary punishment).\n\n", style="white")
+            salary_text.append("Amount Received: ", style="bold cyan")
+            salary_text.append(f"{salary_amount:,} CZK", style="bold red")
+            
+            print("\n")
+            print(Panel(
+                salary_text,
+                border_style="bold red",
+                title="[bold white on red] > SALARY DAY < [/]",
+                padding=(1, 3),
+                expand=False
+            ))
             continue_prompt()
 
     def select_activity(self):
-        """Lets you select a daily activity once per day, through the game's menu."""
+        """Beautiful Rich TUI activity selection menu."""
         if not self.activity_selected:
-            print(
-                "\nYou think about what activity to do today (You can select only one per day):"
-                "\n1. GYM"
-                "\n2. THERAPY"
-                "\n3. BOUNCER NIGHT SHIFT"
-                "\n4. CODING"
-                "\n5. RETURN TO MENU"
-                "\n SELECT YOUR OPTION (1-5):"
-            )
-
+            # Create activity options with styling
+            activity_text = Text()
+            activity_text.append("You think about what activity to do today\n", style="bold white")
+            activity_text.append("(You can select only one per day)\n", style="dim white")
+            activity_text.append("═" * 40 + "\n", style="dim white")
+            
+            # Activity options with icons
+            activity_text.append("\n[1] ", style="bold cyan")
+            activity_text.append("💪 GYM", style="bold bright_white")
+            activity_text.append("\n   Lower your stress through exercise", style="dim white")
+            
+            activity_text.append("\n\n[2] ", style="bold cyan")
+            activity_text.append("🧠 THERAPY", style="bold bright_white")
+            activity_text.append("\n   Get professional help to reduce hatred", style="dim white")
+            
+            activity_text.append("\n\n[3] ", style="bold cyan")
+            activity_text.append("🌙 BOUNCER NIGHT SHIFT", style="bold bright_white")
+            activity_text.append("\n   Earn money with some risk", style="dim white")
+            
+            activity_text.append("\n\n[4] ", style="bold cyan")
+            activity_text.append("💻 CODING", style="bold bright_white")
+            activity_text.append("\n   Practice Python and improve your skills", style="dim white")
+            
+            activity_text.append("\n\n[5] ", style="bold cyan")
+            activity_text.append("⬅️  RETURN TO MENU", style="bold bright_white")
+            
+            activity_text.append("\n\n" + "═" * 40, style="dim white")
+            
+            # Display in a styled panel
+            print("\n")
+            print(Panel(
+                activity_text,
+                border_style="bold green",
+                title="[bold white on green] > SELECT ACTIVITY < [/]",
+                padding=(1, 3),
+                expand=False
+            ))
+            
             choice = Interaction.ask(("1", "2", "3", "4", "5"))
 
             if choice == "1":
@@ -250,16 +520,43 @@ class Game:
                 self.main_menu()
 
         else:
-            print("\nYou've already done your daily activity today!")
+            already_done_text = Text("You've already done your daily activity today!", style="bold yellow")
+            print("\n")
+            print(Panel(
+                already_done_text,
+                border_style="bold yellow",
+                title="[bold white on yellow] > NOTICE < [/]",
+                padding=(1, 2),
+                expand=False
+            ))
+            print()
 
     def activity_gym(self):
-        """Daily activity accessible from menu, allows you to go to gym and lowers PCR Hatred, costs money."""
-        print("\nYou've selected to go to the gym with your trainer."
-              "\nTraining will help you to relax, but it will cost you some money."
-              "\n1. [PAY 400CZK: (33/33/33%)] WE GO GYM!"
-              "\n2. RETURN TO MENU"
-              "\nSELECT YOUR OPTION (1-2):")
-
+        """Beautiful Rich TUI gym activity menu."""
+        gym_text = Text()
+        gym_text.append("You've selected to go to the gym with your trainer.\n", style="bold white")
+        gym_text.append("Training will help you to relax, but it will cost you some money.\n", style="white")
+        gym_text.append("═" * 40 + "\n", style="dim white")
+        
+        gym_text.append("\n[1] ", style="bold cyan")
+        gym_text.append("[PAY 400 CZK] ", style="bold yellow")
+        gym_text.append("WE GO GYM!", style="bold bright_white")
+        gym_text.append("\n   (33/33/33% chance for different outcomes)", style="dim white")
+        
+        gym_text.append("\n\n[2] ", style="bold cyan")
+        gym_text.append("⬅️  RETURN TO MENU", style="bold bright_white")
+        
+        gym_text.append("\n\n" + "═" * 40, style="dim white")
+        
+        print("\n")
+        print(Panel(
+            gym_text,
+            border_style="bold magenta",
+            title="[bold white on magenta] > GYM ACTIVITY < [/]",
+            padding=(1, 3),
+            expand=False
+        ))
+        
         choice = Interaction.ask(("1", "2"))
 
         if choice == "1":
@@ -283,7 +580,7 @@ class Game:
                     Interaction.show_outcome(f"- {cost} CZK, - 10 PCR HATRED")
 
                 self.stats.get_stats_command()
-                input("\nCONTINUE...")
+                continue_prompt()
                 self.activity_selected = True
 
             else:
@@ -296,13 +593,32 @@ class Game:
             self.main_menu()
 
     def activity_therapy(self):
-        """Daily activity accessible from menu, allows you to visit a therapist and lower your PCR hatred for money."""
-        print("\nYou've selected to go to a therapy, something that might actually help you lower your stress."
-              "\nPaying for a therapist is somewhat expensive, but the results are worth it."
-              "\n1. [PAY 1500 CZK: - 25 PCR HATRED] GET HELP. "
-              "\n2. RETURN TO MENU"
-              "\nSELECT YOUR OPTION (1-2):")
-
+        """Beautiful Rich TUI therapy activity menu."""
+        therapy_text = Text()
+        therapy_text.append("You've selected to go to therapy.\n", style="bold white")
+        therapy_text.append("Something that might actually help you lower your stress.\n", style="white")
+        therapy_text.append("Paying for a therapist is expensive, but the results are worth it.\n", style="white")
+        therapy_text.append("═" * 40 + "\n", style="dim white")
+        
+        therapy_text.append("\n[1] ", style="bold cyan")
+        therapy_text.append("[PAY 1500 CZK] ", style="bold yellow")
+        therapy_text.append("GET HELP", style="bold bright_white")
+        therapy_text.append("\n   (- 25 PCR HATRED)", style="dim green")
+        
+        therapy_text.append("\n\n[2] ", style="bold cyan")
+        therapy_text.append("⬅️  RETURN TO MENU", style="bold bright_white")
+        
+        therapy_text.append("\n\n" + "═" * 40, style="dim white")
+        
+        print("\n")
+        print(Panel(
+            therapy_text,
+            border_style="bold blue",
+            title="[bold white on blue] > THERAPY ACTIVITY < [/]",
+            padding=(1, 3),
+            expand=False
+        ))
+        
         choice = Interaction.ask(("1", "2"))
 
         if choice == "1":
@@ -330,15 +646,36 @@ class Game:
             self.main_menu()
 
     def activity_bouncer(self):
-        """Daily activity accessible from menu, allows you to work at a nightclub/strip club, multiple outcomes."""
-        print("\nYou were offered to work as a bouncer in either a local night club or a strip bar."
-              "\nShifts in night club are generally safe, but there is still some risk attached to it."
-              "\nDoing a bouncer at a strip bar is VERY RISKY, but the reward is also VERY HIGH."
-              "\n1. [70/20/10%] WORK AS A BOUNCER AT A NIGHT CLUB"
-              "\n2. [5/20/50/20/5%]WORK AS A BOUNCER AT A STRIP BAR"
-              "\n3. RETURN TO MENU"
-              "\nSELECT YOUR OPTION (1-3):")
-
+        """Beautiful Rich TUI bouncer activity menu."""
+        bouncer_text = Text()
+        bouncer_text.append("You were offered to work as a bouncer\n", style="bold white")
+        bouncer_text.append("in either a local night club or a strip bar.\n\n", style="white")
+        bouncer_text.append("Night club: Generally safe, but some risk.\n", style="yellow")
+        bouncer_text.append("Strip bar: VERY RISKY, but VERY HIGH reward.\n", style="bright_red")
+        bouncer_text.append("═" * 40 + "\n", style="dim white")
+        
+        bouncer_text.append("\n[1] ", style="bold cyan")
+        bouncer_text.append("WORK AS A BOUNCER AT A NIGHT CLUB", style="bold bright_white")
+        bouncer_text.append("\n   [70/20/10%] outcomes", style="dim yellow")
+        
+        bouncer_text.append("\n\n[2] ", style="bold cyan")
+        bouncer_text.append("WORK AS A BOUNCER AT A STRIP BAR", style="bold bright_white")
+        bouncer_text.append("\n   [5/20/50/20/5%] outcomes (RISKY!)", style="dim bright_red")
+        
+        bouncer_text.append("\n\n[3] ", style="bold cyan")
+        bouncer_text.append("⬅️  RETURN TO MENU", style="bold bright_white")
+        
+        bouncer_text.append("\n\n" + "═" * 40, style="dim white")
+        
+        print("\n")
+        print(Panel(
+            bouncer_text,
+            border_style="bold red",
+            title="[bold white on red] > BOUNCER ACTIVITY < [/]",
+            padding=(1, 3),
+            expand=False
+        ))
+        
         choice = Interaction.ask(("1", "2", "3"))
 
         if choice == "1":
@@ -366,7 +703,7 @@ class Game:
                 Interaction.show_outcome("+ 4000 CZK, + 20 PCR HATRED!")
 
             self.stats.get_stats_command()
-            input("\nCONTINUE...")
+            continue_prompt()
             self.activity_selected = True
 
         elif choice == "2":
@@ -436,7 +773,7 @@ class Game:
                 Interaction.show_outcome("-12500 CZK, +35 PCR HATRED, -5 CODING SKILLS")
 
             self.stats.get_stats_command()
-            input("\nCONTINUE...")
+            continue_prompt()
             self.activity_selected = True
 
 
@@ -603,41 +940,73 @@ class Game:
         tier_display = (f"{current_tier} | SKILL: {tier_info['CODING SKILL']} | "
                         f"BASE: {tier_info['STANDARD RATE']} | HOURLY: {tier_info['HOUR RATE']}")
 
-        # 1. Define base options (Always available)
-        menu_text = (
-            "\nThere are multiple ways for you how to study Python."
-            "\nPython is now your Dojo, coding is your life!"
-            f"\n1. [{tier_display}] CODE FOR MONEY $$$"
-            "\n2. [ 2500 CZK] BUY A STUDY SESSION ON FIVERR"
-        )
-
+        # Create coding activity menu with styling
+        coding_text = Text()
+        coding_text.append("There are multiple ways for you how to study Python.\n", style="bold white")
+        coding_text.append("Python is now your Dojo, coding is your life!\n", style="bold bright_cyan")
+        coding_text.append("═" * 50 + "\n", style="dim white")
+        
+        # Option 1: Code for Money
+        coding_text.append("\n[1] ", style="bold cyan")
+        coding_text.append("CODE FOR MONEY $$$", style="bold bright_white")
+        coding_text.append(f"\n   [{tier_display}]", style="dim yellow")
+        
+        # Option 2: Fiverr
+        coding_text.append("\n\n[2] ", style="bold cyan")
+        coding_text.append("BUY A STUDY SESSION ON FIVERR", style="bold bright_white")
+        coding_text.append("\n   [2500 CZK]", style="dim yellow")
+        
         valid_choices = ["0", "1", "2"]
-
-        # 2. Dynamic Menu Generation
+        
+        # Dynamic options based on bootcamp status
         if not self.python_bootcamp:
             # Scenario A: Bootcamp NOT bought yet
-            menu_text += "\n3. [ 35000 CZK] JOIN AN ON-LINE BOOTCAMP"
-            menu_text += "\n4. RETURN TO MENU"
+            coding_text.append("\n\n[3] ", style="bold cyan")
+            coding_text.append("JOIN AN ON-LINE BOOTCAMP", style="bold bright_white")
+            coding_text.append("\n   [35000 CZK]", style="dim yellow")
+            
+            coding_text.append("\n\n[4] ", style="bold cyan")
+            coding_text.append("⬅️  RETURN TO MENU", style="bold bright_white")
+            
             valid_choices.extend(["3", "4"])
         else:
             # Scenario B: Bootcamp ALREADY bought
-            # Option 3 replaces the bootcamp slot with "Return to Menu"
-            menu_text += "\n3. RETURN TO MENU"
+            coding_text.append("\n\n[3] ", style="bold cyan")
+            coding_text.append("⬅️  RETURN TO MENU", style="bold bright_white")
             valid_choices.append("3")
-
-        # 3. Add Option 0 (Always at the bottom)
-        menu_text += (
-            "\n0. VIEW CURRENT TIER DETAILS"
-            "\nSELECT YOUR OPTION:"
-        )
-
-        print(menu_text)
+        
+        # Option 0: View tier details
+        coding_text.append("\n\n[0] ", style="bold cyan")
+        coding_text.append("VIEW CURRENT TIER DETAILS", style="bold bright_white")
+        
+        coding_text.append("\n\n" + "═" * 50, style="dim white")
+        
+        # Display in a styled panel
+        print("\n")
+        print(Panel(
+            coding_text,
+            border_style="bold cyan",
+            title="[bold white on cyan] > CODING ACTIVITY < [/]",
+            padding=(1, 3),
+            expand=False
+        ))
 
         # 4. Handle Input
         choice = Interaction.ask(tuple(valid_choices))
 
         if choice == "0":
-            print(f"\n{tier_display}")
+            tier_info_text = Text()
+            tier_info_text.append(f"{tier_display}", style="bold bright_white")
+            
+            print("\n")
+            print(Panel(
+                tier_info_text,
+                border_style="bold cyan",
+                title="[bold white on cyan] > CURRENT TIER < [/]",
+                padding=(1, 3),
+                expand=False
+            ))
+            print()
             continue_prompt()
             return self.activity_python()  # Reload menu
 
