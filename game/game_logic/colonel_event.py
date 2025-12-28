@@ -191,22 +191,20 @@ class ColonelEvent:
         self._slow_print(f"He smiles coldly. '80,000 CZK. Immediately. Or I call the lawyers.'", delay=0.02)
         self._slow_print(f"Your Savings: {stats.available_money} CZK", delay=0.01)
 
-        options = []
-        if stats.available_money >= 200000:
-            options.append("1. [PAY 80k] 'Here. Keep the change.' (Deals 20 HP DMG)")
-            options.append("2. [SHOW BALANCE] 'I have enough to bury you in court.' (Deals 10 HP DMG, Save Money)")
-
-        if not options:
+        if stats.available_money < 200000:
             self._slow_print("\n[PANIC]: You don't have enough to feel safe (Need >200k).", delay=0.02)
-            self._slow_print("1. [STAMMER] 'I... I will pay you later.'", delay=0.02)
-            choice = Interaction.ask(("1",))
+            # Display decision using Rich Panel with difficulty tags
+            choice = Interaction.show_decision([
+                ("1", Interaction.get_difficulty_tag(), "[STAMMER] 'I... I will pay you later.'")
+            ])
             self.jb_hp -= 10
             self._slow_print(f"\n{self.red}[FAILURE]: He sees your fear. You take - 10 HP DMG.{self.reset}")
         else:
-            for opt in options:
-                print(opt)
-
-            choice = Interaction.ask(("1", "2"))
+            # Display decision using Rich Panel with difficulty tags
+            choice = Interaction.show_decision([
+                ("1", Interaction.get_difficulty_tag(), "[PAY 80k] 'Here. Keep the change.' (Deals 20 HP DMG)"),
+                ("2", Interaction.get_difficulty_tag(), "[SHOW BALANCE] 'I have enough to bury you in court.' (Deals 10 HP DMG, Save Money)")
+            ])
 
             if choice == "1":
                 stats.available_money -= 80000
@@ -230,17 +228,18 @@ class ColonelEvent:
         chance_coding = int(stats.coding_skill / 2)
         chance_money = int(stats.available_money / 3000)
 
-        print(f"\nCHOOSE YOUR DEFENSE:")
-        print(f"1. [HATRED] 'I had enough of this sh*t.' (Success Chance: {chance_hatred}%)")
-        print(f"2. [CODING] 'I build worlds now. I don't need this.' (Success Chance: {chance_coding}%)")
-        print(f"3. [MONEY] 'I can buy my own freedom.' (Success Chance: {chance_money}%)")
+        # Build decision options dynamically
+        decision_options = [
+            ("1", Interaction.get_difficulty_tag(chance_hatred), f"[HATRED] 'I had enough of this sh*t.' (Success Chance: {chance_hatred}%)"),
+            ("2", Interaction.get_difficulty_tag(chance_coding), f"[CODING] 'I build worlds now. I don't need this.' (Success Chance: {chance_coding}%)"),
+            ("3", Interaction.get_difficulty_tag(chance_money), f"[MONEY] 'I can buy my own freedom.' (Success Chance: {chance_money}%)")
+        ]
 
-        valid_choices = ["1", "2", "3"]
         if stats.final_boss_buff == "JOB_OFFER":
-            print(f"4. [MM OFFER] 'MM has a job waiting for me.' (Guaranteed 20 DMG)")
-            valid_choices.append("4")
+            decision_options.append(("4", Interaction.get_difficulty_tag(), "[MM OFFER] 'MM has a job waiting for me.' (Guaranteed 20 DMG)"))
 
-        choice = Interaction.ask(tuple(valid_choices))
+        # Display decision using Rich Panel with difficulty tags
+        choice = Interaction.show_decision(decision_options)
 
         if choice == "4":
             self.colonel_hp -= 20
@@ -287,12 +286,12 @@ class ColonelEvent:
             "'Here, people fear you. Respect you. Out there? You are just another civilian waiting in line.'",
             delay=0.02)
 
-        print("\nCHOOSE YOUR DEFENSE:")
-        print("1. [CODING] 'I don't need their fear. I have skills that build the future.'")
-        print("2. [HATRED] 'I'd rather be a nobody than a tyrant like you.'")
-        print("3. [DOUBT] 'Maybe... maybe I will miss the authority.'")
-
-        choice = Interaction.ask(("1", "2", "3"))
+        # Display decision using Rich Panel with difficulty tags
+        choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(), "[CODING] 'I don't need their fear. I have skills that build the future.'"),
+            ("2", Interaction.get_difficulty_tag(), "[HATRED] 'I'd rather be a nobody than a tyrant like you.'"),
+            ("3", Interaction.get_difficulty_tag(), "[DOUBT] 'Maybe... maybe I will miss the authority.'")
+        ])
 
         if choice == "1":
             if stats.coding_skill >= 100:
@@ -340,11 +339,11 @@ class ColonelEvent:
             self._slow_print(f"{self.green}Colonel takes - 10 HP DMG.{self.reset}")
             return
 
-        print("\nCHOOSE YOUR DEFENSE:")
-        print("1. [COLD] 'They are colleagues, not family. It's just a job.'")
-        print("2. [EMPATHY] 'I... I feel bad for them. But I have to save myself.'")
-
-        choice = Interaction.ask(("1", "2"))
+        # Display decision using Rich Panel with difficulty tags
+        choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(), "[COLD] 'They are colleagues, not family. It's just a job.'"),
+            ("2", Interaction.get_difficulty_tag(), "[EMPATHY] 'I... I feel bad for them. But I have to save myself.'")
+        ])
 
         if choice == "1":
             if stats.pcr_hatred >= 50:
@@ -368,11 +367,11 @@ class ColonelEvent:
             delay=0.04)
         self._slow_print("'You are throwing away a guaranteed future for... what? Coding scripts?'", delay=0.02)
 
-        print("\nCHOOSE YOUR DEFENSE:")
-        print("1. [MONEY] 'I have enough savings to be my own pension.'")
-        print("2. [FREEDOM] 'I'd rather starve free than eat well in a cage.'")
-
-        choice = Interaction.ask(("1", "2"))
+        # Display decision using Rich Panel with difficulty tags
+        choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(), "[MONEY] 'I have enough savings to be my own pension.'"),
+            ("2", Interaction.get_difficulty_tag(), "[FREEDOM] 'I'd rather starve free than eat well in a cage.'")
+        ])
 
         if choice == "1":
             if stats.available_money >= 150000:
@@ -400,10 +399,11 @@ class ColonelEvent:
 
         if stats.final_boss_buff == "GHOST_SECRET":
             print(f"\n{self.blue}>> [OPPORTUNITY]: USE 'GHOST OF THE PAST' SECRET <<{self.reset}")
-            print("1. [BLACKMAIL] 'Like you buried your resignation 10 years ago?'")
-            print("2. [DEFENSIVE] 'I repaid that debt with 3 years of service.'")
-
-            choice = Interaction.ask(("1", "2"))
+            # Display decision using Rich Panel with difficulty tags
+            choice = Interaction.show_decision([
+                ("1", Interaction.get_difficulty_tag(), "[BLACKMAIL] 'Like you buried your resignation 10 years ago?'"),
+                ("2", Interaction.get_difficulty_tag(), "[DEFENSIVE] 'I repaid that debt with 3 years of service.'")
+            ])
 
             if choice == "1":
                 self.colonel_hp -= 40
@@ -414,11 +414,11 @@ class ColonelEvent:
                 return
 
         else:
-            print("\nCHOOSE YOUR DEFENSE:")
-            print("1. [DEFENSIVE] 'I repaid that debt with 3 years of flawless service.'")
-            print("2. [SUBMIT] 'I know... and I am grateful. But I have to go.'")
-
-            choice = Interaction.ask(("1", "2"))
+            # Display decision using Rich Panel with difficulty tags
+            choice = Interaction.show_decision([
+                ("1", Interaction.get_difficulty_tag(), "[DEFENSIVE] 'I repaid that debt with 3 years of flawless service.'"),
+                ("2", Interaction.get_difficulty_tag(), "[SUBMIT] 'I know... and I am grateful. But I have to go.'")
+            ])
 
             if choice == "1":
                 self.colonel_hp -= 5
@@ -443,11 +443,11 @@ class ColonelEvent:
             self._slow_print(f"{self.green}CRITICAL HIT: Colonel takes -30 HP DMG.{self.reset}")
             return
 
-        print("\nCHOOSE YOUR DEFENSE:")
-        print("1. [CONFIDENCE] 'I'm not looking for security work. I'm a Developer.'")
-        print("2. [SCARE] 'Are you threatening a civilian? Careful, Colonel.'")
-
-        choice = Interaction.ask(("1", "2"))
+        # Display decision using Rich Panel with difficulty tags
+        choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(), "[CONFIDENCE] 'I'm not looking for security work. I'm a Developer.'"),
+            ("2", Interaction.get_difficulty_tag(), "[SCARE] 'Are you threatening a civilian? Careful, Colonel.'")
+        ])
 
         if choice == "1":
             if stats.coding_skill >= 50:
@@ -552,11 +552,11 @@ class ColonelEvent:
 
         # FIX: Loop properly handles re-displaying options
         while True:
-            print("\nCHOOSE YOUR REACTION:")
-            print("1. [ARGUE] 'That's not true! I gave you everything!' (Restart the loop)")
-            print(f"2. {self.green}[sys.exit()] WAKE UP.{self.reset}")
-
-            choice = input("\n> ")
+            # Display decision using Rich Panel with difficulty tags
+            choice = Interaction.show_decision([
+                ("1", Interaction.get_difficulty_tag(), "[ARGUE] 'That's not true! I gave you everything!' (Restart the loop)"),
+                ("2", Interaction.get_difficulty_tag(), "[sys.exit()] WAKE UP.")
+            ])
 
             if choice == "1":
                 self._slow_print("\nYou try to argue, but he just pours another coffee...", delay=0.02)

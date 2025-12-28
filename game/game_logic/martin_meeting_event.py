@@ -86,13 +86,12 @@ class MartinMeetingEvent:
             "You could stop by the mall and buy something sharp to show him you aren't completely dead inside yet.\n",
             delay=0.02)
 
-        self._slow_print(
-            "1. [PAY 12500 CZK, + 2 AFFECTION POINTS] ORIGINAL FIT MASH POLO SHIRT + TOBACCO HONEY GUERLAIN EDP, he has no idea what is coming... ",
-            delay=0.02)
-        self._slow_print("2. [PAY 2500 CZK] GET A NEW CUT AND BUY NEW COOL SHIRT", delay=0.02)
-        self._slow_print("3. [FREE] GO AS IS. Sweatpants and a hoodie. You don't have energy to pretend.", delay=0.02)
-
-        choice = Interaction.ask(("1", "2", "3"))
+        # Display decision using Rich Panel with difficulty tags
+        choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(), "[PAY 12500 CZK, + 2 AFFECTION POINTS] ORIGINAL FIT MASH POLO SHIRT + TOBACCO HONEY GUERLAIN EDP, he has no idea what is coming..."),
+            ("2", Interaction.get_difficulty_tag(), "[PAY 2500 CZK] GET A NEW CUT AND BUY NEW COOL SHIRT"),
+            ("3", Interaction.get_difficulty_tag(), "[FREE] GO AS IS. Sweatpants and a hoodie. You don't have energy to pretend.")
+        ])
 
         if choice == "1":
             if stats.try_spend_money(12500):
@@ -145,13 +144,13 @@ class MartinMeetingEvent:
         self._slow_print("He orders a steak. You order a coffee.", delay=0.02)
         self._slow_print("\nBefore the food arrives, you need to break the ice. What do you talk about?", delay=0.02)
         time.sleep(1)
-        self._slow_print("\n1. [VENT OUT - 50 PCR HATRED] Complain about the police, the Colonel, and the bureaucracy.",
-                         delay=0.01)
-        self._slow_print("2. [BRAG + 25 CODING SKILLS] Talk about your Python projects and how much you've learned.",
-                         delay=0.01)
-        self._slow_print("3. [LISTEN + 2 AFFECTION POINTS] Let him talk. Ask him how he did it.", delay=0.01)
 
-        choice = Interaction.ask(("1", "2", "3"))
+        # Display decision using Rich Panel with difficulty tags
+        choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(), "[VENT OUT - 50 PCR HATRED] Complain about the police, the Colonel, and the bureaucracy."),
+            ("2", Interaction.get_difficulty_tag(), "[BRAG + 25 CODING SKILLS] Talk about your Python projects and how much you've learned."),
+            ("3", Interaction.get_difficulty_tag(), "[LISTEN + 2 AFFECTION POINTS] Let him talk. Ask him how he did it.")
+        ])
 
         if choice == "1":
             stats.increment_stats_pcr_hatred(-50)
@@ -340,14 +339,14 @@ class MartinMeetingEvent:
         self._slow_print("'What do you really feel about them? Is this just burnout, or is it personal?'", delay=0.02)
         self._slow_print(f"\n[REALITY CHECK] Current PCR HATRED: {stats.pcr_hatred}/100", delay=0.01)
 
-        self._slow_print("\n1. [PURE RAGE] 'I hate them. I want to watch the station burn.'", delay=0.01)
-        self._slow_print("2. [HATRED] 'I'm done. I despise what I've become here.'", delay=0.01)
-        self._slow_print("3. [NEUTRAL] 'It's just a job. It didn't work out.'", delay=0.01)
-        self._slow_print("4. [SOFT] 'I don't have hard feelings. Maybe it's me who is the problem.'", delay=0.01)
-        self._slow_print("5. [COPING] 'Actually, the police is vital for society! The Colonel is just misunderstood!'",
-                         delay=0.01)
-
-        choice = Interaction.ask(("1", "2", "3", "4", "5"))
+        # Display decision using Rich Panel with difficulty tags
+        choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(), "[PURE RAGE] 'I hate them. I want to watch the station burn.'"),
+            ("2", Interaction.get_difficulty_tag(), "[HATRED] 'I'm done. I despise what I've become here.'"),
+            ("3", Interaction.get_difficulty_tag(), "[NEUTRAL] 'It's just a job. It didn't work out.'"),
+            ("4", Interaction.get_difficulty_tag(), "[SOFT] 'I don't have hard feelings. Maybe it's me who is the problem.'"),
+            ("5", Interaction.get_difficulty_tag(), "[COPING] 'Actually, the police is vital for society! The Colonel is just misunderstood!'")
+        ])
 
         if choice == "1":
             stats.increment_stats_pcr_hatred(25)
@@ -431,14 +430,11 @@ class MartinMeetingEvent:
                          delay=0.02)
         self._slow_print("'Or do you need time to prepare your mind and your wallet?'", delay=0.02)
 
-        self._slow_print(
-            "\n1. [BRAVE] 'I'm doing it tomorrow. I want it over with.' (Trigger Event Day 25, GAIN AFFECTION POINT)",
-            delay=0.005)
-        self._slow_print(
-            "2. [REASONABLE] 'I need more time. I'll wait until the last moment.' (Trigger Event Day 30, NEUTRAL)",
-            delay=0.005)
-
-        choice = Interaction.ask(("1", "2"))
+        # Display decision using Rich Panel with difficulty tags
+        choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(), "[BRAVE] 'I'm doing it tomorrow. I want it over with.' (Trigger Event Day 25, GAIN AFFECTION POINT)"),
+            ("2", Interaction.get_difficulty_tag(), "[REASONABLE] 'I need more time. I'll wait until the last moment.' (Trigger Event Day 30, NEUTRAL)")
+        ])
 
         if choice == "1":
             self.martin_meeting_affection_points += 2
@@ -515,32 +511,14 @@ class MartinMeetingEvent:
 
         print("\n[green]CHOOSE YOUR FINAL BOSS ADVANTAGE:[/green]")
 
-        self._slow_print(f"\n1. {bold}[THE LEGAL NUKE]{reset}", delay=0.01)
-        self._slow_print("   Martin gives you a file proving the 80k debt is void via 'Paragraph 4B'.", delay=0.01)
-        self._slow_print("   (Effect: Colonel starts - 35 HP. Auto-Counters 'Training Debt' attack for + 15 DMG.)",
-                         delay=0.01)
-
-        self._slow_print(f"\n2. {bold}[GHOST OF THE PAST]{reset}", delay=0.01)
-        self._slow_print("   Martin reveals Colonel's big secret, that only a handful of people do know.", delay=0.01)
-        self._slow_print("   (Effect: Immune to Round 1 Fear. Unlocks - 40 HP FATAL STRIKE on 'Car Incident'.)",
-                         delay=0.01)
-
-        self._slow_print(f"\n3. {bold}[PRODUCTION READY SHIELD]{reset}", delay=0.01)
-        self._slow_print("   Martin vouches for you and writes a salary figure on a napkin.", delay=0.01)
-        self._slow_print(
-            "   (Effect: Immune to Round 1 Fear. Auto-Wins 'Blacklist' (- 30 HP) & 'Motivation' (- 20 HP).)",
-            delay=0.01)
-
-        self._slow_print(f"\n4. {bold}[STOIC REFACTOR]{reset}", delay=0.01)
-        self._slow_print("   Martin teaches you the 'Grey Rock' method to emotionally debug the Colonel.", delay=0.01)
-        self._slow_print("   (Effect: Immune to Round 1 Fear (- 10 HP saved). No other effects in current version.)",
-                         delay=0.01)
-
-        self._slow_print(f"\n5. {bold}[AGGRESSIVE OPENING]{reset}", delay=0.01)
-        self._slow_print("   Martin hypes you up to take the initiative and strike first.", delay=0.01)
-        self._slow_print("   (Effect: Colonel starts - 20 HP. Immune to Round 1 Fear.)", delay=0.01)
-
-        choice = Interaction.ask(("1", "2", "3", "4", "5"))
+        # Display decision using Rich Panel with difficulty tags
+        choice = Interaction.show_decision([
+            ("1", Interaction.get_difficulty_tag(), "[THE LEGAL NUKE] Martin gives you a file proving the 80k debt is void via 'Paragraph 4B'. (Effect: Colonel starts - 35 HP. Auto-Counters 'Training Debt' attack for + 15 DMG.)"),
+            ("2", Interaction.get_difficulty_tag(), "[GHOST OF THE PAST] Martin reveals Colonel's big secret, that only a handful of people do know. (Effect: Immune to Round 1 Fear. Unlocks - 40 HP FATAL STRIKE on 'Car Incident'.)"),
+            ("3", Interaction.get_difficulty_tag(), "[PRODUCTION READY SHIELD] Martin vouches for you and writes a salary figure on a napkin. (Effect: Immune to Round 1 Fear. Auto-Wins 'Blacklist' (- 30 HP) & 'Motivation' (- 20 HP).)"),
+            ("4", Interaction.get_difficulty_tag(), "[STOIC REFACTOR] Martin teaches you the 'Grey Rock' method to emotionally debug the Colonel. (Effect: Immune to Round 1 Fear (- 10 HP saved). No other effects in current version.)"),
+            ("5", Interaction.get_difficulty_tag(), "[AGGRESSIVE OPENING] Martin hypes you up to take the initiative and strike first. (Effect: Colonel starts - 20 HP. Immune to Round 1 Fear.)")
+        ])
 
         if choice == "1":
             self._slow_print("\nMartin hands you a crumpled digital file printout.", delay=0.02)

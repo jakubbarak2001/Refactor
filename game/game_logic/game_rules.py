@@ -228,12 +228,12 @@ class Game:
         if not self.activity_selected:
             print(
                 "\nYou think about what activity to do today (You can select only one per day):"
-                "\n1.GYM"
-                "\n2.THERAPY"
-                "\n3.BOUNCER NIGHT SHIFT"
-                "\n4.CODING"
-                "\n5.RETURN TO MENU"
-                "\nSELECT YOUR OPTION (1-5):"
+                "\n1. GYM"
+                "\n2. THERAPY"
+                "\n3. BOUNCER NIGHT SHIFT"
+                "\n4. CODING"
+                "\n5. RETURN TO MENU"
+                "\n SELECT YOUR OPTION (1-5):"
             )
 
             choice = Interaction.ask(("1", "2", "3", "4", "5"))
