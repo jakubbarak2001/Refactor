@@ -324,7 +324,7 @@ class Game:
             menu_text.append("\n   View your current stats", style="dim white")
             
             menu_text.append("\n\n[2] ", style="bold cyan")
-            menu_text.append("⚙️  SELECT ACTIVITY", style="bold bright_white")
+            menu_text.append("⚙️ SELECT ACTIVITY", style="bold bright_white")
             menu_text.append("\n   Choose your daily activity", style="dim white")
             
             menu_text.append("\n\n[3] ", style="bold cyan")

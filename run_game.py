@@ -1,61 +1,66 @@
 import sys
 import os
 import ctypes
-from game.game_logic.main import main
-from game.game_logic.gui_menu import show_startup_menu
+import subprocess
+import shutil
+import tkinter.messagebox as messagebox
+# CRITICAL: Do NOT import game logic here. Move it to the bottom.
 
+def enforce_modern_terminal():
+    """Relaunches application inside Windows Terminal if detected running in legacy console."""
+    if "WT_SESSION" in os.environ:
+        return
 
-def enable_ansi_support():
-    """
-    Forces Windows Console to accept ANSI escape sequences (colors).
-    """
-    kernel32 = ctypes.windll.kernel32
+    wt_exe = shutil.which("wt.exe")
+    if not wt_exe:
+        return
 
-    # Get the handle to Standard Output
-    STD_OUTPUT_HANDLE = -11
-    hOut = kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
+    cmd = [wt_exe, "--"]
+    if getattr(sys, 'frozen', False):
+        cmd.append(sys.executable)
+    else:
+        cmd.append(sys.executable)
+        cmd.append(os.path.abspath(sys.argv[0]))
 
-    # Get the current mode
-    out_mode = ctypes.c_ulong()
-    if not kernel32.GetConsoleMode(hOut, ctypes.byref(out_mode)):
-        return  # Failed to get mode
-
-    # Flag for Virtual Terminal Processing (ANSI Support)
-    ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
-
-    # Set the new mode
-    out_mode.value |= ENABLE_VIRTUAL_TERMINAL_PROCESSING
-    kernel32.SetConsoleMode(hOut, out_mode)
-
+    try:
+        subprocess.Popen(cmd)
+        sys.exit(0)
+    except Exception as e:
+        print(f"Failed to launch Windows Terminal: {e}")
 
 def spawn_game_console():
-    """
-    Manually creates a black console window and attaches Python to it.
-    """
-    # 1. Ask Windows to allocate a new console
-    ctypes.windll.kernel32.AllocConsole()
-
-    # 2. Set the Title
-    ctypes.windll.kernel32.SetConsoleTitleW("REFACTOR")
-
-    # 3. CRITICAL: Re-connect system inputs/outputs
-    sys.stdout = open("CONOUT$", "w", encoding="utf-8")
-    sys.stderr = open("CONOUT$", "w", encoding="utf-8")
-    sys.stdin = open("CONIN$", "r", encoding="utf-8")
-
-    # 4. CRITICAL: Enable Colors
-    enable_ansi_support()
-
+    """Manually attaches to console and enables colors."""
+    if sys.platform == "win32":
+        ctypes.windll.kernel32.AllocConsole()
+        sys.stdout = open("CONOUT$", "w", encoding="utf-8")
+        sys.stderr = open("CONOUT$", "w", encoding="utf-8")
+        sys.stdin = open("CONIN$", "r", encoding="utf-8")
+        
+        # Enable ANSI Colors
+        kernel32 = ctypes.windll.kernel32
+        hOut = kernel32.GetStdHandle(-11)
+        out_mode = ctypes.c_ulong()
+        kernel32.GetConsoleMode(hOut, ctypes.byref(out_mode))
+        out_mode.value |= 0x0004
+        kernel32.SetConsoleMode(hOut, out_mode)
 
 if __name__ == '__main__':
-    # 1. Start the GUI
-    should_run_game = show_startup_menu()
-
-    if not should_run_game:
-        sys.exit()
-
-    # 2. Spawn Console & Fix Colors
+    # 1. Enforce Terminal FIRST
+    enforce_modern_terminal()
+    
+    # 2. Spawn Console Environment
     spawn_game_console()
 
-    # 3. Run Game
-    main()
+    # 3. NOW load the game (Lazy Loading)
+    try:
+        from game.game_logic.main import main
+        from game.game_logic.gui_menu import show_startup_menu
+    except ImportError as e:
+        print(f"\nCRITICAL ERROR: {e}")
+        print("Required libraries failed to load.")
+        input("Press Enter to exit...")
+        sys.exit(1)
+
+    # 4. Start Game
+    if show_startup_menu():
+        main()
