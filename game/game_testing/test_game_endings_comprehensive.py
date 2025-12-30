@@ -161,6 +161,72 @@ class TestGameEndings(unittest.TestCase):
         # Verify it uses the negative money value in output
         assert any("-500" in str(call) or "Money:" in str(call) for call in mock_slow_print.call_args_list)
 
+    # ==========================================
+    # TEST colonel_defeat_ending()
+    # ==========================================
+
+    @patch('game.game_logic.game_endings.continue_prompt')
+    @patch('game.game_logic.game_endings.sys.exit')
+    @patch('game.game_logic.game_endings.GameEndings._slow_print')
+    @patch('game.game_logic.game_endings.print')
+    @patch('game.game_logic.game_endings.time.sleep')
+    @patch('game.game_logic.game_endings.GameEndings._play_ending_music')
+    @patch.object(Stats, 'get_stats_command')
+    def test_colonel_defeat_ending_full_flow(self, mock_get_stats, mock_music, mock_sleep, mock_print, mock_slow_print, mock_exit, mock_prompt):
+        """Test complete colonel defeat ending flow."""
+        # Set initial stats
+        self.stats.coding_skill = 50
+        self.stats.pcr_hatred = 50
+        self.stats.available_money = 50000
+
+        GameEndings.colonel_defeat_ending(self.stats)
+
+        # Verify music was played
+        mock_music.assert_called_once_with("breakdown_theme.mp3")
+
+        # Verify stats were modified correctly
+        self.assertEqual(self.stats.coding_skill, -100)
+        self.assertEqual(self.stats.pcr_hatred, -100)
+        self.assertEqual(self.stats.available_money, 50000)  # Money should stay the same
+
+        # Verify get_stats_command was called
+        mock_get_stats.assert_called_once()
+
+        # Verify key story elements were printed
+        assert mock_slow_print.call_count > 10
+        assert any("BROKEN" in str(call) for call in mock_slow_print.call_args_list)
+        assert any("ACCEPTANCE" in str(call) for call in mock_slow_print.call_args_list)
+
+        # Verify 1984 reference
+        print_calls = [str(call) for call in mock_print.call_args_list]
+        all_output = " ".join(print_calls)
+        assert "War is peace" in all_output or "Freedom is slavery" in all_output or "Ignorance is strength" in all_output
+
+        # Verify exit was called
+        mock_exit.assert_called_once()
+
+    @patch('game.game_logic.game_endings.continue_prompt')
+    @patch('game.game_logic.game_endings.sys.exit')
+    @patch('game.game_logic.game_endings.GameEndings._slow_print')
+    @patch('game.game_logic.game_endings.print')
+    @patch('game.game_logic.game_endings.time.sleep')
+    @patch('game.game_logic.game_endings.GameEndings._play_ending_music')
+    @patch.object(Stats, 'get_stats_command')
+    def test_colonel_defeat_ending_stats_reset(self, mock_get_stats, mock_music, mock_sleep, mock_print, mock_slow_print, mock_exit, mock_prompt):
+        """Test that colonel defeat ending resets stats correctly."""
+        # Set initial stats
+        self.stats.coding_skill = 100
+        self.stats.pcr_hatred = 90
+        original_money = 75000
+        self.stats.available_money = original_money
+
+        GameEndings.colonel_defeat_ending(self.stats)
+
+        # Verify stats were reset to acceptance values
+        self.assertEqual(self.stats.coding_skill, -100)
+        self.assertEqual(self.stats.pcr_hatred, -100)
+        self.assertEqual(self.stats.available_money, original_money)  # Money unchanged
+
 
 class TestGoodEnding(unittest.TestCase):
     """Test GoodEnding class methods."""

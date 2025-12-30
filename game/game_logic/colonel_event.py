@@ -7,9 +7,10 @@ import pygame
 from rich import print
 from rich.panel import Panel
 from rich.text import Text
+from rich.align import Align
 from rich.console import Group, Console
 
-from game.game_logic.game_endings import GoodEnding
+from game.game_logic.game_endings import GoodEnding, GameEndings
 from game.game_logic.interaction import Interaction
 from game.game_logic.press_enter_to_continue import continue_prompt
 from game.game_logic.stats import Stats
@@ -40,7 +41,7 @@ class ColonelEvent:
             pygame.mixer.init()
             pygame.mixer.music.load(music_path)
             pygame.mixer.music.play(-1)  # Loop indefinitely
-            pygame.mixer.music.set_volume(0.3)
+            pygame.mixer.music.set_volume(0.15)  # 50% of original volume
         except Exception as e:
             print(f"\n[SYSTEM] Audio Warning: Could not play music '{track_name}' ({e})")
 
@@ -512,8 +513,24 @@ class ColonelEvent:
         """
         # 1. Player Defeated
         if self.jb_hp <= 0:
-            self._slow_print("\n[bold red]DEFEAT. You crumble under the pressure.[/bold red]", delay=0.05)
+            # Dramatic defeat message with Rich Panel
+            defeat_text = Text()
+            defeat_text.append("You crumble under the pressure.", style="bold white")
+            defeat_text.append("\n", style="")
+            defeat_text.append("Your will shatters. Your resistance fails.", style="dim white")
+            
+            print("\n")
+            print(Panel(
+                Align.center(defeat_text),
+                border_style="bold bright_red",
+                title="[bold white on bright_red] ⚠ DEFEAT ⚠ [/]",
+                padding=(2, 4),
+                expand=False
+            ))
+            print()
+            continue_prompt()
             # In your main game loop, handle the Game Over here
+            GameEndings.colonel_defeat_ending(stats)
             return
 
         # 2. Colonel Defeated (Standard)
@@ -523,21 +540,60 @@ class ColonelEvent:
 
         # 3. SUDDEN DEATH / ATTACKS EXHAUSTED (Both > 0 HP)
         # This triggers when the loop finishes and no one is at 0 HP.
-        print("\n" + "=" * 50)
-        self._slow_print("[bold]THE SILENCE[/bold]")
-        print("=" * 50)
+        # Dramatic "THE SILENCE" header
+        silence_text = Text()
+        silence_text.append("THE SILENCE", style="bold white")
+        
+        print("\n")
+        print(Panel(
+            Align.center(silence_text),
+            border_style="bold white",
+            title="[bold white on black] ════════════════ [/]",
+            padding=(1, 4),
+            expand=False
+        ))
+        print()
 
         self._slow_print("\nThe Colonel stops. He has run out of threats.", delay=0.04)
         self._slow_print("He stares at you, breathing heavily. He has nothing left to say.", delay=0.04)
 
         time.sleep(1)
-        print(f"\n[green]JB HP: {self.jb_hp}[/green]  VS  [red]COLONEL HP: {self.colonel_hp}[/red]")
+        
+        # HP Display with Rich styling
+        hp_text = Text()
+        hp_text.append("JB HP: ", style="")
+        hp_text.append(f"{self.jb_hp}", style="bold green")
+        hp_text.append("  VS  ", style="bold white")
+        hp_text.append("COLONEL HP: ", style="")
+        hp_text.append(f"{self.colonel_hp}", style="bold red")
+        
+        print("\n")
+        print(Panel(
+            Align.center(hp_text),
+            border_style="bold yellow",
+            padding=(1, 3),
+            expand=False
+        ))
+        print()
+        
         time.sleep(1)
 
         # LOGIC: If JB_HP >= COLONEL_HP -> WIN
         if self.jb_hp >= self.colonel_hp:
-            self._slow_print("\n[green]VERDICT: YOU ARE STRONGER.[/green]", delay=0.05)
-            self._slow_print("You withstood the barrage. The Colonel realizes he cannot break you.", delay=0.04)
+            verdict_text = Text()
+            verdict_text.append("YOU ARE STRONGER", style="bold bright_green")
+            verdict_text.append("\n", style="")
+            verdict_text.append("You withstood the barrage. The Colonel realizes he cannot break you.", style="white")
+            
+            print("\n")
+            print(Panel(
+                Align.center(verdict_text),
+                border_style="bold green",
+                title="[bold white on green] ✓ VERDICT ✓ [/]",
+                padding=(1, 3),
+                expand=False
+            ))
+            print()
 
             # Force Victory
             self.colonel_hp = 0
@@ -545,10 +601,38 @@ class ColonelEvent:
 
         else:
             # LOGIC: If JB_HP < COLONEL_HP -> LOSS
-            self._slow_print("\n[red]VERDICT: YOU ARE BROKEN.[/red]", delay=0.05)
-            self._slow_print("You survived the argument, but the stress was too much.", delay=0.04)
-            self._slow_print("You don't have the energy to fight anymore. You slowly sit back down.", delay=0.04)
-            self._slow_print("\n[bold red]DEFEAT.[/bold red]", delay=0.05)
+            verdict_text = Text()
+            verdict_text.append("YOU ARE BROKEN", style="bold bright_red")
+            verdict_text.append("\n", style="")
+            verdict_text.append("You survived the argument, but the stress was too much.", style="white")
+            verdict_text.append("\n", style="")
+            verdict_text.append("You don't have the energy to fight anymore. You slowly sit back down.", style="dim white")
+            
+            print("\n")
+            print(Panel(
+                Align.center(verdict_text),
+                border_style="bold bright_red",
+                title="[bold white on bright_red] ✗ VERDICT ✗ [/]",
+                padding=(1, 3),
+                expand=False
+            ))
+            print()
+            
+            defeat_final_text = Text()
+            defeat_final_text.append("DEFEAT", style="bold bright_red")
+            
+            print()
+            print(Panel(
+                Align.center(defeat_final_text),
+                border_style="bold red",
+                padding=(1, 4),
+                expand=False
+            ))
+            print()
+            
+            continue_prompt()
+            # Trigger the 1984-style defeat ending
+            GameEndings.colonel_defeat_ending(stats)
 
     def _glitch_phase(self, stats):
         """

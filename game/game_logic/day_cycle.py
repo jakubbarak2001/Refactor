@@ -21,32 +21,8 @@ class DayCycle:
 
     def day_start_message(self):
         """Beautiful Rich TUI message about starting a new day."""
-        day_text = Text()
-        day_text.append(f"Starting day ", style="bold white")
-        day_text.append(f"#{self.current_day}", style="bold bright_yellow")
-        day_text.append(f"/30", style="bold white")
-        
-        print("\n")
-        print(Panel(
-            day_text,
-            border_style="bold bright_yellow",
-            title="[bold white on bright_yellow] > NEW DAY < [/]",
-            padding=(1, 3),
-            expand=False
-        ))
+        pass
 
     def day_end_message(self):
         """Beautiful Rich TUI message about ending the current day."""
-        day_text = Text()
-        day_text.append(f"Ending day ", style="bold white")
-        day_text.append(f"#{self.current_day}", style="bold bright_yellow")
-        day_text.append(f"/30", style="bold white")
-        
-        print("\n")
-        print(Panel(
-            day_text,
-            border_style="bold color(94)",
-            title="[bold white on color(94)] > END OF DAY < [/]",
-            padding=(1, 3),
-            expand=False
-        ))
+        pass

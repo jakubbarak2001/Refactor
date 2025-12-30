@@ -76,7 +76,7 @@ def show_startup_menu() -> bool:
         pygame.mixer.init()
         pygame.mixer.music.load(music_path)
         pygame.mixer.music.play(-1)
-        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.set_volume(0.25)  # 50% of original volume
     except Exception as e:
         print(f"Music Error: {e}")
 

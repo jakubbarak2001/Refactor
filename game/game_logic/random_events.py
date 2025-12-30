@@ -290,7 +290,7 @@ class RandomEvents:
               "\n\nBy the time you reach the hallway of the second floor, "
               "your eyes are watering. You already know what's waiting for you inside that room."
               "\nYou haven't even opened the door yet, and you already feel your PCR hatred rising.")
-        Interaction.show_outcome("- 10 PCR HATRED (just for being here).")
+        Interaction.show_outcome("+ 10 PCR HATRED (just for being here).")
         stats.increment_stats_pcr_hatred(10)
         continue_prompt()
 
@@ -306,16 +306,21 @@ class RandomEvents:
               "He throws you a pair of thin latex gloves as if that would help you survive a chemical disaster."
               "\n\nYou have the following options:")
 
-        # Display decision using Rich Panel with difficulty tags (35% success for option 1)
+        # Calculate avoidance chance: base 35% + 1% per 4 hatred points
+        base_chance = 35
+        hatred_bonus = stats.pcr_hatred // 4
+        avoidance_chance = min(base_chance + hatred_bonus, 100)  # Cap at 100%
+        
+        # Display decision using Rich Panel with difficulty tags
         select_choice = Interaction.show_decision([
-            ("1", Interaction.get_difficulty_tag(35), "OBJECT — refuse to drag him. [35% SUCCESS: 0 PCR HATRED]"),
-            ("2", Interaction.get_difficulty_tag(95), "ACCEPT AND DRAG HIM. [95% clean | 5% spill]")
+            ("1", Interaction.get_difficulty_tag(avoidance_chance), "OBJECT — refuse to drag him."),
+            ("2", Interaction.get_difficulty_tag(95), "ACCEPT AND DRAG HIM.")
         ])
 
         if select_choice == "1":
             refusal_roll = randint(1, 100)
 
-            if refusal_roll <= 35:
+            if refusal_roll <= avoidance_chance:
                 print("\nYou shake your head. 'No. I'm not dragging him. I'm not doing this.'"
                       "\nYour colleague stares at you for a long moment. His face doesn't move — "
                       "not a muscle, not a twitch — but something in his eyes softens."
