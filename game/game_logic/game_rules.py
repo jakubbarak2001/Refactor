@@ -8,6 +8,7 @@ from rich.panel import Panel
 from rich.text import Text
 from rich.align import Align
 
+from game.game_logic.car_incident_event import CarIncident
 from game.game_logic.colonel_event import ColonelEvent
 from game.game_logic.day_cycle import DayCycle
 from game.game_logic.game_endings import GameEndings
@@ -323,17 +324,28 @@ class Game:
             menu_text.append("📊 SHOW STATS", style="bold bright_white")
             menu_text.append("\n   View your current stats", style="dim white")
             
-            menu_text.append("\n\n[2] ", style="bold cyan")
-            menu_text.append("⚙️ SELECT ACTIVITY", style="bold bright_white")
-            menu_text.append("\n   Choose your daily activity", style="dim white")
-            
-            menu_text.append("\n\n[3] ", style="bold cyan")
-            menu_text.append("📞 SHOW CONTACTS", style="bold bright_white")
-            menu_text.append("\n   View your contact list", style="dim white")
-            
-            menu_text.append("\n\n[4] ", style="bold cyan")
-            menu_text.append("🌙 END THE DAY", style="bold bright_white")
-            menu_text.append("\n   Progress to the next day", style="dim white")
+            if self.activity_selected:
+                # Menu when activity already selected: [1] Stats, [2] Contacts, [3] End Day
+                menu_text.append("\n\n[2] ", style="bold cyan")
+                menu_text.append("📞 SHOW CONTACTS", style="bold bright_white")
+                menu_text.append("\n   View your contact list", style="dim white")
+                
+                menu_text.append("\n\n[3] ", style="bold cyan")
+                menu_text.append("🌙 END THE DAY", style="bold bright_white")
+                menu_text.append("\n   Progress to the next day", style="dim white")
+            else:
+                # Menu when activity not selected: [1] Stats, [2] Select Activity, [3] Contacts, [4] End Day
+                menu_text.append("\n\n[2] ", style="bold cyan")
+                menu_text.append("⚙️ SELECT ACTIVITY", style="bold bright_white")
+                menu_text.append("\n   Choose your daily activity", style="dim white")
+                
+                menu_text.append("\n\n[3] ", style="bold cyan")
+                menu_text.append("📞 SHOW CONTACTS", style="bold bright_white")
+                menu_text.append("\n   View your contact list", style="dim white")
+                
+                menu_text.append("\n\n[4] ", style="bold cyan")
+                menu_text.append("🌙 END THE DAY", style="bold bright_white")
+                menu_text.append("\n   Progress to the next day", style="dim white")
             
             menu_text.append("\n\n" + "═" * 40, style="dim white")
             
@@ -354,41 +366,170 @@ class Game:
                 expand=False
             ))
             
-            choice = Interaction.ask(("1", "2", "3", "4"))
+            # Build valid choices based on whether activity is selected
+            valid_choices = ("1", "2", "3") if self.activity_selected else ("1", "2", "3", "4")
+            
+            # Get input with debug option hint
+            choice_input = console.input("\n[bold cyan]Enter your choice[/bold cyan] [dim](0 for DEBUG, " + ", ".join(valid_choices) + ")[/dim]: ").strip()
+            
+            # Debug menu (hidden option - press 0)
+            if choice_input == "0":
+                self._debug_menu()
+                continue
+            
+            # Validate and use Interaction.ask for normal choices (it will loop until valid)
+            if choice_input in valid_choices:
+                choice = choice_input
+            else:
+                # Invalid input, use Interaction.ask to get valid choice
+                print("[red]Invalid choice! Please enter a valid option.[/red]")
+                choice = Interaction.ask(valid_choices)
 
             if choice == "1":
                 self.stats.get_stats_command()
                 continue_prompt()
 
             elif choice == "2":
-                self.select_activity()
+                if self.activity_selected:
+                    # Show contacts when activity already selected
+                    contacts_text = Text()
+                    contacts_text.append("You open up your phone list:\n", style="bold white")
+                    contacts_text.append("═" * 30 + "\n", style="dim white")
+                    contacts_text.append("\n1. MM\n", style="bright_white")
+                    contacts_text.append("2. MK\n", style="bright_white")
+                    contacts_text.append("3. PS\n", style="bright_white")
+                    contacts_text.append("4. PAUL GOODMAN\n", style="bright_white")
+                    contacts_text.append("5. COLONEL\n", style="bright_white")
+                    contacts_text.append("\n" + "═" * 30, style="dim white")
+                    
+                    print("\n")
+                    print(Panel(
+                        contacts_text,
+                        border_style="bold cyan",
+                        title="[bold white on cyan] > CONTACTS < [/]",
+                        subtitle="[dim](WIP - Press ENTER to return)[/dim]",
+                        padding=(1, 3),
+                        expand=False
+                    ))
+                    print()
+                    continue_prompt()
+                else:
+                    self.select_activity()
 
             elif choice == "3":
-                # Placeholder for future implementation
-                contacts_text = Text()
-                contacts_text.append("You open up your phone list:\n", style="bold white")
-                contacts_text.append("═" * 30 + "\n", style="dim white")
-                contacts_text.append("\n1. MM\n", style="bright_white")
-                contacts_text.append("2. MK\n", style="bright_white")
-                contacts_text.append("3. PS\n", style="bright_white")
-                contacts_text.append("4. PAUL GOODMAN\n", style="bright_white")
-                contacts_text.append("5. COLONEL\n", style="bright_white")
-                contacts_text.append("\n" + "═" * 30, style="dim white")
-                
-                print("\n")
-                print(Panel(
-                    contacts_text,
-                    border_style="bold cyan",
-                    title="[bold white on cyan] > CONTACTS < [/]",
-                    subtitle="[dim](WIP - Press ENTER to return)[/dim]",
-                    padding=(1, 3),
-                    expand=False
-                ))
-                print()
-                continue_prompt()
+                if self.activity_selected:
+                    # End the day when activity already selected
+                    self._handle_end_of_day_routine()
+                else:
+                    # Show contacts when activity not selected
+                    contacts_text = Text()
+                    contacts_text.append("You open up your phone list:\n", style="bold white")
+                    contacts_text.append("═" * 30 + "\n", style="dim white")
+                    contacts_text.append("\n1. MM\n", style="bright_white")
+                    contacts_text.append("2. MK\n", style="bright_white")
+                    contacts_text.append("3. PS\n", style="bright_white")
+                    contacts_text.append("4. PAUL GOODMAN\n", style="bright_white")
+                    contacts_text.append("5. COLONEL\n", style="bright_white")
+                    contacts_text.append("\n" + "═" * 30, style="dim white")
+                    
+                    print("\n")
+                    print(Panel(
+                        contacts_text,
+                        border_style="bold cyan",
+                        title="[bold white on cyan] > CONTACTS < [/]",
+                        subtitle="[dim](WIP - Press ENTER to return)[/dim]",
+                        padding=(1, 3),
+                        expand=False
+                    ))
+                    print()
+                    continue_prompt()
 
             elif choice == "4":
                 self._handle_end_of_day_routine()
+
+    def _debug_menu(self):
+        """Debug menu to skip to specific events and endings for testing."""
+        debug_text = Text()
+        debug_text.append("DEBUG MENU\n", style="bold red")
+        debug_text.append("═" * 40 + "\n", style="dim white")
+        debug_text.append("\n[1] ", style="bold cyan")
+        debug_text.append("🎭 Trigger Colonel Event", style="bold bright_white")
+        debug_text.append("\n[2] ", style="bold cyan")
+        debug_text.append("👔 Trigger Martin Meeting Event", style="bold bright_white")
+        debug_text.append("\n[3] ", style="bold cyan")
+        debug_text.append("🚗 Trigger Car Incident Event", style="bold bright_white")
+        debug_text.append("\n\n", style="")
+        debug_text.append("ENDINGS:\n", style="bold yellow")
+        debug_text.append("[4] ", style="bold cyan")
+        debug_text.append("✅ Trigger Good Ending", style="bold bright_green")
+        debug_text.append("\n[5] ", style="bold cyan")
+        debug_text.append("💔 Trigger Colonel Defeat Ending", style="bold bright_red")
+        debug_text.append("\n[6] ", style="bold cyan")
+        debug_text.append("🏥 Trigger Mental Breakdown Ending", style="bold bright_red")
+        debug_text.append("\n[7] ", style="bold cyan")
+        debug_text.append("💰 Trigger Homeless Ending", style="bold bright_red")
+        debug_text.append("\n\n", style="")
+        debug_text.append("[8] ", style="bold cyan")
+        debug_text.append("🔙 Back to Main Menu", style="bold bright_white")
+        debug_text.append("\n\n" + "═" * 40, style="dim white")
+        
+        print("\n")
+        print(Panel(
+            debug_text,
+            border_style="bold red",
+            title="[bold white on red] > DEBUG MENU < [/]",
+            padding=(1, 3),
+            expand=False
+        ))
+        
+        debug_choice = console.input("\n[bold red]Enter debug choice[/bold red] [dim](1-8)[/dim]: ").strip()
+        
+        if debug_choice == "1":
+            # Trigger Colonel Event
+            self.day_cycle.current_day = self.stats.colonel_day
+            colonel_event = ColonelEvent()
+            print("\n[yellow]DEBUG: Triggering Colonel Event...[/yellow]")
+            continue_prompt()
+            colonel_event.trigger_event(self.stats)
+        elif debug_choice == "2":
+            # Trigger Martin Meeting Event
+            self.day_cycle.current_day = 24
+            mm_event = MartinMeetingEvent()
+            print("\n[yellow]DEBUG: Triggering Martin Meeting Event...[/yellow]")
+            continue_prompt()
+            mm_event.trigger_event(self.stats)
+        elif debug_choice == "3":
+            # Trigger Car Incident Event
+            print("\n[yellow]DEBUG: Triggering Car Incident Event...[/yellow]")
+            continue_prompt()
+            CarIncident.car_incident_event(self.stats)
+        elif debug_choice == "4":
+            # Trigger Good Ending
+            from game.game_logic.game_endings import GoodEnding
+            print("\n[yellow]DEBUG: Triggering Good Ending...[/yellow]")
+            continue_prompt()
+            good_ending = GoodEnding()
+            good_ending.trigger_ending(self.stats)
+        elif debug_choice == "5":
+            # Trigger Colonel Defeat Ending
+            print("\n[yellow]DEBUG: Triggering Colonel Defeat Ending...[/yellow]")
+            continue_prompt()
+            GameEndings.colonel_defeat_ending(self.stats)
+        elif debug_choice == "6":
+            # Trigger Mental Breakdown Ending
+            print("\n[yellow]DEBUG: Triggering Mental Breakdown Ending...[/yellow]")
+            continue_prompt()
+            GameEndings.mental_breakdown_ending(self.stats)
+        elif debug_choice == "7":
+            # Trigger Homeless Ending
+            print("\n[yellow]DEBUG: Triggering Homeless Ending...[/yellow]")
+            continue_prompt()
+            GameEndings.homeless_ending(self.stats)
+        elif debug_choice == "8":
+            return  # Back to main menu
+        else:
+            print("\n[red]Invalid debug choice![/red]")
+            continue_prompt()
 
     def receive_salary(self):
         """Beautiful Rich TUI salary day message with money based on level of hatred"""
@@ -518,18 +659,6 @@ class Game:
                 self.activity_python()
             elif choice == "5":
                 self.main_menu()
-
-        else:
-            already_done_text = Text("You've already done your daily activity today!", style="bold yellow")
-            print("\n")
-            print(Panel(
-                already_done_text,
-                border_style="bold yellow",
-                title="[bold white on yellow] > NOTICE < [/]",
-                padding=(1, 2),
-                expand=False
-            ))
-            print()
 
     def activity_gym(self):
         """Beautiful Rich TUI gym activity menu."""
@@ -686,7 +815,7 @@ class Game:
                 print("\nNight shift was really calm, nothing happened and you got your usual rate."
                       "\nYou got angrier at PCR today, because the only reason why you work here,"
                       "\nis the salary you get from them.")
-                Interaction.show_outcome("+ 3000 CZK, - 10 PCR HATRED")
+                Interaction.show_outcome("+ 3000 CZK, + 10 PCR HATRED")
             elif activity_roll <= 90:
                 self.stats.increment_stats_value_money(7500)
                 self.stats.increment_stats_pcr_hatred(- 10)

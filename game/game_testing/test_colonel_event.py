@@ -97,28 +97,46 @@ class TestColonelEvent(unittest.TestCase):
         self.event._attack_blacklist(self.stats)
         self.assertEqual(self.event.colonel_hp, start_col_hp - 30)
 
-        # 10. Glitch phase resets colonel HP to 100 and calls GoodEnding on choosing sys.exit path
-        @patch('builtins.input')
-        @patch('sys.exit')  # Safety net: Catch exit if it happens
-        @patch('game.game_logic.colonel_event.GoodEnding')  # <--- FIXED PATH
-        def test_glitch_phase_flow_and_good_ending(self, mock_good_cls, mock_exit, mock_input):
-            # NOTE: Argument order is reversed from decorators:
-            # 1. ColonelEvent.GoodEnding (Bottom) -> mock_good_cls
-            # 2. sys.exit (Middle) -> mock_exit
-            # 3. builtins.input (Top) -> mock_input
+    # 10. Glitch phase resets colonel HP to 100 and calls GoodEnding on choosing sys.exit path
+    @patch('builtins.input')
+    @patch('sys.exit')  # Safety net: Catch exit if it happens
+    @patch('game.game_logic.colonel_event.GoodEnding')  # <--- FIXED PATH
+    def test_glitch_phase_flow_and_good_ending(self, mock_good_cls, mock_exit, mock_input):
+        # NOTE: Argument order is reversed from decorators:
+        # 1. ColonelEvent.GoodEnding (Bottom) -> mock_good_cls
+        # 2. sys.exit (Middle) -> mock_exit
+        # 3. builtins.input (Top) -> mock_input
 
-            # Simulate choosing '2' immediately
-            mock_input.side_effect = ['2', '']
+        # Simulate choosing '2' immediately
+        mock_input.side_effect = ['2', '']
 
-            # Put colonel to 0 to trigger glitch
-            self.event.colonel_hp = 0
+        # Put colonel to 0 to trigger glitch
+        self.event.colonel_hp = 0
 
-            # Trigger check -> glitch -> good ending chosen
-            self.event._check_fight_outcome(self.stats)
+        # Trigger check -> glitch -> good ending chosen
+        self.event._check_fight_outcome(self.stats)
 
-            # Assertions
-            mock_good_cls.assert_called_once()
-            mock_good_cls.return_value.trigger_ending.assert_called_once()
+        # Assertions
+        mock_good_cls.assert_called_once()
+        mock_good_cls.return_value.trigger_ending.assert_called_once()
+
+    # 11. Defeat ending path when JB HP <= 0
+    @patch.object(ColonelEvent, '_slow_print')
+    @patch('game.game_logic.colonel_event.continue_prompt')
+    @patch.object(ColonelEvent, '_glitch_phase')
+    def test_check_fight_outcome_jb_defeated_path(self, mock_glitch, mock_prompt, mock_slow_print):
+        """Test that _check_fight_outcome takes defeat path when JB HP <= 0."""
+        # Set JB HP to 0 (defeat condition)
+        self.event.jb_hp = 0
+        self.event.colonel_hp = 50
+
+        # Trigger check -> should not trigger glitch phase (defeat path instead)
+        self.event._check_fight_outcome(self.stats)
+
+        # Verify glitch phase is NOT called (defeat path instead)
+        mock_glitch.assert_not_called()
+        # Verify defeat message was printed
+        assert mock_slow_print.called
 
 
 if __name__ == '__main__':

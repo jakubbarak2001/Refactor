@@ -35,7 +35,7 @@ def play_background_music():
         pygame.mixer.init()
         pygame.mixer.music.load(music_path)
         pygame.mixer.music.play(-1)
-        pygame.mixer.music.set_volume(0.3)
+        pygame.mixer.music.set_volume(0.15)  # 50% of original volume
     except Exception as e:
         print(f"\n[SYSTEM] Audio Warning: Could not play music ({e})")
 

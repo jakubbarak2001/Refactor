@@ -9,7 +9,7 @@ from rich.text import Text
 from rich.align import Align
 from rich.console import Group, Console
 
-from game.game_logic.press_enter_to_continue import continue_prompt
+from game.game_logic.press_enter_to_continue import continue_prompt, game_over_prompt
 
 
 def resource_path(relative_path):
@@ -42,7 +42,7 @@ class GameEndings:
             path = resource_path(track_name)
             pygame.mixer.music.load(path)
             pygame.mixer.music.play(-1)  # Loop forever until they close the window
-            pygame.mixer.music.set_volume(0.6)  # Slightly louder for dramatic effect
+            pygame.mixer.music.set_volume(0.3)  # 50% of original volume
         except Exception as e:
             print(f"[Audio Error]: {e}")
 
@@ -56,14 +56,35 @@ class GameEndings:
         print()
 
     @staticmethod
+    def _show_game_over_header(title: str, subtitle: str = ""):
+        """Display a dramatic Game Over header using Rich Panel."""
+        game_over_text = Text()
+        game_over_text.append(title, style="bold bright_red")
+        if subtitle:
+            game_over_text.append("\n", style="")
+            game_over_text.append(subtitle, style="bright_red")
+        
+        print("\n\n")
+        print(Panel(
+            Align.center(game_over_text),
+            border_style="bold bright_red",
+            title="[bold white on bright_red] ⚠ GAME OVER ⚠ [/]",
+            padding=(2, 6),
+            expand=False
+        ))
+        print("\n")
+
+    @staticmethod
     def mental_breakdown_ending(stats):
         """Triggered when PCR Hatred >= 100."""
         # 1. PLAY MUSIC
         GameEndings._play_ending_music("breakdown_theme.mp3")
 
-        print("\n==========================================")
-        GameEndings._slow_print(f"GAME OVER: CRITICAL PSYCHOSIS (Hatred: {stats.pcr_hatred})")
-        print("==========================================")
+        # Dramatic Game Over header
+        GameEndings._show_game_over_header(
+            "YOU ARE BROKEN",
+            f"CRITICAL PSYCHOSIS (Hatred: {stats.pcr_hatred}%)"
+        )
 
         GameEndings._slow_print("\nIt happens during a routine briefing.")
         GameEndings._slow_print("The Colonel is talking about 'Uniform Standards'.")
@@ -78,8 +99,22 @@ class GameEndings:
         GameEndings._slow_print("The doctor says you need 'rest'. A lot of rest.")
         GameEndings._slow_print("You lost your badge. You lost your gun. But finally... there is silence.")
 
-        GameEndings._slow_print("\n[BAD ENDING: INSTITUTIONALISED]")
-        input("Try again?")
+        # Bad Ending footer
+        ending_text = Text()
+        ending_text.append("BAD ENDING: ", style="bold bright_red")
+        ending_text.append("INSTITUTIONALISED", style="bold white")
+        
+        print("\n")
+        print(Panel(
+            ending_text,
+            border_style="bold red",
+            title="[bold white on red] > FINAL STATE < [/]",
+            padding=(1, 3),
+            expand=False
+        ))
+        print()
+        
+        game_over_prompt()
         sys.exit()
 
     @staticmethod
@@ -88,9 +123,12 @@ class GameEndings:
         # 1. PLAY MUSIC
         GameEndings._play_ending_music("coding_in_snow_theme.mp3")
 
-        print("\n==========================================")
-        GameEndings._slow_print(f"GAME OVER: BANKRUPTCY (Money: {stats.available_money})")
-        print("==========================================")
+        # Dramatic Game Over header
+        money_display = f"{stats.available_money:,} CZK" if stats.available_money >= 0 else f"{-stats.available_money:,} CZK DEBT"
+        GameEndings._show_game_over_header(
+            "YOU ARE BROKEN",
+            f"BANKRUPTCY (Money: {money_display})"
+        )
 
         GameEndings._slow_print("\nYour card is declined at the grocery store. For a rohlík.")
         GameEndings._slow_print("Your landlord calls. Eviction notice.")
@@ -99,8 +137,137 @@ class GameEndings:
         GameEndings._slow_print("You end up sleeping in your car. Then you lose the car.")
         GameEndings._slow_print("You cannot code on paper crates in the snow.")
 
-        GameEndings._slow_print("[BAD ENDING: THE STREETS]")
-        restart = input("Try again?")
+        # Bad Ending footer
+        ending_text = Text()
+        ending_text.append("BAD ENDING: ", style="bold bright_red")
+        ending_text.append("THE STREETS", style="bold white")
+        
+        print("\n")
+        print(Panel(
+            ending_text,
+            border_style="bold red",
+            title="[bold white on red] > FINAL STATE < [/]",
+            padding=(1, 3),
+            expand=False
+        ))
+        print()
+        
+        game_over_prompt()
+        sys.exit()
+
+    @staticmethod
+    def colonel_defeat_ending(stats):
+        """Triggered when Colonel defeats you. 1984-style ending where you accept your reality."""
+        # 1. PLAY MUSIC (could use breakdown_theme or a similar track)
+        GameEndings._play_ending_music("breakdown_theme.mp3")
+
+        # Dramatic Game Over header
+        GameEndings._show_game_over_header(
+            "YOU ARE BROKEN",
+            "DEFEAT - The Colonel Has Won"
+        )
+
+        time.sleep(2)
+        GameEndings._slow_print("\nYou slowly sit back down in the chair.")
+        GameEndings._slow_print("The Colonel watches you. His face shows no emotion. No satisfaction. Just... emptiness.")
+        
+        continue_prompt()
+
+        GameEndings._slow_print("\nYou look at your hands. They're shaking.")
+        GameEndings._slow_print("The Colonel's words are still ringing in your ears.")
+        GameEndings._slow_print("\n'You're nothing without this uniform, JB.'")
+        GameEndings._slow_print("'You're nothing without this badge.'")
+        GameEndings._slow_print("'You're nothing without ME.'")
+        
+        time.sleep(2)
+        
+        GameEndings._slow_print("\nYou open your mouth. You want to argue. You want to fight back.")
+        GameEndings._slow_print("But... nothing comes out.")
+        
+        continue_prompt()
+
+        GameEndings._slow_print("\nInstead, you hear your own voice. Soft. Broken. Apologetic.")
+        print("\n[yellow]'I... I'm sorry, Colonel.'[/yellow]")
+        print("[yellow]'I was wrong.'[/yellow]")
+        
+        time.sleep(2)
+        
+        GameEndings._slow_print("\nThe words feel foreign on your tongue. Like you're reading from a script.")
+        GameEndings._slow_print("But as you say them, something strange happens.")
+        GameEndings._slow_print("The weight on your chest... it starts to lift.")
+        
+        continue_prompt()
+
+        print("\n[yellow]'You're right, Colonel.'[/yellow]")
+        print("[yellow]'There is no better job than being a police officer.'[/yellow]")
+        print("[yellow]'I... I realize that now.'[/yellow]")
+        
+        time.sleep(2)
+        
+        GameEndings._slow_print("\nThe Colonel's expression doesn't change. But he nods slowly.")
+        GameEndings._slow_print("'Good. I'm glad you understand.'")
+        GameEndings._slow_print("'You can go back to your duties now.'")
+        
+        continue_prompt()
+
+        GameEndings._slow_print("\nYou stand up. Your legs feel heavy. But you stand.")
+        GameEndings._slow_print("You walk to the door. Your hand reaches for the handle.")
+        GameEndings._slow_print("\nAnd as you turn it, you feel... nothing.")
+        GameEndings._slow_print("No anger. No hatred. No dreams of coding or freedom.")
+        
+        # Reset stats: coding skill to 0, hatred to -100 (acceptance), money stays the same
+        stats.coding_skill = -100
+        stats.pcr_hatred = -100
+        stats.get_stats_command()
+        continue_prompt()
+        
+        GameEndings._slow_print("\nJust... acceptance.")
+        GameEndings._slow_print("This is your life now.")
+        GameEndings._slow_print("This has always been your life.")
+        GameEndings._slow_print("And you're okay with that.")
+        
+        continue_prompt()
+
+        print("\n[yellow]You step outside the office.[/yellow]")
+        print("[yellow]The hallway looks the same as always.[/yellow]")
+        print("[yellow]The station looks the same.[/yellow]")
+        print("[yellow]Everything looks exactly as it should.[/yellow]")
+        
+        time.sleep(2)
+        
+        GameEndings._slow_print("\nYou return to your desk.")
+        GameEndings._slow_print("You pick up a report.")
+        GameEndings._slow_print("You start filling it out.")
+        
+        print("\n[dim]You work until your shift ends.[/dim]")
+        print("[dim]You go home. You sleep. You wake up. You come back.[/dim]")
+        print("[dim]This is your routine now.[/dim]")
+        print("[dim]This is your reality.[/dim]")
+        
+        time.sleep(3)
+        
+        print("\n[bold yellow]And you are happy.[/bold yellow]")
+        print("[bold yellow]You are content.[/bold yellow]")
+        print("[bold yellow]You have always been content.[/bold yellow]")
+
+        # Bad Ending footer with 1984 reference
+        ending_text = Text()
+        ending_text.append("BAD ENDING: ", style="bold bright_red")
+        ending_text.append("ACCEPTANCE", style="bold white")
+        ending_text.append("\n\n", style="")
+        ending_text.append("War is peace. Freedom is slavery. Ignorance is strength.", style="dim white")
+        
+        print("\n")
+        print(Panel(
+            ending_text,
+            border_style="bold red",
+            title="[bold white on red] > FINAL STATE < [/]",
+            padding=(1, 3),
+            expand=False
+        ))
+        print()
+        
+        game_over_prompt()
         sys.exit()
 
 
@@ -154,19 +321,32 @@ class GoodEnding:
         time.sleep(1)
 
         # --- THE REALIZATION ---
-        self._slow_print("\n'No, Colonel,' you say, wiping a tear from your eye.", delay=0.04)
-        self._slow_print("'My life isn't over.'", delay=0.06)
+        # Combined dialogue in coherent white color
+        self._slow_print("\n[white]'No, Colonel,' you say, wiping a tear from your eye.[/white]", delay=0.04)
+        self._slow_print("[white]'My life isn't over.'[/white]", delay=0.06)
         time.sleep(1)
 
         self._slow_print("\n[bold green]'It's just compiling.'[/bold green]", delay=0.1)
         time.sleep(2)
 
         # --- THE EXIT ---
-        print("\n" + "=" * 60)
-        self._slow_print("[green] > EXECUTING: sys.exit(0) ...[/green]", delay=0.05)
-        self._slow_print("[green] > TEARING DOWN: police_station_module.py ...[/green]", delay=0.05)
-        self._slow_print("[green] > RELEASING RESOURCES ...[/green]", delay=0.05)
-        print("=" * 60 + "\n")
+        # Dramatic system shutdown display with Rich Panel
+        exit_text = Text()
+        exit_text.append("> EXECUTING: sys.exit(0) ...", style="bold bright_green")
+        exit_text.append("\n", style="")
+        exit_text.append("> TEARING DOWN: police_station_module.py ...", style="bold bright_green")
+        exit_text.append("\n", style="")
+        exit_text.append("> RELEASING RESOURCES ...", style="bold bright_green")
+        
+        print("\n")
+        print(Panel(
+            exit_text,
+            border_style="bold bright_green",
+            title="[bold white on bright_green] ⚡ SYSTEM SHUTDOWN ⚡ [/]",
+            padding=(1, 4),
+            expand=False
+        ))
+        print()
         time.sleep(2)
 
         self._slow_print("You turn your back on him.", delay=0.06)
@@ -204,8 +384,7 @@ class GoodEnding:
         print("\n")
         self._slow_print("[bold green]SYSTEM: BUILD SUCCESSFUL.[/bold green]", delay=0.08)
         self._slow_print("[bold green]WELCOME TO PRODUCTION, JB.[/bold green]", delay=0.08)
-
-        time.sleep(3)
+        continue_prompt()
         
         # Create EPIC ending display with ASCII art and multiple panels
         print("\n\n\n")
@@ -243,6 +422,7 @@ class GoodEnding:
             expand=False
         )
         
+        time.sleep(1)
         # Create final score panel (replaces SYSTEM LOG)
         if stats:
             # Calculate base final score: (money / 100) + (coding_skill * 100)
@@ -296,6 +476,7 @@ class GoodEnding:
                 expand=False
             )
         
+        time.sleep(1)
         # Create final credits panel
         credits_text = Text()
         credits_text.append("Thank you for playing\n", style="bold white")

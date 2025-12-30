@@ -52,7 +52,7 @@ class MartinMeetingEvent:
             pygame.mixer.init()
             pygame.mixer.music.load(music_path)
             pygame.mixer.music.play(-1)  # Loop indefinitely
-            pygame.mixer.music.set_volume(0.3)
+            pygame.mixer.music.set_volume(0.15)  # 50% of original volume
         except Exception as e:
             print(f"\n[SYSTEM] Audio Warning: Could not play music '{track_name}' ({e})")
 
@@ -146,21 +146,21 @@ class MartinMeetingEvent:
                 self._slow_print("'Let's see Martin's style.'", delay=0.02)
                 Interaction.show_outcome("- 12500 CZK, + 2 AFFECTION POINTS (He will love the effort you put into your outfit).")
             else:
-                self._slow_print("\nYou check your card balance... declined. Embarrassing.", delay=0.05)
+                self._slow_print("\nYou check your card balance... declined. Embarrassing.", delay=0.02)
                 self._slow_print("You go in your old clothes anyway.", delay=0.02)
         elif choice == "2":
             if stats.try_spend_money(2500):
                 self.martin_meeting_affection_points += 1
                 self._slow_print(
                     "\nThe barber played his part really well, you also buy a new sharp shirt. You look in the mirror.",
-                    delay=0.05)
+                    delay=0.02)
                 self._slow_print("For a second, you don't look like a tired cop. You look like a civilian.", delay=0.02)
                 Interaction.show_outcome("- 2500 CZK, +1 AFFECTION POINT (He will appreciate the effort).")
             else:
-                self._slow_print("\nYou check your card balance... declined. Embarrassing.", delay=0.05)
-                self._slow_print("You go in your old clothes anyway.", delay=0.05)
+                self._slow_print("\nYou check your card balance... declined. Embarrassing.", delay=0.02)
+                self._slow_print("You go in your old clothes anyway.", delay=0.02)
         elif choice == "3":
-            self._slow_print("\nYou splash some cold water on your face. This is who you are right now.", delay=0.05)
+            self._slow_print("\nYou splash some cold water on your face. This is who you are right now.", delay=0.02)
             time.sleep(1)
             self._slow_print("If he's really your friend, he won't care about the hoodie.", delay=0.02)
             Interaction.show_outcome("NO CHANGE.")
@@ -170,7 +170,7 @@ class MartinMeetingEvent:
 
     def _meeting_phase(self, stats: Stats):
         """Phase 2: The Meeting and conversation topic."""
-        self._slow_print("You arrive at the restaurant. You see him in the distance.", delay=0.05)
+        self._slow_print("You arrive at the restaurant. You see him in the distance.", delay=0.02)
         self._slow_print("It's a shock. He looks... different. Bigger. Buffed.", delay=0.02)
         self._slow_print("His skin has color. He is smiling at the waitress.", delay=0.02)
         self._slow_print(
@@ -517,21 +517,24 @@ class MartinMeetingEvent:
             self._slow_print("'I'm waiting on the other side. Don't let him win.'", delay=0.02)
 
             stats.final_boss_buff = "STOIC_ANCHOR"
-            self._slow_print("\n[bold][STATUS ACQUIRED]: STOIC ANCHOR[/bold]", delay=0.04)
-            self._slow_print("(Passive: You are more resistant to Colonel's attacks.)", delay=0.01)
+            self._slow_print("\n[bold green][STATUS ACQUIRED]: STOIC ANCHOR[/bold green]", delay=0.04)
+            self._slow_print("([bold green]Passive:[/bold green] You are more resistant to Colonel's attacks.)", delay=0.01)
 
         else:
             self._slow_print("\nMartin looks at you with pity. He doesn't shake your hand.", delay=0.02)
             self._slow_print(
-                "'JB, do you remember that one guy from high school, who always wanted to open a car tuning shop but never did anything about it?'",
+                "'JB, do you remember that one guy from high school,",
                 delay=0.02)
-            self._slow_print("'Well... you kinda remind me of him now - big dreams, but no action at all.'", delay=0.02)
+            self._slow_print(
+                "who always wanted to open a car tuning shop but never did anything about it?'",
+                delay=0.02)
+            self._slow_print("\n'Well... you kinda remind me of him now - big dreams, but no action at all.'", delay=0.02)
             self._slow_print("'If you go in there like this, he's going to eat you alive.'", delay=0.02)
-            self._slow_print("'Good luck. You are going to need it.'", delay=0.02)
+            self._slow_print("'Good luck kiddo. You are going to need it.'", delay=0.02)
 
             stats.final_boss_buff = "IMPOSTER_SYNDROME"
-            self._slow_print("\n[red][STATUS ACQUIRED]: IMPOSTER SYNDROME[/red]", delay=0.04)
-            self._slow_print("(Debuff: You start the boss fight with a DEBUFF.)", delay=0.01)
+            self._slow_print("\n[bold red][STATUS ACQUIRED]: IMPOSTER SYNDROME[/bold red]", delay=0.04)
+            self._slow_print("([bold red]Debuff:[/bold red] You start the boss fight with a DEBUFF.)", delay=0.01)
 
         continue_prompt()
 

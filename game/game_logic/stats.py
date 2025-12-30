@@ -68,7 +68,7 @@ class Stats:
         # DATA: The thresholds and their corresponding messages
         coding_levels = [
             (250,
-             "S̵̟͚̐͘Č̸͕͌H̵̙̕I̸̟̐Z̷̮̈́O̶̝̐.̷͈̐ R̷E̷A̷L̷I̷T̷Y̷ ̷I̷S̷ ̷C̷O̷D̷E̷.̷ ̷I̷ ̷A̷M̷ ̷T̷H̷E̷ ̷C̷O̷M̷P̷I̷L̷E̷R̷.̷ ̷0̷1̷0̷1̷0̷1̷"),
+             "SCHIZO CODER. 01010101 'I am the Compiler.'"),
             (225, "SINGULARITY. You no longer type. You stare at the screen and the code writes itself."),
             (200, "GOD TIER. You see the Matrix. You don't write code, you manifest logic."),
             (175, "Principal Engineer. You spend more time drawing boxes on whiteboards than typing."),
@@ -85,6 +85,8 @@ class Stats:
         ]
 
         for limit, description in coding_levels:
+            if self.coding_skill == -100:
+                return "Why even learn to code, when you can be a police officer?"
             if self.coding_skill > limit:
                 return description
 
@@ -106,6 +108,8 @@ class Stats:
         ]
 
         for limit, description in hatred_levels:
+            if self.pcr_hatred == -100:
+                return "Colonel was right. You are nothing without this uniform."
             if self.pcr_hatred > limit:
                 return description
 
