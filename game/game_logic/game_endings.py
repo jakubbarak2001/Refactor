@@ -9,6 +9,7 @@ from rich.text import Text
 from rich.align import Align
 from rich.console import Group, Console
 
+from game.game_logic.interaction import Interaction
 from game.game_logic.press_enter_to_continue import continue_prompt, game_over_prompt
 
 
@@ -48,7 +49,9 @@ class GameEndings:
 
     @staticmethod
     def _slow_print(text, delay=0.02):
-        """Optional helper to make text feel more dramatic."""
+        """Optional helper to make text feel more dramatic. Automatically formats Colonel mentions."""
+        # Format Colonel mentions automatically
+        text = Interaction.format_colonel_text(text)
         for char in text:
             sys.stdout.write(char)
             sys.stdout.flush()
@@ -187,7 +190,7 @@ class GameEndings:
         continue_prompt()
 
         GameEndings._slow_print("\nInstead, you hear your own voice. Soft. Broken. Apologetic.")
-        print("\n[yellow]'I... I'm sorry, Colonel.'[/yellow]")
+        print(Interaction.format_colonel_text("\n[yellow]'I... I'm sorry, Colonel.'[/yellow]"))
         print("[yellow]'I was wrong.'[/yellow]")
         
         time.sleep(2)
@@ -198,7 +201,7 @@ class GameEndings:
         
         continue_prompt()
 
-        print("\n[yellow]'You're right, Colonel.'[/yellow]")
+        print(Interaction.format_colonel_text("\n[yellow]'You're right, Colonel.'[/yellow]"))
         print("[yellow]'There is no better job than being a police officer.'[/yellow]")
         print("[yellow]'I... I realize that now.'[/yellow]")
         
@@ -317,7 +320,7 @@ class GoodEnding:
         self._slow_print("[bold]A loud, liberating, uncontrollable laugh.[/bold]", delay=0.05)
 
         time.sleep(2)
-        print("\n[red]COLONEL: 'WHY ARE YOU LAUGHING?! YOU THINK THIS IS FUNNY? YOUR LIFE IS OVER!'[/red]")
+        print(Interaction.format_colonel_text("\n[red]COLONEL: 'WHY ARE YOU LAUGHING?! YOU THINK THIS IS FUNNY? YOUR LIFE IS OVER!'[/red]"))
         time.sleep(1)
 
         # --- THE REALIZATION ---
@@ -347,14 +350,15 @@ class GoodEnding:
             expand=False
         ))
         print()
-        time.sleep(2)
+        time.sleep(1)
 
         self._slow_print("You turn your back on him.", delay=0.06)
         self._slow_print("He is still screaming, his face red, veins popping.", delay=0.04)
         self._slow_print("But as you walk towards the exit door, his voice starts to fade.", delay=0.04)
         self._slow_print("Not because of distance. But because you lowered his volume slider.", delay=0.04)
 
-        time.sleep(2)
+        continue_prompt()
+
         self._slow_print("\nYou reach the heavy metal door of the station.", delay=0.06)
         self._slow_print("It's supposed to be locked. It's supposed to be hard to leave.", delay=0.04)
         self._slow_print("You simply push it open.", delay=0.04)
@@ -422,7 +426,6 @@ class GoodEnding:
             expand=False
         )
         
-        time.sleep(1)
         # Create final score panel (replaces SYSTEM LOG)
         if stats:
             # Calculate base final score: (money / 100) + (coding_skill * 100)
@@ -476,7 +479,6 @@ class GoodEnding:
                 expand=False
             )
         
-        time.sleep(1)
         # Create final credits panel
         credits_text = Text()
         credits_text.append("Thank you for playing\n", style="bold white")

@@ -1,4 +1,5 @@
 """Module for a variety of interactions with player."""
+import re
 from random import randint
 
 from rich import print
@@ -83,6 +84,7 @@ class Interaction:
     def show_decision(option_texts: list[tuple[str, str, str]]) -> str:
         """
         Display decision options in a Rich Panel, clearly separated from regular text.
+        Automatically formats all "Colonel" mentions in option texts.
         
         Args:
             option_texts: List of tuples (option_number, difficulty_tag, option_text)
@@ -96,7 +98,9 @@ class Interaction:
         option_numbers = []
         
         for option_num, difficulty_tag, option_text in option_texts:
-            decision_lines.append(f"{option_num}. {difficulty_tag} {option_text}")
+            # Format Colonel mentions in option text
+            formatted_option_text = Interaction.format_colonel_text(option_text)
+            decision_lines.append(f"{option_num}. {difficulty_tag} {formatted_option_text}")
             option_numbers.append(option_num)
         
         decision_content = "\n".join(decision_lines)
@@ -114,6 +118,51 @@ class Interaction:
         return Interaction.ask(tuple(option_numbers))
 
     @staticmethod
+    def format_colonel_text(text: str) -> str:
+        """
+        Automatically formats all mentions of "Colonel" (case-insensitive) 
+        to be styled as [bold dark_blue]Colonel[/bold dark_blue].
+        
+        Handles cases where "Colonel" might already be inside Rich markup tags.
+        Uses regex to find word boundaries to avoid replacing parts of other words.
+        
+        Args:
+            text: The text string to format
+            
+        Returns:
+            str: Text with all "Colonel" mentions styled
+        """
+        # Pattern to match "Colonel" as a whole word (case-insensitive)
+        # This avoids matching "Colonel" inside other words or already-styled text
+        pattern = r'\b(Colonel|colonel|COLONEL)\b'
+        
+        def replace_colonel(match):
+            original = match.group(1)
+            # Preserve original case
+            return f"[bold dark_blue]{original}[/bold dark_blue]"
+        
+        # Replace all occurrences
+        formatted = re.sub(pattern, replace_colonel, text)
+        return formatted
+
+    @staticmethod
+    def print_colonel(*args, **kwargs):
+        """
+        Wrapper around Rich's print() that automatically formats all "Colonel" mentions.
+        Use this instead of print() when you want automatic Colonel formatting.
+        """
+        # Format all string arguments
+        formatted_args = []
+        for arg in args:
+            if isinstance(arg, str):
+                formatted_args.append(Interaction.format_colonel_text(arg))
+            else:
+                formatted_args.append(arg)
+        
+        # Print with formatted text
+        print(*formatted_args, **kwargs)
+
+    @staticmethod
     def show_outcome(outcome_text: str) -> None:
         """
         Display an outcome message in a Rich Panel with styled [OUTCOME] tag.
@@ -123,6 +172,9 @@ class Interaction:
             outcome_text: The outcome message text (can include [OUTCOME] tag or will be prepended)
                          Example: "- 2500 CZK, - 10 PCR HATRED"
         """
+        # Format Colonel mentions
+        outcome_text = Interaction.format_colonel_text(outcome_text)
+        
         # Check if [OUTCOME] is already in the text, if not prepend it
         if "[OUTCOME]" not in outcome_text:
             formatted_text = f"[bright_cyan][OUTCOME][/bright_cyan]: {outcome_text}"

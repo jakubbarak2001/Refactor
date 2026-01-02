@@ -50,7 +50,11 @@ class ColonelEvent:
         Slow print with Rich markup support.
         If text contains Rich markup (e.g., [red]text[/red]), it will be rendered properly.
         Otherwise, prints character-by-character with optional styling.
+        Automatically formats all "Colonel" mentions to be bold dark_blue.
         """
+        # Format Colonel mentions automatically
+        text = Interaction.format_colonel_text(text)
+        
         # Check if text already contains Rich markup tags
         if "[" in text and ("]" in text or "[/" in text):
             # Text contains Rich markup, print it directly with Rich
@@ -130,10 +134,10 @@ class ColonelEvent:
         # --- INITIALIZATION PHASE ---
         if stats.final_boss_buff == "LEGAL_NUKE":
             self.colonel_hp -= 35
-            print("[green][PASSIVE]: 'Legal Nuke' applied. Colonel starts with -35 HP.[/green]")
+            print(Interaction.format_colonel_text("[green][PASSIVE]: 'Legal Nuke' applied. Colonel starts with -35 HP.[/green]"))
         elif stats.final_boss_buff == "FIRST_STRIKE":
             self.colonel_hp -= 20
-            print("[green][PASSIVE]: 'Aggressive Opening' applied. Colonel starts with - 20 HP.[/green]")
+            print(Interaction.format_colonel_text("[green][PASSIVE]: 'Aggressive Opening' applied. Colonel starts with - 20 HP.[/green]"))
         elif stats.final_boss_buff == "IMPOSTER_SYNDROME":
             print("[red][WARNING]: You have Imposter Syndrome. You are vulnerable.[/red]")
 

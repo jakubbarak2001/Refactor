@@ -32,7 +32,11 @@ class MartinMeetingEvent:
         """
         Prints text one character at a time to create dramatic tension.
         If text contains Rich markup (e.g., [red]text[/red]), it will be rendered properly.
+        Automatically formats all "Colonel" mentions to be bold dark_blue.
         """
+        # Format Colonel mentions automatically
+        text = Interaction.format_colonel_text(text)
+        
         # Check if text already contains Rich markup tags
         if "[" in text and ("]" in text or "[/" in text):
             # Text contains Rich markup, print it directly with Rich
@@ -244,10 +248,10 @@ class MartinMeetingEvent:
 
         self._slow_print("[bold]The truth hits you like a physical blow.[/bold]", delay=0.05)
         self._slow_print("[bold]You look down at the table. You whisper it.[/bold]", delay=0.05)
-        time.sleep(0.5)
-        self._slow_print("\n[bold red]'You are right...'[/bold red]", delay=0.10)
-        time.sleep(0.5)
-        self._slow_print("[bold red]'I... I want to quit.'[/bold red]", delay=0.10)
+        time.sleep(2)
+        self._slow_print("\n[bold red]'You are right...'[/bold red]", delay=0.3)
+        time.sleep(2)
+        self._slow_print("[bold red]'I... I want to quit.'[/bold red]", delay=0.3)
 
         self._slow_print(
             "\nAs you say those words, the reality of your debt and the Colonel's face flash before your eyes.",

@@ -4,8 +4,11 @@ Contains ALL logic, text, and outcomes for this specific story arc.
 Refactored for High Cohesion, Dark Humor, and Better Balancing.
 """
 from random import randint
+import time
 
 from rich import print
+from rich.panel import Panel
+from rich.text import Text
 
 from game.game_logic.interaction import Interaction
 from game.game_logic.press_enter_to_continue import continue_prompt
@@ -24,7 +27,7 @@ class CarIncident:
     def car_incident_event(stats: Stats) -> None:
         """The main entry point for this event."""
 
-        print("[red]ARC I - THE INCIDENT[/red]")
+        print(Panel.fit(Text("ARC I - THE INCIDENT", justify="center"), border_style="red", padding=(1, 2)))
 
         CarIncident._play_intro_scene()
 
@@ -46,8 +49,8 @@ class CarIncident:
         else:
             CarIncident._path_confession(stats)
 
-        print("\n[red]FROM THIS MOMENT, THE GRIND BEGINS[/red]: YOU WILL GAIN +5 PCR HATRED DAILY.")
-        print("[green]YOUR MAIN OBJECTIVE[/green]: IN NEXT 30 DAYS, YOU NEED TO BECOME A FULLSTACK DEVELOPER.")
+        print(Panel.fit(Text("FROM THIS MOMENT, THE GRIND BEGINS: YOU WILL GAIN +5 PCR HATRED DAILY.", justify="center"), border_style="red", padding=(1, 2)))
+        print(Panel.fit(Text("YOUR MAIN OBJECTIVE: IN NEXT 30 DAYS, YOU NEED TO BECOME A FULLSTACK DEVELOPER.", justify="center"), border_style="green", padding=(1, 2)))
         continue_prompt()
 
     @staticmethod
@@ -97,7 +100,7 @@ class CarIncident:
         stats.increment_stats_value_money(- 2000)
 
         Interaction.show_outcome("-2.000 CZK (Deductible), - 10 PCR HATRED (Humiliation).")
-        print("At least it's over. No lawyers. No Colonel. Just pure, unadulterated bureaucracy.")
+        print(Interaction.format_colonel_text("At least it's over. No lawyers. No Colonel. Just pure, unadulterated bureaucracy."))
 
     @staticmethod
     def _path_cover_up(stats: Stats):
@@ -139,16 +142,18 @@ class CarIncident:
             "\nAnd standing right under it is the Shift Commander, holding his morning coffee, watching you."
         )
         continue_prompt()
-        print(
-            "\nFast forward 2 hours."
-            "\nYou are in The Office. The air conditioning is humming."
-            "\nThey aren't calling it an accident. They are calling it [bold]'Leaving the scene of a traffic incident'[/bold]."
-            "\nThat's a crime. That's 'Lose your badge' territory."
-        )
+
+
+        print(Interaction.format_colonel_text("\nFast forward 2 hours. The Colonel has arrived at the station and is waiting for you in his office."))
+        print("He is angry. He is disappointed. He is disappointed in [bold white]you[/bold white]. It's all your fault.")
+        time.sleep(1)
+        print("'JB, you are a disgrace to the badge. You are a disgrace to the department. What were you thinking?.'")
+        print("They aren't calling it an accident. They are calling it [bold white]'Leaving the scene of a traffic incident'[/bold white].")
+        time.sleep(1)
+        print("That's a crime. That's 'Lose your badge' territory.")
         print(
             "\nThe Boss slides a piece of paper across the table."
-            "\n'Sign this admission of guilt. Pay the full damages (8.000 CZK). We forget the disciplinary charge.'"
-            "\n'Or... you can fight it.'"
+            "'Sign this admission of guilt. Pay the full damages and we forget the disciplinary charge.'"
         )
 
         # Display decision using Rich Panel with difficulty tags
@@ -191,7 +196,7 @@ class CarIncident:
         if win_roll <= 50:
             print("Paul Goodman is a shark in a cheap suit.")
             print("He found a loophole in the parking lot regulations.")
-            print("He threatened to sue the Colonel for 'Unsafe Workplace Environment'.")
+            print(Interaction.format_colonel_text("He threatened to sue the Colonel for 'Unsafe Workplace Environment'."))
             print("The Department settled to make him go away.")
 
             payout = 15000
@@ -203,7 +208,7 @@ class CarIncident:
             Interaction.show_outcome("+ 15.000 CZK, -30 PCR HATRED (Justice tastes sweet).")
 
         else:
-            print("\nThe Colonel called in a favor.")
+            print(Interaction.format_colonel_text("\nThe Colonel called in a favor."))
             print("The judge was his old drinking buddy.")
             print("Paul Goodman got held in contempt of court for wearing a neon tie.")
             print("You lost. Badly.")
@@ -213,5 +218,5 @@ class CarIncident:
             stats.increment_stats_pcr_hatred(50)
 
             print(f"\n[CRITICAL FAILURE]: You have to pay court fees of {court_fees} CZK.")
-            print("The entire station is laughing at you. The Colonel sends you a 'Get Well Soon' card.")
+            print(Interaction.format_colonel_text("The entire station is laughing at you. The Colonel sends you a 'Get Well Soon' card."))
             Interaction.show_outcome("-12.000 CZK, +50 PCR HATRED (Maximum Salt).")
