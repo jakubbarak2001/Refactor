@@ -50,10 +50,13 @@ class ColonelEvent:
         Slow print with Rich markup support.
         If text contains Rich markup (e.g., [red]text[/red]), it will be rendered properly.
         Otherwise, prints character-by-character with optional styling.
-        Automatically formats all "Colonel" mentions to be bold dark_blue.
+        Automatically formats all "Colonel" mentions to be bold dark_blue and "hatred" mentions with 😡 emoji.
         """
-        # Format Colonel mentions automatically
+        # Format Colonel, hatred, coding, and money mentions automatically
         text = Interaction.format_colonel_text(text)
+        text = Interaction.format_hatred_text(text)
+        text = Interaction.format_coding_text(text)
+        text = Interaction.format_money_text(text)
         
         # Check if text already contains Rich markup tags
         if "[" in text and ("]" in text or "[/" in text):

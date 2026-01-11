@@ -49,9 +49,12 @@ class GameEndings:
 
     @staticmethod
     def _slow_print(text, delay=0.02):
-        """Optional helper to make text feel more dramatic. Automatically formats Colonel mentions."""
-        # Format Colonel mentions automatically
+        """Optional helper to make text feel more dramatic. Automatically formats Colonel and hatred mentions."""
+        # Format Colonel, hatred, coding, and money mentions automatically
         text = Interaction.format_colonel_text(text)
+        text = Interaction.format_hatred_text(text)
+        text = Interaction.format_coding_text(text)
+        text = Interaction.format_money_text(text)
         for char in text:
             sys.stdout.write(char)
             sys.stdout.flush()

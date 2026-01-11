@@ -15,9 +15,10 @@ def stats():
 # ==========================================
 # PATH 1: The "Good Soldier" (Confession)
 # ==========================================
+@patch('game.game_logic.car_incident_event.continue_prompt')
 @patch('builtins.input')
 @patch('game.game_logic.car_incident_event.Interaction.ask')
-def test_incident_confession(mock_decision, _, stats):
+def test_incident_confession(mock_decision, _, __, stats):
     """
     Scenario: Player chooses Option 2 (Confess).
     Outcome: - 2000 Money, +10 Hatred.
@@ -33,10 +34,11 @@ def test_incident_confession(mock_decision, _, stats):
 # ==========================================
 # PATH 2: The "MacGyver" (Cover Up) - SUCCESS
 # ==========================================
+@patch('game.game_logic.car_incident_event.continue_prompt')
 @patch('builtins.input')
 @patch('game.game_logic.car_incident_event.Interaction.ask')
 @patch('game.game_logic.car_incident_event.randint')
-def test_incident_coverup_success(mock_randint, mock_decision, _, stats):
+def test_incident_coverup_success(mock_randint, mock_decision, _, __, stats):
     """
     Scenario: Player chooses Option 1 (Cover Up) AND Rolls Success (<= 50).
     Outcome: 0 Money Lost, -5 Hatred.
@@ -53,10 +55,11 @@ def test_incident_coverup_success(mock_randint, mock_decision, _, stats):
 # ==========================================
 # PATH 3: Cover Up Fails -> Caught -> SUBMIT
 # ==========================================
+@patch('game.game_logic.car_incident_event.continue_prompt')
 @patch('builtins.input')
 @patch('game.game_logic.car_incident_event.Interaction.ask')
 @patch('game.game_logic.car_incident_event.randint')
-def test_incident_caught_submit(mock_randint, mock_decision, _, stats):
+def test_incident_caught_submit(mock_randint, mock_decision, _, __, stats):
     """
     Scenario:
     1. Cover Up Fails (Roll > 50).
@@ -79,10 +82,11 @@ def test_incident_caught_submit(mock_randint, mock_decision, _, stats):
 # ==========================================
 # PATH 4: Cover Up Fails -> Caught -> PAUL GOODMAN (WIN)
 # ==========================================
+@patch('game.game_logic.car_incident_event.continue_prompt')
 @patch('builtins.input')
 @patch('game.game_logic.car_incident_event.Interaction.ask')
 @patch('game.game_logic.car_incident_event.randint')
-def test_incident_paul_goodman_win(mock_randint, mock_decision, _, stats):
+def test_incident_paul_goodman_win(mock_randint, mock_decision, _, __, stats):
     """
     Scenario:
     1. Cover Up Fails (Roll > 50).
@@ -105,10 +109,11 @@ def test_incident_paul_goodman_win(mock_randint, mock_decision, _, stats):
 # ==========================================
 # PATH 5: Cover Up Fails -> Caught -> PAUL GOODMAN (LOSS)
 # ==========================================
+@patch('game.game_logic.car_incident_event.continue_prompt')
 @patch('builtins.input')
 @patch('game.game_logic.car_incident_event.Interaction.ask')
 @patch('game.game_logic.car_incident_event.randint')
-def test_incident_paul_goodman_loss(mock_randint, mock_decision, _, stats):
+def test_incident_paul_goodman_loss(mock_randint, mock_decision, _, __, stats):
     """
     Scenario:
     1. Cover Up Fails (Roll > 50).

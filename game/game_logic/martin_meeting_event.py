@@ -32,10 +32,13 @@ class MartinMeetingEvent:
         """
         Prints text one character at a time to create dramatic tension.
         If text contains Rich markup (e.g., [red]text[/red]), it will be rendered properly.
-        Automatically formats all "Colonel" mentions to be bold dark_blue.
+        Automatically formats all "Colonel" mentions to be bold dark_blue and "hatred" mentions with 😡 emoji.
         """
-        # Format Colonel mentions automatically
+        # Format Colonel, hatred, coding, and money mentions automatically
         text = Interaction.format_colonel_text(text)
+        text = Interaction.format_hatred_text(text)
+        text = Interaction.format_coding_text(text)
+        text = Interaction.format_money_text(text)
         
         # Check if text already contains Rich markup tags
         if "[" in text and ("]" in text or "[/" in text):
@@ -261,7 +264,7 @@ class MartinMeetingEvent:
                 "\n[red][RELIEF]: - 15 PCR HATRED (It feels so good to say aloud what you already knew).[/red]",
                 delay=0.01)
         else:
-            stats.increment_stats_pcr_hatred(15)
+            stats.increment_stats_pcr_hatred(15) 
             self._slow_print("\n[red][CRITICAL EFFECT]: + 15 PCR HATRED (The Fear of leaving is now real).[/red]",
                              delay=0.01)
 

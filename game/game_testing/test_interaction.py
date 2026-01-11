@@ -242,6 +242,240 @@ class TestInteraction(unittest.TestCase):
         assert "2" in error_call
         assert "3" in error_call
 
+    # ==========================================
+    # TEST format_hatred_text()
+    # ==========================================
+
+    def test_format_hatred_text_lowercase(self):
+        """Test format_hatred_text adds 😡 emoji before lowercase 'hatred'."""
+        text = "You gain +10 PCR hatred."
+        result = Interaction.format_hatred_text(text)
+        self.assertIn("😡", result)
+        self.assertIn("😡 hatred", result)
+
+    def test_format_hatred_text_uppercase(self):
+        """Test format_hatred_text adds 😡 emoji before uppercase 'HATRED'."""
+        text = "You gain +10 PCR HATRED."
+        result = Interaction.format_hatred_text(text)
+        self.assertIn("😡", result)
+        self.assertIn("😡 HATRED", result)
+
+    def test_format_hatred_text_mixed_case(self):
+        """Test format_hatred_text adds 😡 emoji before mixed case 'Hatred'."""
+        text = "Your Hatred level is high."
+        result = Interaction.format_hatred_text(text)
+        self.assertIn("😡", result)
+        self.assertIn("😡 Hatred", result)
+
+    def test_format_hatred_text_multiple_occurrences(self):
+        """Test format_hatred_text adds 😡 emoji before all 'hatred' mentions."""
+        text = "Your hatred is rising. The hatred burns inside you."
+        result = Interaction.format_hatred_text(text)
+        # Should have 2 emojis (one for each hatred)
+        self.assertEqual(result.count("😡"), 2)
+        self.assertIn("😡 hatred", result)
+
+    def test_format_hatred_text_pcr_hatred(self):
+        """Test format_hatred_text handles 'PCR HATRED' correctly."""
+        text = "- 10 PCR HATRED (Humiliation)."
+        result = Interaction.format_hatred_text(text)
+        self.assertIn("😡", result)
+        self.assertIn("😡 HATRED", result)
+
+    def test_format_hatred_text_no_hatred(self):
+        """Test format_hatred_text doesn't modify text without 'hatred'."""
+        text = "You gain +1000 CZK."
+        result = Interaction.format_hatred_text(text)
+        self.assertEqual(result, text)
+        self.assertNotIn("😡", result)
+
+    def test_format_hatred_text_with_rich_markup(self):
+        """Test format_hatred_text works with Rich markup tags."""
+        text = "[red]+ 25 PCR HATRED[/red]"
+        result = Interaction.format_hatred_text(text)
+        self.assertIn("😡", result)
+        self.assertIn("😡 HATRED", result)
+        # Should preserve Rich markup
+        self.assertIn("[red]", result)
+        self.assertIn("[/red]", result)
+
+    def test_format_hatred_text_word_boundary(self):
+        """Test format_hatred_text only matches 'hatred' as whole word."""
+        text = "I hate red cars."  # Should not match "hate red"
+        result = Interaction.format_hatred_text(text)
+        self.assertNotIn("😡", result)
+        self.assertEqual(result, text)
+
+    def test_show_outcome_formats_hatred(self):
+        """Test show_outcome automatically formats hatred with emoji."""
+        with patch('game.game_logic.interaction.print') as mock_print:
+            Interaction.show_outcome("- 10 PCR HATRED.")
+            # Check that print was called with a Panel
+            call_args = mock_print.call_args[0][0]
+            # Panel object has a renderable attribute that contains the text
+            panel_renderable = call_args.renderable
+            # Convert to string to check for emoji
+            renderable_str = str(panel_renderable)
+            self.assertIn("😡", renderable_str)
+            self.assertIn("HATRED", renderable_str)
+
+    # ==========================================
+    # TEST format_coding_text()
+    # ==========================================
+
+    def test_format_coding_text_lowercase(self):
+        """Test format_coding_text adds 💻 emoji before lowercase 'coding'."""
+        text = "You gain +10 coding skills."
+        result = Interaction.format_coding_text(text)
+        self.assertIn("💻", result)
+        self.assertIn("💻 coding", result)
+
+    def test_format_coding_text_uppercase(self):
+        """Test format_coding_text adds 💻 emoji before uppercase 'CODING'."""
+        text = "You gain +10 CODING SKILLS."
+        result = Interaction.format_coding_text(text)
+        self.assertIn("💻", result)
+        self.assertIn("💻 CODING", result)
+
+    def test_format_coding_text_mixed_case(self):
+        """Test format_coding_text adds 💻 emoji before mixed case 'Coding'."""
+        text = "Your Coding skill is high."
+        result = Interaction.format_coding_text(text)
+        self.assertIn("💻", result)
+        self.assertIn("💻 Coding", result)
+
+    def test_format_coding_text_multiple_occurrences(self):
+        """Test format_coding_text adds 💻 emoji before all 'coding' mentions."""
+        text = "Your coding is improving. The coding skills are valuable."
+        result = Interaction.format_coding_text(text)
+        # Should have 2 emojis (one for each coding)
+        self.assertEqual(result.count("💻"), 2)
+        self.assertIn("💻 coding", result)
+
+    def test_format_coding_text_coding_skill(self):
+        """Test format_coding_text handles 'CODING SKILL' correctly."""
+        text = "+ 5 CODING SKILL points."
+        result = Interaction.format_coding_text(text)
+        self.assertIn("💻", result)
+        self.assertIn("💻 CODING", result)
+
+    def test_format_coding_text_no_coding(self):
+        """Test format_coding_text doesn't modify text without 'coding'."""
+        text = "You gain +1000 CZK."
+        result = Interaction.format_coding_text(text)
+        self.assertEqual(result, text)
+        self.assertNotIn("💻", result)
+
+    def test_format_coding_text_with_rich_markup(self):
+        """Test format_coding_text works with Rich markup tags."""
+        text = "[green]+ 10 CODING SKILL[/green]"
+        result = Interaction.format_coding_text(text)
+        self.assertIn("💻", result)
+        self.assertIn("💻 CODING", result)
+        # Should preserve Rich markup
+        self.assertIn("[green]", result)
+        self.assertIn("[/green]", result)
+
+    def test_format_coding_text_word_boundary(self):
+        """Test format_coding_text only matches 'coding' as whole word."""
+        text = "I am encoding data."  # Should not match "encoding"
+        result = Interaction.format_coding_text(text)
+        self.assertNotIn("💻", result)
+        self.assertEqual(result, text)
+
+    # ==========================================
+    # TEST format_money_text()
+    # ==========================================
+
+    def test_format_money_text_lowercase(self):
+        """Test format_money_text adds 💰 emoji before lowercase 'money'."""
+        text = "You gain +1000 money."
+        result = Interaction.format_money_text(text)
+        self.assertIn("💰", result)
+        self.assertIn("💰 money", result)
+
+    def test_format_money_text_uppercase(self):
+        """Test format_money_text adds 💰 emoji before uppercase 'MONEY'."""
+        text = "You gain +1000 MONEY."
+        result = Interaction.format_money_text(text)
+        self.assertIn("💰", result)
+        self.assertIn("💰 MONEY", result)
+
+    def test_format_money_text_mixed_case(self):
+        """Test format_money_text adds 💰 emoji before mixed case 'Money'."""
+        text = "Your Money amount is high."
+        result = Interaction.format_money_text(text)
+        self.assertIn("💰", result)
+        self.assertIn("💰 Money", result)
+
+    def test_format_money_text_multiple_occurrences(self):
+        """Test format_money_text adds 💰 emoji before all 'money' mentions."""
+        text = "Your money is increasing. The money helps you survive."
+        result = Interaction.format_money_text(text)
+        # Should have 2 emojis (one for each money)
+        self.assertEqual(result.count("💰"), 2)
+        self.assertIn("💰 money", result)
+
+    def test_format_money_text_czk(self):
+        """Test format_money_text handles 'CZK' currency correctly."""
+        text = "+ 1000 CZK (Salary)."
+        result = Interaction.format_money_text(text)
+        self.assertIn("💰", result)
+        # Should add emoji before CZK when it appears with money context
+        self.assertIn("💰", result)
+
+    def test_format_money_text_czk_with_period_separator(self):
+        """Test format_money_text handles 'CZK' with period thousands separator."""
+        text = "-8.000 CZK, + 25 PCR HATRED."
+        result = Interaction.format_money_text(text)
+        self.assertIn("💰", result)
+        # Should match the full "8.000 CZK" not break it
+        self.assertIn("💰 8.000 CZK", result)
+        # Should not break the number
+        self.assertNotIn("💰 000 CZK", result)
+
+    def test_format_money_text_no_money(self):
+        """Test format_money_text doesn't modify text without 'money'."""
+        text = "You gain +10 coding skills."
+        result = Interaction.format_money_text(text)
+        self.assertEqual(result, text)
+        self.assertNotIn("💰", result)
+
+    def test_format_money_text_with_rich_markup(self):
+        """Test format_money_text works with Rich markup tags."""
+        text = "[green]+ 1000 CZK[/green]"
+        result = Interaction.format_money_text(text)
+        self.assertIn("💰", result)
+        # Should preserve Rich markup
+        self.assertIn("[green]", result)
+        self.assertIn("[/green]", result)
+
+    def test_format_money_text_word_boundary(self):
+        """Test format_money_text only matches 'money' as whole word."""
+        text = "I am monitoring the system."  # Should not match "monitoring"
+        result = Interaction.format_money_text(text)
+        self.assertNotIn("💰", result)
+        self.assertEqual(result, text)
+
+    def test_show_outcome_formats_coding(self):
+        """Test show_outcome automatically formats coding with emoji."""
+        with patch('game.game_logic.interaction.print') as mock_print:
+            Interaction.show_outcome("+ 10 CODING SKILL.")
+            call_args = mock_print.call_args[0][0]
+            panel_renderable = call_args.renderable
+            renderable_str = str(panel_renderable)
+            self.assertIn("💻", renderable_str)
+            self.assertIn("CODING", renderable_str)
+
+    def test_show_outcome_formats_money(self):
+        """Test show_outcome automatically formats money with emoji."""
+        with patch('game.game_logic.interaction.print') as mock_print:
+            Interaction.show_outcome("+ 1000 CZK.")
+            call_args = mock_print.call_args[0][0]
+            panel_renderable = call_args.renderable
+            renderable_str = str(panel_renderable)
+            self.assertIn("💰", renderable_str)
+
 
 if __name__ == '__main__':
     unittest.main()

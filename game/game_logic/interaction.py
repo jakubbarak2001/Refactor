@@ -98,8 +98,11 @@ class Interaction:
         option_numbers = []
         
         for option_num, difficulty_tag, option_text in option_texts:
-            # Format Colonel mentions in option text
+            # Format Colonel, hatred, coding, and money mentions in option text
             formatted_option_text = Interaction.format_colonel_text(option_text)
+            formatted_option_text = Interaction.format_hatred_text(formatted_option_text)
+            formatted_option_text = Interaction.format_coding_text(formatted_option_text)
+            formatted_option_text = Interaction.format_money_text(formatted_option_text)
             decision_lines.append(f"{option_num}. {difficulty_tag} {formatted_option_text}")
             option_numbers.append(option_num)
         
@@ -146,6 +149,113 @@ class Interaction:
         return formatted
 
     @staticmethod
+    def format_hatred_text(text: str) -> str:
+        """
+        Automatically formats all mentions of "hatred" (case-insensitive) 
+        to be prefixed with 😡 emoji.
+        
+        Handles cases where "hatred" might already be inside Rich markup tags.
+        Uses regex to find word boundaries to avoid replacing parts of other words.
+        
+        Args:
+            text: The text string to format
+            
+        Returns:
+            str: Text with all "hatred" mentions prefixed with 😡 emoji
+        """
+        # Pattern to match "hatred" as a whole word (case-insensitive)
+        # This avoids matching "hatred" inside other words
+        pattern = r'\b(hatred|Hatred|HATRED)\b'
+        
+        def replace_hatred(match):
+            original = match.group(1)
+            # Add emoji before the word, preserving original case
+            return f"😡 {original}"
+        
+        # Replace all occurrences
+        formatted = re.sub(pattern, replace_hatred, text)
+        return formatted
+
+    @staticmethod
+    def format_coding_text(text: str) -> str:
+        """
+        Automatically formats all mentions of "coding" (case-insensitive) 
+        to be prefixed with 💻 emoji.
+        
+        Handles cases where "coding" might already be inside Rich markup tags.
+        Uses regex to find word boundaries to avoid replacing parts of other words.
+        
+        Args:
+            text: The text string to format
+            
+        Returns:
+            str: Text with all "coding" mentions prefixed with 💻 emoji
+        """
+        # Pattern to match "coding" as a whole word (case-insensitive)
+        # This avoids matching "coding" inside other words like "encoding"
+        pattern = r'\b(coding|Coding|CODING)\b'
+        
+        def replace_coding(match):
+            original = match.group(1)
+            # Add emoji before the word, preserving original case
+            return f"💻 {original}"
+        
+        # Replace all occurrences
+        formatted = re.sub(pattern, replace_coding, text)
+        return formatted
+
+    @staticmethod
+    def format_money_text(text: str) -> str:
+        """
+        Automatically formats all mentions of "money" (case-insensitive) 
+        to be prefixed with 💰 emoji.
+        
+        Also handles "CZK" currency mentions by adding emoji before CZK.
+        Handles cases where "money" might already be inside Rich markup tags.
+        Uses regex to find word boundaries to avoid replacing parts of other words.
+        
+        Args:
+            text: The text string to format
+            
+        Returns:
+            str: Text with all "money" and "CZK" mentions prefixed with 💰 emoji
+        """
+        # Pattern to match "money" as a whole word (case-insensitive)
+        # This avoids matching "money" inside other words
+        pattern = r'\b(money|Money|MONEY)\b'
+        
+        def replace_money(match):
+            original = match.group(1)
+            # Add emoji before the word, preserving original case
+            return f"💰 {original}"
+        
+        # Replace all occurrences of "money"
+        formatted = re.sub(pattern, replace_money, text)
+        
+        # Also handle CZK currency mentions - add emoji before CZK if not already preceded by emoji
+        # Match CZK that appears after numbers (like "1000 CZK", "1,000 CZK", "8.000 CZK")
+        # Handle both comma and period as thousands separators
+        # Only add if there's no emoji immediately before it
+        def add_emoji_to_czk(match):
+            czk_match = match.group(0)
+            # Check if there's already an emoji in the 10 characters before CZK
+            start_pos = match.start()
+            context_before = formatted[max(0, start_pos - 10):start_pos]
+            if "💰" not in context_before:
+                return f"💰 {czk_match}"
+            return czk_match
+        
+        # Match patterns like:
+        # - "1000 CZK" (simple number)
+        # - "1,000 CZK" (comma separator)
+        # - "8.000 CZK" (period separator)
+        # - "1,234.56 CZK" (both separators)
+        # Pattern: digits, optionally followed by comma/period and more digits, then optional space and CZK
+        formatted = re.sub(r'(\d+[.,]?\d*[.,]?\d*\s*CZK)', add_emoji_to_czk, formatted)
+        
+        return formatted
+
+    @staticmethod
     def print_colonel(*args, **kwargs):
         """
         Wrapper around Rich's print() that automatically formats all "Colonel" mentions.
@@ -167,13 +277,17 @@ class Interaction:
         """
         Display an outcome message in a Rich Panel with styled [OUTCOME] tag.
         The [OUTCOME] tag is displayed in bright cyan/teal color, rest of text is normal.
+        Automatically formats Colonel and hatred mentions.
         
         Args:
             outcome_text: The outcome message text (can include [OUTCOME] tag or will be prepended)
                          Example: "- 2500 CZK, - 10 PCR HATRED"
         """
-        # Format Colonel mentions
+        # Format Colonel, hatred, coding, and money mentions
         outcome_text = Interaction.format_colonel_text(outcome_text)
+        outcome_text = Interaction.format_hatred_text(outcome_text)
+        outcome_text = Interaction.format_coding_text(outcome_text)
+        outcome_text = Interaction.format_money_text(outcome_text)
         
         # Check if [OUTCOME] is already in the text, if not prepend it
         if "[OUTCOME]" not in outcome_text:
