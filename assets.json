@@ -1,18 +1,18 @@
 {
   "characters": {
     "colonel": {
-      "normal": "assets/sprites/colonel_normal.jpg",
-      "angry": "assets/sprites/colonel_angry.jpg",
-      "disappointed": "assets/sprites/colonel_dissapointed.jpg",
-      "default": "assets/sprites/colonel_normal.jpg",
-      "neutral": "assets/sprites/colonel_normal.jpg"
+      "normal": "assets/sprites/colonel_normal.png",
+      "angry": "assets/sprites/colonel_angry.png",
+      "disappointed": "assets/sprites/colonel_dissapointed.png",
+      "default": "assets/sprites/colonel_normal.png",
+      "neutral": "assets/sprites/colonel_normal.png"
     },
     "jb": {
-      "default": "assets/sprites/jb_neutral.jpg",
-      "neutral": "assets/sprites/jb_neutral.jpg",
-      "worried": "assets/sprites/jb_worried.jpg",
-      "determined": "assets/sprites/jb_determined.jpg",
-      "bored": "assets/sprites/jb_bored.jpg"
+      "default": "assets/sprites/jb_neutral.png",
+      "neutral": "assets/sprites/jb_neutral.png",
+      "worried": "assets/sprites/jb_worried.png",
+      "determined": "assets/sprites/jb_determined.png",
+      "bored": "assets/sprites/jb_bored.png"
     },
     "martin": {
       "default": "assets/sprites/martin_default.png",
