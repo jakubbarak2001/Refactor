@@ -14,6 +14,7 @@ from game.game_logic.game_endings import GoodEnding, GameEndings
 from game.game_logic.interaction import Interaction
 from game.game_logic.press_enter_to_continue import continue_prompt
 from game.game_logic.stats import Stats
+from game.game_logic.story import Arc
 
 
 def resource_path(relative_path):
@@ -133,6 +134,8 @@ class ColonelEvent:
     def trigger_event(self, stats: Stats):
         # --- MUSIC START: TENSION THEME ---
         self._play_music("tension_theme.mp3")
+
+        Arc.display_arc_title("III", "THE CONFRONTATION", border_color="red")
 
         # --- INITIALIZATION PHASE ---
         if stats.final_boss_buff == "LEGAL_NUKE":

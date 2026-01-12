@@ -3,6 +3,7 @@ from rich import print
 from rich.panel import Panel
 from rich.text import Text
 from rich.align import Align
+from rich.box import DOUBLE
 
 from game.game_logic.press_enter_to_continue import continue_prompt
 from game.game_logic.stats import Stats
@@ -38,7 +39,7 @@ class Arc:
             Panel(
                 Align.center(combined_text),
                 border_style=f"bold {border_color}",
-                box="double",
+                box=DOUBLE,
                 padding=(2, 6),
                 width=50
             )

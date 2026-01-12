@@ -13,6 +13,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from game.game_logic.car_incident_event import CarIncident
+from game.game_logic.character_class import CharacterClass
 from game.game_logic.random_events import RandomEvents
 from game.game_logic.stats import Stats
 from game.game_logic.day_cycle import DayCycle
@@ -52,6 +53,9 @@ def main():
     story.start_game_message()
 
     game.set_difficulty_level()
+    
+    # Character class selection
+    CharacterClass.select_class(stats)
 
     CarIncident.car_incident_event(stats)
 

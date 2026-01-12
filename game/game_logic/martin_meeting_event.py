@@ -9,6 +9,7 @@ from rich.panel import Panel
 from game.game_logic.interaction import Interaction
 from game.game_logic.press_enter_to_continue import continue_prompt
 from game.game_logic.stats import Stats
+from game.game_logic.story import Arc
 
 
 def resource_path(relative_path):
@@ -105,7 +106,7 @@ class MartinMeetingEvent:
         # --- MUSIC START: THE ARRIVAL ---
         self._play_music("martin_meeting_event_the_arrival.mp3")
 
-        print("\n[red]ARC II. - THE AWAKENING[/red]")
+        Arc.display_arc_title("II", "THE AWAKENING", border_color="red")
         print("DAY 24 - 11:30 AM")
 
         self._preparation_phase(stats)

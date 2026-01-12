@@ -1,21 +1,113 @@
 """Module for a variety of interactions with player."""
 import re
+from abc import ABC, abstractmethod
 from random import randint
+from typing import Optional
 
 from rich import print
 from rich.panel import Panel
 
 
-class Interaction:
+class InteractionInterface(ABC):
     """
-    Helper class for handling user input, decision formatting, and difficulty tags.
-    Centralizes how the player interacts with the game mechanics.
+    Abstract interface for player interactions.
+    Allows swapping between terminal and GUI implementations.
+    """
+
+    @abstractmethod
+    def ask(
+        self, 
+        options: tuple, 
+        character: Optional[str] = None, 
+        expression: str = "neutral", 
+        bg: Optional[str] = None
+    ) -> str:
+        """
+        Prompts the user until they enter a valid option from the provided tuple.
+        
+        Args:
+            options: Tuple of valid option strings (e.g., ("1", "2", "3"))
+            character: Optional character name for visual display (e.g., "colonel", "jb")
+            expression: Character expression/emotion (e.g., "angry", "neutral", "smiling")
+            bg: Optional background scene identifier (e.g., "office", "parking_lot")
+            
+        Returns:
+            str: The selected option
+        """
+        pass
+
+    @abstractmethod
+    def show_decision(
+        self, 
+        option_texts: list[tuple[str, str, str]],
+        character: Optional[str] = None,
+        expression: str = "neutral",
+        bg: Optional[str] = None
+    ) -> str:
+        """
+        Display decision options and get user choice.
+        
+        Args:
+            option_texts: List of tuples (option_number, difficulty_tag, option_text)
+            character: Optional character name for visual display
+            expression: Character expression/emotion
+            bg: Optional background scene identifier
+            
+        Returns:
+            str: The selected option number
+        """
+        pass
+
+    @abstractmethod
+    def show_outcome(
+        self, 
+        outcome_text: str,
+        character: Optional[str] = None,
+        expression: str = "neutral",
+        bg: Optional[str] = None
+    ) -> None:
+        """
+        Display an outcome message.
+        
+        Args:
+            outcome_text: The outcome message text
+            character: Optional character name for visual display
+            expression: Character expression/emotion
+            bg: Optional background scene identifier
+        """
+        pass
+
+    @abstractmethod
+    def print_text(
+        self, 
+        text: str,
+        character: Optional[str] = None,
+        expression: str = "neutral",
+        bg: Optional[str] = None
+    ) -> None:
+        """
+        Display text (replaces print() calls).
+        
+        Args:
+            text: Text to display
+            character: Optional character name for visual display
+            expression: Character expression/emotion
+            bg: Optional background scene identifier
+        """
+        pass
+
+
+class TerminalInteraction(InteractionInterface):
+    """
+    Terminal-based implementation of InteractionInterface.
+    Uses Rich TUI for display and input() for user input.
     """
 
     @staticmethod
     def get_difficulty_tag(chance: int = None) -> str:
         """
         Returns a descriptive tag based on the percentage chance of success.
+        (Static utility method - doesn't need to be abstract)
 
         Args:
             chance (int, optional): The success probability (0-100+).
@@ -49,6 +141,7 @@ class Interaction:
     def attempt_action(chance: int) -> bool:
         """
         Performs the RNG check for a skill or luck-based action.
+        (Static utility method - doesn't need to be abstract)
 
         Args:
             chance (int): The percentage chance of success (0-100).
@@ -67,11 +160,16 @@ class Interaction:
 
         return roll <= chance
 
-    @staticmethod
-    def ask(options: tuple) -> str:
+    def ask(
+        self, 
+        options: tuple, 
+        character: Optional[str] = None, 
+        expression: str = "neutral", 
+        bg: Optional[str] = None
+    ) -> str:
         """
         Prompts the user until they enter a valid option from the provided tuple.
-        Returns the valid choice as a string.
+        Terminal implementation ignores character, expression, and bg parameters.
         """
         while True:
             choice = input("> ").strip()
@@ -80,18 +178,17 @@ class Interaction:
 
             print(f"Invalid choice. Please enter one of: {', '.join(options)}")
 
-    @staticmethod
-    def show_decision(option_texts: list[tuple[str, str, str]]) -> str:
+    def show_decision(
+        self, 
+        option_texts: list[tuple[str, str, str]],
+        character: Optional[str] = None,
+        expression: str = "neutral",
+        bg: Optional[str] = None
+    ) -> str:
         """
         Display decision options in a Rich Panel, clearly separated from regular text.
         Automatically formats all "Colonel" mentions in option texts.
-        
-        Args:
-            option_texts: List of tuples (option_number, difficulty_tag, option_text)
-                         Example: [("1", "[UNCERTAIN]", "THE 'MACGYVER' MANEUVER..."), ...]
-        
-        Returns:
-            str: The selected option number
+        Terminal implementation ignores character, expression, and bg parameters.
         """
         # Build the decision text with all options
         decision_lines = []
@@ -99,10 +196,10 @@ class Interaction:
         
         for option_num, difficulty_tag, option_text in option_texts:
             # Format Colonel, hatred, coding, and money mentions in option text
-            formatted_option_text = Interaction.format_colonel_text(option_text)
-            formatted_option_text = Interaction.format_hatred_text(formatted_option_text)
-            formatted_option_text = Interaction.format_coding_text(formatted_option_text)
-            formatted_option_text = Interaction.format_money_text(formatted_option_text)
+            formatted_option_text = TerminalInteraction.format_colonel_text(option_text)
+            formatted_option_text = TerminalInteraction.format_hatred_text(formatted_option_text)
+            formatted_option_text = TerminalInteraction.format_coding_text(formatted_option_text)
+            formatted_option_text = TerminalInteraction.format_money_text(formatted_option_text)
             decision_lines.append(f"{option_num}. {difficulty_tag} {formatted_option_text}")
             option_numbers.append(option_num)
         
@@ -118,176 +215,24 @@ class Interaction:
         ))
         
         # Get user choice using existing ask method
-        return Interaction.ask(tuple(option_numbers))
+        return self.ask(tuple(option_numbers), character, expression, bg)
 
-    @staticmethod
-    def format_colonel_text(text: str) -> str:
-        """
-        Automatically formats all mentions of "Colonel" (case-insensitive) 
-        to be styled as [bold dark_blue]Colonel[/bold dark_blue].
-        
-        Handles cases where "Colonel" might already be inside Rich markup tags.
-        Uses regex to find word boundaries to avoid replacing parts of other words.
-        
-        Args:
-            text: The text string to format
-            
-        Returns:
-            str: Text with all "Colonel" mentions styled
-        """
-        # Pattern to match "Colonel" as a whole word (case-insensitive)
-        # This avoids matching "Colonel" inside other words or already-styled text
-        pattern = r'\b(Colonel|colonel|COLONEL)\b'
-        
-        def replace_colonel(match):
-            original = match.group(1)
-            # Preserve original case
-            return f"[bold dark_blue]{original}[/bold dark_blue]"
-        
-        # Replace all occurrences
-        formatted = re.sub(pattern, replace_colonel, text)
-        return formatted
-
-    @staticmethod
-    def format_hatred_text(text: str) -> str:
-        """
-        Automatically formats all mentions of "hatred" (case-insensitive) 
-        to be prefixed with 😡 emoji.
-        
-        Handles cases where "hatred" might already be inside Rich markup tags.
-        Uses regex to find word boundaries to avoid replacing parts of other words.
-        
-        Args:
-            text: The text string to format
-            
-        Returns:
-            str: Text with all "hatred" mentions prefixed with 😡 emoji
-        """
-        # Pattern to match "hatred" as a whole word (case-insensitive)
-        # This avoids matching "hatred" inside other words
-        pattern = r'\b(hatred|Hatred|HATRED)\b'
-        
-        def replace_hatred(match):
-            original = match.group(1)
-            # Add emoji before the word, preserving original case
-            return f"😡 {original}"
-        
-        # Replace all occurrences
-        formatted = re.sub(pattern, replace_hatred, text)
-        return formatted
-
-    @staticmethod
-    def format_coding_text(text: str) -> str:
-        """
-        Automatically formats all mentions of "coding" (case-insensitive) 
-        to be prefixed with 💻 emoji.
-        
-        Handles cases where "coding" might already be inside Rich markup tags.
-        Uses regex to find word boundaries to avoid replacing parts of other words.
-        
-        Args:
-            text: The text string to format
-            
-        Returns:
-            str: Text with all "coding" mentions prefixed with 💻 emoji
-        """
-        # Pattern to match "coding" as a whole word (case-insensitive)
-        # This avoids matching "coding" inside other words like "encoding"
-        pattern = r'\b(coding|Coding|CODING)\b'
-        
-        def replace_coding(match):
-            original = match.group(1)
-            # Add emoji before the word, preserving original case
-            return f"💻 {original}"
-        
-        # Replace all occurrences
-        formatted = re.sub(pattern, replace_coding, text)
-        return formatted
-
-    @staticmethod
-    def format_money_text(text: str) -> str:
-        """
-        Automatically formats all mentions of "money" (case-insensitive) 
-        to be prefixed with 💰 emoji.
-        
-        Also handles "CZK" currency mentions by adding emoji before CZK.
-        Handles cases where "money" might already be inside Rich markup tags.
-        Uses regex to find word boundaries to avoid replacing parts of other words.
-        
-        Args:
-            text: The text string to format
-            
-        Returns:
-            str: Text with all "money" and "CZK" mentions prefixed with 💰 emoji
-        """
-        # Pattern to match "money" as a whole word (case-insensitive)
-        # This avoids matching "money" inside other words
-        pattern = r'\b(money|Money|MONEY)\b'
-        
-        def replace_money(match):
-            original = match.group(1)
-            # Add emoji before the word, preserving original case
-            return f"💰 {original}"
-        
-        # Replace all occurrences of "money"
-        formatted = re.sub(pattern, replace_money, text)
-        
-        # Also handle CZK currency mentions - add emoji before CZK if not already preceded by emoji
-        # Match CZK that appears after numbers (like "1000 CZK", "1,000 CZK", "8.000 CZK")
-        # Handle both comma and period as thousands separators
-        # Only add if there's no emoji immediately before it
-        def add_emoji_to_czk(match):
-            czk_match = match.group(0)
-            # Check if there's already an emoji in the 10 characters before CZK
-            start_pos = match.start()
-            context_before = formatted[max(0, start_pos - 10):start_pos]
-            if "💰" not in context_before:
-                return f"💰 {czk_match}"
-            return czk_match
-        
-        # Match patterns like:
-        # - "1000 CZK" (simple number)
-        # - "1,000 CZK" (comma separator)
-        # - "8.000 CZK" (period separator)
-        # - "1,234.56 CZK" (both separators)
-        # Pattern: digits, optionally followed by comma/period and more digits, then optional space and CZK
-        formatted = re.sub(r'(\d+[.,]?\d*[.,]?\d*\s*CZK)', add_emoji_to_czk, formatted)
-        
-        return formatted
-
-    @staticmethod
-    def print_colonel(*args, **kwargs):
-        """
-        Wrapper around Rich's print() that automatically formats all "Colonel" mentions.
-        Use this instead of print() when you want automatic Colonel formatting.
-        """
-        # Format all string arguments
-        formatted_args = []
-        for arg in args:
-            if isinstance(arg, str):
-                formatted_args.append(Interaction.format_colonel_text(arg))
-            else:
-                formatted_args.append(arg)
-        
-        # Print with formatted text
-        print(*formatted_args, **kwargs)
-
-    @staticmethod
-    def show_outcome(outcome_text: str) -> None:
+    def show_outcome(
+        self, 
+        outcome_text: str,
+        character: Optional[str] = None,
+        expression: str = "neutral",
+        bg: Optional[str] = None
+    ) -> None:
         """
         Display an outcome message in a Rich Panel with styled [OUTCOME] tag.
-        The [OUTCOME] tag is displayed in bright cyan/teal color, rest of text is normal.
-        Automatically formats Colonel and hatred mentions.
-        
-        Args:
-            outcome_text: The outcome message text (can include [OUTCOME] tag or will be prepended)
-                         Example: "- 2500 CZK, - 10 PCR HATRED"
+        Terminal implementation ignores character, expression, and bg parameters.
         """
         # Format Colonel, hatred, coding, and money mentions
-        outcome_text = Interaction.format_colonel_text(outcome_text)
-        outcome_text = Interaction.format_hatred_text(outcome_text)
-        outcome_text = Interaction.format_coding_text(outcome_text)
-        outcome_text = Interaction.format_money_text(outcome_text)
+        outcome_text = TerminalInteraction.format_colonel_text(outcome_text)
+        outcome_text = TerminalInteraction.format_hatred_text(outcome_text)
+        outcome_text = TerminalInteraction.format_coding_text(outcome_text)
+        outcome_text = TerminalInteraction.format_money_text(outcome_text)
         
         # Check if [OUTCOME] is already in the text, if not prepend it
         if "[OUTCOME]" not in outcome_text:
@@ -307,3 +252,220 @@ class Interaction:
             padding=(1, 2),
             expand=False
         ))
+
+    def print_text(
+        self, 
+        text: str,
+        character: Optional[str] = None,
+        expression: str = "neutral",
+        bg: Optional[str] = None
+    ) -> None:
+        """
+        Display text (replaces print() calls).
+        Terminal implementation ignores character, expression, and bg parameters.
+        """
+        # Format Colonel, hatred, coding, and money mentions
+        text = TerminalInteraction.format_colonel_text(text)
+        text = TerminalInteraction.format_hatred_text(text)
+        text = TerminalInteraction.format_coding_text(text)
+        text = TerminalInteraction.format_money_text(text)
+        
+        print(text)
+
+    @staticmethod
+    def format_colonel_text(text: str) -> str:
+        """
+        Automatically formats all mentions of "Colonel" (case-insensitive) 
+        to be styled as [bold bright_blue]Colonel[/bold bright_blue].
+        (Static utility method)
+        """
+        # First, update any existing dark_blue Colonel styling to bright_blue
+        text = text.replace('[bold dark_blue]', '[bold bright_blue]')
+        text = text.replace('[/bold dark_blue]', '[/bold bright_blue]')
+        
+        # Pattern to match "Colonel" as a whole word (case-insensitive)
+        pattern = r'\b(Colonel|colonel|COLONEL)\b'
+        
+        def replace_colonel(match):
+            original = match.group(1)
+            start = match.start()
+            end = match.end()
+            
+            # Check if this instance is already inside [bold bright_blue] tags
+            text_before = text[:start]
+            text_after = text[end:]
+            
+            last_open = text_before.rfind('[bold bright_blue]')
+            first_close = text_after.find('[/bold bright_blue]')
+            
+            if last_open != -1 and first_close != -1:
+                between_tags = text[last_open + len('[bold bright_blue]'):start]
+                if '[/bold bright_blue]' not in between_tags:
+                    return original
+            
+            return f"[bold bright_blue]{original}[/bold bright_blue]"
+        
+        formatted = re.sub(pattern, replace_colonel, text)
+        return formatted
+
+    @staticmethod
+    def format_hatred_text(text: str) -> str:
+        """Automatically formats all mentions of "hatred" with 😡 emoji. (Static utility method)"""
+        pattern = r'\b(hatred|Hatred|HATRED)\b'
+        
+        def replace_hatred(match):
+            original = match.group(1)
+            return f"😡 {original}"
+        
+        formatted = re.sub(pattern, replace_hatred, text)
+        return formatted
+
+    @staticmethod
+    def format_coding_text(text: str) -> str:
+        """Automatically formats all mentions of "coding" with 💻 emoji. (Static utility method)"""
+        pattern = r'\b(coding|Coding|CODING)\b'
+        
+        def replace_coding(match):
+            original = match.group(1)
+            return f"💻 {original}"
+        
+        formatted = re.sub(pattern, replace_coding, text)
+        return formatted
+
+    @staticmethod
+    def format_money_text(text: str) -> str:
+        """Automatically formats all mentions of "money" and "CZK" with 💰 emoji. (Static utility method)"""
+        pattern = r'\b(money|Money|MONEY)\b'
+        
+        def replace_money(match):
+            original = match.group(1)
+            return f"💰 {original}"
+        
+        formatted = re.sub(pattern, replace_money, text)
+        
+        def add_emoji_to_czk(match):
+            czk_match = match.group(0)
+            start_pos = match.start()
+            context_before = formatted[max(0, start_pos - 10):start_pos]
+            if "💰" not in context_before:
+                return f"💰 {czk_match}"
+            return czk_match
+        
+        formatted = re.sub(r'(\d+[.,]?\d*[.,]?\d*\s*CZK)', add_emoji_to_czk, formatted)
+        
+        return formatted
+
+    @staticmethod
+    def print_colonel(*args, **kwargs):
+        """
+        Wrapper around Rich's print() that automatically formats all "Colonel" mentions.
+        Use this instead of print() when you want automatic Colonel formatting.
+        (Static utility method - kept for backward compatibility)
+        """
+        formatted_args = []
+        for arg in args:
+            if isinstance(arg, str):
+                formatted_args.append(TerminalInteraction.format_colonel_text(arg))
+            else:
+                formatted_args.append(arg)
+        
+        print(*formatted_args, **kwargs)
+
+
+# Global interaction provider - can be swapped between Terminal and GUI
+_interaction_provider: Optional[InteractionInterface] = None
+
+
+def get_interaction() -> InteractionInterface:
+    """
+    Get the current interaction provider instance.
+    Returns TerminalInteraction by default if not set.
+    """
+    global _interaction_provider
+    if _interaction_provider is None:
+        _interaction_provider = TerminalInteraction()
+    return _interaction_provider
+
+
+def set_interaction(interaction: InteractionInterface) -> None:
+    """
+    Set the interaction provider (allows switching between Terminal and GUI).
+    
+    Args:
+        interaction: An instance of InteractionInterface (TerminalInteraction or GUIInteraction)
+    """
+    global _interaction_provider
+    _interaction_provider = interaction
+
+
+# Backward compatibility: Create a static-like interface that delegates to the provider
+class Interaction:
+    """
+    Backward-compatible wrapper that delegates to the current interaction provider.
+    Maintains the old static interface while using the provider pattern under the hood.
+    """
+    
+    @staticmethod
+    def get_difficulty_tag(chance: int = None) -> str:
+        """Static utility method - delegates to TerminalInteraction."""
+        return TerminalInteraction.get_difficulty_tag(chance)
+    
+    @staticmethod
+    def attempt_action(chance: int) -> bool:
+        """Static utility method - delegates to TerminalInteraction."""
+        return TerminalInteraction.attempt_action(chance)
+    
+    @staticmethod
+    def ask(
+        options: tuple, 
+        character: Optional[str] = None, 
+        expression: str = "neutral", 
+        bg: Optional[str] = None
+    ) -> str:
+        """Delegates to current interaction provider."""
+        return get_interaction().ask(options, character, expression, bg)
+    
+    @staticmethod
+    def show_decision(
+        option_texts: list[tuple[str, str, str]],
+        character: Optional[str] = None,
+        expression: str = "neutral",
+        bg: Optional[str] = None
+    ) -> str:
+        """Delegates to current interaction provider."""
+        return get_interaction().show_decision(option_texts, character, expression, bg)
+    
+    @staticmethod
+    def show_outcome(
+        outcome_text: str,
+        character: Optional[str] = None,
+        expression: str = "neutral",
+        bg: Optional[str] = None
+    ) -> None:
+        """Delegates to current interaction provider."""
+        return get_interaction().show_outcome(outcome_text, character, expression, bg)
+    
+    @staticmethod
+    def format_colonel_text(text: str) -> str:
+        """Static utility method - delegates to TerminalInteraction."""
+        return TerminalInteraction.format_colonel_text(text)
+    
+    @staticmethod
+    def format_hatred_text(text: str) -> str:
+        """Static utility method - delegates to TerminalInteraction."""
+        return TerminalInteraction.format_hatred_text(text)
+    
+    @staticmethod
+    def format_coding_text(text: str) -> str:
+        """Static utility method - delegates to TerminalInteraction."""
+        return TerminalInteraction.format_coding_text(text)
+    
+    @staticmethod
+    def format_money_text(text: str) -> str:
+        """Static utility method - delegates to TerminalInteraction."""
+        return TerminalInteraction.format_money_text(text)
+    
+    @staticmethod
+    def print_colonel(*args, **kwargs):
+        """Static utility method - delegates to TerminalInteraction."""
+        return TerminalInteraction.print_colonel(*args, **kwargs)

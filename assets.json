@@ -1,0 +1,65 @@
+{
+  "characters": {
+    "colonel": {
+      "neutral": "assets/sprites/colonel_neutral.png",
+      "angry": "assets/sprites/colonel_angry.png",
+      "disappointed": "assets/sprites/colonel_disappointed.png",
+      "default": "assets/sprites/colonel_neutral.png"
+    },
+    "jb": {
+      "default": "assets/sprites/jb_default.png",
+      "tired": "assets/sprites/jb_tired.png",
+      "determined": "assets/sprites/jb_determined.png",
+      "worried": "assets/sprites/jb_worried.png"
+    },
+    "martin": {
+      "default": "assets/sprites/martin_default.png",
+      "smiling": "assets/sprites/martin_smiling.png",
+      "serious": "assets/sprites/martin_serious.png"
+    }
+  },
+  "backgrounds": {
+    "parking_lot": "assets/backgrounds/parking_lot.png",
+    "police_station_office": "assets/backgrounds/police_station_office.png",
+    "cafe": "assets/backgrounds/cafe.png",
+    "police_station_interior": "assets/backgrounds/police_station_interior.png",
+    "police_station_hallway": "assets/backgrounds/police_station_hallway.png"
+  },
+  "scenes": {
+    "car_incident_intro": {
+      "background": "parking_lot",
+      "character": null,
+      "character_expression": null
+    },
+    "car_incident_decision": {
+      "background": "parking_lot",
+      "character": "jb",
+      "character_expression": "worried"
+    },
+    "colonel_office_neutral": {
+      "background": "police_station_office",
+      "character": "colonel",
+      "character_expression": "neutral"
+    },
+    "colonel_office_angry": {
+      "background": "police_station_office",
+      "character": "colonel",
+      "character_expression": "angry"
+    },
+    "colonel_office_disappointed": {
+      "background": "police_station_office",
+      "character": "colonel",
+      "character_expression": "disappointed"
+    },
+    "martin_meeting": {
+      "background": "cafe",
+      "character": "martin",
+      "character_expression": "default"
+    },
+    "martin_meeting_smiling": {
+      "background": "cafe",
+      "character": "martin",
+      "character_expression": "smiling"
+    }
+  }
+}

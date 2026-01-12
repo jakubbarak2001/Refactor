@@ -13,6 +13,7 @@ from rich.text import Text
 from game.game_logic.interaction import Interaction
 from game.game_logic.press_enter_to_continue import continue_prompt
 from game.game_logic.stats import Stats
+from game.game_logic.story import Arc
 
 
 class CarIncident:
@@ -27,7 +28,7 @@ class CarIncident:
     def car_incident_event(stats: Stats) -> None:
         """The main entry point for this event."""
 
-        print(Panel.fit(Text("ARC I - THE INCIDENT", justify="center"), border_style="red", padding=(1, 2)))
+        Arc.display_arc_title("I", "THE INCIDENT", border_color="red")
 
         CarIncident._play_intro_scene()
 
@@ -49,8 +50,8 @@ class CarIncident:
         else:
             CarIncident._path_confession(stats)
 
-        print(Panel.fit(Text("FROM THIS MOMENT, THE GRIND BEGINS: YOU WILL GAIN +5 PCR HATRED DAILY.", justify="center"), border_style="red", padding=(1, 2)))
-        print(Panel.fit(Text("YOUR MAIN OBJECTIVE: IN NEXT 30 DAYS, YOU NEED TO BECOME A FULLSTACK DEVELOPER.", justify="center"), border_style="green", padding=(1, 2)))
+        # Unified debuff + objective panel
+        CarIncident._display_grind_objective()
         continue_prompt()
 
     @staticmethod
@@ -83,42 +84,149 @@ class CarIncident:
         """
         The Safe Path. Guaranteed loss of money/pride, but no risk of disaster.
         """
-        print("\nYou sigh. You are an adult. You take responsibility.")
-        print("You walk inside, find the shift commander, and tell him.")
-
+        # Decision moment
+        decision_text = Text()
+        decision_text.append("You sigh. You are an adult. You take responsibility.\n", style="white")
+        decision_text.append("You walk inside, find the shift commander, and tell him.", style="white")
+        
+        print("\n")
+        print(Panel(
+            decision_text,
+            border_style="bold yellow",
+            title="[bold white on yellow] > THE DECISION < [/]",
+            padding=(1, 2),
+            expand=False
+        ))
+        time.sleep(1.5)
         continue_prompt()
 
-        print(
-            "He looks at you over his glasses. Then at the clock. Then back at you."
-            "\n'Great start to the morning, JB. Really stellar performance.'"
-            "\n\nHe hands you a stack of papers thick enough to kill a rat."
-            "\n'Fill these out. Insurance will cover most of it, but you're paying the deductible.'"
-            "\n'And don't expect a Christmas bonus.'"
-        )
+        # The confrontation
+        confrontation_text = Text()
+        confrontation_text.append("He looks at you over his glasses. ", style="white")
+        confrontation_text.append("Then at the clock. ", style="dim white")
+        confrontation_text.append("Then back at you.\n", style="white")
+        confrontation_text.append("\n", style="")
+        confrontation_text.append("'Great start to the morning, JB. ", style="white")
+        confrontation_text.append("Really stellar performance.'", style="bold bright_red")
+        
+        print("\n")
+        print(Panel(
+            confrontation_text,
+            border_style="bold red",
+            padding=(1, 2),
+            expand=False
+        ))
+        time.sleep(1.5)
+        
+        # The paperwork
+        paperwork_text = Text()
+        paperwork_text.append("He hands you a stack of papers ", style="white")
+        paperwork_text.append("thick enough to kill a rat", style="bold white")
+        paperwork_text.append(".\n", style="white")
+        paperwork_text.append("\n", style="")
+        paperwork_text.append("'Fill these out. Insurance will cover most of it, ", style="white")
+        paperwork_text.append("but you're paying the deductible.'\n", style="bold yellow")
+        paperwork_text.append("'And don't expect a Christmas bonus.'", style="dim white")
+        
+        print("\n")
+        print(Panel(
+            paperwork_text,
+            border_style="bold yellow",
+            title="[bold white on yellow] > THE COST < [/]",
+            padding=(1, 2),
+            expand=False
+        ))
 
         stats.increment_stats_pcr_hatred(10)
         stats.increment_stats_value_money(- 2000)
 
         Interaction.show_outcome("-2.000 CZK (Deductible), - 10 PCR HATRED (Humiliation).")
-        print(Interaction.format_colonel_text("At least it's over. No lawyers. No Colonel. Just pure, unadulterated bureaucracy."))
+        
+        # Final thought
+        final_text = Text()
+        final_text.append("At least it's over. ", style="dim white")
+        final_text.append("No lawyers. ", style="dim white")
+        final_text.append(Interaction.format_colonel_text("No Colonel. "), style="dim white")
+        final_text.append("Just pure, unadulterated bureaucracy.", style="dim white")
+        
+        print("\n")
+        print(Panel(
+            final_text,
+            border_style="dim white",
+            padding=(1, 2),
+            expand=False
+        ))
 
     @staticmethod
     def _path_cover_up(stats: Stats):
         """
         The Risk Path. 50/50 Chance.
         """
-        print("\nYou look around. The parking lot is empty.")
-        print("You lick your thumb and furiously rub the scratch on the Superb.")
-        print("It's not working. In fact, you're pretty sure you just made it shinier.")
+        # Initial attempt - tense moment
+        attempt_text = Text()
+        attempt_text.append("You look around. The parking lot is empty.\n", style="white")
+        attempt_text.append("You lick your thumb and furiously rub the scratch on the Superb.\n", style="white")
+        attempt_text.append("It's not working. In fact, you're pretty sure you just made it shinier.", style="dim white")
+        
+        print(Panel(
+            attempt_text,
+            border_style="bold yellow",
+            title="[bold white on yellow] > THE ATTEMPT < [/]",
+            padding=(1, 2),
+            expand=False
+        ))
+        time.sleep(1.5)
 
         roll = randint(1, 100)
 
         if roll <= 50:
-            print("\nWait... it's just paint transfer!")
-            print("You spit on your sleeve and scrub harder. The white mark disappears.")
-            print("There is a tiny dent left, but you'd have to look for it with a microscope.")
-            print("\nYou jump into your car and drive away, heart pounding.")
-            print("You got away with it. You magnificent bastard.")
+            # Success - dramatic reveal
+            success_text = Text()
+            success_text.append("Wait... ", style="white")
+            success_text.append("it's just paint transfer!", style="bold bright_green")
+            
+            print("\n")
+            print(Panel(
+                success_text,
+                border_style="bold bright_green",
+                padding=(1, 2),
+                expand=False
+            ))
+            time.sleep(1)
+            
+            # The fix
+            fix_text = Text()
+            fix_text.append("You spit on your sleeve and scrub harder.\n", style="white")
+            fix_text.append("The white mark ", style="white")
+            fix_text.append("disappears", style="bold bright_green")
+            fix_text.append(".", style="white")
+            fix_text.append("\n\nThere is a tiny dent left, but you'd have to look for it with a microscope.", style="dim white")
+            
+            print(Panel(
+                fix_text,
+                border_style="bold green",
+                padding=(1, 2),
+                expand=False
+            ))
+            time.sleep(1.5)
+            
+            # The escape
+            escape_text = Text()
+            escape_text.append("You jump into your car and drive away, ", style="white")
+            escape_text.append("heart pounding", style="bold bright_red")
+            escape_text.append(".", style="white")
+            escape_text.append("\n\n", style="")
+            escape_text.append("You got away with it. ", style="bold white")
+            escape_text.append("You magnificent bastard.", style="bold bright_green")
+            
+            print("\n")
+            print(Panel(
+                escape_text,
+                border_style="bold bright_green",
+                title="[bold white on bright_green] > SUCCESS < [/]",
+                padding=(1, 2),
+                expand=False
+            ))
 
             stats.increment_stats_pcr_hatred(-5)
             Interaction.show_outcome("0 CZK LOST, -5 PCR HATRED (The thrill of crime).")
@@ -135,26 +243,109 @@ class CarIncident:
         # Choice 2 uses paul_goodman_odds
         difficulty_tag = Interaction.get_difficulty_tag(CarIncident.paul_goodman_odds)
 
-        print(
-            "\n'HEY! WHAT ARE YOU DOING?!'"
-            "\n\nYou freeze. You turn around."
-            "\nIt's not a colleague. It's the traffic camera you completely forgot about."
-            "\nAnd standing right under it is the Shift Commander, holding his morning coffee, watching you."
-        )
+        # The discovery
+        discovery_text = Text()
+        discovery_text.append("'HEY! WHAT ARE YOU DOING?!'", style="bold bright_red")
+        
+        print("\n")
+        print(Panel(
+            discovery_text,
+            border_style="bold bright_red",
+            padding=(1, 2),
+            expand=False
+        ))
+        time.sleep(1)
+        
+        caught_text = Text()
+        caught_text.append("You freeze. You turn around.\n", style="white")
+        caught_text.append("\n", style="")
+        caught_text.append("It's not a colleague. ", style="white")
+        caught_text.append("It's the traffic camera you completely forgot about", style="bold bright_red")
+        caught_text.append(".\n", style="white")
+        caught_text.append("And standing right under it is the Shift Commander, ", style="white")
+        caught_text.append("holding his morning coffee, watching you", style="bold bright_red")
+        caught_text.append(".", style="white")
+        
+        print("\n")
+        print(Panel(
+            caught_text,
+            border_style="bold red",
+            title="[bold white on red] > CAUGHT < [/]",
+            padding=(1, 2),
+            expand=False
+        ))
         continue_prompt()
 
-
-        print(Interaction.format_colonel_text("\nFast forward 2 hours. The Colonel has arrived at the station and is waiting for you in his office."))
-        print("He is angry. He is disappointed. He is disappointed in [bold white]you[/bold white]. It's all your fault.")
-        time.sleep(1)
-        print("'JB, you are a disgrace to the badge. You are a disgrace to the department. What were you thinking?.'")
-        print("They aren't calling it an accident. They are calling it [bold white]'Leaving the scene of a traffic incident'[/bold white].")
-        time.sleep(1)
-        print("That's a crime. That's 'Lose your badge' territory.")
-        print(
-            "\nThe Boss slides a piece of paper across the table."
-            "'Sign this admission of guilt. Pay the full damages and we forget the disciplinary charge.'"
-        )
+        # The Colonel arrives
+        colonel_arrival_text = Text()
+        colonel_arrival_text.append(Interaction.format_colonel_text("Fast forward 2 hours. The Colonel has arrived at the station and is waiting for you in his office."), style="white")
+        
+        print("\n")
+        print(Panel(
+            colonel_arrival_text,
+            border_style="bold dark_blue",
+            padding=(1, 2),
+            expand=False
+        ))
+        time.sleep(1.5)
+        
+        # The accusation
+        accusation_text = Text()
+        accusation_text.append("He is angry. ", style="white")
+        accusation_text.append("He is disappointed. ", style="bold bright_red")
+        accusation_text.append("He is disappointed in ", style="white")
+        accusation_text.append("you", style="bold bright_red")
+        accusation_text.append(". It's all your fault.\n", style="white")
+        accusation_text.append("\n", style="")
+        accusation_text.append("'JB, you are a disgrace to the badge. ", style="white")
+        accusation_text.append("You are a disgrace to the department.", style="bold bright_red")
+        accusation_text.append(" What were you thinking?.'", style="white")
+        
+        print("\n")
+        print(Panel(
+            accusation_text,
+            border_style="bold red",
+            padding=(1, 2),
+            expand=False
+        ))
+        time.sleep(1.5)
+        
+        # The charge
+        charge_text = Text()
+        charge_text.append("They aren't calling it an accident. ", style="white")
+        charge_text.append("They are calling it ", style="white")
+        charge_text.append("'Leaving the scene of a traffic incident'", style="bold bright_red")
+        charge_text.append(".\n", style="white")
+        charge_text.append("\n", style="")
+        charge_text.append("That's a crime. ", style="bold white")
+        charge_text.append("That's 'Lose your badge' territory.", style="bold bright_red")
+        
+        print("\n")
+        print(Panel(
+            charge_text,
+            border_style="bold bright_red",
+            title="[bold white on bright_red] > THE CHARGE < [/]",
+            padding=(1, 2),
+            expand=False
+        ))
+        time.sleep(1.5)
+        
+        # The ultimatum
+        ultimatum_text = Text()
+        ultimatum_text.append("The Boss slides a piece of paper across the table.\n", style="white")
+        ultimatum_text.append("\n", style="")
+        ultimatum_text.append("'Sign this admission of guilt. ", style="white")
+        ultimatum_text.append("Pay the full damages ", style="bold yellow")
+        ultimatum_text.append("and we forget the disciplinary charge.'", style="white")
+        
+        print("\n")
+        print(Panel(
+            ultimatum_text,
+            border_style="bold yellow",
+            title="[bold white on yellow] > THE ULTIMATUM < [/]",
+            padding=(1, 2),
+            expand=False
+        ))
 
         # Display decision using Rich Panel with difficulty tags
         choice = Interaction.show_decision([
@@ -165,8 +356,28 @@ class CarIncident:
         if choice == "1":
             stats.increment_stats_pcr_hatred(25)
             stats.increment_stats_value_money(-8000)
-            print("\nYou sign the paper. Your hand is shaking.")
-            print("You walk out 8.000 CZK poorer and with a hatred for this place that burns like acid.")
+            
+            # The submission
+            submission_text = Text()
+            submission_text.append("You sign the paper. ", style="white")
+            submission_text.append("Your hand is shaking", style="bold bright_red")
+            submission_text.append(".\n", style="white")
+            submission_text.append("\n", style="")
+            submission_text.append("You walk out ", style="white")
+            submission_text.append("8.000 CZK poorer", style="bold yellow")
+            submission_text.append(" and with a hatred for this place that ", style="white")
+            submission_text.append("burns like acid", style="bold bright_red")
+            submission_text.append(".", style="white")
+            
+            print("\n")
+            print(Panel(
+                submission_text,
+                border_style="bold red",
+                title="[bold white on red] > SUBMISSION < [/]",
+                padding=(1, 2),
+                expand=False
+            ))
+            
             Interaction.show_outcome("-8.000 CZK, + 25 PCR HATRED.")
 
         elif choice == "2":
@@ -177,46 +388,176 @@ class CarIncident:
         """
         The High Stakes Gambler Path.
         """
-        print(
-            "\nYou look the Boss in the eye and push the paper back."
-            "\n'No. Im calling my lawyer.'"
-            "\nThe Boss laughs. 'Lawyer? JB, you can't afford a lawyer.'"
-            "\nYou clearly have not heard of Paul Goodman,' you reply."
-        )
+        # The defiance
+        defiance_text = Text()
+        defiance_text.append("You look the Boss in the eye and push the paper back.\n", style="white")
+        defiance_text.append("\n", style="")
+        defiance_text.append("'No. ", style="bold white")
+        defiance_text.append("I'm calling my lawyer.'", style="bold bright_green")
+        
+        print("\n")
+        print(Panel(
+            defiance_text,
+            border_style="bold bright_green",
+            title="[bold white on bright_green] > DEFIANCE < [/]",
+            padding=(1, 2),
+            expand=False
+        ))
+        time.sleep(1.5)
+        
+        boss_response_text = Text()
+        boss_response_text.append("The Boss laughs. ", style="white")
+        boss_response_text.append("'Lawyer? JB, you can't afford a lawyer.'\n", style="bold bright_red")
+        boss_response_text.append("\n", style="")
+        boss_response_text.append("'You clearly have not heard of ", style="white")
+        boss_response_text.append("Paul Goodman", style="bold bright_green")
+        boss_response_text.append(",' you reply.", style="white")
+        
+        print("\n")
+        print(Panel(
+            boss_response_text,
+            border_style="bold yellow",
+            padding=(1, 2),
+            expand=False
+        ))
         continue_prompt()
 
-        print("You call Paul. He answers on the first ring.")
-        print("'Did you say Police Department? Discrimination? Emotional distress? Say no more.'")
-        print("'Ill take the case Pro Bono. We go to war.'")
-
+        # The call
+        call_text = Text()
+        call_text.append("You call Paul. ", style="white")
+        call_text.append("He answers on the first ring", style="bold bright_green")
+        call_text.append(".\n", style="white")
+        call_text.append("\n", style="")
+        call_text.append("'Did you say Police Department? ", style="white")
+        call_text.append("Discrimination? Emotional distress?", style="bold bright_green")
+        call_text.append(" Say no more.'\n", style="white")
+        call_text.append("\n", style="")
+        call_text.append("'I'll take the case Pro Bono. ", style="bold bright_green")
+        call_text.append("We go to war.'", style="bold bright_red")
+        
+        print("\n")
+        print(Panel(
+            call_text,
+            border_style="bold bright_green",
+            title="[bold white on bright_green] > THE CALL < [/]",
+            padding=(1, 2),
+            expand=False
+        ))
         continue_prompt()
 
         win_roll = randint(1, 100)
 
         if win_roll <= 50:
-            print("Paul Goodman is a shark in a cheap suit.")
-            print("He found a loophole in the parking lot regulations.")
-            print(Interaction.format_colonel_text("He threatened to sue the Colonel for 'Unsafe Workplace Environment'."))
-            print("The Department settled to make him go away.")
+            # Paul wins
+            paul_win_text = Text()
+            paul_win_text.append("Paul Goodman is a shark in a cheap suit.\n", style="white")
+            paul_win_text.append("He found a loophole in the parking lot regulations.\n", style="bold bright_green")
+            paul_win_text.append("\n", style="")
+            paul_win_text.append(Interaction.format_colonel_text("He threatened to sue the Colonel for 'Unsafe Workplace Environment'."), style="white")
+            paul_win_text.append("\n", style="")
+            paul_win_text.append("The Department settled to make him go away.", style="bold bright_green")
+            
+            print("\n")
+            print(Panel(
+                paul_win_text,
+                border_style="bold bright_green",
+                padding=(1, 2),
+                expand=False
+            ))
+            time.sleep(1.5)
 
             payout = 15000
             stats.increment_stats_value_money(payout)
             stats.increment_stats_pcr_hatred(-30)
 
-            print(f"\n[CRITICAL SUCCESS]: You received a settlement of {payout} CZK!")
-            print("Your boss refuses to make eye contact with you.")
+            victory_text = Text()
+            victory_text.append("[CRITICAL SUCCESS]: ", style="bold bright_green")
+            victory_text.append(f"You received a settlement of {payout:,} CZK!", style="bold white")
+            victory_text.append("\n\n", style="")
+            victory_text.append("Your boss refuses to make eye contact with you.", style="dim white")
+            
+            print("\n")
+            print(Panel(
+                victory_text,
+                border_style="bold bright_green",
+                title="[bold white on bright_green] > VICTORY < [/]",
+                padding=(1, 2),
+                expand=False
+            ))
+            
             Interaction.show_outcome("+ 15.000 CZK, -30 PCR HATRED (Justice tastes sweet).")
 
         else:
-            print(Interaction.format_colonel_text("\nThe Colonel called in a favor."))
-            print("The judge was his old drinking buddy.")
-            print("Paul Goodman got held in contempt of court for wearing a neon tie.")
-            print("You lost. Badly.")
+            # Paul loses
+            paul_loss_text = Text()
+            paul_loss_text.append(Interaction.format_colonel_text("The Colonel called in a favor."), style="white")
+            paul_loss_text.append("\n", style="")
+            paul_loss_text.append("The judge was his old drinking buddy.\n", style="bold bright_red")
+            paul_loss_text.append("\n", style="")
+            paul_loss_text.append("Paul Goodman got held in contempt of court ", style="white")
+            paul_loss_text.append("for wearing a neon tie", style="bold bright_red")
+            paul_loss_text.append(".\n", style="white")
+            paul_loss_text.append("\n", style="")
+            paul_loss_text.append("You lost. ", style="white")
+            paul_loss_text.append("Badly.", style="bold bright_red")
+            
+            print("\n")
+            print(Panel(
+                paul_loss_text,
+                border_style="bold bright_red",
+                title="[bold white on bright_red] > DEFEAT < [/]",
+                padding=(1, 2),
+                expand=False
+            ))
+            time.sleep(1.5)
 
             court_fees = 12000
             stats.increment_stats_value_money(-court_fees)
             stats.increment_stats_pcr_hatred(50)
 
-            print(f"\n[CRITICAL FAILURE]: You have to pay court fees of {court_fees} CZK.")
-            print(Interaction.format_colonel_text("The entire station is laughing at you. The Colonel sends you a 'Get Well Soon' card."))
+            failure_text = Text()
+            failure_text.append("[CRITICAL FAILURE]: ", style="bold bright_red")
+            failure_text.append(f"You have to pay court fees of {court_fees:,} CZK.", style="bold white")
+            failure_text.append("\n\n", style="")
+            failure_text.append(Interaction.format_colonel_text("The entire station is laughing at you. The Colonel sends you a 'Get Well Soon' card."), style="dim white")
+            
+            print("\n")
+            print(Panel(
+                failure_text,
+                border_style="bold bright_red",
+                padding=(1, 2),
+                expand=False
+            ))
+            
             Interaction.show_outcome("-12.000 CZK, +50 PCR HATRED (Maximum Salt).")
+
+    @staticmethod
+    def _display_grind_objective():
+        """
+        Displays a unified panel combining the debuff message and main objective.
+        Uses Rich TUI with emojis for visual appeal.
+        """
+        objective_text = Text()
+        objective_text.append("FROM THIS MOMENT, THE GRIND BEGINS\n", style="bold white")
+        objective_text.append("\n", style="")
+        objective_text.append("⚠️  ", style="bold bright_red")
+        objective_text.append("DEBUFF: ", style="bold bright_red")
+        objective_text.append("You will gain ", style="white")
+        objective_text.append("+5 PCR ", style="bold bright_red")
+        objective_text.append("😡 HATRED", style="bold bright_red")
+        objective_text.append(" daily.\n", style="white")
+        objective_text.append("\n", style="")
+        objective_text.append("🎯 ", style="bold bright_green")
+        objective_text.append("MAIN OBJECTIVE: ", style="bold bright_green")
+        objective_text.append("In the next 30 days, you need to become a ", style="white")
+        objective_text.append("💻 FULLSTACK DEVELOPER", style="bold bright_green")
+        objective_text.append(".", style="white")
+        
+        print("\n")
+        print(Panel(
+            objective_text,
+            border_style="bold bright_red",
+            title="[bold white on bright_red] > THE GRIND BEGINS < [/]",
+            padding=(1, 3),
+            expand=False
+        ))

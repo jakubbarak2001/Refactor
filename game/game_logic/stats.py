@@ -22,6 +22,7 @@ class Stats:
         self.colonel_day = 30
         self.final_boss_buff = None
         self.difficulty = None  # Stores selected difficulty: "easy", "hard", "insane"
+        self.player_class = None  # Stores selected character class: "bodybuilder", "dark_empath", "biohacker"
 
     def try_spend_money(self, amount: int) -> bool:
         """
