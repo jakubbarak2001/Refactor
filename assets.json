@@ -1,16 +1,18 @@
 {
   "characters": {
     "colonel": {
-      "neutral": "assets/sprites/colonel_neutral.png",
-      "angry": "assets/sprites/colonel_angry.png",
-      "disappointed": "assets/sprites/colonel_disappointed.png",
-      "default": "assets/sprites/colonel_neutral.png"
+      "normal": "assets/sprites/colonel_normal.jpg",
+      "angry": "assets/sprites/colonel_angry.jpg",
+      "disappointed": "assets/sprites/colonel_dissapointed.jpg",
+      "default": "assets/sprites/colonel_normal.jpg",
+      "neutral": "assets/sprites/colonel_normal.jpg"
     },
     "jb": {
-      "default": "assets/sprites/jb_default.png",
-      "tired": "assets/sprites/jb_tired.png",
-      "determined": "assets/sprites/jb_determined.png",
-      "worried": "assets/sprites/jb_worried.png"
+      "default": "assets/sprites/jb_neutral.jpg",
+      "neutral": "assets/sprites/jb_neutral.jpg",
+      "worried": "assets/sprites/jb_worried.jpg",
+      "determined": "assets/sprites/jb_determined.jpg",
+      "bored": "assets/sprites/jb_bored.jpg"
     },
     "martin": {
       "default": "assets/sprites/martin_default.png",
@@ -19,10 +21,10 @@
     }
   },
   "backgrounds": {
-    "parking_lot": "assets/backgrounds/parking_lot.png",
-    "police_station_office": "assets/backgrounds/police_station_office.png",
+    "parking_lot": "assets/backgrounds/police_parking_lot.jpg",
+    "police_station_office": "assets/backgrounds/police_station_colonel_office.jpg",
+    "police_station_interior": "assets/backgrounds/police_station_interior.jpg",
     "cafe": "assets/backgrounds/cafe.png",
-    "police_station_interior": "assets/backgrounds/police_station_interior.png",
     "police_station_hallway": "assets/backgrounds/police_station_hallway.png"
   },
   "scenes": {
@@ -39,7 +41,7 @@
     "colonel_office_neutral": {
       "background": "police_station_office",
       "character": "colonel",
-      "character_expression": "neutral"
+      "character_expression": "normal"
     },
     "colonel_office_angry": {
       "background": "police_station_office",
