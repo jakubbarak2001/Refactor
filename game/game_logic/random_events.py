@@ -1,4 +1,5 @@
 import os
+import sys
 from random import choice
 from random import randint
 
@@ -11,6 +12,55 @@ from game.game_logic.interaction import Interaction
 from game.game_logic.press_enter_to_continue import continue_prompt
 from game.game_logic.stats import Stats
 
+# Try to import pygame, but don't fail if it's not available
+try:
+    import pygame
+    PYGAME_AVAILABLE = True
+except ImportError:
+    PYGAME_AVAILABLE = False
+    pygame = None
+
+
+def resource_path(relative_path):
+    """Get absolute path to resource (Works for Dev & EXE)"""
+    base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
+    return os.path.join(base_path, relative_path)
+
+
+def play_police_siren():
+    """Play police siren sound effect when random event occurs."""
+    if not PYGAME_AVAILABLE:
+        return
+    
+    try:
+        # Check if mixer is initialized, if not try to initialize it
+        try:
+            mixer_initialized = pygame.mixer.get_init() is not None
+        except (pygame.error, AttributeError):
+            mixer_initialized = False
+        
+        if not mixer_initialized:
+            try:
+                pygame.mixer.init()
+            except (pygame.error, Exception):
+                # Mixer initialization failed, can't play sound
+                return
+        
+        # Load and play siren sound
+        siren_path = resource_path("police_siren.mp3")
+        if os.path.exists(siren_path):
+            try:
+                # Use Sound for one-time effects (not music)
+                siren_sound = pygame.mixer.Sound(siren_path)
+                siren_sound.set_volume(0.3)  # 30% volume
+                siren_sound.play()  # Play once, don't loop
+            except (pygame.error, Exception):
+                # Sound loading/playing failed, silently continue
+                pass
+    except Exception:
+        # Silently fail if sound can't be played
+        pass
+
 # --- SETUP: WINDOWS CONSOLE COMPATIBILITY ---
 if os.name == 'nt':
     os.system('mode con: cols=120 lines=40')
@@ -21,6 +71,10 @@ console = Console(force_terminal=True)
 
 
 def show_random_event_banner():
+    """Display random event banner and play police siren sound."""
+    # Play police siren sound effect
+    play_police_siren()
+    
     # 1. Clean ASCII Art Definition
     # Note: I removed leading newlines inside the string to prevent spacing errors
     art_top_raw = r"""
