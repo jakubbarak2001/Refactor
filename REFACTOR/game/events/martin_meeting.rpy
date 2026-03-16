@@ -177,7 +177,7 @@ label martin_phase1_preparation:
 label martin_phase2_meeting:
 
     scene bg_cafe
-    show martin default at char_center
+    show martin normal at char_center
 
     "You arrive at the restaurant. You see him in the distance."
     "It's a shock. He looks... different. Bigger. Buffed."
@@ -547,6 +547,7 @@ label martin_phase7_timing:
 label martin_phase8_ending:
 
     scene bg_cafe
+    show martin normal at char_center
 
     "The lunch is over. You pay the bill."
     "You walk out into the cold street. The wind hits your face."

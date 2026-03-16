@@ -192,6 +192,7 @@ label good_ending:
     "It's just a small, grey, cardboard box sitting in the middle of the field."
     "You can still hear a tiny, squeaky voice inside yelling about regulations."
 
+    scene bg_cafe with slow_dissolve
     show jb developer_happy at char_left with dissolve
 
     "You smile."
@@ -353,6 +354,7 @@ label colonel_close_victory:
 
     jb "'Yeah.'"
 
+    scene bg_cafe with slow_dissolve
     show jb developer_happy at char_left with dissolve
 
     martin "'JB. You just survived the hardest thing you'll ever do.'"

@@ -67,7 +67,8 @@ image colonel normal      = im.Scale("images/sprites/colonel_normal.png",       
 image colonel angry       = im.Scale("images/sprites/colonel_angry.png",        600, 900)
 image colonel disappointed = im.Scale("images/sprites/colonel_dissapointed.png", 600, 900)
 
-## Martin sprites — silhouette placeholder until dedicated PNGs are added
-image martin default = im.MatrixColor(im.Scale("images/sprites/colonel_normal.png", 600, 900), im.matrix.desaturate() * im.matrix.brightness(-0.55))
-image martin smiling = im.MatrixColor(im.Scale("images/sprites/colonel_normal.png", 600, 900), im.matrix.desaturate() * im.matrix.brightness(-0.55))
-image martin serious = im.MatrixColor(im.Scale("images/sprites/colonel_angry.png",  600, 900), im.matrix.desaturate() * im.matrix.brightness(-0.55))
+## Martin sprites
+image martin normal  = im.Scale("images/sprites/martin_normal.png", 600, 900)
+image martin default = im.Scale("images/sprites/martin_normal.png", 600, 900)
+image martin smiling = im.Scale("images/sprites/martin_normal.png", 600, 900)
+image martin serious = im.Scale("images/sprites/martin_normal.png", 600, 900)
