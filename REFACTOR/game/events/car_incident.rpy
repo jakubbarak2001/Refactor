@@ -5,6 +5,8 @@
 
 label car_incident:
 
+    $ renpy.movie_cutscene("video/car_incident_intro.webm")
+
     play music "audio/enter_the_code_theme.mp3" fadein 1.0
 
     call screen arc_title_card("I", "THE INCIDENT") with arc_fade
@@ -128,6 +130,12 @@ label car_incident_caught:
 
     show jb worried at char_left
 
+    stop music fadeout 0.1
+    play sound "audio/metal-gear-alert-sound-effect.mp3"
+    show screen alert_exclamation
+    pause 1.2
+    hide screen alert_exclamation
+
     "'HEY! WHAT ARE YOU DOING?!'"
 
     "You freeze. You turn around."
@@ -140,6 +148,8 @@ label car_incident_caught:
     hide jb worried
 
     $ renpy.movie_cutscene("video/colonel_car_incident.webm")
+
+    play music "audio/you_failed_me_son.mp3" fadein 1.0
 
     scene bg_police_office with fade
     show colonel omniman think at colonel_think_pos

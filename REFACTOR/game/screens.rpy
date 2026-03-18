@@ -954,6 +954,67 @@ screen arc_title_card(arc_number, arc_name):
 
 
 ## ---------------------------------------------------------------------------
+## Alert Screen — red !!! with flash animation, auto-dismisses
+## Usage: show screen alert_exclamation then hide after pause
+## ---------------------------------------------------------------------------
+
+screen alert_exclamation():
+    zorder 200
+
+    hbox:
+        xalign 0.85
+        yalign 0.18
+        spacing 10
+
+        text "!":
+            color "#ff0000"
+            size 120
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+            at _exclaim_flash
+
+        text "!":
+            color "#ff0000"
+            size 120
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+            at _exclaim_flash_delay1
+
+        text "!":
+            color "#ff0000"
+            size 120
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+            at _exclaim_flash_delay2
+
+transform _exclaim_flash:
+    alpha 0.0
+    linear 0.08 alpha 1.0
+    linear 0.08 alpha 0.2
+    linear 0.08 alpha 1.0
+    linear 0.08 alpha 0.2
+    linear 0.08 alpha 1.0
+
+transform _exclaim_flash_delay1:
+    alpha 0.0
+    pause 0.1
+    linear 0.08 alpha 1.0
+    linear 0.08 alpha 0.2
+    linear 0.08 alpha 1.0
+    linear 0.08 alpha 0.2
+    linear 0.08 alpha 1.0
+
+transform _exclaim_flash_delay2:
+    alpha 0.0
+    pause 0.2
+    linear 0.08 alpha 1.0
+    linear 0.08 alpha 0.2
+    linear 0.08 alpha 1.0
+    linear 0.08 alpha 0.2
+    linear 0.08 alpha 1.0
+
+
+## ---------------------------------------------------------------------------
 ## Day Transition Screen
 ## Usage: call screen day_transition_screen(current_day)
 ## ---------------------------------------------------------------------------
@@ -1088,14 +1149,16 @@ screen say(who, what):
         id "window"
         background Frame("#0d0d1aee", 8, 8)
 
-        if who is not None:
+        vbox:
+            spacing 8
 
-            window:
-                id "namebox"
-                style "namebox"
-                text who id "who"
+            if who is not None:
+                window:
+                    id "namebox"
+                    style "namebox"
+                    text who id "who"
 
-        text what id "what"
+            text what id "what"
 
 
     ## If there's a side image, display it above the text. Do not display on the
@@ -1121,7 +1184,7 @@ style window:
     xalign 0.5
     xfill True
     yalign gui.textbox_yalign
-    yminimum gui.textbox_height
+    yminimum 100
     ymaximum 420
     bottom_margin 50
 
@@ -1148,7 +1211,6 @@ style say_dialogue:
 
     xpos gui.dialogue_xpos
     xsize gui.dialogue_width
-    ypos gui.dialogue_ypos
 
     adjust_spacing False
 
