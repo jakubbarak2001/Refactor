@@ -142,11 +142,13 @@ label car_incident_caught:
     $ renpy.movie_cutscene("video/colonel_car_incident.webm")
 
     scene bg_police_office with fade
-    show colonel angry at char_right
+    show colonel omniman think at colonel_think_pos
 
     "Fast forward 2 hours. The Colonel has arrived at the station and is waiting for you in his office."
 
     colonel "JB, you are a disgrace to the badge. You are a disgrace to the department. What were you thinking?"
+
+    show colonel angry at char_right
 
     "They aren't calling it an accident. They are calling it 'Leaving the scene of a traffic incident'."
     "That's a crime. That's 'Lose your badge' territory."

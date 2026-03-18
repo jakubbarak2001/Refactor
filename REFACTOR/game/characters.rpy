@@ -63,9 +63,15 @@ image jb bored          = im.Scale("images/sprites/jb_bored.png",            600
 image jb developer_happy = im.Scale("images/sprites/jb_developer_happy.png", 600, 900)
 
 ## Colonel sprites
-image colonel normal      = im.Scale("images/sprites/colonel_normal.png",       600, 900)
-image colonel angry       = im.Scale("images/sprites/colonel_angry.png",        600, 900)
-image colonel disappointed = im.Scale("images/sprites/colonel_dissapointed.png", 600, 900)
+image colonel normal        = im.Scale("images/sprites/colonel_normal.png",        600, 900)
+image colonel angry         = im.Scale("images/sprites/colonel_angry.png",         600, 900)
+image colonel disappointed  = im.Scale("images/sprites/colonel_dissapointed.png",  600, 900)
+image colonel omniman think = im.Scale("images/sprites/colonel_omniman_think.png", 600, 900)
+
+transform colonel_think_pos:
+    zoom 1.1
+    xalign 0.5
+    yalign 1.0
 
 ## Martin sprites
 image martin normal  = im.Scale("images/sprites/martin_normal.png", 600, 900)

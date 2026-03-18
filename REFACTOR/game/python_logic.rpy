@@ -156,6 +156,10 @@ init python:
     python_bootcamp   = False
     activity_selected = False
 
+    # Corrupt cop chain flags (set by re_the_bribe, re_corrupt_cop_2)
+    corrupt_chain_1 = False             # True if player took the Day 6 bribe
+    corrupt_chain_2 = False             # True if player completed Day 12 chain event
+
     # Nootropic system state (Biohacker class only)
     nootropic_tier_max   = 1            # highest unlocked tier (1–5)
     nootropic_uses       = [0,0,0,0,0]  # total uses per tier index
@@ -191,6 +195,8 @@ init python:
         flmodafinil_unlocked = False
         cold_read_index      = 0
         store._crisis_triggered = False
+        store.corrupt_chain_1 = False
+        store.corrupt_chain_2 = False
 
     # ---------------------------------------------------------------------------
     # Character Class data and perk helpers

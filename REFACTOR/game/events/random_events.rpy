@@ -1402,7 +1402,7 @@ label re_coding_interview:
 
 
 ## ---------------------------------------------------------------------------
-## EVENT: The Bribe
+## EVENT: The Bribe (Day 6 — Hardcoded. Gates the corrupt cop chain.)
 ## ---------------------------------------------------------------------------
 
 label re_the_bribe:
@@ -1410,43 +1410,73 @@ label re_the_bribe:
     scene bg_random_event
     play sound "audio/police_siren.mp3"
 
-    "RANDOM EVENT — MORAL CHECKPOINT"
+    "DAY 6 — MORAL CHECKPOINT"
 
-    "Traffic stop. Routine. The car is a BMW 7 series with fresh plates."
-    "The driver: expensive suit, tan, mid-50s. Looks like he owns a building."
-    "License: clean. Insurance: valid. Speed: 68 in a 50 zone."
-    "Standard 1200 CZK ticket."
-    "He hands you his license. Under it is a folded banknote."
-    "Five thousands."
+    "Traffic stop. Quiet stretch of road outside the city."
+    "You clocked him at 68 in a 50 zone. Standard pull. Routine."
+    "The car is a BMW 7 Series. Fresh plates. Washed this morning."
+    "The driver is mid-50s. Expensive suit. Real tan — the kind from places that have names, not seasons."
+    "He hands you his license without being asked. Clean record. Valid insurance."
+    "A 1,200 CZK fine. You've written a hundred of these."
+    "Then you see it."
+    "Under the license. A folded stack of banknotes. Crisp. Prepared."
+    "Not a crumpled emergency fifty. This was ready before he left the house."
+    "Seven thousand, five hundred crowns."
+    "More than you make in a full week of night shifts."
     "He doesn't look at you. He looks at the road ahead."
+    "His hand is completely steady."
+    "'There are no cameras on this stretch,' he says. Quietly. Like a forecast."
+    "'Your colleague is two hundred metres back. I counted.'"
+    "You look down the road. He's right. No cameras. Your colleague is checking his phone."
+    "Nobody is watching."
+    "The debt sits in the back of your head. The Colonel's car. The eight thousand you still owe."
+    "He waits."
 
     menu:
-        "TAKE IT — Pocket it. Write no ticket. Walk away. [[+5,000 CZK, +25 HATRED]":
+        "Just for this once... [[+7,500 CZK, -15 PCR HATRED]":
             python:
-                stats.increment_stats_value_money(5000)
-                stats.increment_stats_pcr_hatred(25)
+                stats.increment_stats_value_money(7500)
+                stats.increment_stats_pcr_hatred(-15)
+                store.corrupt_chain_1 = True
 
-            "Your hand closes around the bill."
-            "You hand him back his license."
-            "He drives off without a word."
-            "Back in the car, you fold the money into your wallet."
-            "You think about your debt. You think about the Colonel. You think about Martin."
-            "You don't think about the badge."
-            show screen outcome_panel("+5,000 CZK, +25 PCR HATRED (You crossed a line. You know it).")
+            "Your hand closes around the notes."
+            "You hand back his license. You say nothing."
+            "He says nothing."
+            "He pulls away smoothly. No wheel spin. No rush. He's done this before."
+            "You stand on the empty road and watch the BMW disappear around the corner."
+            "Seven thousand, five hundred crowns."
+            "No report. No ticket. No record."
+            "The debt in your head gets a little quieter."
+            "You think about the Colonel. The eight thousand. The car."
+            "You think about Martin, sitting in some café, free."
+            "Nobody saw."
+            "You get back in the car."
+            show screen outcome_panel("+7,500 CZK, -15 PCR HATRED.")
             pause
             hide screen outcome_panel
 
-        "REFUSE AND WRITE THE TICKET — Do the right thing. The annoying, correct thing.":
+        "Write the ticket. Do your job.":
             python:
-                stats.increment_stats_pcr_hatred(-5)
+                stats.increment_stats_pcr_hatred(25)
+                store.corrupt_chain_1 = False
 
-            "You push his hand back."
-            jb "'Just the ticket today.'"
-            "He looks at you for the first time. A long, appraising look."
-            "Then he nods — just barely — like he's filing something away."
-            "He drives away with his 1200 CZK fine and his dignity intact."
-            "And somehow, so do you."
-            show screen outcome_panel("-5 PCR HATRED (Boring but correct. Your integrity is not for sale today).")
+            "You slide the banknotes back across the license."
+            jb "'Just the fine today, sir. 1,200 CZK.'"
+            "Something shifts in his face. Not surprise. Not respect."
+            "Contempt. Brief, clean, professional contempt."
+            "He taps his card on the reader without a word."
+            "Then he looks at you. Really looks at you. For the first time."
+            "'You know what I make in a day?'"
+            "You don't answer."
+            "'More than your monthly salary. Probably more than your annual one.'"
+            "He takes his receipt."
+            "'Keep the badge. You clearly need it more than I need my money.'"
+            "He drives away at exactly the speed limit."
+            "You stand there holding a 1,200 CZK citation that goes to the state."
+            "Not to you. Not to your debt. Not to the Colonel's car. To them."
+            "Your colleague is still on his phone."
+            "You get back in the car and say nothing."
+            show screen outcome_panel("+25 PCR HATRED. (The right call. The expensive one.)")
             pause
             hide screen outcome_panel
 
@@ -1494,6 +1524,7 @@ label re_the_bribe:
             python:
                 stats.increment_stats_value_money(5000)
                 stats.increment_stats_pcr_hatred(8)
+                store.corrupt_chain_1 = True  ## Money was pocketed — chain opens
             "You run the numbers."
             "Five thousand CZK. Camera coverage at this stop: none. Third-party witnesses: zero. Setup probability given the car, the plates, the body language: under two percent."
             "Expected value: positive. Risk-adjusted value: still positive."
@@ -1513,11 +1544,13 @@ label re_the_bribe:
                 if _roll <= 40:
                     stats.increment_stats_value_money(5000)
                     stats.increment_stats_pcr_hatred(10)
+                    store.corrupt_chain_1 = True  ## Got away with it — chain opens
                     _br_text = "You take the money. Then you file an anonymous tip about a suspicious BMW.\nInternal affairs investigates. They find nothing on you.\nThe driver gets a visit and a fine anyway.\nYou bought yourself 5000 CZK and a clean conscience. Somehow."
                     _br_outcome = "+5,000 CZK, +10 PCR HATRED (Morally complex but financially positive)."
                 else:
                     stats.increment_stats_value_money(-3000)
                     stats.increment_stats_pcr_hatred(35)
+                    store.corrupt_chain_1 = False  ## Caught — chain burned, driver knows your face
                     _br_text = "The driver's 'secretary' works in internal affairs.\nThree days later you are called in for a 'routine audit'.\nYou pay the money back plus a penalty.\nThe driver sends you a LinkedIn request. You decline."
                     _br_outcome = "-3,000 CZK, +35 PCR HATRED (The plan had a flaw)."
 
