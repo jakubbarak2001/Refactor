@@ -73,6 +73,12 @@ transform colonel_think_pos:
     xalign 0.5
     yalign 1.0
 
+## Difficulty selection portrait images — portrait orientation ~420x630
+image diff_easy   = im.Scale("images/pictures/easy_difficulty_pic.png",   420, 630)
+image diff_hard   = im.Scale("images/pictures/hard_difficulty_pic.png",   420, 630)
+image diff_insane = im.Scale("images/pictures/insane_difficulty_pic.png", 420, 630)
+image diff_ultra  = im.Scale("images/pictures/ultra_difficulty_pic.png",  420, 630)
+
 ## Martin sprites
 image martin normal  = im.Scale("images/sprites/martin_normal.png", 600, 900)
 image martin default = im.Scale("images/sprites/martin_normal.png", 600, 900)

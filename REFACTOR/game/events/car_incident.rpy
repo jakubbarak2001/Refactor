@@ -10,8 +10,8 @@ label car_incident:
     play music "audio/enter_the_code_theme.mp3" fadein 1.0
 
     call screen arc_title_card("I", "THE INCIDENT") with arc_fade
-    scene bg_parking_lot with compile_flash
-    show jb neutral at char_left
+    scene bg_parking_lot with arc_fade
+    show jb neutral at char_left with dissolve
 
     "It is 06:45 AM. The sun is technically rising, but in this part of Bohemia, it just looks like the sky is slowly bruising purple."
     "You just parked your private car. You are already late for the overtime shift at the other station."
@@ -158,7 +158,9 @@ label car_incident_caught:
 
     colonel "JB, you are a disgrace to the badge. You are a disgrace to the department. What were you thinking?"
 
-    show colonel angry at char_right
+    show colonel angry at char_right with dissolve
+    show jb worried at char_left with dissolve
+    pause 0.5
 
     "They aren't calling it an accident. They are calling it 'Leaving the scene of a traffic incident'."
     "That's a crime. That's 'Lose your badge' territory."
@@ -185,7 +187,8 @@ label car_incident_caught:
 label car_incident_submit:
 
     scene bg_police_office
-    show jb bored at char_left
+    show colonel angry at char_right with dissolve
+    show jb bored at char_left with dissolve
 
     "You sign the paper."
     "Your hand is shaking."
@@ -207,17 +210,20 @@ label car_incident_paul_goodman:
         unlock_achievement("paul_fan")
 
     scene bg_police_office
+    show colonel angry at char_right
     show jb determined at char_left
+    pause 0.5
 
-    "'No. I'm calling my lawyer.'"
+    jb "'No.'" with dissolve
+    jb "'I'm calling my lawyer.'"
 
     colonel "Lawyer? JB, you can't afford a lawyer."
 
     jb "'You clearly have not heard of Paul Goodman.'"
 
     "You call Paul. He answers on the first ring."
-    "'Did you say Police Department? Discrimination? Emotional distress? Say no more.'"
-    "'I'll take the case Pro Bono. We go to war.'"
+    "'Did you say Police Department? Discrimination? Emotional distress? Say no more.'" with dissolve
+    "'I'll take the case Pro Bono. We go to war.'" with dissolve
 
     python:
         _win_roll = __import__('random').randint(1, 100)
@@ -254,12 +260,16 @@ label car_incident_paul_wins:
 label car_incident_paul_loses:
 
     scene bg_police_office
-    show colonel angry at char_right
-
-    "The Colonel called in a favor."
-    "The judge was his old drinking buddy."
-    "Paul Goodman got held in contempt of court for wearing a neon tie."
-    "You lost. Badly."
+    show colonel normal at char_right
+    show jb determined at char_left
+    pause 0.5
+    "The Colonel called in a favor." with dissolve
+    "The judge was his old drinking buddy." with dissolve
+    "Paul Goodman got held in contempt of court for wearing a neon tie." with dissolve
+    "You lost. Badly." with dissolve
+    show jb worried at char_left with dissolve
+    show colonel normal at char_right with dissolve
+    pause 0.5
 
     python:
         stats.increment_stats_value_money(-12000)

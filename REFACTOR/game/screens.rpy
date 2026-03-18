@@ -494,6 +494,333 @@ screen hp_bar_panel(jb_hp_val, colonel_hp_val, round_name="Combat"):
 ## Usage: call screen class_selection_screen
 ## Returns via SetVariable("stats.player_class", "bodybuilder") etc.
 ## ---------------------------------------------------------------------------
+## ---------------------------------------------------------------------------
+## Difficulty Selection Screen — Wolfenstein-style image cards
+## ---------------------------------------------------------------------------
+## Difficulty data — drives the selection screen and init_game()
+## ---------------------------------------------------------------------------
+
+init python:
+    DIFF_DATA = [
+        {
+            "key":     "easy",
+            "name":    "CAN I GOOGLE IT?",
+            "flavor":  "For the mass-produced bootcamp graduate.",
+            "money":   "55,000",
+            "coding":  "10",
+            "hatred":  "15",
+            "portrait": "diff_easy",
+            "color":   "#66cc66",
+        },
+        {
+            "key":     "hard",
+            "name":    "DON'T REJECT MY PR",
+            "flavor":  "Tight margins. Every commit has a cost.",
+            "money":   "35,000",
+            "coding":  "5",
+            "hatred":  "25",
+            "portrait": "diff_hard",
+            "color":   "#ffaa33",
+        },
+        {
+            "key":     "insane",
+            "name":    "MASS LAYOFFS!",
+            "flavor":  "No money. No skill. The market doesn't care.",
+            "money":   "20,000",
+            "coding":  "0",
+            "hatred":  "35",
+            "portrait": "diff_insane",
+            "color":   "#ff4444",
+        },
+        {
+            "key":     "ultra",
+            "name":    "I AM THE STACK OVERFLOW",
+            "flavor":  "You mass applied on LinkedIn. Nobody responded.",
+            "money":   "10,000",
+            "coding":  "0",
+            "hatred":  "50",
+            "portrait": "diff_ultra",
+            "color":   "#cc44ff",
+        },
+    ]
+
+## Portrait swap — fades in whenever a new portrait is shown
+transform _diff_portrait_anim:
+    on show:
+        alpha 0.0
+        linear 0.18 alpha 1.0
+    alpha 1.0
+
+## ---------------------------------------------------------------------------
+## Difficulty Selection Screen — Wolfenstein-style
+## Left: vertical list + stats. Right: large portrait that swaps on hover.
+## ---------------------------------------------------------------------------
+
+screen difficulty_selection_screen():
+    modal True
+    zorder 500
+
+    ## Currently focused difficulty (0=easiest, 3=hardest)
+    default _hov = 0
+
+    ## ── Background ──────────────────────────────────────────────────────────
+    add "#0a0a0a"
+
+    ## Subtle dark red wash on left panel
+    frame:
+        xpos 0
+        ypos 0
+        xsize 720
+        ysize 1080
+        background "#0d000033"
+
+    ## Vertical red separator line
+    frame:
+        xpos 718
+        ypos 0
+        xsize 3
+        ysize 1080
+        background "#cc2200"
+
+    ## ── Title (top-left) ────────────────────────────────────────────────────
+    vbox:
+        xpos 70
+        ypos 72
+        spacing 6
+
+        text "HOW HARD DO YOU WANT IT?":
+            color "#cc2200"
+            size 34
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+
+        text "Choose your suffering. This cannot be undone.":
+            color "#444444"
+            size 19
+            font "fonts/RobotoMono-Regular.ttf"
+
+    ## ── Difficulty list (left) ──────────────────────────────────────────────
+
+    ## Level 1 — CAN I GOOGLE IT?
+    frame:
+        xpos 0
+        ypos 220
+        xsize 718
+        ysize 76
+        background ("#cc220018" if _hov == 0 else "#00000000")
+
+        hbox:
+            yalign 0.5
+            ## Left accent bar
+            frame:
+                xsize 5
+                ysize 76
+                background ("#cc2200" if _hov == 0 else "#1a0000")
+            frame:
+                xsize 22
+                ysize 76
+                background "#00000000"
+            text ("▶  " if _hov == 0 else "   "):
+                color "#cc2200"
+                size 28
+                yalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
+            textbutton "CAN I GOOGLE IT?":
+                action [SetField(store, "_chosen_difficulty", "easy"), Return()]
+                hovered SetScreenVariable("_hov", 0)
+                text_color ("#ffffff" if _hov == 0 else "#555555")
+                text_size  (32 if _hov == 0 else 28)
+                text_bold  (_hov == 0)
+                text_font  "fonts/RobotoMono-Regular.ttf"
+                background "#00000000"
+                hover_background "#00000000"
+                yalign 0.5
+                padding (0, 18, 0, 18)
+
+    ## Level 2 — DON'T REJECT MY PR
+    frame:
+        xpos 0
+        ypos 296
+        xsize 718
+        ysize 76
+        background ("#cc220018" if _hov == 1 else "#00000000")
+
+        hbox:
+            yalign 0.5
+            frame:
+                xsize 5
+                ysize 76
+                background ("#cc2200" if _hov == 1 else "#1a0000")
+            frame:
+                xsize 22
+                ysize 76
+                background "#00000000"
+            text ("▶  " if _hov == 1 else "   "):
+                color "#cc2200"
+                size 28
+                yalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
+            textbutton "DON'T REJECT MY PR":
+                action [SetField(store, "_chosen_difficulty", "hard"), Return()]
+                hovered SetScreenVariable("_hov", 1)
+                text_color ("#ffffff" if _hov == 1 else "#555555")
+                text_size  (32 if _hov == 1 else 28)
+                text_bold  (_hov == 1)
+                text_font  "fonts/RobotoMono-Regular.ttf"
+                background "#00000000"
+                hover_background "#00000000"
+                yalign 0.5
+                padding (0, 18, 0, 18)
+
+    ## Level 3 — MASS LAYOFFS!
+    frame:
+        xpos 0
+        ypos 372
+        xsize 718
+        ysize 76
+        background ("#cc220018" if _hov == 2 else "#00000000")
+
+        hbox:
+            yalign 0.5
+            frame:
+                xsize 5
+                ysize 76
+                background ("#cc2200" if _hov == 2 else "#1a0000")
+            frame:
+                xsize 22
+                ysize 76
+                background "#00000000"
+            text ("▶  " if _hov == 2 else "   "):
+                color "#cc2200"
+                size 28
+                yalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
+            textbutton "MASS LAYOFFS!":
+                action [SetField(store, "_chosen_difficulty", "insane"), Return()]
+                hovered SetScreenVariable("_hov", 2)
+                text_color ("#ffffff" if _hov == 2 else "#555555")
+                text_size  (32 if _hov == 2 else 28)
+                text_bold  (_hov == 2)
+                text_font  "fonts/RobotoMono-Regular.ttf"
+                background "#00000000"
+                hover_background "#00000000"
+                yalign 0.5
+                padding (0, 18, 0, 18)
+
+    ## Level 4 — I AM THE STACK OVERFLOW
+    frame:
+        xpos 0
+        ypos 448
+        xsize 718
+        ysize 76
+        background ("#cc220018" if _hov == 3 else "#00000000")
+
+        hbox:
+            yalign 0.5
+            frame:
+                xsize 5
+                ysize 76
+                background ("#cc2200" if _hov == 3 else "#1a0000")
+            frame:
+                xsize 22
+                ysize 76
+                background "#00000000"
+            text ("▶  " if _hov == 3 else "   "):
+                color "#cc2200"
+                size 28
+                yalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
+            textbutton "I AM THE STACK OVERFLOW":
+                action [SetField(store, "_chosen_difficulty", "ultra"), Return()]
+                hovered SetScreenVariable("_hov", 3)
+                text_color ("#cc44ff" if _hov == 3 else "#555555")
+                text_size  (32 if _hov == 3 else 28)
+                text_bold  (_hov == 3)
+                text_font  "fonts/RobotoMono-Regular.ttf"
+                background "#00000000"
+                hover_background "#00000000"
+                yalign 0.5
+                padding (0, 18, 0, 18)
+
+    ## ── Stats block (bottom-left) ───────────────────────────────────────────
+
+    ## Separator
+    frame:
+        xpos 70
+        ypos 580
+        xsize 580
+        ysize 2
+        background "#2a0000"
+
+    vbox:
+        xpos 70
+        ypos 596
+        spacing 8
+
+        ## Stats — monospace gold
+        text "Money   [DIFF_DATA[_hov]['money']] CZK":
+            color "#C8A44E"
+            size 23
+            font "fonts/RobotoMono-Regular.ttf"
+
+        text "Coding  [DIFF_DATA[_hov]['coding']]":
+            color "#C8A44E"
+            size 23
+            font "fonts/RobotoMono-Regular.ttf"
+
+        text "Hatred  [DIFF_DATA[_hov]['hatred']]":
+            color "#C8A44E"
+            size 23
+            font "fonts/RobotoMono-Regular.ttf"
+
+        ## Flavor text
+        text "\"[DIFF_DATA[_hov]['flavor']]\"":
+            color "#666666"
+            size 18
+            italic True
+            font "fonts/RobotoMono-Regular.ttf"
+
+    ## Confirm instruction
+    text "— CLICK OR PRESS ENTER TO CONFIRM YOUR FATE —":
+        xpos 70
+        ypos 970
+        color "#551100"
+        size 17
+        font "fonts/RobotoMono-Regular.ttf"
+
+    ## ── Portrait (right side, centered in right half) ───────────────────────
+    ## Swaps with fade on hover. Images are ~420x630.
+
+    ## Red border: outer red frame (2px larger each side) + black mask center
+    frame:
+        xpos 1048
+        ypos 218
+        xsize 424
+        ysize 634
+        background "#cc2200"
+    frame:
+        xpos 1050
+        ypos 220
+        xsize 420
+        ysize 630
+        background "#0a0a0a"
+
+    if _hov == 0:
+        add "diff_easy"   at _diff_portrait_anim xpos 1050 ypos 220
+    elif _hov == 1:
+        add "diff_hard"   at _diff_portrait_anim xpos 1050 ypos 220
+    elif _hov == 2:
+        add "diff_insane" at _diff_portrait_anim xpos 1050 ypos 220
+    elif _hov == 3:
+        add "diff_ultra"  at _diff_portrait_anim xpos 1050 ypos 220
+
+    ## ── Keyboard navigation ─────────────────────────────────────────────────
+    key "K_UP"       action SetScreenVariable("_hov", max(0, _hov - 1))
+    key "K_DOWN"     action SetScreenVariable("_hov", min(3, _hov + 1))
+    key "K_RETURN"   action [SetField(store, "_chosen_difficulty", DIFF_DATA[_hov]["key"]), Return()]
+    key "K_KP_ENTER" action [SetField(store, "_chosen_difficulty", DIFF_DATA[_hov]["key"]), Return()]
+
+
 screen class_selection_screen():
     modal True
     zorder 500
@@ -920,6 +1247,12 @@ screen achievements_screen():
 ## Usage: call screen arc_title_card("I", "THE INCIDENT")
 ##        or call screen arc_title_card("II", "THE AWAKENING")
 ## ---------------------------------------------------------------------------
+transform _arc_card_anim:
+    alpha 0.0
+    linear 0.3 alpha 1.0
+    pause 1.6
+    linear 0.6 alpha 0.0
+
 screen arc_title_card(arc_number, arc_name):
     modal True
     zorder 500
@@ -930,6 +1263,7 @@ screen arc_title_card(arc_number, arc_name):
         xalign 0.5
         yalign 0.45
         spacing 20
+        at _arc_card_anim
 
         text "ARC [arc_number]":
             xalign 0.5
@@ -950,7 +1284,7 @@ screen arc_title_card(arc_number, arc_name):
             color "#1a2a4a"
             size 36
 
-    timer 2.2 action Return()
+    timer 2.5 action Return()
 
 
 ## ---------------------------------------------------------------------------

@@ -12,13 +12,6 @@ label start:
     scene bg_black
     play music "audio/enter_the_code_theme.mp3" fadein 2.0
 
-    ## Title card
-    "REFACTOR"
-    "A game about a Czech police officer who wants to quit the force and become a developer."
-    "You have 30 days. Code or break."
-
-    pause 1.0
-
     ## Difficulty selection
     call difficulty_selection
 
@@ -42,24 +35,12 @@ label difficulty_selection:
 
     scene bg_black
 
-    "SELECT DIFFICULTY"
-    "Your starting stats depend on this choice."
+    $ store._chosen_difficulty = None
+    call screen difficulty_selection_screen
 
-    menu:
-        "EASY — Money: 55,000 CZK | Coding: 10 | Hatred: 15":
-            $ init_game("easy")
-            "EASY mode selected.\nYou have a solid start. Don't waste it."
+    $ init_game(store._chosen_difficulty)
 
-        "HARD — Money: 35,000 CZK | Coding: 5 | Hatred: 25":
-            $ init_game("hard")
-            "HARD mode selected.\nThe margins are tighter. Every decision matters."
-
-        "INSANE — Money: 20,000 CZK | Coding: 0 | Hatred: 35":
-            $ init_game("insane")
-            "INSANE mode selected.\nYou have nothing. Absolute nothing. Good luck."
-
-    "Starting Stats:"
-    "[stats.available_money] CZK | Coding: [stats.coding_skill] | Hatred: [stats.pcr_hatred]/100"
+    "Difficulty selected: [store._chosen_difficulty]"
 
     return
 
