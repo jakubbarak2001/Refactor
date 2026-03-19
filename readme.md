@@ -1,75 +1,67 @@
-REFACTOR
-"Code your way out, or lose your mind trying."
+# REFACTOR
+> *"Code your way out, or lose your mind trying."*
 
-REFACTOR is a dark, satirical text-based RPG set in the grim reality of Northern Bohemia. You play as a young police officer who has realized their true calling is not law enforcement, but software development.
+REFACTOR is a dark, satirical visual novel RPG set in the grim reality of Northern Bohemia. You play as JB — a young police officer who has realized his true calling is not law enforcement, but software development.
 
-Your mission is simple: Survive 30 days. Your goal: Refactor your life. Become a Full-Stack Developer and quit the force before the job destroys you.
+Survive 30 days. Refactor your life. Escape the force before the job destroys you.
 
-🎮 Game Features
-3 Core Stats to Balance:
+---
 
-💰 Money: You need it to survive, buy courses, and pay fines. If it hits 0, you end up homeless.
+## Gameplay
 
-💻 Coding Skill: Your ticket out. Learn Python, solve bugs, and impress tech recruiters.
+### Stats
+- **Money** — You need it to survive, pay fines, and buy courses. Hit zero and you end up on the street.
+- **Coding Skill** — Your ticket out. Learn Python, grind bootcamps, and get hireable before the 30 days are up.
+- **PCR Hatred** — A measure of your sanity. Hit 100% and suffer a full mental breakdown.
 
-😡 PCR Hatred: A measure of your sanity. If this reaches 100%, you will suffer a mental breakdown.
+### Features
+- **Character Classes** — Choose your background before the grind begins. Your class is permanent and shapes how the game plays out.
+- **Difficulty Modes** — From manageable to genuinely brutal.
+- **30-Day Loop** — Every day brings choices: shifts, gym, therapy, coding bootcamps, or doing nothing and hating yourself slightly less.
+- **Random Events** — Bureaucratic disasters, sovereign citizens, broken printers, corrupt cops, and worse. Your choices have consequences.
+- **Story Arcs** — A corrupt colonel, a mysterious contact named Martin, and a midnight call you won't forget.
+- **Multiple Endings** — Tech startup escape, institutionalization, homelessness, or something stranger. Depends on you.
+- **Dynamic Soundtrack** — Original AI-generated atmospheric tracks that shift with the mood.
 
-30-Day Cycle: Every day brings new challenges. Manage your time between shifts, gym, therapy, and coding bootcamps.
+---
 
-Random Events: Deal with bureaucratic disasters, "sovereign citizens," broken printers, and corruption. Your choices matter.
+## How to Run
 
-Multiple Endings: Will you escape to a tech startup? Will you end up institutionalized? Or will you freeze on the streets?
+### Option 1: Ren'Py Launcher (Recommended)
+1. Download and install [Ren'Py](https://www.renpy.org/latest.html)
+2. Open the Ren'Py launcher and add the `REFACTOR/` folder as a project
+3. Click **Launch Project**
 
-Dynamic Soundtrack: Features original AI-generated atmospheric tracks.
+### Option 2: Built Distribution
+Run the pre-built executable directly — no Ren'Py install required.
 
-🚀 How to Run
-Option 1: The Executable (Windows)
-If you have the compiled .exe file:
+---
 
-Double-click REFACTOR.exe.
+## Controls
+Standard Ren'Py controls apply:
+- **Left click / Space / Enter** — Advance dialogue
+- **Mouse wheel / Page Up/Down** — Scroll back through history
+- **Escape** — Open game menu
+- **S** — Screenshot
+- **H** — Hide the dialogue window
 
-The launcher menu will appear.
+---
 
-Click > ENTER THE SHIFT to start the game.
+## Tech Stack
+- **Engine:** Ren'Py 8
+- **Scripting:** Ren'Py Script + Python 3
+- **Audio:** Ren'Py audio mixer (MP3)
+- **Visuals:** Sprite-based characters, background art, video cutscenes
 
-Option 2: Running from Source (Python)
-If you are a developer, you can run the game directly:
+---
 
-Prerequisites:
+## Credits
+**Developer:** Jakub Barak
 
-Python 3.10+
+**Music:** Custom AI-generated atmospheric tracks (Suno AI)
 
-Required libraries: pygame, Pillow, tkinter (usually built-in)
+**Art:** AI-generated character sprites and backgrounds (Midjourney)
 
-Install Dependencies:
+---
 
-Bash
-
-pip install pygame Pillow
-Launch the Game:
-
-Bash
-
-python run_game.py
-🕹️ Controls
-Keyboard: The game is entirely text-based.
-
-Make Choices: Type the number corresponding to your choice (e.g., 1, 2, 3) and press ENTER.
-
-Navigate Menus: Follow the on-screen prompts.
-
-🛠️ Tech Stack
-Language: Python 3.14
-
-GUI: Tkinter (Launcher Menu)
-
-Audio: Pygame Mixer
-
-Engine: Custom text-adventure state machine with random event generation.
-
-📝 Credits
-Developer: Jakub Barak
-
-Music & Assets: Custom generated assets (Suno AI / Visuals by Midjourney).
-
-"Police officers preserve the status quo. Developers build the future."
+*"Police officers preserve the status quo. Developers build the future."*
