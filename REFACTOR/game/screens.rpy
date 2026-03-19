@@ -504,8 +504,8 @@ init python:
     DIFF_DATA = [
         {
             "key":     "easy",
-            "name":    "CAN I GOOGLE IT?",
-            "flavor":  "For the mass-produced bootcamp graduate.",
+            "name":    "JUST LEARN TO CODE BRO",
+            "flavor":  "You googled 'how to become a developer in 30 days' and actually believed it.",
             "money":   "55,000",
             "coding":  "10",
             "hatred":  "15",
@@ -514,8 +514,8 @@ init python:
         },
         {
             "key":     "hard",
-            "name":    "DON'T REJECT MY PR",
-            "flavor":  "Tight margins. Every commit has a cost.",
+            "name":    "TECHNICAL DEBT",
+            "flavor":  "You burned half your savings on a course you haven't finished.",
             "money":   "35,000",
             "coding":  "5",
             "hatred":  "25",
@@ -524,8 +524,8 @@ init python:
         },
         {
             "key":     "insane",
-            "name":    "MASS LAYOFFS!",
-            "flavor":  "No money. No skill. The market doesn't care.",
+            "name":    "THANK YOU FOR YOUR APPLICATION",
+            "flavor":  "Your CV has a gap. Your wallet has a bigger one.",
             "money":   "20,000",
             "coding":  "0",
             "hatred":  "35",
@@ -534,10 +534,10 @@ init python:
         },
         {
             "key":     "ultra",
-            "name":    "I AM THE STACK OVERFLOW",
-            "flavor":  "You mass applied on LinkedIn. Nobody responded.",
+            "name":    "SYSTEM FAILURE",
+            "flavor":  "You googled 'what is syntax' and still got it wrong.",
             "money":   "10,000",
-            "coding":  "0",
+            "coding":  "-25",
             "hatred":  "50",
             "portrait": "diff_ultra",
             "color":   "#cc44ff",
@@ -625,7 +625,7 @@ screen difficulty_selection_screen():
                 size 28
                 yalign 0.5
                 font "fonts/RobotoMono-Regular.ttf"
-            textbutton "CAN I GOOGLE IT?":
+            textbutton "JUST LEARN TO CODE BRO":
                 action [SetField(store, "_chosen_difficulty", "easy"), Return()]
                 hovered SetScreenVariable("_hov", 0)
                 text_color ("#ffffff" if _hov == 0 else "#555555")

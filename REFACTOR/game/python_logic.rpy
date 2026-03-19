@@ -124,7 +124,7 @@ init python:
         "easy":   {"money": 55000, "coding": 10, "hatred": 15},
         "hard":   {"money": 35000, "coding":  5, "hatred": 25},
         "insane": {"money": 20000, "coding":  0, "hatred": 35},
-        "ultra":  {"money": 10000, "coding":  0, "hatred": 50},
+        "ultra":  {"money": 10000, "coding": -25, "hatred": 50},
     }
 
     # ---------------------------------------------------------------------------
