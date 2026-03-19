@@ -46,12 +46,17 @@ class ColonelEvent:
         except Exception as e:
             print(f"\n[SYSTEM] Audio Warning: Could not play music '{track_name}' ({e})")
 
-    def _slow_print(self, text, delay=0.04, bold=False, color=None):
+    def _slow_print(self, text, delay=0.04, bold=False, color=None, bg=None):
         """
-        Slow print with Rich markup support.
-        If text contains Rich markup (e.g., [red]text[/red]), it will be rendered properly.
-        Otherwise, prints character-by-character with optional styling.
+        Prints text using Interaction.print_text with animation.
         Automatically formats all "Colonel" mentions to be bold dark_blue and "hatred" mentions with 😡 emoji.
+        
+        Args:
+            text: Text to display
+            delay: Animation delay between characters
+            bold: Optional bold styling (deprecated - use Rich markup instead)
+            color: Optional color styling (deprecated - use Rich markup instead)
+            bg: Optional background identifier (e.g., "police_station_office")
         """
         # Format Colonel, hatred, coding, and money mentions automatically
         text = Interaction.format_colonel_text(text)
@@ -59,17 +64,14 @@ class ColonelEvent:
         text = Interaction.format_coding_text(text)
         text = Interaction.format_money_text(text)
         
-        # Check if text already contains Rich markup tags
-        if "[" in text and ("]" in text or "[/" in text):
-            # Text contains Rich markup, print it directly with Rich
-            print(text)
-        else:
-            # Plain text, apply optional styling and print
-            if bold:
-                text = f"[bold]{text}[/bold]"
-            if color:
-                text = f"[{color}]{text}[/{color}]"
-            print(text)
+        # Apply styling if requested (for backwards compatibility)
+        if bold:
+            text = f"[bold]{text}[/bold]"
+        if color:
+            text = f"[{color}]{text}[/{color}]"
+        
+        # Use Interaction.print_text with animation for GUI compatibility
+        Interaction.print_text(text, animated=True, animation_delay=delay, bg=bg)
 
     def _draw_hp_bar(self, current_hp, max_hp=100, bar_length=20, bar_color="green"):
         """
@@ -157,7 +159,7 @@ class ColonelEvent:
 
     def _round_one(self, stats):
         self._print_hud("Round 1")
-        self._slow_print("It is early morning. You hand your superior the resignation.", delay=0.02)
+        self._slow_print("It is early morning. You hand your superior the resignation.", delay=0.02, bg="police_station_office")
         self._slow_print("[red]'I need to call the Colonel.'[/red]", delay=0.05)
         time.sleep(1)
         self._slow_print("\nThree hours later, the black Superb arrives. He sits inside for 5 minutes.", delay=0.04)
@@ -252,7 +254,7 @@ class ColonelEvent:
             ])
 
             if choice == "1":
-                stats.available_money -= 80000
+                stats.increment_stats_value_money(-80000)
                 self.colonel_hp -= 20
                 self._slow_print(
                     "\n[green][DOMINANCE]: You throw the money on the table. He is shocked.[/green]")

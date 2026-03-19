@@ -83,13 +83,36 @@ class InteractionInterface(ABC):
         text: str,
         character: Optional[str] = None,
         expression: str = "neutral",
-        bg: Optional[str] = None
+        bg: Optional[str] = None,
+        wait_for_input: bool = True,
+        animated: bool = False,
+        animation_delay: float = 0.03
     ) -> None:
         """
         Display text (replaces print() calls).
         
         Args:
             text: Text to display
+            character: Optional character name for visual display
+            expression: Character expression/emotion
+            bg: Optional background scene identifier
+            wait_for_input: If True, waits for Enter key. If False, just displays text without waiting.
+            animated: If True, displays text with typewriter effect (GUI mode only)
+            animation_delay: Delay between characters in seconds (default 0.03)
+        """
+        pass
+
+    @abstractmethod
+    def continue_prompt(
+        self,
+        character: Optional[str] = None,
+        expression: str = "neutral",
+        bg: Optional[str] = None
+    ) -> None:
+        """
+        Display a "Press Enter to continue" prompt and wait for Enter key.
+        
+        Args:
             character: Optional character name for visual display
             expression: Character expression/emotion
             bg: Optional background scene identifier
@@ -258,11 +281,14 @@ class TerminalInteraction(InteractionInterface):
         text: str,
         character: Optional[str] = None,
         expression: str = "neutral",
-        bg: Optional[str] = None
+        bg: Optional[str] = None,
+        wait_for_input: bool = True,
+        animated: bool = False,
+        animation_delay: float = 0.03
     ) -> None:
         """
         Display text (replaces print() calls).
-        Terminal implementation ignores character, expression, and bg parameters.
+        Terminal implementation ignores character, expression, bg, wait_for_input, animated, and animation_delay parameters.
         """
         # Format Colonel, hatred, coding, and money mentions
         text = TerminalInteraction.format_colonel_text(text)
@@ -270,7 +296,47 @@ class TerminalInteraction(InteractionInterface):
         text = TerminalInteraction.format_coding_text(text)
         text = TerminalInteraction.format_money_text(text)
         
-        print(text)
+        if animated:
+            # Terminal mode: use slow print effect
+            import sys
+            import time
+            for char in text:
+                sys.stdout.write(char)
+                sys.stdout.flush()
+                time.sleep(animation_delay)
+            print()  # Newline at end
+        else:
+            print(text)
+
+    def continue_prompt(
+        self,
+        character: Optional[str] = None,
+        expression: str = "neutral",
+        bg: Optional[str] = None
+    ) -> None:
+        """
+        Display a "Press Enter to continue" prompt and wait for Enter key.
+        Terminal implementation ignores character, expression, and bg parameters.
+        """
+        print(Panel.fit(
+            "[italic yellow](PRESS ENTER TO CONTINUE)[/italic yellow]",
+            border_style="bold",
+            width=40
+        ))
+        
+        # Windows: Use msvcrt to read keys directly (no echo, only Enter accepted)
+        import sys
+        if sys.platform == "win32":
+            import msvcrt
+            while True:
+                key = msvcrt.getwch()
+                # Enter key is '\r' (carriage return)
+                if key == '\r':
+                    break
+        else:
+            # Non-Windows: Use getpass to hide input, only Enter works
+            import getpass
+            getpass.getpass("")
 
     @staticmethod
     def format_colonel_text(text: str) -> str:
@@ -311,10 +377,19 @@ class TerminalInteraction(InteractionInterface):
     @staticmethod
     def format_hatred_text(text: str) -> str:
         """Automatically formats all mentions of "hatred" with 😡 emoji. (Static utility method)"""
+        # Don't add emoji if it's already in the text (prevents double emojis)
+        if "😡" in text:
+            return text
+            
         pattern = r'\b(hatred|Hatred|HATRED)\b'
         
         def replace_hatred(match):
             original = match.group(1)
+            # Check if emoji is already before this word
+            start_pos = match.start()
+            context_before = text[max(0, start_pos - 5):start_pos]
+            if "😡" in context_before:
+                return original
             return f"😡 {original}"
         
         formatted = re.sub(pattern, replace_hatred, text)
@@ -323,10 +398,19 @@ class TerminalInteraction(InteractionInterface):
     @staticmethod
     def format_coding_text(text: str) -> str:
         """Automatically formats all mentions of "coding" with 💻 emoji. (Static utility method)"""
+        # Don't add emoji if it's already in the text (prevents double emojis)
+        if "💻" in text:
+            return text
+            
         pattern = r'\b(coding|Coding|CODING)\b'
         
         def replace_coding(match):
             original = match.group(1)
+            # Check if emoji is already before this word
+            start_pos = match.start()
+            context_before = text[max(0, start_pos - 5):start_pos]
+            if "💻" in context_before:
+                return original
             return f"💻 {original}"
         
         formatted = re.sub(pattern, replace_coding, text)
@@ -335,10 +419,19 @@ class TerminalInteraction(InteractionInterface):
     @staticmethod
     def format_money_text(text: str) -> str:
         """Automatically formats all mentions of "money" and "CZK" with 💰 emoji. (Static utility method)"""
+        # Don't add emoji if it's already in the text (prevents double emojis)
+        if "💰" in text:
+            return text
+        
         pattern = r'\b(money|Money|MONEY)\b'
         
         def replace_money(match):
             original = match.group(1)
+            # Check if emoji is already before this word
+            start_pos = match.start()
+            context_before = text[max(0, start_pos - 5):start_pos]
+            if "💰" in context_before:
+                return original
             return f"💰 {original}"
         
         formatted = re.sub(pattern, replace_money, text)
@@ -446,6 +539,30 @@ class Interaction:
         return get_interaction().show_outcome(outcome_text, character, expression, bg)
     
     @staticmethod
+    def print_text(
+        text: str,
+        character: Optional[str] = None,
+        expression: str = "neutral",
+        bg: Optional[str] = None,
+        wait_for_input: bool = True,
+        animated: bool = False,
+        animation_delay: float = 0.03
+    ) -> None:
+        """Delegates to current interaction provider.
+        
+        Args:
+            text: Text to display
+            character: Optional character name for visual display
+            expression: Character expression/emotion
+            bg: Optional background scene identifier
+            wait_for_input: If True, waits for Enter key. If False, just displays text without waiting.
+            animated: If True, displays text with typewriter effect (GUI mode only)
+            animation_delay: Delay between characters in seconds (default 0.03)
+        """
+        return get_interaction().print_text(text, character, expression, bg, wait_for_input, animated, animation_delay)
+    
+    
+    @staticmethod
     def format_colonel_text(text: str) -> str:
         """Static utility method - delegates to TerminalInteraction."""
         return TerminalInteraction.format_colonel_text(text)
@@ -469,3 +586,12 @@ class Interaction:
     def print_colonel(*args, **kwargs):
         """Static utility method - delegates to TerminalInteraction."""
         return TerminalInteraction.print_colonel(*args, **kwargs)
+    
+    @staticmethod
+    def continue_prompt(
+        character: Optional[str] = None,
+        expression: str = "neutral",
+        bg: Optional[str] = None
+    ) -> None:
+        """Delegates to current interaction provider."""
+        return get_interaction().continue_prompt(character, expression, bg)

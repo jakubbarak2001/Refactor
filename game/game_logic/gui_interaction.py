@@ -52,6 +52,10 @@ class GUIInteraction(InteractionInterface):
         self.clock = pygame.time.Clock()
         self.asset_manager = AssetManager("assets.json")
         
+        # Scrolling state for decision buttons
+        self.decision_scroll_offset = 0
+        self.max_scroll_offset = 0
+        
         # Load fonts - try to use emoji-supporting fonts
         self.emoji_supported = False
         try:
@@ -281,6 +285,8 @@ class GUIInteraction(InteractionInterface):
             '🌙': '[NIGHT SHIFT]',
             '⚙️': '[SETTINGS]',
             '⬅️': '[BACK]',
+            '⚠️': '[WARNING]',
+            '🎯': '[TARGET]',
         }
         
         for emoji, replacement in emoji_replacements.items():
@@ -532,10 +538,61 @@ class GUIInteraction(InteractionInterface):
             cursor_x = prompt_x + prompt_surface.get_width() + 5
             pygame.draw.rect(self.screen, self.HACKER_GREEN, (cursor_x, prompt_y, 8, prompt_surface.get_height()))
     
-    def _prepare_buttons(self, options: List[Tuple[str, str, str]], character: Optional[str] = None):
+    def _calculate_text_height(self, option_text: str, button_width: int) -> int:
+        """Calculate the height needed to display option text with proper wrapping."""
+        # Strip Rich markup and handle emojis
+        clean_text = self._strip_rich_markup(option_text)
+        if not self.emoji_supported:
+            clean_text = self._replace_emojis_with_text(clean_text)
+        
+        # Split by newlines first
+        lines = clean_text.split('\n')
+        
+        # Calculate text area width (accounting for padding)
+        text_area_width = button_width - 40  # 20px padding on each side
+        line_height = 28
+        min_height = 80  # Minimum button height (for header + padding)
+        
+        total_height = 0
+        
+        # Process each line
+        for line in lines:
+            if not line.strip():
+                continue
+            
+            # Check for emojis
+            has_emoji = self._has_emoji(line)
+            font_to_use = self.emoji_font_small if (has_emoji and self.emoji_supported) else self.font_small
+            
+            # Word wrap this line
+            words = line.strip().split()
+            current_line = ""
+            
+            for word in words:
+                test_line = current_line + (" " if current_line else "") + word
+                test_surface = font_to_use.render(test_line, True, self.WHITE)
+                text_width = test_surface.get_width()
+                
+                if text_width > text_area_width and current_line:
+                    # This word would exceed width, so wrap
+                    total_height += line_height
+                    current_line = word
+                else:
+                    current_line = test_line
+            
+            # Add the remaining line
+            if current_line:
+                total_height += line_height
+        
+        # Add padding: top padding (15) + header space (28+5) + bottom padding (10)
+        total_height += 15 + 28 + 5 + 10
+        
+        # Return max of calculated height or minimum
+        return max(total_height, min_height)
+    
+    def _prepare_buttons(self, options: List[Tuple[str, str, str]], character: Optional[str] = None, scroll_offset: int = 0):
         """Prepare button rectangles without drawing. Returns list of button rects."""
         buttons = []
-        button_height = 140
         button_spacing = 20
         button_x = 50
         
@@ -555,39 +612,67 @@ class GUIInteraction(InteractionInterface):
         title_height = 80  # Reserve space for "DECISION" title at top
         available_height = self.WINDOW_HEIGHT - title_height - bottom_margin
         
+        # Calculate dynamic button heights based on text content
+        button_heights = []
+        for option_num, difficulty_tag, option_text in options:
+            height = self._calculate_text_height(option_text, button_width)
+            button_heights.append(height)
+        
         # Calculate total height needed
         if len(options) > 0:
-            total_height = len(options) * button_height + (len(options) - 1) * button_spacing
+            total_height = sum(button_heights) + (len(options) - 1) * button_spacing
         else:
             total_height = 0
         
-        # If buttons would be too tall, reduce spacing to fit
-        if total_height > available_height and len(options) > 1:
-            # Calculate maximum spacing that fits
-            max_spacing = max(5, (available_height - len(options) * button_height) // (len(options) - 1))
-            button_spacing = min(button_spacing, max_spacing)
-            total_height = len(options) * button_height + (len(options) - 1) * button_spacing
+        # Calculate maximum scroll offset (how much we can scroll down)
+        if total_height > available_height:
+            self.max_scroll_offset = total_height - available_height
+        else:
+            self.max_scroll_offset = 0
         
-        # Position buttons from bottom, but ensure they don't overlap with title
-        start_y = self.WINDOW_HEIGHT - total_height - bottom_margin
-        if start_y < title_height:
-            start_y = title_height + 10  # Add 10px margin below title
+        # Clamp scroll offset to valid range
+        scroll_offset = max(0, min(scroll_offset, self.max_scroll_offset))
+        
+        # Position buttons from top (with scroll offset applied)
+        start_y = title_height + 10  # Start below title
         
         for i, (option_num, difficulty_tag, option_text) in enumerate(options):
-            y = start_y + i * (button_height + button_spacing)
-            # Ensure button doesn't go off screen
-            if y + button_height > self.WINDOW_HEIGHT - bottom_margin:
-                y = self.WINDOW_HEIGHT - bottom_margin - button_height
+            # Calculate y position based on cumulative heights, with scroll offset
+            y_offset = sum(button_heights[:i]) + i * button_spacing
+            y = start_y + y_offset - scroll_offset
+            
+            button_height = button_heights[i]
             button_rect = pygame.Rect(button_x, y, button_width, button_height)
             buttons.append((button_rect, option_num, option_text))
         
         return buttons
     
+    def _draw_scrollbar(self):
+        """Draw a scrollbar indicator on the right side when scrolling is available."""
+        if self.max_scroll_offset <= 0:
+            return
+        
+        # Scrollbar dimensions
+        scrollbar_width = 8
+        scrollbar_x = self.WINDOW_WIDTH - scrollbar_width - 10
+        scrollbar_y_start = 80  # Below title
+        scrollbar_height_total = self.WINDOW_HEIGHT - scrollbar_y_start - 50  # Above bottom margin
+        
+        # Calculate scrollbar thumb position and size
+        viewport_height = self.WINDOW_HEIGHT - 80 - 50  # Available height for buttons
+        total_content_height = self.max_scroll_offset + viewport_height
+        thumb_height = max(20, int((viewport_height / total_content_height) * scrollbar_height_total))
+        thumb_y = scrollbar_y_start + int((self.decision_scroll_offset / self.max_scroll_offset) * (scrollbar_height_total - thumb_height)) if self.max_scroll_offset > 0 else scrollbar_y_start
+        
+        # Draw scrollbar track (background)
+        pygame.draw.rect(self.screen, (30, 30, 30), (scrollbar_x, scrollbar_y_start, scrollbar_width, scrollbar_height_total))
+        
+        # Draw scrollbar thumb
+        pygame.draw.rect(self.screen, self.HACKER_CYAN, (scrollbar_x, thumb_y, scrollbar_width, thumb_height))
+    
     def _draw_buttons(self, options: List[Tuple[str, str, str]], character: Optional[str] = None):
         """Draw decision buttons with better styling and hover effects."""
-        # Ensure buttons list is populated
-        if not self.buttons:
-            self.buttons = self._prepare_buttons(options, character)
+        # Buttons are already prepared in show_decision with scroll offset
         
         # Color scheme based on difficulty
         difficulty_colors = {
@@ -620,6 +705,10 @@ class GUIInteraction(InteractionInterface):
             
             # Get button rect from pre-populated list
             button_rect, _, _ = self.buttons[i]
+            
+            # Only draw buttons that are visible on screen (with some margin for partial visibility)
+            if button_rect.y + button_rect.height < 80 or button_rect.y > self.WINDOW_HEIGHT - 50:
+                continue  # Skip drawing buttons outside viewport
             
             # Draw button with hacker/terminal style
             # If hovered, add slight background highlight
@@ -682,33 +771,26 @@ class GUIInteraction(InteractionInterface):
             text_area_width = button_rect.width - 40
             line_height = 28  # Increased line height for readability
             
-            # Draw option number and class name at top (with emoji support)
+            # Draw option number and difficulty/header at top (with emoji support)
             # Use brighter color when hovered
             header_color = hover_border_color if is_hovered else border_color
-            if lines:
-                first_line = lines[0].strip()
-                # Check if first line has emoji (for activity selection: 💪 GYM, 🧠 THERAPY, etc.)
-                has_emoji_header = self._has_emoji(first_line)
-                header_font = self.emoji_font_medium if (has_emoji_header and self.emoji_supported) else self.font_medium
-                
-                if difficulty_name:
-                    # Draw number + difficulty name
-                    header_text = f"{option_num}. {difficulty_name}"
-                    header_surface = header_font.render(header_text, True, header_color)
-                    self.screen.blit(header_surface, (text_area_x, text_area_y))
-                    text_area_y += line_height + 5  # Space after header
-                    lines = lines[1:]  # Remove first line from content
-                else:
-                    # Draw first line as header (might contain emoji + activity name like 💪 GYM)
-                    # Use emoji font if emoji detected
-                    if has_emoji_header and self.emoji_supported:
-                        header_surface = self.emoji_font_medium.render(first_line, True, header_color)
-                    else:
-                        header_surface = self.font_medium.render(first_line, True, header_color)
-                    self.screen.blit(header_surface, (text_area_x, text_area_y))
-                    text_area_y += line_height + 5
-                    lines = lines[1:]  # Remove first line from content
+            header_font = self.emoji_font_medium if self.emoji_supported else self.font_medium
             
+            if difficulty_name:
+                # Draw number + difficulty name as header
+                header_text = f"{option_num}. {difficulty_name}"
+                header_surface = header_font.render(header_text, True, header_color)
+                self.screen.blit(header_surface, (text_area_x, text_area_y))
+                text_area_y += line_height + 5  # Space after header
+            else:
+                # Draw option number as header
+                header_text = f"{option_num}."
+                header_surface = header_font.render(header_text, True, header_color)
+                self.screen.blit(header_surface, (text_area_x, text_area_y))
+                text_area_y += line_height + 5  # Space after header
+            
+            # Now render all lines (including first line) with word wrapping
+            # Don't remove first line - render everything with proper wrapping
             # Draw stats lines with word wrapping
             for line in lines:
                 if not line.strip():
@@ -871,12 +953,11 @@ class GUIInteraction(InteractionInterface):
         running = True
         self.hovered_button_index = None  # Reset hover state
         self.buttons = []  # Initialize buttons list
+        self.decision_scroll_offset = 0  # Reset scroll offset
         
         while running:
-            # Populate buttons list if empty (first iteration)
-            # Pass character to avoid overlapping with character sprite
-            if not self.buttons:
-                self.buttons = self._prepare_buttons(formatted_options, character)
+            # Recalculate buttons with current scroll offset
+            self.buttons = self._prepare_buttons(formatted_options, character, self.decision_scroll_offset)
             
             # Get mouse position for hover detection
             mouse_pos = pygame.mouse.get_pos()
@@ -892,12 +973,18 @@ class GUIInteraction(InteractionInterface):
             self.screen.blit(glow_surface, (22, 22))
             self.screen.blit(title_surface, (20, 20))
             
+            # Draw scrollbar if scrolling is needed
+            if self.max_scroll_offset > 0:
+                self._draw_scrollbar()
+            
             # Check which button is being hovered (before drawing)
             self.hovered_button_index = None
             for i, (button_rect, _, _) in enumerate(self.buttons):
-                if button_rect.collidepoint(mouse_pos):
-                    self.hovered_button_index = i
-                    break
+                # Only check buttons that are visible on screen
+                if (button_rect.y + button_rect.height >= 80 and button_rect.y < self.WINDOW_HEIGHT - 50):
+                    if button_rect.collidepoint(mouse_pos):
+                        self.hovered_button_index = i
+                        break
             
             # Draw buttons (with hover effects, pass character to avoid overlap)
             self._draw_buttons(formatted_options, character)
@@ -909,22 +996,45 @@ class GUIInteraction(InteractionInterface):
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+                elif event.type == pygame.MOUSEWHEEL:
+                    # Handle mouse wheel scrolling
+                    scroll_speed = 50  # Pixels per scroll
+                    if event.y > 0:  # Scroll up
+                        self.decision_scroll_offset = max(0, self.decision_scroll_offset - scroll_speed)
+                    elif event.y < 0:  # Scroll down
+                        self.decision_scroll_offset = min(self.max_scroll_offset, self.decision_scroll_offset + scroll_speed)
                 elif event.type == pygame.MOUSEMOTION:
                     # Update hover state on mouse movement
                     mouse_pos = event.pos
                     self.hovered_button_index = None
                     for i, (button_rect, _, _) in enumerate(self.buttons):
-                        if button_rect.collidepoint(mouse_pos):
-                            self.hovered_button_index = i
-                            break
+                        # Only check visible buttons
+                        if (button_rect.y + button_rect.height >= 80 and button_rect.y < self.WINDOW_HEIGHT - 50):
+                            if button_rect.collidepoint(mouse_pos):
+                                self.hovered_button_index = i
+                                break
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:  # Left click
                         mouse_pos = event.pos
-                        # Check button clicks (buttons list is populated in _draw_buttons)
+                        # Check button clicks (only visible buttons)
                         for button_rect, option_num, _ in self.buttons:
-                            if button_rect.collidepoint(mouse_pos):
-                                return option_num
+                            if (button_rect.y + button_rect.height >= 80 and button_rect.y < self.WINDOW_HEIGHT - 50):
+                                if button_rect.collidepoint(mouse_pos):
+                                    return option_num
                 elif event.type == pygame.KEYDOWN:
+                    # Handle keyboard scrolling
+                    if event.key == pygame.K_UP or event.key == pygame.K_w:
+                        scroll_speed = 50
+                        self.decision_scroll_offset = max(0, self.decision_scroll_offset - scroll_speed)
+                    elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
+                        scroll_speed = 50
+                        self.decision_scroll_offset = min(self.max_scroll_offset, self.decision_scroll_offset + scroll_speed)
+                    elif event.key == pygame.K_PAGEUP:
+                        scroll_speed = 300
+                        self.decision_scroll_offset = max(0, self.decision_scroll_offset - scroll_speed)
+                    elif event.key == pygame.K_PAGEDOWN:
+                        scroll_speed = 300
+                        self.decision_scroll_offset = min(self.max_scroll_offset, self.decision_scroll_offset + scroll_speed)
                     # Allow keyboard selection too
                     for option_num, _, _ in formatted_options:
                         if event.unicode == option_num:

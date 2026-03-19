@@ -45,16 +45,37 @@ def spawn_game_console():
         kernel32.SetConsoleMode(hOut, out_mode)
 
 if __name__ == '__main__':
-    # 1. Enforce Terminal FIRST
-    enforce_modern_terminal()
+    # Check for GUI mode flag (command line argument or environment variable)
+    # Check for GUI mode flag (command line argument or environment variable)
+    # Default is now NEW GUI
+    use_terminal = '--terminal' in sys.argv
+    use_old_gui = '--old-gui' in sys.argv
     
-    # 2. Spawn Console Environment
-    spawn_game_console()
-
+    use_gui = not use_terminal
+    use_new_gui = use_gui and not use_old_gui
+    
+    if not use_gui:
+        # Terminal mode: spawn console
+        # 1. Enforce Terminal FIRST
+        enforce_modern_terminal()
+        
+        # 2. Spawn Console Environment
+        spawn_game_console()
+    else:
+        # GUI mode: Still need stdin for any fallback input calls
+        # Create a dummy stdin that returns empty string
+        import io
+        sys.stdin = io.StringIO()
+    
     # 3. NOW load the game (Lazy Loading)
     try:
         from game.game_logic.main import main
-        from game.game_logic.gui_menu import show_startup_menu
+        
+        if use_new_gui:
+            from game.game_logic.gui_menu_v2 import show_startup_menu_v2 as show_startup_menu
+        else:
+            from game.game_logic.gui_menu import show_startup_menu
+            
     except ImportError as e:
         print(f"\nCRITICAL ERROR: {e}")
         print("Required libraries failed to load.")
@@ -63,4 +84,4 @@ if __name__ == '__main__':
 
     # 4. Start Game
     if show_startup_menu():
-        main()
+        main(use_gui=use_gui, use_new_gui=use_new_gui)

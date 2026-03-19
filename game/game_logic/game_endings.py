@@ -50,16 +50,11 @@ class GameEndings:
     @staticmethod
     def _slow_print(text, delay=0.02):
         """Optional helper to make text feel more dramatic. Automatically formats Colonel and hatred mentions."""
-        # Format Colonel, hatred, coding, and money mentions automatically
         text = Interaction.format_colonel_text(text)
         text = Interaction.format_hatred_text(text)
         text = Interaction.format_coding_text(text)
         text = Interaction.format_money_text(text)
-        for char in text:
-            sys.stdout.write(char)
-            sys.stdout.flush()
-            time.sleep(delay)
-        print()
+        Interaction.print_text(text, animated=True, animation_delay=delay)
 
     @staticmethod
     def _show_game_over_header(title: str, subtitle: str = ""):
@@ -224,7 +219,6 @@ class GameEndings:
         # Reset stats: coding skill to 0, hatred to -100 (acceptance), money stays the same
         stats.coding_skill = -100
         stats.pcr_hatred = -100
-        stats.get_stats_command()
         continue_prompt()
         
         GameEndings._slow_print("\nJust... acceptance.")
@@ -234,10 +228,10 @@ class GameEndings:
         
         continue_prompt()
 
-        print("\n[yellow]You step outside the office.[/yellow]")
-        print("[yellow]The hallway looks the same as always.[/yellow]")
-        print("[yellow]The station looks the same.[/yellow]")
-        print("[yellow]Everything looks exactly as it should.[/yellow]")
+        Interaction.print_text("\n[yellow]You step outside the office.[/yellow]")
+        Interaction.print_text("[yellow]The hallway looks the same as always.[/yellow]")
+        Interaction.print_text("[yellow]The station looks the same.[/yellow]")
+        Interaction.print_text("[yellow]Everything looks exactly as it should.[/yellow]")
         
         time.sleep(2)
         
@@ -289,19 +283,13 @@ class GoodEnding:
     def _slow_print(self, text, delay=0.05, color=None, bold=False):
         """
         Cinematic printing with Rich markup support.
-        If text contains Rich markup, it will be rendered properly.
+        Routes through Interaction for GUI compatibility.
         """
-        # Check if text already contains Rich markup tags
-        if "[" in text and ("]" in text or "[/" in text):
-            # Text contains Rich markup, print it directly with Rich
-            print(text)
-        else:
-            # Plain text, apply optional styling and print
-            if bold:
-                text = f"[bold]{text}[/bold]"
-            if color:
-                text = f"[{color}]{text}[/{color}]"
-            print(text)
+        if bold:
+            text = f"[bold]{text}[/bold]"
+        if color:
+            text = f"[{color}]{text}[/{color}]"
+        Interaction.print_text(text, animated=True, animation_delay=delay)
 
     def trigger_ending(self, stats=None):
         """

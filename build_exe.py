@@ -43,7 +43,7 @@ def check_files_exist():
             print(f"  - {file}")
         return False
     
-    print("✓ All required files found")
+    print("[OK] All required files found")
     return True
 
 def remove_existing_exe():
@@ -71,7 +71,7 @@ def remove_existing_exe():
                 os.chmod(dist_path, 0o777)
             
             os.remove(dist_path)
-            print("✓ Successfully removed existing executable")
+            print("[OK] Successfully removed existing executable")
             # Small delay to ensure file system updates
             time.sleep(0.5)
             return True
@@ -80,7 +80,7 @@ def remove_existing_exe():
                 print(f"  Attempt {attempt + 1}/{max_attempts} failed. Retrying in 1 second...")
                 time.sleep(1)
             else:
-                print("\n✗ ERROR: Cannot remove existing executable!")
+                print("\n[ERROR] Cannot remove existing executable!")
                 print("  The file is locked. Please ensure:")
                 print("    1. REFACTOR.exe is not currently running")
                 print("    2. No other program is using the file")
@@ -88,7 +88,7 @@ def remove_existing_exe():
                 print("\n  You can manually delete 'dist/REFACTOR.exe' and try again.")
                 return False
         except Exception as e:
-            print(f"\n✗ Error removing existing executable: {e}")
+            print(f"\n[ERROR] Error removing existing executable: {e}")
             return False
     
     return False
@@ -111,15 +111,15 @@ def build_exe():
             [sys.executable, "-m", "PyInstaller", "REFACTOR.spec", "--clean"],
             check=True
         )
-        print("\n✓ Build successful!")
+        print("\n[SUCCESS] Build successful!")
         print("\nThe executable can be found in the 'dist' folder:")
         print("  dist/REFACTOR.exe")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"\n✗ Build failed with error: {e}")
+        print(f"\n[ERROR] Build failed with error: {e}")
         return False
     except FileNotFoundError:
-        print("\n✗ PyInstaller not found. Please install it:")
+        print("\n[ERROR] PyInstaller not found. Please install it:")
         print("  pip install pyinstaller")
         return False
 

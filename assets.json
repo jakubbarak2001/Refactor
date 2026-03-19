@@ -24,8 +24,9 @@
     "parking_lot": "assets/backgrounds/police_parking_lot.jpg",
     "police_station_office": "assets/backgrounds/police_station_colonel_office.jpg",
     "police_station_interior": "assets/backgrounds/police_station_interior.jpg",
-    "cafe": "assets/backgrounds/cafe.png",
-    "police_station_hallway": "assets/backgrounds/police_station_hallway.png"
+    "cafe": "assets/backgrounds/cafe.jpg",
+    "police_station_hallway": "assets/backgrounds/police_station_hallway.png",
+    "random_event": "assets/backgrounds/random_event.jpg"
   },
   "scenes": {
     "car_incident_intro": {

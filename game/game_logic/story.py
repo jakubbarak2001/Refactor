@@ -7,6 +7,7 @@ from rich.box import DOUBLE
 
 from game.game_logic.press_enter_to_continue import continue_prompt
 from game.game_logic.stats import Stats
+from game.game_logic.interaction import Interaction
 
 
 class Arc:
@@ -57,15 +58,32 @@ class Story:
     @staticmethod
     def start_game_message():
         """Gives a neatly formatted welcoming message, for whenever you start the game."""
-        print("[bold]Welcome to REFACTOR![bold]")
-        print("\nYou are a young police officer, in northern part of Bohemia.")
-        print("At the beginning, being a cop is everything for you.")
-        print("But soon, you will experience big changes.")
-        print("\nYou can either become:\n")
-        print("[red]• Victim[/red] of a broken system, following orders.")
-        print("[cyan]• Architect[/cyan] that creates his own rules.")
-        print("\nIn this game, that is entirely up to you.")
-        continue_prompt()
-        print("[bold]Your main stats are: \n\n💲 Money \n💻 Coding skills \n😠 Police Hatred[/bold]")
-        print("\n[red][bold]0 Money / 100 Hatred == GAME OVER[/red][/bold]")
-        continue_prompt()
+        # Split into multiple messages for VN style
+        
+        # Part 1: Intro
+        msg1 = (
+            "[bold]Welcome to REFACTOR![/bold]\n\n"
+            "You are a young police officer, in northern part of Bohemia.\n"
+            "At the beginning, being a cop is everything for you.\n"
+            "But soon, you will experience big changes."
+        )
+        Interaction.print_text(msg1, wait_for_input=True)
+
+        # Part 2: Choice
+        msg2 = (
+            "You can either become:\n\n"
+            "[red]• Victim[/red] of a broken system, following orders.\n"
+            "[cyan]• Architect[/cyan] that creates his own rules.\n\n"
+            "In this game, that is entirely up to you."
+        )
+        Interaction.print_text(msg2, wait_for_input=True)
+
+        # Part 3: Stats (No separator line, fixed emojis)
+        msg3 = (
+            "[bold]Your main stats are:[/bold]\n\n"
+            "💰 Money\n"
+            "💻 Coding skills\n"
+            "😡 Police Hatred\n\n"
+            "[red][bold]0 Money / 100 Hatred == GAME OVER[/red][/bold]"
+        )
+        Interaction.print_text(msg3, wait_for_input=True)

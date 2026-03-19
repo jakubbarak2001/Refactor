@@ -7,6 +7,9 @@ from rich.panel import Panel
 from rich.text import Text
 from rich.console import Console
 
+from game.game_logic.interaction import Interaction
+from game.game_logic.press_enter_to_continue import continue_prompt
+
 console = Console(force_terminal=True, width=None)
 
 
@@ -18,7 +21,7 @@ class CharacterClass:
     CLASSES = {
         "1": {
             "name": "BODYBUILDER",
-            "emoji": "💪",
+            "emoji": "",
             "color": "bright_red",
             "description": "You've dedicated your life to physical perfection. Every rep, every set, every protein shake has forged you into a weapon of muscle and will. Strength isn't just what you have — it's who you are.",
             "perks": [
@@ -29,7 +32,7 @@ class CharacterClass:
         },
         "2": {
             "name": "DARK EMPATH",
-            "emoji": "🎭",
+            "emoji": "",
             "color": "bright_magenta",
             "description": "You see through people. Their fears, their desires, their weaknesses — it's all laid bare before you. You don't just understand people; you understand how to use that understanding. The darkness in others doesn't scare you—it empowers you.",
             "perks": [
@@ -40,7 +43,7 @@ class CharacterClass:
         },
         "3": {
             "name": "BIOHACKER",
-            "emoji": "💊",
+            "emoji": "",
             "color": "bright_cyan",
             "description": "Your body is a machine, and you're the engineer. Nootropics, supplements, cognitive enhancers — you've turned yourself into a living experiment. Peak performance isn't a goal; it's a baseline. But every enhancement comes with a price.",
             "perks": [
@@ -65,143 +68,58 @@ class CharacterClass:
             str: Selected class name in lowercase (e.g., "bodybuilder")
         """
         while True:
-            print("\n")
-            
-            # Create class selection text with styling
-            class_text = Text()
-            class_text.append("SELECT YOUR CLASS\n", style="bold white")
-            class_text.append("═" * 60 + "\n", style="dim white")
-            
-            # Build each class option with description and perks
+            # Build decision options for Interaction system
+            decision_options = []
             for key in sorted(CharacterClass.CLASSES.keys()):
                 class_data = CharacterClass.CLASSES[key]
-                color = class_data['color']
-                
-                # Class name with emoji
-                class_text.append(f"\n[{key}] ", style=f"bold {color}")
-                class_text.append(f"{class_data['emoji']} ", style="")
-                class_text.append(f"{class_data['name']}\n", style=f"bold {color}")
-                
-                # Description - emoji and text on same line
-                class_text.append("\n📖 ", style="dim white")
-                class_text.append(class_data['description'], style="dim white")
-                class_text.append("\n", style="")
-                
-                # Perks section
-                class_text.append("\n   ", style="")
-                class_text.append("PERKS:\n", style="bold cyan")
-                class_text.append("\n", style="")
-                
+                # Build option text with class info
+                option_text = f"{class_data['name']}\n\n{class_data['description']}\n\nPERKS:\n"
                 for perk_entry in class_data['perks']:
-                    # Handle newline entries (empty perk for spacing) - can be 2 or 3 tuple
-                    if len(perk_entry) == 2 and perk_entry[0] == "\n":
-                        class_text.append("\n", style="")
+                    if len(perk_entry) == 2:  # Newline entry
+                        option_text += "\n"
                         continue
-                    
-                    # Unpack 3-tuple (symbol, perk_text, perk_color)
-                    symbol, perk_text, perk_color = perk_entry
-                    
-                    class_text.append("   ", style="")
+                    symbol, perk_text, _ = perk_entry
                     if symbol == "+":
-                        class_text.append("✅ ", style=perk_color)
+                        option_text += f"[+] {perk_text}\n"
                     elif symbol == "-":
-                        class_text.append("❌ ", style=perk_color)
-                    
-                    # Handle bold text in perks (for Modafinil/Adderall)
-                    if "Modafinil" in perk_text or "Adderall" in perk_text:
-                        parts = perk_text.split(" like ")
-                        if len(parts) == 2:
-                            class_text.append(parts[0] + " like ", style=perk_color)
-                            # Make the supplement names bold
-                            supplements = parts[1].split(" or ")
-                            if len(supplements) == 2:
-                                class_text.append(supplements[0], style=f"bold {perk_color}")
-                                class_text.append(" or ", style=perk_color)
-                                class_text.append(supplements[1], style=f"bold {perk_color}")
-                            else:
-                                class_text.append(parts[1], style=perk_color)
-                        else:
-                            class_text.append(perk_text, style=perk_color)
-                    else:
-                        class_text.append(perk_text, style=perk_color)
-                    class_text.append("\n", style="")
-                
-                class_text.append("\n" + "─" * 60 + "\n", style="dim white")
+                        option_text += f"[-] {perk_text}\n"
+                decision_options.append((key, Interaction.get_difficulty_tag(), option_text))
             
-            # Display in a large styled panel
-            print(Panel(
-                class_text,
-                border_style="bold bright_yellow",
-                title="[bold black on bright_yellow] > CHARACTER CLASS SELECTION < [/]",
-                padding=(1, 4),
-                expand=False
-            ))
-            
-            # Get user input
-            choice = console.input("\n[bold cyan]Enter your choice[/bold cyan] [dim](1-3)[/dim]: ").strip()
+            # Display decision using Interaction system (works in both terminal and GUI)
+            choice = Interaction.show_decision(decision_options)
 
             if choice in CharacterClass.CLASSES:
                 class_data = CharacterClass.CLASSES[choice]
                 color = class_data['color']
                 
-                # Create confirmation message
-                confirm_text = Text()
-                confirm_text.append("You selected: ", style="bold white")
-                confirm_text.append(f"{class_data['emoji']} ", style="")
-                confirm_text.append(f"{class_data['name']}", style=f"bold {color}")
-                confirm_text.append("\n\n", style="")
-                confirm_text.append("CLASS DESCRIPTION:\n", style="bold cyan")
-                confirm_text.append(f"  {class_data['description']}\n", style="dim white")
-                confirm_text.append("\n", style="")
-                confirm_text.append("YOUR PERKS:\n", style="bold cyan")
-                confirm_text.append("\n", style="")
+                # Create confirmation message - use plain string with emojis for better GUI compatibility
+                confirm_text = f"You selected: {class_data['name']}\n\n"
+                confirm_text += "CLASS DESCRIPTION:\n"
+                confirm_text += f"  {class_data['description']}\n\n"
+                confirm_text += "YOUR PERKS:\n\n"
                 
                 for perk_entry in class_data['perks']:
                     # Handle newline entries (empty perk for spacing) - can be 2 or 3 tuple
                     if len(perk_entry) == 2 and perk_entry[0] == "\n":
-                        confirm_text.append("\n", style="")
+                        confirm_text += "\n"
                         continue
                     
                     # Unpack 3-tuple (symbol, perk_text, perk_color)
                     symbol, perk_text, perk_color = perk_entry
                     
-                    confirm_text.append("  ", style="")
+                    confirm_text += "  "
                     if symbol == "+":
-                        confirm_text.append("✅ ", style=perk_color)
+                        confirm_text += "[+] "
                     elif symbol == "-":
-                        confirm_text.append("❌ ", style=perk_color)
+                        confirm_text += "[-] "
                     
-                    # Handle bold text in perks (for Modafinil/Adderall)
-                    if "Modafinil" in perk_text or "Adderall" in perk_text:
-                        parts = perk_text.split(" like ")
-                        if len(parts) == 2:
-                            confirm_text.append(parts[0] + " like ", style=perk_color)
-                            # Make the supplement names bold
-                            supplements = parts[1].split(" or ")
-                            if len(supplements) == 2:
-                                confirm_text.append(supplements[0], style=f"bold {perk_color}")
-                                confirm_text.append(" or ", style=perk_color)
-                                confirm_text.append(supplements[1], style=f"bold {perk_color}")
-                            else:
-                                confirm_text.append(parts[1], style=perk_color)
-                        else:
-                            confirm_text.append(perk_text, style=perk_color)
-                    else:
-                        confirm_text.append(perk_text, style=perk_color)
-                    confirm_text.append("\n", style="")
+                    confirm_text += f"{perk_text}\n"
                 
-                confirm_text.append("\nProceed with this class?", style="italic")
+                confirm_text += "\nProceed with this class?"
                 
-                print("\n")
-                print(Panel(
-                    confirm_text,
-                    border_style=f"bold {color}",
-                    title=f"[bold white on {color}] > CONFIRM CLASS SELECTION < [/]",
-                    padding=(1, 3),
-                    expand=False
-                ))
-                
-                confirm_select = console.input("\n[bold](y/n)[/bold]: ").strip().lower()
+                # Display confirmation using Interaction system
+                Interaction.print_text(confirm_text, wait_for_input=False)
+                confirm_select = Interaction.ask(("y", "n")).lower()
                 if confirm_select != "y":
                     continue
 
@@ -209,23 +127,13 @@ class CharacterClass:
                 selected_class = class_data['name'].lower().replace(" ", "_")
                 stats.player_class = selected_class
                 
-                # Display confirmation
-                success_text = Text()
-                success_text.append("Class selected: ", style="bold white")
-                success_text.append(f"{class_data['emoji']} ", style="")
-                success_text.append(f"{class_data['name']}", style=f"bold {color}")
-                success_text.append("\n\n", style="")
-                success_text.append("Your journey begins...", style="dim white")
-                
-                print("\n")
-                print(Panel(
-                    success_text,
-                    border_style=f"bold {color}",
-                    title=f"[bold white on {color}] > CLASS LOCKED IN < [/]",
-                    padding=(1, 2),
-                    expand=False
-                ))
+                # Display confirmation using Interaction system
+                success_text = f"Class selected: {class_data['name']}\n\nYour journey begins..."
+                Interaction.print_text(success_text, wait_for_input=False)
+                continue_prompt()
                 
                 return selected_class
             else:
-                print("\n[bold red]Invalid choice. Please enter 1, 2, or 3.[/bold red]")
+                # Display error using Interaction system
+                error_text = "Invalid choice. Please enter 1, 2, or 3."
+                Interaction.print_text(error_text)

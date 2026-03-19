@@ -7,6 +7,7 @@ __pycache__/
 # --- PyInstaller ---
 build/
 dist/
+dist.zip
 *.spec
 
 # --- OS Junk ---
@@ -20,3 +21,17 @@ Thumbs.db
 .coverage
 htmlcov/
 *.cover
+
+# --- Backup files
+*.backup
+*.backup2
+
+# --- One-off utility scripts
+check_pygame_gui.py
+convert_random_events_prints.py
+
+# --- Claude-generated docs (not part of the game)
+ARCHITECTURE_RECOMMENDATIONS.md
+GUI_MIGRATION_GUIDE.md
+PYGAME_GUI_FIX.md
+REFACTORING_SUMMARY.md

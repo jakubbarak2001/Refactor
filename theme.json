@@ -1,0 +1,130 @@
+{
+    "defaults": {
+        "font": {
+            "name": "consolas",
+            "size": 18,
+            "bold": false,
+            "italic": false,
+            "regular_file": "C:/Windows/Fonts/consola.ttf",
+            "bold_file": "C:/Windows/Fonts/consolab.ttf",
+            "italic_file": "C:/Windows/Fonts/consolai.ttf",
+            "bold_italic_file": "C:/Windows/Fonts/consolaz.ttf"
+        }
+    },
+    "@text_panel": {
+        "colors": {
+            "normal_bg": "#000000D0",
+            "normal_border": "#00FF00"
+        },
+        "misc": {
+            "shape": "rectangle",
+            "border_width": 2,
+            "shadow_width": 0
+        }
+    },
+    "@vn_text_box": {
+        "colors": {
+            "dark_bg": "#00000000",
+            "normal_bg": "#00000000",
+            "normal_border": "#00000000",
+            "normal_text": "#00FF00",
+            "link_text": "#00AA00",
+            "link_hover": "#FFFFFF",
+            "selected_text": "#FFFFFF",
+            "selected_bg": "#00AA00"
+        },
+        "misc": {
+            "shape": "rectangle",
+            "border_width": 0,
+            "shadow_width": 0
+        }
+    },
+    "@name_label": {
+        "colors": {
+            "normal_text": "#000000",
+            "normal_bg": "#00FF00",
+            "normal_border": "#00FF00"
+        },
+        "misc": {
+            "shape": "rectangle",
+            "border_width": 1
+        }
+    },
+    "@decision_overlay": {
+        "colors": {
+            "normal_bg": "#000000E0",
+            "normal_border": "#00FF00"
+        },
+        "misc": {
+            "shape": "rectangle",
+            "border_width": 2
+        }
+    },
+    "@decision_button": {
+        "colors": {
+            "normal_bg": "#050505",
+            "hovered_bg": "#00FF00",
+            "active_bg": "#008800",
+            "normal_text": "#00FF00",
+            "hovered_text": "#000000",
+            "active_text": "#000000",
+            "normal_border": "#00FF00",
+            "hovered_border": "#00FF00",
+            "active_border": "#00FF00"
+        },
+        "misc": {
+            "shape": "rectangle",
+            "border_width": 1,
+            "text_horiz_alignment": "left",
+            "text_horiz_alignment_padding": 20
+        }
+    },
+    "button": {
+        "colors": {
+            "normal_bg": "#000000",
+            "hovered_bg": "#00FF00",
+            "disabled_bg": "#101010",
+            "selected_bg": "#00FF00",
+            "active_bg": "#008800",
+            "normal_text": "#00FF00",
+            "hovered_text": "#000000",
+            "selected_text": "#000000",
+            "disabled_text": "#444444",
+            "active_text": "#000000",
+            "normal_border": "#00FF00",
+            "hovered_border": "#00FF00",
+            "disabled_border": "#444444",
+            "selected_border": "#00FF00",
+            "active_border": "#00FF00"
+        },
+        "misc": {
+            "shape": "rectangle",
+            "border_width": 1
+        }
+    },
+    "label": {
+        "colors": {
+            "normal_text": "#00FF00",
+            "normal_bg": "#00000000",
+            "normal_border": "#00000000"
+        }
+    },
+    "@overlay_button": {
+        "colors": {
+            "normal_bg": "#00000000",
+            "hovered_bg": "#00FF0030",
+            "active_bg": "#00FF0050",
+            "selected_bg": "#00FF0060",
+            "normal_text": "#00000000",
+            "hovered_text": "#00000000",
+            "active_text": "#00000000",
+            "normal_border": "#00FF00",
+            "hovered_border": "#00FF00",
+            "active_border": "#FFFFFF"
+        },
+        "misc": {
+            "shape": "rectangle",
+            "border_width": 1
+        }
+    }
+}

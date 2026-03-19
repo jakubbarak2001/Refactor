@@ -1,5 +1,6 @@
 """A simple day calculator, accessible from main menu."""
 from rich import print
+from rich.align import Align
 from rich.panel import Panel
 from rich.text import Text
 
@@ -21,8 +22,27 @@ class DayCycle:
 
     def day_start_message(self):
         """Beautiful Rich TUI message about starting a new day."""
-        pass
+        day_text = Text()
+        day_text.append(f"DAY {self.current_day}", style="bold bright_white")
+        day_text.append(" / 30", style="dim white")
+
+        print(Panel(
+            Align.center(day_text),
+            border_style="bold cyan",
+            title="[bold white on cyan] > NEW DAY < [/]",
+            padding=(1, 4),
+            expand=False
+        ))
 
     def day_end_message(self):
         """Beautiful Rich TUI message about ending the current day."""
-        pass
+        day_text = Text()
+        day_text.append(f"END OF DAY {self.current_day}", style="bold dim white")
+
+        print(Panel(
+            Align.center(day_text),
+            border_style="dim cyan",
+            title="[bold white on color(236)] > DAY OVER < [/]",
+            padding=(1, 4),
+            expand=False
+        ))

@@ -117,65 +117,90 @@ class Stats:
         return "You are suspiciously happy. Are you sure you work here?"
     def get_stats_command(self):
         """Display current stats of the main character in a beautiful Rich TUI panel."""
-        # Flush stdout to ensure clean separation
-        sys.stdout.flush()
+        # Check if we're in GUI mode
+        from game.game_logic.interaction import get_interaction
+        from game.game_logic.gui_interaction import GUIInteraction
+        from game.game_logic.gui_interaction_v2 import GUIInteractionV2
+        interaction = get_interaction()
+        is_gui_mode = isinstance(interaction, (GUIInteraction, GUIInteractionV2))
         
         # Get descriptions
         money_desc = Stats.stats_description_money(self)
         coding_desc = Stats.stats_description_coding_experience(self)
         hatred_desc = Stats.stats_description_police_hatred(self)
         
-        # Determine colors for descriptions
-        if self.available_money >= 150000:
-            money_color = "bright_green"
-        elif self.available_money >= 50000:
-            money_color = "white"
-        elif self.available_money >= 20000:
-            money_color = "yellow"
+        if is_gui_mode:
+            # GUI Mode: Use Interaction.print_text for proper display
+            from game.game_logic.interaction import Interaction
+            
+            # Build stats text for GUI display
+            stats_text = (
+                f"Money: {self.available_money:,} CZK\n"
+                f"   {money_desc}\n\n"
+                f"Coding Skill: {self.coding_skill}\n"
+                f"   {coding_desc}\n\n"
+                f"Police Hatred: {self.pcr_hatred}/100\n"
+                f"   {hatred_desc}"
+            )
+            
+            # Display stats using Interaction system (works in GUI)
+            Interaction.print_text(stats_text)
         else:
-            money_color = "bright_red"
-        
-        if self.coding_skill >= 100:
-            coding_color = "bright_green"
-        elif self.coding_skill >= 50:
-            coding_color = "green"
-        elif self.coding_skill >= 20:
-            coding_color = "yellow"
-        else:
-            coding_color = "dim white"
-        
-        if self.pcr_hatred >= 75:
-            hatred_color = "bold bright_red"
-        elif self.pcr_hatred >= 50:
-            hatred_color = "bright_red"
-        elif self.pcr_hatred >= 25:
-            hatred_color = "yellow"
-        else:
-            hatred_color = "dim white"
-        
-        # Build content as Rich markup string - ensure clean content
-        content = (
-            f"[bold yellow]💰[/bold yellow] [bold cyan]Money:[/bold cyan] "
-            f"[bold bright_white]{self.available_money:,} CZK[/bold bright_white]\n"
-            f"   [{money_color}]{money_desc}[/{money_color}]\n\n"
-            f"[bold blue]💻[/bold blue] [bold cyan]Coding Skill:[/bold cyan] "
-            f"[bold bright_white]{self.coding_skill}[/bold bright_white]\n"
-            f"   [{coding_color}]{coding_desc}[/{coding_color}]\n\n"
-            f"[bold red]😡[/bold red] [bold cyan]Police Hatred:[/bold cyan] "
-            f"[bold bright_white]{self.pcr_hatred}/100[/bold bright_white]\n"
-            f"   [{hatred_color}]{hatred_desc}[/{hatred_color}]"
-        )
-        
-        # Use console.print for consistent rendering
-        _stats_console.print()  # Empty line before panel
-        _stats_console.print(Panel(
-            content,
-            border_style="bold cyan",
-            title="[bold white on cyan] > STATS < [/]",
-            padding=(1, 3),
-            expand=False
-        ))
-        _stats_console.print()  # Empty line after panel
+            # Terminal Mode: Use Rich console
+            # Flush stdout to ensure clean separation
+            sys.stdout.flush()
+            
+            # Determine colors for descriptions
+            if self.available_money >= 150000:
+                money_color = "bright_green"
+            elif self.available_money >= 50000:
+                money_color = "white"
+            elif self.available_money >= 20000:
+                money_color = "yellow"
+            else:
+                money_color = "bright_red"
+            
+            if self.coding_skill >= 100:
+                coding_color = "bright_green"
+            elif self.coding_skill >= 50:
+                coding_color = "green"
+            elif self.coding_skill >= 20:
+                coding_color = "yellow"
+            else:
+                coding_color = "dim white"
+            
+            if self.pcr_hatred >= 75:
+                hatred_color = "bold bright_red"
+            elif self.pcr_hatred >= 50:
+                hatred_color = "bright_red"
+            elif self.pcr_hatred >= 25:
+                hatred_color = "yellow"
+            else:
+                hatred_color = "dim white"
+            
+            # Build content as Rich markup string - ensure clean content
+            content = (
+                f"[bold yellow]💰[/bold yellow] [bold cyan]Money:[/bold cyan] "
+                f"[bold bright_white]{self.available_money:,} CZK[/bold bright_white]\n"
+                f"   [{money_color}]{money_desc}[/{money_color}]\n\n"
+                f"[bold blue]💻[/bold blue] [bold cyan]Coding Skill:[/bold cyan] "
+                f"[bold bright_white]{self.coding_skill}[/bold bright_white]\n"
+                f"   [{coding_color}]{coding_desc}[/{coding_color}]\n\n"
+                f"[bold red]😡[/bold red] [bold cyan]Police Hatred:[/bold cyan] "
+                f"[bold bright_white]{self.pcr_hatred}/100[/bold bright_white]\n"
+                f"   [{hatred_color}]{hatred_desc}[/{hatred_color}]"
+            )
+            
+            # Use console.print for consistent rendering
+            _stats_console.print()  # Empty line before panel
+            _stats_console.print(Panel(
+                content,
+                border_style="bold cyan",
+                title="[bold white on cyan] > STATS < [/]",
+                padding=(1, 3),
+                expand=False
+            ))
+            _stats_console.print()  # Empty line after panel
 
     def change_stats_value_money(self, set_money_value):
         """Change the value of stats available money to different number."""
@@ -202,4 +227,4 @@ class Stats:
 
     def increment_stats_pcr_hatred(self, increment_pcr_hatred):
         """Change the value of stats pcr hatred to different number."""
-        self.pcr_hatred += increment_pcr_hatred
+        self.pcr_hatred = max(0, self.pcr_hatred + increment_pcr_hatred)
