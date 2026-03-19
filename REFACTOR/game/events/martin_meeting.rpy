@@ -177,7 +177,7 @@ label martin_phase1_preparation:
 label martin_phase2_meeting:
 
     scene bg_cafe
-    show martin normal at char_center
+    show martin normal at char_right
 
     "You arrive at the restaurant. You see him in the distance."
     "It's a shock. He looks... different. Bigger. Buffed."
@@ -232,7 +232,7 @@ label martin_phase2_meeting:
 label martin_phase3_bomb:
 
     scene bg_cafe
-    show martin serious at char_center
+    show martin serious at char_right
 
     "The food arrives. The smell of steak fills the air, but your stomach is tied in a knot."
     "You put down your fork. It's time."
@@ -283,7 +283,7 @@ label martin_phase3_bomb:
 label martin_phase4_coding_check:
 
     scene bg_cafe
-    show martin serious at char_center
+    show martin serious at char_right
 
     martin "Okay. You said it. Now, can you actually do it?"
     martin "Do you have the skills? If you leave tomorrow, can you feed yourself?"
@@ -369,7 +369,7 @@ label martin_phase4_coding_check:
 label martin_phase5_money_check:
 
     scene bg_cafe
-    show martin serious at char_center
+    show martin serious at char_right
 
     martin "Skills are one thing. But freedom isn't free."
     martin "They are going to make you pay for your uniform, your training, every single koruna."
@@ -421,7 +421,7 @@ label martin_phase5_money_check:
 label martin_phase6_hatred_check:
 
     scene bg_cafe
-    show martin serious at char_center
+    show martin serious at char_right
 
     "Martin finishes his steak. He wipes his mouth."
     martin "One last thing. The system. The Colonel. The meaningless orders."
@@ -497,7 +497,7 @@ label martin_phase6_hatred_check:
 label martin_phase7_timing:
 
     scene bg_cafe
-    show martin serious at char_center
+    show martin serious at char_right
 
     "Martin's expression darkens. The nostalgia is gone."
     martin "'One last thing, JB. The Colonel.'"
@@ -547,7 +547,7 @@ label martin_phase7_timing:
 label martin_phase8_ending:
 
     scene bg_cafe
-    show martin normal at char_center
+    show martin normal at char_right
 
     "The lunch is over. You pay the bill."
     "You walk out into the cold street. The wind hits your face."
@@ -568,7 +568,7 @@ label martin_phase8_ending:
 label martin_phase_dark_question:
 
     scene bg_cafe
-    show martin serious at char_center
+    show martin serious at char_right
 
     "The restaurant has thinned out. It's just you and Martin and two couples who aren't talking to each other."
     "He refills your coffee without asking."
@@ -651,7 +651,7 @@ label martin_phase_dark_question:
 label martin_phase_the_price:
 
     scene bg_cafe
-    show martin default at char_center
+    show martin default at char_right
 
     "Martin looks down at his steak for a moment. When he looks up, his expression has changed."
     martin "'Before I help you — I need you to understand something.'"
@@ -718,7 +718,7 @@ label martin_phase_the_price:
 
 label martin_neutral_ending:
 
-    show martin default at char_center
+    show martin default at char_right
 
     "Your friend shakes your hand. His grip is firm."
     martin "'It's going to be hell, JB. He will try to break you.'"
@@ -733,7 +733,7 @@ label martin_neutral_ending:
 
 label martin_bad_ending:
 
-    show martin serious at char_center
+    show martin serious at char_right
 
     "Martin looks at you with pity. He doesn't shake your hand."
     martin "'JB, do you remember that one guy from high school, who always wanted to open a car tuning shop but never did anything about it?'"
@@ -749,7 +749,7 @@ label martin_bad_ending:
 
 label martin_good_ending_selection:
 
-    show martin smiling at char_center
+    show martin smiling at char_right
 
     martin "'Wait, JB. I have a good feeling about this. You are actually ready.'"
     martin "'I want to help you. I can't fight him for you, but I can give you an edge.'"

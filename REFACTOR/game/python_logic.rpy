@@ -18,6 +18,7 @@ init python:
             self.final_boss_buff = None
             self.difficulty = None
             self.player_class = None
+            self.colonel_attitude = None
 
         def try_spend_money(self, amount):
             """Attempt to spend money. Returns True on success."""
@@ -28,6 +29,8 @@ init python:
 
         def increment_stats_value_money(self, amount):
             self.available_money += amount
+            if self.available_money < 0:
+                self.available_money = 0
 
         def increment_stats_coding_skill(self, amount):
             self.coding_skill += amount
@@ -132,13 +135,13 @@ init python:
     # ---------------------------------------------------------------------------
     def get_coding_tier_info(coding_skill):
         tiers = {
-            "TIER 1": {"range": "0-49",   "standard": 0,     "hourly": 0,   "label": "Still Learning"},
-            "TIER 2": {"range": "50-99",  "standard": 2500,  "hourly": 25,  "label": "Junior Scripter"},
+            "TIER 1": {"range": "0-34",   "standard": 0,     "hourly": 0,   "label": "Still Learning"},
+            "TIER 2": {"range": "35-99",  "standard": 2500,  "hourly": 25,  "label": "Junior Scripter"},
             "TIER 3": {"range": "100-149","standard": 5000,  "hourly": 50,  "label": "Solid Developer"},
             "TIER 4": {"range": "150-199","standard": 7500,  "hourly": 75,  "label": "Senior Engineer"},
             "TIER 5": {"range": "200+",   "standard": 10000, "hourly": 100, "label": "God-Tier Dev"},
         }
-        if coding_skill < 50:
+        if coding_skill < 35:
             return "TIER 1", tiers["TIER 1"]
         elif coding_skill < 100:
             return "TIER 2", tiers["TIER 2"]
@@ -148,6 +151,19 @@ init python:
             return "TIER 4", tiers["TIER 4"]
         else:
             return "TIER 5", tiers["TIER 5"]
+
+    def get_nightly_hatred(current_day):
+        """Scaling nightly hatred: +3 days 1-9, +4 days 10-19, +5 days 20-30."""
+        return 3 + (current_day // 10)
+
+    def get_therapy_reduction(session_count):
+        """Diminishing therapy returns: -25, -22, -19, -16... floor at -10. Resets every 7 days."""
+        reduction = max(25 - (session_count * 3), 10)
+        return reduction
+
+    def get_bootcamp_cost(purchase_count):
+        """Bootcamp cost scales: 35k, 45k, 55k per purchase."""
+        return 35000 + (purchase_count * 10000)
 
     # ---------------------------------------------------------------------------
     # Global game-state objects – initialised in label start via init_game()
@@ -198,6 +214,19 @@ init python:
         store._crisis_triggered = False
         store.corrupt_chain_1 = False
         store.corrupt_chain_2 = False
+        store.corrupt_chain_3_completed = False
+        # Bootcamp: limited 10-day buff, can repurchase at higher cost
+        store.bootcamp_days_remaining = 0
+        store.bootcamp_purchases = 0
+        # Therapy diminishing returns (resets every 7 days)
+        store.therapy_session_count = 0
+        store.therapy_reset_day = 0
+        # Gym Focus buff: +2 coding/night while streak >= 3
+        # (gym_streak already tracked in do_end_day)
+        # Activity combo tracking
+        store.last_activity = None
+        # Opportunity event state
+        store.snitch_info = False
 
     # ---------------------------------------------------------------------------
     # Character Class data and perk helpers
@@ -260,13 +289,14 @@ init python:
         "deep_pockets":     {"name": "Deep Pockets",         "desc": "Save over 200,000 CZK."},
         "code_god":         {"name": "Code God",             "desc": "Reach 200+ Coding Skill."},
         "cold_turkey":      {"name": "Cold Turkey",          "desc": "Quit therapy after the SELF-AWARE buff activates."},
-        "paul_fan":         {"name": "Better Call Paul",     "desc": "Hire Paul Goodman."},
+        "ghost_walker":     {"name": "Ghost Walker",         "desc": "Walk away from the car incident and get away with it."},
+        "paul_fan":         {"name": "Better Call Paul",     "desc": "Call Paul Goodman on the Colonel."},
         "dark_night":       {"name": "Dark Night of the Soul", "desc": "Complete The Midnight Call."},
         "escape_artist":    {"name": "Escape Artist",        "desc": "Achieve the Perfect Ending."},
         "journalist":       {"name": "The Journalist",       "desc": "Unlock the secret Journalist ending."},
         "dark_empath_win":  {"name": "Mirror Mirror",        "desc": "Use the FATAL STRIKE as Dark Empath."},
         "biohacker_win":    {"name": "Optimized",            "desc": "Auto-counter Safety Net as Biohacker."},
-        "bodybuilder_flex": {"name": "Power Move",           "desc": "Intimidate the Colonel as Bodybuilder."},
+        "damage_control":   {"name": "Damage Control",       "desc": "Successfully patch the Commandant's car before anyone notices."},
         "hackerman":        {"name": "Hackerman",             "desc": "Max out coding skill to 250. You are the compiler now."},
     }
 

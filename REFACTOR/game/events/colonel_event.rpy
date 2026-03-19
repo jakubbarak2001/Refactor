@@ -713,10 +713,10 @@ label colonel_glitch_wake_up:
 
 label colonel_victory_resolution:
 
+    ## Check if the corrupt cop chain was completed — overrides good ending
     python:
-        if jb_hp >= 70:
-            renpy.jump("good_ending")
-        elif jb_hp >= 30:
-            renpy.jump("colonel_pyrrhic_victory")
-        else:
-            renpy.jump("colonel_close_victory")
+        if getattr(store, 'corrupt_chain_3_completed', False):
+            renpy.jump("happy_nation_ending")
+
+    ## Normal victory: escaped
+    jump good_ending

@@ -12,6 +12,11 @@ define colonel_voice = Character("Colonel (Phone)", color="#4a7aaa", what_color=
 
 label midnight_call:
 
+    stop music fadeout 1.0
+
+    ## Play the midnight call cinematic
+    $ renpy.movie_cutscene("video/midnight_call.webm")
+
     play music "audio/tension_theme.mp3" fadein 1.5
 
     call screen arc_title_card("INTERLUDE", "THE MIDNIGHT CALL") with arc_fade

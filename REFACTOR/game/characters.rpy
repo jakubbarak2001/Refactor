@@ -12,6 +12,7 @@ define colonel = Character("Colonel", color="#4a7aaa", what_color="#c8d8e8")
 define martin = Character("Martin", color="#4a8a4a", what_color="#c8e8c8")
 define narrator = Character(None, what_color="#e8e8e8")
 define system_voice = Character(None, what_color="#00ff41")
+define inspector = Character("???", color="#ccaa00", what_color="#e8d878")
 
 
 ## ---------------------------------------------------------------------------
@@ -29,6 +30,10 @@ image bg_random_event        = im.Scale("images/backgrounds/random_event.jpg", 1
 
 ## Black screen used for title cards, glitch moments, etc.
 image bg_black = "#000000"
+
+## JB's bedroom — Happy Nation ending
+image bg_jb_bedroom      = im.Scale("images/backgrounds/jb_home.jpg", 1920, 1080)
+image bg_jb_bedroom_raid = im.Scale("images/backgrounds/jb_home_raid.jpg", 1920, 1080)
 
 ## Hallway — reuses interior until a dedicated asset is added
 image bg_police_hallway   = im.Scale("images/backgrounds/police_station_interior.jpg", 1920, 1080)
@@ -79,8 +84,11 @@ image diff_hard   = im.Scale("images/pictures/hard_difficulty_pic.png",   420, 6
 image diff_insane = im.Scale("images/pictures/insane_difficulty_pic.png", 420, 630)
 image diff_ultra  = im.Scale("images/pictures/ultra_difficulty_pic.png",  420, 630)
 
-## Martin sprites
-image martin normal  = im.Scale("images/sprites/martin_normal.png", 600, 900)
-image martin default = im.Scale("images/sprites/martin_normal.png", 600, 900)
-image martin smiling = im.Scale("images/sprites/martin_normal.png", 600, 900)
-image martin serious = im.Scale("images/sprites/martin_normal.png", 600, 900)
+## Martin sprites — source is square, scale proportionally to match 900px height
+image martin normal  = im.Scale("images/sprites/martin_normal.png", 900, 900)
+image martin default = im.Scale("images/sprites/martin_normal.png", 900, 900)
+image martin smiling = im.Scale("images/sprites/martin_normal.png", 900, 900)
+image martin serious = im.Scale("images/sprites/martin_normal.png", 900, 900)
+
+## Inspector sprites (GIBS — Happy Nation ending)
+image inspector neutral = im.Scale("images/sprites/inspector_neutral.png", 600, 900)

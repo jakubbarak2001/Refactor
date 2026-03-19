@@ -119,10 +119,6 @@ label day_start:
                 renpy.jump("mental_breakdown_ending")
         if stats.available_money <= 0:
             renpy.jump("homeless_ending")
-        # Perfect ending check — Escape Artist
-        if current_day >= 29 and stats.coding_skill >= 150 and stats.available_money >= 150000 and stats.pcr_hatred <= 30:
-            renpy.jump("escape_artist_ending")
-
     ## Crisis event — fires once per run when Hatred reaches 85
     python:
         if stats.pcr_hatred >= 85 and not getattr(store, '_crisis_triggered', False):
@@ -187,6 +183,69 @@ label day_start:
         # Colonel Event — Day 25 or 30 (set during Martin Meeting)
         if current_day == stats.colonel_day:
             renpy.call("colonel_event")
+
+    ## Opportunity event check — ~30% chance on non-event days
+    ## Fires BEFORE the daily menu. If player takes it, activity_selected = True.
+    python:
+        _is_event_day = (
+            current_day == 6 or current_day == 14 or current_day == 15 or
+            current_day == 24 or current_day == stats.colonel_day or
+            (current_day == 12 and getattr(store, 'corrupt_chain_1', False)) or
+            (current_day == 18 and getattr(store, 'corrupt_chain_2', False)) or
+            (current_day % 3 == 0 and current_day < 22)
+        )
+        if not _is_event_day:
+            renpy.call("opportunity_event_check")
+
+    ## Daily flavor text — atmosphere based on current stats
+    python:
+        _rng_choice = __import__('random').choice
+        _flavor = None
+        if stats.pcr_hatred >= 85:
+            _flavor = _rng_choice([
+                "Your hands are shaking before you even park the car.",
+                "You sat in the parking lot for ten minutes before going in. You don't remember what you thought about.",
+                "The sound of the radio makes your teeth clench.",
+            ])
+        elif stats.pcr_hatred >= 60:
+            _flavor = _rng_choice([
+                "You catch yourself googling 'is it normal to hate your job this much.'",
+                "You fantasize about turning the car around and just... driving.",
+                "The coffee tastes like nothing. Everything tastes like nothing lately.",
+            ])
+        elif stats.pcr_hatred >= 35:
+            _flavor = _rng_choice([
+                "Another day. The uniform feels heavier than it used to.",
+                "You check the clock. It's 08:02. It feels like noon.",
+                "A colleague tells a joke. You laugh. It sounds hollow even to you.",
+            ])
+        elif stats.pcr_hatred <= 15:
+            _flavor = _rng_choice([
+                "Morning coffee actually tastes good today.",
+                "You catch yourself humming on the way in. Weird.",
+                "For once, the commute felt short.",
+            ])
+
+        if _flavor is None and stats.coding_skill >= 100:
+            _flavor = _rng_choice([
+                "You solved a LeetCode medium on the toilet. Progress.",
+                "You dreamt in Python last night. List comprehensions, mostly.",
+                "A Stack Overflow answer you wrote six days ago got its first upvote.",
+            ])
+
+        if _flavor is None and stats.available_money < 5000:
+            _flavor = _rng_choice([
+                "You count coins for lunch. The vending machine wins.",
+                "Your bank app sends a 'low balance' notification. Thanks, robot.",
+                "You brought rice from home. Plain rice. No sauce.",
+            ])
+
+        if _flavor is None and getattr(store, 'bootcamp_days_remaining', 0) > 0:
+            _flavor = "Bootcamp assignment due tonight. {} days left on the buff.".format(store.bootcamp_days_remaining)
+
+    if _flavor is not None:
+        scene bg_police_interior
+        "[_flavor]"
 
     jump daily_menu
 
@@ -270,25 +329,44 @@ label select_activity:
         if activity_selected:
             renpy.jump("daily_menu")
 
+    python:
+        _gym_tag = ""
+        if getattr(store, 'gym_streak', 0) >= 3:
+            _gym_tag = " [FOCUS BUFF] [STREAK: {}]".format(store.gym_streak)
+        elif getattr(store, 'gym_streak', 0) >= 1:
+            _gym_tag = " [STREAK: {}]".format(store.gym_streak)
+        if getattr(store, 'last_activity', None) == "therapy":
+            _gym_tag += " [CLEAR MIND]"
+
+        _coding_tag = ""
+        if getattr(store, 'last_activity', None) == "patrol":
+            _coding_tag = " [NIGHT LEARNER]"
+        elif getattr(store, 'last_activity', None) == "fiverr":
+            _coding_tag = " [FLOW STATE]"
+
+        _therapy_tag = ""
+        if store.therapy_session_count > 0:
+            _therapy_tag = " [RETURNS DIMINISHING]"
+
     "What will you do today? Choose wisely — only one activity per day."
 
     menu:
-        "GYM — Lower your stress. Costs 400 CZK.":
+        "GYM — Blow off steam. 400 CZK.[_gym_tag]":
             jump activity_gym
 
-        "THERAPY — Reduce hatred by 25. Costs 1,500 CZK." if stats.player_class != "dark_empath":
+        "THERAPY — Talk it out. 1,500 CZK.[_therapy_tag]" if stats.player_class != "dark_empath":
             jump activity_therapy
 
-        "COLD READ — Process through observation. (-20 Hatred)  [[DARK EMPATH]" if stats.player_class == "dark_empath":
+        "COLD READ — Process through observation. [[DARK EMPATH]" if stats.player_class == "dark_empath":
             jump activity_cold_read
 
-        "BOUNCER NIGHT SHIFT — Earn money with risk.":
+        "BOUNCER — Risk it for the envelope. Night club or strip bar.":
             jump activity_bouncer
 
-        "CODING — Practice Python and improve your skills.":
+        "CODING — Learn, earn, or invest.[_coding_tag]":
             jump activity_coding
 
-        "NIGHT SHIFT PATROL — Work extra hours. Earn 3,000 CZK. Always costs Hatred.":
+        "PATROL — The grind shift. Steady pay, some coding time, costs sanity.":
             jump activity_night_shift
 
         "Return to menu.":
@@ -348,12 +426,29 @@ label activity_gym:
                     _gym_outcome = "- 400 CZK, -{} PCR HATRED{}{}".format(_total_red, " [BODYBUILDER]" if _bb_bonus else "", " [STREAK x{}]".format(store.gym_streak) if _streak_add else "")
 
             "[_gym_text]"
+
+            python:
+                ## Check for combo: Therapy → Gym = "Clear Mind" (guaranteed medium-or-better)
+                if getattr(store, 'last_activity', None) == "therapy" and _roll == 3:
+                    ## Override bad roll to medium outcome
+                    _total_red_old = 10 + _bb_bonus + _streak_add
+                    _total_red_new = 15 + _bb_bonus + _streak_add
+                    stats.increment_stats_pcr_hatred(-(_total_red_new - _total_red_old))
+                    _gym_outcome += " [CLEAR MIND COMBO: Therapy + Gym = better result]"
+
+                ## Focus buff notification
+                if store.gym_streak >= 3:
+                    _gym_outcome += "\n[FOCUS BUFF ACTIVE] +2 Coding/night while streak holds."
+                elif store.gym_streak == 2:
+                    _gym_outcome += "\n[1 more day for FOCUS BUFF: +2 Coding/night]"
+
             show screen outcome_panel(_gym_outcome)
             pause
             hide screen outcome_panel
             python:
                 activity_selected = True
                 store.gym_day = True
+                store.last_activity = "gym"
             jump daily_menu
 
         "Return to menu.":
@@ -368,16 +463,19 @@ label activity_therapy:
 
     scene bg_police_interior
 
+    python:
+        _therapy_reduction = get_therapy_reduction(store.therapy_session_count)
+
     "You've selected to go to therapy.\nSomething that might actually help you lower your stress.\nPaying for a therapist is expensive, but the results are worth it."
 
     menu:
-        "PAY 1500 CZK — Get help. (-25 PCR HATRED)":
+        "PAY 1500 CZK — Get help. (-[_therapy_reduction] PCR HATRED)":
             python:
                 if not stats.try_spend_money(1500):
-                    renpy.say(None, "[[INSUFFICIENT FUNDS]] Therapy is a luxury you can't afford right now. You need 1500 CZK.")
+                    renpy.say(None, "[INSUFFICIENT FUNDS] Therapy is a luxury you can't afford right now. You need 1500 CZK.")
                     renpy.jump("select_activity")
                 else:
-                    stats.increment_stats_pcr_hatred(-25)
+                    stats.increment_stats_pcr_hatred(-_therapy_reduction)
 
             "Her office smells like books and mild candles. You sit down and she asks: 'So. How was the week?'"
             "You open your mouth to say 'fine' — the standard reflex — and instead talk for 40 minutes without stopping."
@@ -386,14 +484,19 @@ label activity_therapy:
             "You sit with that for a moment."
             "You don't feel fixed. But you feel like something was put into words that previously just sat in your chest like a stone."
             python:
-                ## Every 2nd therapy session grants the SELF-AWARE buff (ai_paperwork_buff reused)
+                ## Track therapy sessions for diminishing returns
+                store.therapy_session_count += 1
+
+                ## Every 2nd therapy session grants the SELF-AWARE buff
                 if not hasattr(store, 'therapy_count'):
                     store.therapy_count = 0
                 store.therapy_count += 1
-                _therapy_outcome = "- 1500 CZK, -25 PCR HATRED"
+                _therapy_outcome = "- 1500 CZK, -{} PCR HATRED".format(_therapy_reduction)
                 if store.therapy_count % 2 == 0:
                     stats.ai_paperwork_buff = True
-                    _therapy_outcome += " + [[SELF-AWARE BUFF ACTIVATED]] (-5 Hatred/night)"
+                    _therapy_outcome += " + [SELF-AWARE BUFF ACTIVATED] (cancels nightly hatred)"
+
+                store.last_activity = "therapy"
 
             show screen outcome_panel(_therapy_outcome)
             pause
@@ -417,10 +520,10 @@ label activity_bouncer:
     "You were offered to work as a bouncer in either a local night club or a strip bar.\n\nNight club: Generally safe, but some risk.\nStrip bar: VERY RISKY, but VERY HIGH reward."
 
     menu:
-        "WORK AT A NIGHT CLUB — [[70/20/10%%] outcomes":
+        "NIGHT CLUB — Safer. Most nights are quiet, some aren't.":
             jump bouncer_night_club
 
-        "WORK AT A STRIP BAR — [[5/20/50/20/5%%] outcomes (RISKY!)":
+        "STRIP BAR — Big money or big trouble. You won't know until you're there.":
             jump bouncer_strip_bar
 
         "Return to menu.":
@@ -454,6 +557,7 @@ label bouncer_night_club:
     hide screen outcome_panel
     python:
         activity_selected = True
+        store.last_activity = "bouncer"
     jump daily_menu
 
 
@@ -496,6 +600,7 @@ label bouncer_strip_bar:
     hide screen outcome_panel
     python:
         activity_selected = True
+        store.last_activity = "bouncer"
     jump daily_menu
 
 
@@ -513,6 +618,11 @@ label activity_coding:
         _tier_name, _tier_info = get_coding_tier_info(stats.coding_skill)
         _tier_display = "{} | SKILL: {} | BASE: {} CZK | HOURLY: {}".format(
             _tier_name, _tier_info["range"], _tier_info["standard"], _tier_info["hourly"])
+        _bootcamp_cost = get_bootcamp_cost(store.bootcamp_purchases)
+        _bootcamp_cost_de = _bootcamp_cost - 7000
+        _show_bootcamp = store.bootcamp_days_remaining <= 0
+        _show_bootcamp_de = _show_bootcamp and stats.player_class == "dark_empath"
+        _show_bootcamp_normal = _show_bootcamp and stats.player_class not in ["biohacker", "dark_empath"]
 
     "You open the laptop. The apartment is quiet.\nThis is the only hour of the day that belongs entirely to you.\n\nCurrent tier: [_tier_display]"
 
@@ -523,10 +633,10 @@ label activity_coding:
         "FIVERR LESSON — Pay 2,500 CZK for a study session.":
             jump coding_fiverr
 
-        "JOIN ONLINE BOOTCAMP — Pay 28,000 CZK. Unlocks +5 coding/night.  [[DARK EMPATH DISCOUNT]" if not python_bootcamp and stats.player_class == "dark_empath":
+        "JOIN ONLINE BOOTCAMP — Pay [_bootcamp_cost_de] CZK. +5 coding/night for 10 days.  [[DARK EMPATH DISCOUNT]" if _show_bootcamp_de:
             jump coding_bootcamp_de
 
-        "JOIN ONLINE BOOTCAMP — Pay 35,000 CZK. Unlocks +5 coding/night." if not python_bootcamp and stats.player_class not in ["biohacker", "dark_empath"]:
+        "JOIN ONLINE BOOTCAMP — Pay [_bootcamp_cost] CZK. +5 coding/night for 10 days." if _show_bootcamp_normal:
             jump coding_bootcamp
 
         "NOOTROPICS LAB — Optimise your cognition.  [[BIOHACKER ONLY]" if stats.player_class == "biohacker":
@@ -541,13 +651,18 @@ label coding_work_for_money:
     python:
         _tier_name, _tier_info = get_coding_tier_info(stats.coding_skill)
         if _tier_name == "TIER 1":
-            renpy.say(None, "[[TIER 1]] Still learning.\nYou can't code for money yet. Keep practicing and building tiny projects.\nUnlock paid work at 50 Coding Skill.")
+            renpy.say(None, "[TIER 1] Still learning.\nYou can't code for money yet. Keep practicing and building tiny projects.\nUnlock paid work at 35 Coding Skill.")
             renpy.jump("activity_coding")
         else:
             _standard = _tier_info["standard"]
             _hourly   = _tier_info["hourly"]
             _earned   = _standard + (stats.coding_skill * _hourly)
+            ## Combo: Fiverr → Code for Money = "Flow State" (+15% income)
+            if getattr(store, 'last_activity', None) == "fiverr":
+                _flow_bonus = int(_earned * 0.15)
+                _earned += _flow_bonus
             stats.increment_stats_value_money(_earned)
+            store.last_activity = "code_for_money"
             activity_selected = True
 
     "[_tier_name] — [_tier_info['label']]\nYour current coding skill is [stats.coding_skill].\n\nCalculation: [_tier_info['standard']] + [stats.coding_skill] * [_tier_info['hourly']] = [_earned] CZK"
@@ -570,18 +685,28 @@ label coding_fiverr:
             _roll = 100
         else:
             _roll = __import__('random').randint(1, 100)
+
+        ## Combo: Patrol → Fiverr = "Night Learner" (+3 bonus coding)
+        _night_learner = 3 if getattr(store, 'last_activity', None) == "patrol" else 0
+
         if _roll <= 65:
-            stats.increment_stats_coding_skill(10)
+            _gain = 10 + _night_learner
+            stats.increment_stats_coding_skill(_gain)
             _ftext = "You jump on a call with a mid-level developer from Fiverr.\nHe's practical. He shows you how to structure your files and fixes bad habits."
-            _foutcome = "- 2500 CZK, +10 CODING SKILLS"
+            _foutcome = "- 2500 CZK, +{} CODING SKILLS".format(_gain)
         elif _roll <= 90:
-            stats.increment_stats_coding_skill(15)
+            _gain = 15 + _night_learner
+            stats.increment_stats_coding_skill(_gain)
             _ftext = "You luck out. Your tutor is sharp as hell.\nThey explain OOP in a way that finally clicks with your brain."
-            _foutcome = "- 2500 CZK, +15 CODING SKILLS"
+            _foutcome = "- 2500 CZK, +{} CODING SKILLS".format(_gain)
         else:
-            stats.increment_stats_coding_skill(25)
+            _gain = 25 + _night_learner
+            stats.increment_stats_coding_skill(_gain)
             _ftext = "You accidentally booked a beast. Senior dev, ten years in the field.\nCode review, patterns, mental models. This was a paradigm shift."
-            _foutcome = "- 2500 CZK, +25 CODING SKILLS{}".format(" [BIOHACKER PERK]" if stats.player_class == "biohacker" else "")
+            _foutcome = "- 2500 CZK, +{} CODING SKILLS{}".format(_gain, " [BIOHACKER PERK]" if stats.player_class == "biohacker" else "")
+
+        if _night_learner > 0:
+            _foutcome += " [NIGHT LEARNER: Patrol + Fiverr combo]"
 
     "[_ftext]"
     show screen outcome_panel(_foutcome)
@@ -589,28 +714,41 @@ label coding_fiverr:
     hide screen outcome_panel
     python:
         activity_selected = True
+        store.last_activity = "fiverr"
     jump daily_menu
 
 
 label coding_bootcamp:
 
     python:
-        if stats.available_money < 35000:
-            renpy.say(None, "[[INSUFFICIENT FUNDS]] You need 35000 CZK. That is a lot of money. Maybe stick to free docs for now?")
+        _boot_cost = get_bootcamp_cost(store.bootcamp_purchases)
+        if stats.available_money < _boot_cost:
+            renpy.say(None, "[INSUFFICIENT FUNDS] You need {} CZK. That is a lot of money. Maybe stick to free docs for now?".format(_boot_cost))
             renpy.jump("activity_coding")
 
-    "The bootcamp costs 35,000 CZK. This is a massive investment.\nAre you sure you want to sign the contract?"
+    python:
+        _purchase_num = store.bootcamp_purchases + 1
+        if _purchase_num == 1:
+            _boot_desc = "The bootcamp costs {} CZK. This is a massive investment.\nAre you sure you want to sign the contract?".format(_boot_cost)
+        else:
+            _boot_desc = "Bootcamp round {} costs {} CZK. More advanced material this time.\n+5 coding/night for 10 more days.".format(_purchase_num, _boot_cost)
+
+    "[_boot_desc]"
 
     menu:
         "YES — Sign the contract.":
-            $ stats.try_spend_money(35000)
+            python:
+                stats.try_spend_money(_boot_cost)
+                store.bootcamp_days_remaining = 10
+                store.bootcamp_purchases += 1
+                store.last_activity = "bootcamp"
+                activity_selected = True
+
             "You sign a contract and pay for an on-line Python bootcamp.\nDeadlines, assignments, code reviews. The full package.\nThis is no longer a hobby. This is a commitment."
-            show screen outcome_panel("- 35000 CZK, [[BOOTCAMP BUFF ACTIVATED]] +5 Coding/night")
+
+            show screen outcome_panel("- {} CZK, [BOOTCAMP BUFF] +5 Coding/night for 10 days.".format(_boot_cost))
             pause
             hide screen outcome_panel
-            $ python_bootcamp = True
-            python:
-                activity_selected = True
             jump daily_menu
 
         "NO — I changed my mind.":
@@ -621,26 +759,36 @@ label coding_bootcamp:
 label coding_bootcamp_de:
 
     python:
-        if stats.available_money < 28000:
-            renpy.say(None, "[[INSUFFICIENT FUNDS]] You need 28,000 CZK. Current: {} CZK.".format(stats.available_money))
+        _boot_cost = get_bootcamp_cost(store.bootcamp_purchases) - 7000
+        if stats.available_money < _boot_cost:
+            renpy.say(None, "[INSUFFICIENT FUNDS] You need {} CZK. Current: {} CZK.".format(_boot_cost, stats.available_money))
             renpy.jump("activity_coding")
 
-    "The bootcamp costs 28,000 CZK. Your emotional intelligence tells you this course is worth more than it costs."
-    "You've already mapped the instructor's communication style. You will extract maximum value."
+    python:
+        _purchase_num = store.bootcamp_purchases + 1
+        if _purchase_num == 1:
+            _boot_desc = "The bootcamp costs {} CZK. Your emotional intelligence tells you this course is worth more than it costs.".format(_boot_cost)
+        else:
+            _boot_desc = "Bootcamp round {} costs {} CZK. You've already scoped the instructor.\nYou will extract maximum value. Again.".format(_purchase_num, _boot_cost)
+
+    "[_boot_desc]"
 
     menu:
         "YES — Sign the contract.":
-            $ stats.try_spend_money(28000)
+            python:
+                stats.try_spend_money(_boot_cost)
+                store.bootcamp_days_remaining = 10
+                store.bootcamp_purchases += 1
+                store.last_activity = "bootcamp"
+                activity_selected = True
+
             "You sign the contract."
             "While others grind through the curriculum mechanically, you read your cohort."
             "You know which questions to ask. You know when to stay late and when the instructor is in a generous mood."
-            "The bootcamp that costs others 35k costs you 28k. You extracted a 20%% discount through competence."
-            show screen outcome_panel("- 28,000 CZK [[DARK EMPATH DISCOUNT]], [[BOOTCAMP BUFF ACTIVATED]] +5 Coding/night")
+
+            show screen outcome_panel("- {} CZK [DARK EMPATH DISCOUNT], [BOOTCAMP BUFF] +5 Coding/night for 10 days.".format(_boot_cost))
             pause
             hide screen outcome_panel
-            $ python_bootcamp = True
-            python:
-                activity_selected = True
             jump daily_menu
 
         "NO — I changed my mind.":
@@ -658,40 +806,48 @@ label activity_night_shift:
 
     "You volunteer for the extra night shift."
     "3,000 CZK for 8 more hours in uniform."
-    "You don't need the money. But you do need the distraction."
+    "The upside: quiet shifts mean time with your laptop."
+
+    python:
+        ## Combo: Patrol → Fiverr = "Night Learner" (+3 bonus coding from next Fiverr)
+        _combo_hint = ""
+        if getattr(store, 'last_activity', None) == "patrol":
+            _combo_hint = "\n[REGULAR: consecutive patrol shifts]"
 
     menu:
-        "TAKE THE SHIFT — +3,000 CZK, certain +15 PCR HATRED.":
+        "TAKE THE SHIFT — +3,000 CZK, +3 Coding, +8 PCR HATRED.":
             python:
                 stats.increment_stats_value_money(3000)
-                stats.increment_stats_pcr_hatred(15)
+                stats.increment_stats_pcr_hatred(8)
+                stats.increment_stats_coding_skill(3)
 
-                ## Random chance for a coding opportunity or incident during night shift
+                ## Random chance for additional bonus or incident
                 _ns_roll = __import__('random').randint(1, 100)
 
             python:
                 if _ns_roll <= 20:
-                    stats.increment_stats_coding_skill(8)
-                    stats.increment_stats_pcr_hatred(-5)
-                    _ns_bonus = "\n[[NIGHT BONUS]]: Dead quiet shift. You studied Python for 4 hours. +8 Coding, -5 Hatred."
+                    stats.increment_stats_coding_skill(5)
+                    stats.increment_stats_pcr_hatred(-3)
+                    _ns_bonus = "\n[NIGHT BONUS]: Dead quiet shift. Extra study time. +5 Coding, -3 Hatred."
                 elif _ns_roll <= 40:
                     stats.increment_stats_value_money(1500)
-                    _ns_bonus = "\n[[NIGHT BONUS]]: Helped with an accident. Extra callout pay. +1,500 CZK."
-                elif _ns_roll <= 60:
-                    stats.increment_stats_pcr_hatred(10)
-                    _ns_bonus = "\n[[NIGHT PENALTY]]: Paperwork from an arrest took until 6AM. +10 PCR HATRED."
+                    _ns_bonus = "\n[NIGHT BONUS]: Helped with an accident. Extra callout pay. +1,500 CZK."
+                elif _ns_roll <= 55:
+                    stats.increment_stats_pcr_hatred(7)
+                    _ns_bonus = "\n[NIGHT PENALTY]: Paperwork from an arrest took until 6AM. +7 PCR HATRED."
                 else:
                     _ns_bonus = ""
 
             "You work through the night."
             "The city is different after midnight — quieter, stranger, more honest."
-            "You check your watch every hour."
+            "Between calls, you open your laptop. Three hours of uninterrupted coding on the government's time."
             "[_ns_bonus]"
-            show screen outcome_panel("+3,000 CZK, +15 PCR HATRED (Another night traded for money). {}".format(_ns_bonus))
+            show screen outcome_panel("+3,000 CZK, +3 Coding, +8 PCR HATRED (the grind shift).{}".format(_ns_bonus))
             pause
             hide screen outcome_panel
             python:
                 activity_selected = True
+                store.last_activity = "patrol"
             jump daily_menu
 
         "Return to menu.":
@@ -726,14 +882,42 @@ label do_end_day:
     "END OF DAY [day_cycle.current_day]"
 
     python:
-        # Apply nightly passives
-        stats.increment_stats_pcr_hatred(5)       # base +5 hatred per night
-        if python_bootcamp:
-            stats.increment_stats_coding_skill(5) # bootcamp buff
+        # Apply nightly passives — scaling hatred: +3 early, +4 mid, +5 late
+        _nightly_hatred = get_nightly_hatred(day_cycle.current_day)
+        stats.increment_stats_pcr_hatred(_nightly_hatred)
+
+        # Bootcamp buff: +5 coding/night for remaining days (10-day limited buff)
+        if getattr(store, 'bootcamp_days_remaining', 0) > 0:
+            stats.increment_stats_coding_skill(5)
+            store.bootcamp_days_remaining -= 1
+
+        # Self-Aware buff: cancels nightly hatred
         if stats.ai_paperwork_buff:
-            stats.increment_stats_pcr_hatred(-5)  # AI buff cancels nightly hatred
+            stats.increment_stats_pcr_hatred(-_nightly_hatred)
+
+        # BTC passive income (Biohacker)
         if stats.daily_btc_income > 0:
             stats.increment_stats_value_money(stats.daily_btc_income)
+
+        ## Opportunity event buffs
+        # Laptop buff: +2 coding/night for N remaining days
+        if getattr(store, '_laptop_buff_days', 0) > 0:
+            stats.increment_stats_coding_skill(2)
+            store._laptop_buff_days -= 1
+
+        # Night run penalty: +3 hatred the morning after
+        if getattr(store, '_night_run_penalty', False):
+            stats.increment_stats_pcr_hatred(3)
+            store._night_run_penalty = False
+
+        # Gym Focus buff: +2 coding/night while streak >= 3
+        if getattr(store, 'gym_streak', 0) >= 3:
+            stats.increment_stats_coding_skill(2)
+
+        # Therapy diminishing returns reset every 7 days
+        if day_cycle.current_day - getattr(store, 'therapy_reset_day', 0) >= 7:
+            store.therapy_session_count = 0
+            store.therapy_reset_day = day_cycle.current_day
 
         # Advance day
         day_cycle.next_day()

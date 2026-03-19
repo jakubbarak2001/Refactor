@@ -688,3 +688,159 @@ label journalist_ending:
     )
 
     $ renpy.full_restart()
+
+
+## ---------------------------------------------------------------------------
+## HAPPY NATION ENDING
+## Triggers after defeating the Colonel IF corrupt_chain_3_completed is True.
+## URNA raids your home. The game ends in handcuffs.
+## ---------------------------------------------------------------------------
+
+label happy_nation_ending:
+
+    stop music fadeout 2.0
+    scene bg_black
+    pause 2.0
+
+    "You did it."
+    "You beat the Colonel. You walked out of his office. You felt the air outside the station."
+    "You drove home with the windows down."
+    "For the first time in thirty days, you felt free."
+
+    pause 1.0
+
+    scene bg_black
+
+    "Three weeks later."
+
+    pause 1.5
+
+    scene bg_jb_bedroom with slow_dissolve
+
+    "2:47 AM."
+
+    pause 1.5
+
+    "The new job starts Monday."
+    "You're dreaming about something ordinary. A grocery store, maybe. A parking lot."
+
+    pause 1.0
+
+    scene bg_black with Dissolve(0.3)
+    play music "audio/happy_nation.mp3" fadein 1.0
+    pause 1.0
+
+    "The front door comes off its hinges."
+
+    pause 0.5
+
+    "'POLICIE! LEHNI SI NA ZEM!'"
+
+    "You are not awake yet when the first pair of hands reaches you."
+    "You are not awake yet when your face hits the mattress."
+    "You are not awake yet when the zip ties close around your wrists."
+
+    scene bg_jb_bedroom_raid with Dissolve(0.5)
+
+    "ÚRNA. Útvar rychlého nasazení."
+
+
+
+    "They pull you off the bed. You're in underwear and a t-shirt."
+    "The hallway is full of men in black. Balaclavas. Tactical gloves. Automatic weapons pointed at the floor."
+    "One of them is already at your laptop."
+    "Another is going through the box of books."
+
+    show inspector neutral at char_right with dissolve
+
+    "A figure steps through the wreckage of your front door."
+    "Black tactical jacket. Black balaclava. Black gloves clasped in front of him like he's at a funeral."
+    "The yellow armband on his left sleeve reads: GENERÁLNÍ INSPEKCE."
+    "He's holding a folder. He doesn't introduce himself. He doesn't need to."
+
+    inspector "'JB.'"
+
+    "His voice is flat. Not angry. Not cold. Just... final."
+
+    inspector "'We have a warrant for your arrest in connection with unauthorized access to the police information system.'"
+    inspector "'Specifically: disclosure of classified personal data from the vehicle registration database to an unauthorized civilian on—'"
+
+    "He reads the date. Day 18. The kitchen. The glass of water. The folded note."
+
+    "You close your eyes."
+
+    inspector "'The civilian in question used the information you provided to locate and threaten a protected witness in an ongoing organized crime investigation.'"
+
+    "Your legs stop working. Two officers hold you upright."
+
+    inspector "'The witness is alive. But the case is compromised. Eighteen months of surveillance. Gone.'"
+
+    "He closes the folder. He doesn't put it away. He holds it at his side like a verdict."
+
+    inspector "'You are being charged under Section 329 of the Criminal Code. Abuse of power by a public official.'"
+    inspector "'Additional charges pending: obstruction of justice, unauthorized database access, and accessory to witness intimidation.'"
+
+    "He tilts his head. Just slightly. Behind the balaclava, you can't read his expression."
+    "But his eyes — the only thing visible — are steady. Unblinking."
+
+    inspector "'The investigation was opened eleven days before your resignation. You were under surveillance for the final week of your service.'"
+    inspector "'Your resignation changed nothing. The crime was committed while you wore the badge. Our jurisdiction doesn't end when yours did.'"
+
+    "He's seen this before. A hundred times. You are not special to him."
+
+    pause 1.0
+
+    hide inspector with dissolve
+
+    "They walk you out of the apartment."
+    "Past the broken door. Past the neighbours standing in the corridor in their bathrobes."
+    "Past the packed suitcases that will never move."
+    "Past the laptop with the resignation letter that will never be sent."
+    "Past the life you built. Line by line. Night by night."
+
+    "The unmarked van is parked outside. Engine running."
+    "They put you in the back. The doors close."
+
+    pause 2.0
+
+    scene bg_black
+
+    "You think about the BMW driver. The steady hands. The recording."
+    "You think about the kitchen. The folded note. The name you didn't recognize."
+    "You think about Day 6. The Litoměřice stretch. The moment your hand closed around the banknotes."
+    "Seven thousand, five hundred crowns."
+    "That's what your life cost."
+
+    pause 2.0
+
+    "You beat the Colonel."
+    "You learned to code."
+    "You were going to be free."
+
+    pause 1.0
+
+    "But some debts compile at runtime."
+
+    pause 3.0
+
+    python:
+        _base_score  = (stats.available_money / 100) + (stats.coding_skill * 120)
+        _diff_mult   = {"easy": 1.0, "hard": 2.5, "insane": 5.0, "ultra": 10.0}.get(stats.difficulty, 1.0)
+        _final_score = int(_base_score * _diff_mult * 0.1)
+        _diff_name   = (stats.difficulty or "unknown").capitalize()
+
+    scene bg_black with slow_dissolve
+
+    call screen ending_screen(
+        "HIDDEN ENDING",
+        "HAPPY NATION",
+        "You escaped the system. The system didn't escape you.",
+        "bad",
+        score=_final_score,
+        score_note="x0.1 CORRUPTION PENALTY",
+        money=stats.available_money,
+        coding=stats.coding_skill,
+        diff_name=_diff_name
+    )
+
+    $ renpy.full_restart()

@@ -1563,6 +1563,197 @@ label re_the_bribe:
 
 
 ## ---------------------------------------------------------------------------
+## EVENT: Corrupt Cop Chain — Part 2 (Day 12)
+## THE BLACKMAIL — same BMW driver returns, but now he owns you
+## Only fires if corrupt_chain_1 is True (player took the bribe on Day 6)
+## ---------------------------------------------------------------------------
+
+label re_corrupt_cop_2:
+
+    scene bg_random_event
+
+    "DAY 12 — THE RETURN"
+
+    "You're walking to your car after shift when you see it."
+    "The BMW 7 Series. Same plates. Parked directly next to yours."
+    "He's leaning against the hood. Arms crossed. Not hiding."
+    "The tan. The suit. The steady hands. The same man from the Litoměřice stretch."
+    "He smiles when he sees your face."
+    "'Officer. Good to see you again.'"
+    "Your stomach folds in half."
+    "'I have a small problem,' he says. 'Drove through a checkpoint last night. Blew 0.9. Not my finest hour.'"
+    "He reaches into his jacket. Pulls out a folded paper. A citation."
+    "'I need this to disappear. The court date, the points, the record. All of it.'"
+    "You look at the paper. DUI citation. Filed two days ago. Already in the system."
+    "'I can't do that,' you say. 'It's already filed. There's a digital trail.'"
+    "He tilts his head. Like a dog hearing a frequency you can't."
+    "'JB. Can I call you JB? I recorded our conversation. The one on the Litoměřice stretch.'"
+    "He pulls out his phone. Taps play."
+    "Your voice fills the parking lot. Clear as daylight."
+    "The sound of banknotes. Your silence. His silence. The car pulling away."
+    "He taps pause."
+    "'I don't want trouble. I just want the citation to go away. That's all.'"
+    "That is not all. You both know that is not all."
+
+    menu:
+        "Make the citation disappear. You have no choice. (+25 Hatred)":
+            python:
+                stats.increment_stats_pcr_hatred(25)
+                store.corrupt_chain_2 = True
+
+            "You take the paper."
+            "You don't say anything. There's nothing to say."
+            "That night you stay late at the station. You access the system. You find the citation."
+            "You mark it as 'filed in error — duplicate entry.' You delete the court referral."
+            "It takes eleven minutes. Eleven minutes to become someone you don't recognize."
+            "He texts you at midnight. One word: 'Thanks.'"
+            "You don't respond. You delete the message. You can't delete the eleven minutes."
+
+            show screen outcome_panel("+25 PCR HATRED. You are owned.")
+            pause
+            hide screen outcome_panel
+
+        "Ask for money. If he wants favors, he pays for them. (50/50: +10,000 CZK or +35 Hatred)":
+            python:
+                _roll = __import__('random').randint(1, 100)
+                if _roll <= 50:
+                    stats.increment_stats_value_money(10000)
+                    stats.increment_stats_pcr_hatred(15)
+                    store.corrupt_chain_2 = True
+                    store._corrupt_asked_money = True
+                else:
+                    stats.increment_stats_pcr_hatred(35)
+                    store.corrupt_chain_2 = True
+                    store._corrupt_asked_money = False
+
+            if getattr(store, '_corrupt_asked_money', False):
+                "'If I'm taking this kind of risk,' you say, 'I need compensation.'"
+                "He looks at you. Something shifts behind his eyes. Respect, maybe. Or just recalculation."
+                "'Ten thousand. Final.'"
+                "You nod."
+                "He hands you an envelope. You make the citation disappear that night."
+                "You are now a corrupt cop who negotiates rates. Somehow that feels worse than doing it for free."
+
+                show screen outcome_panel("+10,000 CZK, +15 PCR HATRED. You named your price. That makes it real.")
+                pause
+                hide screen outcome_panel
+            else:
+                "'If I'm taking this kind of risk,' you say, 'I need compensation.'"
+                "His face goes cold. The warmth drains out of the parking lot."
+                "'You're not in a position to negotiate, JB. I have the recording. You have nothing.'"
+                "'Delete the citation. Tonight. Or I send the audio to your Colonel.'"
+                "You delete the citation. For free. At 2 AM. Alone at your desk."
+                "He didn't pay. He didn't need to. He has the recording and you have nothing."
+
+                show screen outcome_panel("+35 PCR HATRED. He called your bluff. You folded.")
+                pause
+                hide screen outcome_panel
+
+        "Turn him in. Report everything. Burn yourself to burn him. (-25,000 CZK, +50 Hatred)":
+            python:
+                stats.increment_stats_value_money(-25000)
+                stats.increment_stats_pcr_hatred(50)
+                store.corrupt_chain_2 = False
+
+            "'I'm going to report this,' you say. 'All of it. The bribe. This conversation. Everything.'"
+            "For the first time, his composure cracks. Just a flicker."
+            "'You'd destroy yourself to get to me?'"
+            "'I'd destroy myself to stop being this.'"
+            "He stares at you. Then he laughs. One short, dry laugh."
+            "'Your funeral, officer.'"
+            "He drives away."
+            "You walk into the station. You return the 7,500 CZK. You file a report."
+            "The next three hours are the longest of your life."
+            "Internal affairs takes your statement. Your supervisor won't look at you."
+            "The disciplinary board fines you 17,500 CZK. Accepting a bribe, failure to report, conduct unbecoming, damage to the reputation of the force."
+            "You sign the papers. You pay every crown."
+            "You are now under investigation. But the recording is evidence against him too."
+            "25,000 CZK gone. The bribe returned. The fine paid. Your bank account gutted."
+            "But the recording can't touch you anymore. And neither can he."
+
+            show screen outcome_panel("-25,000 CZK (-7,500 returned, -17,500 fine), +50 PCR HATRED. The most expensive shower you've ever taken.")
+            pause
+            hide screen outcome_panel
+
+    return
+
+
+## ---------------------------------------------------------------------------
+## EVENT: Corrupt Cop Chain — Part 3 (Day 18)
+## THE VISIT — he walks into YOUR station
+## Only fires if corrupt_chain_2 is True
+## ---------------------------------------------------------------------------
+
+label re_corrupt_cop_3:
+
+    scene bg_police_interior
+
+    "DAY 18 — THE VISIT"
+
+    "You're at your desk when the front door opens."
+    "You don't look up. People come in all day. Lost wallets. Noise complaints. Parking disputes."
+    "Then you hear the voice."
+    "'Good afternoon. I'd like to report a minor traffic incident.'"
+    "Your head snaps up."
+    "The BMW driver. Standing at the reception desk. In your station. Three metres from your colleagues."
+    "He's wearing a different suit. Navy blue. No tie. He looks like a concerned citizen."
+    "Sergeant Kovář takes his statement. A fender bender. Nothing serious. Standard paperwork."
+    "He fills out the form politely. He answers every question."
+    "Then he looks at you. Directly at you. And smiles."
+    "'Excuse me — could I trouble you for a glass of water? I know it's a lot to ask.'"
+    "Kovář nods at you. 'JB, grab the man some water.'"
+    "You walk to the kitchen. He follows."
+    "The moment the door closes, the mask drops."
+
+    "'I need access to the vehicle registration database. One name. One plate. One address.'"
+    "He says it the way you'd order coffee."
+    "'Who?' you ask."
+    "'That's not your concern. The name is on this paper. I need the registered address and the owner's full details.'"
+    "He slides a folded note across the counter."
+    "'I'm not—'"
+    "He holds up his phone. Your voice comes out of it."
+
+    ## Play the recording audio if available
+    # play sound "audio/bribe_recording.mp3"
+
+    "The recording. Day 6. The Litoměřice stretch. Every word. Every pause. Every silence where a 'no' should have been."
+    "He lets it play for fifteen seconds. Then stops."
+    "'This is a copy. There are others. On servers you will never find.'"
+    "He puts the phone away."
+    "'One name. One address. Then I walk out and you never see me again.'"
+    "You look at the note. A name you don't recognize. A plate number."
+    "Through the kitchen door you can hear Kovář typing. The station is full. Your colleagues are ten steps away."
+    "None of them can help you."
+
+    menu:
+        "Give him the information.":
+            pass
+
+    "You sit down at the terminal."
+    "You type the plate number. The system returns a name, an address, a phone number."
+    "You write it on the back of the note. You hand it to him."
+    "He reads it. Folds it. Puts it in his pocket."
+    "'Thank you, officer. You've been very helpful.'"
+    "He walks back to the reception desk. He shakes Kovář's hand."
+    "'Lovely station. Very professional.'"
+    "The door closes behind him."
+    "You stand in the kitchen holding an empty glass."
+    "You just gave a civilian access to a classified police database."
+    "You don't know who the name belongs to. You don't know what he'll do with it."
+    "You don't want to know."
+
+    python:
+        stats.increment_stats_pcr_hatred(30)
+        store.corrupt_chain_3_completed = True
+
+    show screen outcome_panel("+30 PCR HATRED. There is no going back from this.")
+    pause
+    hide screen outcome_panel
+
+    return
+
+
+## ---------------------------------------------------------------------------
 ## EVENT: The System Update
 ## ---------------------------------------------------------------------------
 
