@@ -660,7 +660,7 @@ screen difficulty_selection_screen():
                 size 28
                 yalign 0.5
                 font "fonts/RobotoMono-Regular.ttf"
-            textbutton "DON'T REJECT MY PR":
+            textbutton "TECHNICAL DEBT":
                 action [SetField(store, "_chosen_difficulty", "hard"), Return()]
                 hovered SetScreenVariable("_hov", 1)
                 text_color ("#ffffff" if _hov == 1 else "#555555")
@@ -695,7 +695,7 @@ screen difficulty_selection_screen():
                 size 28
                 yalign 0.5
                 font "fonts/RobotoMono-Regular.ttf"
-            textbutton "MASS LAYOFFS!":
+            textbutton "THANK YOU FOR YOUR APPLICATION":
                 action [SetField(store, "_chosen_difficulty", "insane"), Return()]
                 hovered SetScreenVariable("_hov", 2)
                 text_color ("#ffffff" if _hov == 2 else "#555555")
@@ -730,7 +730,7 @@ screen difficulty_selection_screen():
                 size 28
                 yalign 0.5
                 font "fonts/RobotoMono-Regular.ttf"
-            textbutton "I AM THE STACK OVERFLOW":
+            textbutton "SYSTEM FAILURE":
                 action [SetField(store, "_chosen_difficulty", "ultra"), Return()]
                 hovered SetScreenVariable("_hov", 3)
                 text_color ("#cc44ff" if _hov == 3 else "#555555")
