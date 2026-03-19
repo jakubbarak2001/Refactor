@@ -779,6 +779,7 @@ screen difficulty_selection_screen():
             size 18
             italic True
             font "fonts/RobotoMono-Regular.ttf"
+            xmaximum 620
 
     ## Confirm instruction
     text "— CLICK OR PRESS ENTER TO CONFIRM YOUR FATE —":
