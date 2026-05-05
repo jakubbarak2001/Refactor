@@ -121,14 +121,60 @@ init python:
 
 
     # ---------------------------------------------------------------------------
-    # Difficulty settings (mirroring game_rules.py DIFFICULTY_SETTINGS)
+    # Difficulty settings — starting stats AND rule modifiers per tier.
+    # Fields:
+    #   money / coding / hatred — starting values (Phase 0)
+    #   nightly_hatred_mult     — multiplier on base nightly hatred tick (do_end_day)
+    #   salary_mult             — multiplier on Day-14 salary
+    #   purchase_mult           — multiplier on activity costs (use adjusted_cost helper)
+    #   score_mult              — final ending score multiplier
+    #   opp_rate                — % chance of opportunity event on non-event days (Phase 1+)
+    #   minigame_retries        — coding mini-game retries permitted (Phase 2+)
+    #   colonel_deck_size       — Colonel boss deck size (Phase 1+)
     # ---------------------------------------------------------------------------
     DIFFICULTY_SETTINGS = {
-        "easy":   {"money": 55000, "coding": 10, "hatred": 15},
-        "hard":   {"money": 35000, "coding":  5, "hatred": 25},
-        "insane": {"money": 20000, "coding":  0, "hatred": 35},
-        "ultra":  {"money": 10000, "coding": -25, "hatred": 50},
+        "easy":   {"money": 55000, "coding": 10,  "hatred": 15,
+                   "nightly_hatred_mult": 0.8, "salary_mult": 1.10, "purchase_mult": 1.0,  "score_mult": 1.0,
+                   "opp_rate": 50, "minigame_retries": 2, "colonel_deck_size": 5},
+        "hard":   {"money": 35000, "coding":  5,  "hatred": 25,
+                   "nightly_hatred_mult": 1.0, "salary_mult": 1.00, "purchase_mult": 1.0,  "score_mult": 2.5,
+                   "opp_rate": 30, "minigame_retries": 1, "colonel_deck_size": 7},
+        "insane": {"money": 20000, "coding":  0,  "hatred": 35,
+                   "nightly_hatred_mult": 1.2, "salary_mult": 0.85, "purchase_mult": 1.10, "score_mult": 5.0,
+                   "opp_rate": 20, "minigame_retries": 0, "colonel_deck_size": 9},
+        "ultra":  {"money": 10000, "coding": -25, "hatred": 50,
+                   "nightly_hatred_mult": 1.5, "salary_mult": 0.70, "purchase_mult": 1.25, "score_mult": 10.0,
+                   "opp_rate": 15, "minigame_retries": 0, "colonel_deck_size": 12},
     }
+
+    def diff_setting(key, default=None):
+        """Read a difficulty rule field. Safe before init_game runs."""
+        if stats is None or stats.difficulty is None:
+            return default
+        return DIFFICULTY_SETTINGS.get(stats.difficulty, {}).get(key, default)
+
+    def adjusted_cost(base):
+        """Apply the active difficulty's purchase multiplier to a base cost."""
+        return int(base * diff_setting("purchase_mult", 1.0))
+
+    def get_key_event_days():
+        """Return dict[day -> (label, color)] for calendar markers."""
+        if stats is None:
+            return {}
+        marks = {
+            6:  ("BRIBE",    "#ff8833"),
+            14: ("SALARY",   "#ffd700"),
+            15: ("CALL",     "#9944cc"),
+            24: ("MARTIN",   "#33aacc"),
+        }
+        ## Corrupt-cop chain links — only highlight if active
+        if getattr(store, 'corrupt_chain_1', False):
+            marks[12] = ("CHAIN",  "#ff8833")
+        if getattr(store, 'corrupt_chain_2', False):
+            marks[18] = ("CHAIN",  "#ff8833")
+        ## Colonel day depends on Martin Meeting timing choice
+        marks[stats.colonel_day] = ("COLONEL", "#cc2200")
+        return marks
 
     # ---------------------------------------------------------------------------
     # Coding tier helper (mirroring game_rules.py get_coding_tier_info)
@@ -151,19 +197,6 @@ init python:
             return "TIER 4", tiers["TIER 4"]
         else:
             return "TIER 5", tiers["TIER 5"]
-
-    def get_nightly_hatred(current_day):
-        """Scaling nightly hatred: +3 days 1-9, +4 days 10-19, +5 days 20-30."""
-        return 3 + (current_day // 10)
-
-    def get_therapy_reduction(session_count):
-        """Diminishing therapy returns: -25, -22, -19, -16... floor at -10. Resets every 7 days."""
-        reduction = max(25 - (session_count * 3), 10)
-        return reduction
-
-    def get_bootcamp_cost(purchase_count):
-        """Bootcamp cost scales: 35k, 45k, 55k per purchase."""
-        return 35000 + (purchase_count * 10000)
 
     # ---------------------------------------------------------------------------
     # Global game-state objects – initialised in label start via init_game()
@@ -215,18 +248,23 @@ init python:
         store.corrupt_chain_1 = False
         store.corrupt_chain_2 = False
         store.corrupt_chain_3_completed = False
-        # Bootcamp: limited 10-day buff, can repurchase at higher cost
-        store.bootcamp_days_remaining = 0
-        store.bootcamp_purchases = 0
-        # Therapy diminishing returns (resets every 7 days)
-        store.therapy_session_count = 0
-        store.therapy_reset_day = 0
-        # Gym Focus buff: +2 coding/night while streak >= 3
-        # (gym_streak already tracked in do_end_day)
-        # Activity combo tracking
-        store.last_activity = None
-        # Opportunity event state
-        store.snitch_info = False
+        ## JBDARK ending tracking
+        store._hatred_peak_days = 0
+        store._nightmare_wolf_triggered = False
+
+        ## --- Class progression state ---
+        ## BB: SOMA stack (each gym session +1, max 10). 5+ unlocks Iron Body buff in fight.
+        store.bb_soma = 0
+        ## DE: PROFILES (npc_id -> read_count). 3 reads on same NPC unlocks their event.
+        store.de_profiles = {"rookie": 0, "veteran": 0, "lieutenant": 0, "clerk": 0}
+        ## BH: PROTOCOL (current active compound profile, set by last nootropic taken).
+        store.bh_protocol = None
+        ## Class-arc multi-stage flags (Trainer / Kovář / Telegram)
+        store.bb_arc_stage = 0
+        store.de_arc_stage = 0
+        store.bh_arc_stage = 0
+        ## Israeli unlock for BH telegram arc (set by re_israeli_developer if BH path taken)
+        ## (flmodafinil_unlocked already gates this; bh_arc_stage starts when that flag flips)
 
     # ---------------------------------------------------------------------------
     # Character Class data and perk helpers
@@ -242,8 +280,8 @@ init python:
                 "Immune to Colonel's Brotherhood guilt trip.",
                 "Extra brute-force option if caught at car incident.",
             ],
-            "passive": "Starts with -5 Coding Skill (brains traded for brawn).",
-            "coding_modifier": -5,
+            "passive": "Starts with -3 Coding Skill (brains traded for brawn).",
+            "coding_modifier": -3,
             "hatred_modifier":  0,
             "btc_modifier":     0,
         },
@@ -258,9 +296,9 @@ init python:
                 "Secret FATAL STRIKE option on Civilian Void attack.",
                 "civilian_small_talk always succeeds (-25 Hatred guaranteed).",
             ],
-            "passive": "Starts with -10 Police Hatred (already numb to the madness).",
+            "passive": "Starts with -5 Police Hatred (already numb to the madness).",
             "coding_modifier":  0,
-            "hatred_modifier": -10,
+            "hatred_modifier": -5,
             "btc_modifier":     0,
         },
         "biohacker": {
@@ -268,36 +306,48 @@ init python:
             "tagline": "Optimized. Caffeinated. Slightly illegal.",
             "color":   "#00cc88",
             "perks": [
-                "Starts with +10 Coding Skill and 500 CZK/day BTC income.",
+                "Starts with +10 Coding Skill and 300 CZK/day BTC income.",
                 "Israeli Developer event always grants max coding reward.",
                 "Fiverr lessons always grant +25 Coding (top-tier tutor).",
                 "Colonel's Safety Net attack is auto-countered.",
             ],
-            "passive": "Starts with +10 Coding Skill, 500 CZK/day BTC income.",
+            "passive": "Starts with +10 Coding Skill, 300 CZK/day BTC income.",
             "coding_modifier": 10,
             "hatred_modifier":  0,
-            "btc_modifier":   500,
+            "btc_modifier":   300,
         },
     }
 
     # ---------------------------------------------------------------------------
     # Achievement system
+    # category: "Story" / "Combat" / "Collection" / "Secret"
+    # hint: shown for locked non-secret achievements; secrets stay obscured until unlocked.
     # ---------------------------------------------------------------------------
     ACHIEVEMENTS = {
-        "first_blood":      {"name": "First Blood",         "desc": "Lose money for the first time."},
-        "gym_rat":          {"name": "Gym Rat",              "desc": "Hit a 5-day gym streak."},
-        "deep_pockets":     {"name": "Deep Pockets",         "desc": "Save over 200,000 CZK."},
-        "code_god":         {"name": "Code God",             "desc": "Reach 200+ Coding Skill."},
-        "cold_turkey":      {"name": "Cold Turkey",          "desc": "Quit therapy after the SELF-AWARE buff activates."},
-        "ghost_walker":     {"name": "Ghost Walker",         "desc": "Walk away from the car incident and get away with it."},
-        "paul_fan":         {"name": "Better Call Paul",     "desc": "Call Paul Goodman on the Colonel."},
-        "dark_night":       {"name": "Dark Night of the Soul", "desc": "Complete The Midnight Call."},
-        "escape_artist":    {"name": "Escape Artist",        "desc": "Achieve the Perfect Ending."},
-        "journalist":       {"name": "The Journalist",       "desc": "Unlock the secret Journalist ending."},
-        "dark_empath_win":  {"name": "Mirror Mirror",        "desc": "Use the FATAL STRIKE as Dark Empath."},
-        "biohacker_win":    {"name": "Optimized",            "desc": "Auto-counter Safety Net as Biohacker."},
-        "damage_control":   {"name": "Damage Control",       "desc": "Successfully patch the Commandant's car before anyone notices."},
-        "hackerman":        {"name": "Hackerman",             "desc": "Max out coding skill to 250. You are the compiler now."},
+        "first_blood":      {"category": "Story",      "name": "First Blood",            "desc": "Lose money for the first time.",                                "hint": "Spend more than you can afford."},
+        "gym_rat":          {"category": "Collection", "name": "Gym Rat",                 "desc": "Hit a 5-day gym streak.",                                       "hint": "Hit the gym 5 days in a row."},
+        "deep_pockets":     {"category": "Collection", "name": "Deep Pockets",            "desc": "Save over 200,000 CZK.",                                        "hint": "Accumulate 200,000 CZK in savings."},
+        "code_god":         {"category": "Collection", "name": "Code God",                "desc": "Reach 200+ Coding Skill.",                                      "hint": "Reach 200 Coding Skill."},
+        "cold_turkey":      {"category": "Story",      "name": "Cold Turkey",             "desc": "Quit therapy after the SELF-AWARE buff activates.",             "hint": "Activate the SELF-AWARE therapy buff, then never go to therapy again."},
+        "ghost_walker":     {"category": "Story",      "name": "Ghost Walker",            "desc": "Walk away from the car incident and get away with it.",         "hint": "Refuse to help during the car incident — and survive it."},
+        "paul_fan":         {"category": "Story",      "name": "Better Call Paul",        "desc": "Call Paul Goodman on the Colonel.",                             "hint": "Use a lawyer in the final fight."},
+        "dark_night":       {"category": "Story",      "name": "Dark Night of the Soul",  "desc": "Complete The Midnight Call.",                                   "hint": "Take the Day-15 phone call."},
+        "escape_artist":    {"category": "Combat",     "name": "Escape Artist",           "desc": "Achieve the Perfect Ending.",                                   "hint": "Survive Day 30 with high coding, high savings, and low hatred."},
+        "journalist":       {"category": "Secret",     "name": "The Journalist",          "desc": "Unlock the secret Journalist ending.",                          "hint": "???"},
+        "dark_empath_win":  {"category": "Combat",     "name": "Mirror Mirror",           "desc": "Use the FATAL STRIKE as Dark Empath.",                          "hint": "Dark Empath only — find the Colonel's hidden vulnerability."},
+        "biohacker_win":    {"category": "Combat",     "name": "Optimized",               "desc": "Auto-counter Safety Net as Biohacker.",                         "hint": "Biohacker only — let the Colonel try the safety net argument."},
+        "damage_control":   {"category": "Story",      "name": "Damage Control",          "desc": "Successfully patch the Commandant's car before anyone notices.","hint": "Cover up the car incident and pass the inspection."},
+        "hackerman":        {"category": "Collection", "name": "Hackerman",               "desc": "Max out coding skill to 250. You are the compiler now.",        "hint": "Reach 250 Coding Skill (the cap)."},
+        "the_return":       {"category": "Story",      "name": "The Return",              "desc": "Beat the Colonel, then crawl back to the station six months later.","hint": "Beat the Colonel without the skills or savings to actually leave."},
+        "infinite_loop":    {"category": "Secret",     "name": "Infinite Loop",           "desc": "Some debts compile at runtime. Some bugs don't compile at all.",  "hint": "???"},
+        ## --- Class arc achievements ---
+        "vladeks_pupil":    {"category": "Story",      "name": "Vladek's Pupil",          "desc": "Place at the Strongman competition. The trainer was right.",     "hint": "Bodybuilder only — finish Vladek's competition arc on the podium."},
+        "bring_the_lt":     {"category": "Story",      "name": "Bring The Lieutenant",    "desc": "Expose Kovář's flagged report to journalists.",                  "hint": "Dark Empath only — choose to expose, not leverage or comply."},
+        "subject_zero":     {"category": "Story",      "name": "Subject Zero",            "desc": "Become the trial. Document everything. Lose your baseline.",     "hint": "Biohacker only — agree to the 21-day compound trial."},
+        "profile_master":   {"category": "Collection", "name": "Profile Master",          "desc": "Cold-read all four station targets at least three times each.",  "hint": "Dark Empath only — read every target deeply."},
+        "maximum_stack":    {"category": "Collection", "name": "Maximum Stack",           "desc": "Reach SOMA 10/10. The body is the answer.",                      "hint": "Bodybuilder only — go to the gym 10 times."},
+        "compound_knowledge":{"category":"Collection", "name": "Compound Knowledge",       "desc": "Learn synthesis instead of taking the vial.",                    "hint": "Biohacker only — pick the lesson over the contraband."},
+        "wake_up_call":     {"category": "Secret",     "name": "Wake Up Call",            "desc": "Type sys.exit() during the colonel's loop. Step out of the script.","hint": "???"},
     }
 
     def unlock_achievement(key):
@@ -435,10 +485,10 @@ init python:
             effects.append("+{} Hatred".format(t["crash_hatred"]))
 
         # T5 hard dependency trigger
-        if tier == 5 and nootropic_uses[4] >= 3 and not nootropic_dependency:
+        if tier == 5 and nootropic_uses[4] >= 2 and not nootropic_dependency:
             nootropic_dependency = True
             return ("dependency_triggered",
-                    "Three doses. You crossed the line.\n"
+                    "Two doses. You crossed the line.\n"
                     "FLModafinil (CRL-40,940) has rewritten your baseline.\n"
                     "You will feel its absence now.\n\n" + t["crash_flavor"])
 

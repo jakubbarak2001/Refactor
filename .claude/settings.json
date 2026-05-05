@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc --noEmit*)",
+      "Bash(npx astro check*)",
+      "Bash(curl -s *)",
+      "Bash(curl -sS *)",
+      "Bash(curl -sI *)"
+    ]
+  }
+}

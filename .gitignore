@@ -35,3 +35,25 @@ ARCHITECTURE_RECOMMENDATIONS.md
 GUI_MIGRATION_GUIDE.md
 PYGAME_GUI_FIX.md
 REFACTORING_SUMMARY.md
+
+# --- Ren'Py compiled / generated
+*.rpyc
+*.rpyb
+*.rpa
+REFACTOR/cache/
+REFACTOR/game/cache/
+REFACTOR/game/saves/
+REFACTOR/log.txt
+REFACTOR/errors.txt
+REFACTOR/traceback.txt
+
+# --- Ren'Py build output
+REFACTOR-*-dists/
+
+# --- Claude per-user / scratch
+.claude/settings.local.json
+.claude/*_diff.txt
+.tmp_*
+
+# --- Pre-Ren'Py pygame relic (kept on disk, not in git)
+/game/

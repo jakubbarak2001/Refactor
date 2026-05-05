@@ -206,21 +206,48 @@ label good_ending:
         _ep_class = stats.player_class
 
     if _ep_class == "bodybuilder":
-        "Three years later, you run a fitness app with 40,000 active users."
-        "You wrote the backend yourself. Ugly at first. Then clean. Then elegant."
-        "You still lift on Tuesdays. Your home office has a pull-up bar over the door."
-        "You look happier than any cop ever looked. That's not luck. That's a choice you made and kept making."
+        if getattr(store, '_bb_arc_won', False):
+            "Vladek calls you a year later. He has a sponsorship deal lined up — fitness app on Czech TV."
+            "You bring the backend code. He brings the audience. The app ships in nine months."
+            "40,000 active users by year two. The competition platform is a poster on your office wall."
+            "You still squat on Tuesdays. The body keeps score. The score is good now."
+        else:
+            "Three years later, you run a fitness app with 40,000 active users."
+            "You wrote the backend yourself. Ugly at first. Then clean. Then elegant."
+            "You still lift on Tuesdays. Your home office has a pull-up bar over the door."
+            "You look happier than any cop ever looked. That's not luck. That's a choice you made and kept making."
     elif _ep_class == "dark_empath":
-        "You end up in UX research at a product company."
-        "You read users the way you used to read suspects. Every session reveals what people can't articulate."
-        "The products you touch ship cleaner. The teams you join argue less."
-        "You still occasionally over-analyse waiters. Some habits are features, not bugs."
+        if getattr(store, '_de_kovar_exposed', False):
+            "Two journalists win a Pulitzer-equivalent for the Kovář investigation. Your name never appears."
+            "You take a UX research role at a product company. You read users the way you read him."
+            "The trafficking case from his file leads to seven arrests. You watch the news in a bar in Brno."
+            "You order another drink. You don't talk about it. Some kinds of leverage don't compound — they discharge."
+        elif getattr(store, '_de_kovar_complicit', False):
+            "The 25,000 CZK pays your rent for six months. You don't spend it on anything you can name."
+            "You take a UX research role at a product company. You read users professionally now."
+            "Sometimes a face on a screen reminds you of a folder you once deleted. You close the tab."
+            "Some leverage stays in the body. You learn to live with the weight."
+        else:
+            "You end up in UX research at a product company."
+            "You read users the way you used to read suspects. Every session reveals what people can't articulate."
+            "The products you touch ship cleaner. The teams you join argue less."
+            "You still occasionally over-analyse waiters. Some habits are features, not bugs."
     elif _ep_class == "biohacker":
-        "You join a biotech startup as their first engineering hire."
-        "You optimize their deployment pipeline on day two. The CTO stares."
-        "On day three you give him your cognitive protocol, formatted as a Notion doc."
-        "Six months later it's company policy. You were a cop twelve months ago."
-        "The system has no category for you. You prefer it that way."
+        if getattr(store, '_bh_trial_subject', False):
+            "The compound has a name now. Two papers on PubMed. Your data set is in the appendix as 'Subject 0'."
+            "You join a biotech startup. You bring three months of HRV, sleep, cognitive battery."
+            "The CTO offers you principal scientist after looking at your spreadsheet."
+            "Some days you can feel the dependency under everything else. You log it. You continue."
+        elif getattr(store, '_bh_taught_synth', False):
+            "You join a biotech startup as their first research engineer. The synthesis notes are still in your safe."
+            "You publish two papers in your first year. One is on cognitive enhancement methodology. The other is on protocol design."
+            "You never make compounds at home. Some lines hold."
+        else:
+            "You join a biotech startup as their first engineering hire."
+            "You optimize their deployment pipeline on day two. The CTO stares."
+            "On day three you give him your cognitive protocol, formatted as a Notion doc."
+            "Six months later it's company policy. You were a cop twelve months ago."
+            "The system has no category for you. You prefer it that way."
 
     python:
         _base_score  = (stats.available_money / 100) + (stats.coding_skill * 100)
@@ -691,6 +718,245 @@ label journalist_ending:
 
 
 ## ---------------------------------------------------------------------------
+## REUNION ENDING — defeated the Colonel, but coding/money too low to make it
+## as a developer. Six months later, JB walks back to the station.
+## ---------------------------------------------------------------------------
+
+label reunion_ending:
+
+    python:
+        unlock_achievement("the_return")
+
+    stop music fadeout 2.0
+    scene bg_black
+    pause 1.5
+
+    "You did it."
+    "You walked out of his office."
+    "You felt the air outside the station."
+
+    pause 1.0
+
+    "You drove home with the windows down."
+    "You slept for fourteen hours."
+
+    pause 1.0
+
+    scene bg_black
+
+    "Three weeks later."
+
+    pause 1.0
+
+    "Your CV is on every job board in the country. 'Junior Python Developer. Self-taught. Career changer.'"
+    "The replies that come back are polite. None of them are interviews."
+
+    pause 1.0
+
+    scene bg_black
+
+    "Three months later."
+
+    pause 1.0
+
+    "Your savings ran out in month two."
+    "Your parents helped for a while. Then they stopped helping. They didn't say why."
+    "You took a delivery job. Then you stopped taking that job because the bike broke."
+    "You started reading job listings that said 'security personnel — clean record required.'"
+
+    pause 1.0
+
+    scene bg_black
+
+    "Six months later."
+
+    pause 1.5
+
+    play music "audio/coding_in_snow_theme.mp3" fadein 2.0
+
+    "You walk back to the station."
+    "It's October. You wear civilian clothes — the same hoodie you used to wear off-shift."
+    "You pause at the door for a long time."
+
+    pause 1.0
+
+    $ renpy.movie_cutscene("video/reunion.mp4")
+
+    scene bg_police_interior with slow_dissolve
+
+    "He sees you in the corridor."
+    "You expected anger. Or vindication. Or a speech."
+
+    show colonel normal at char_right with dissolve
+
+    colonel "'JB.'"
+
+    "His voice is flat. Not warm. Not cold."
+
+    colonel "'I had a feeling.'"
+    colonel "'There's a desk free in records. Eighteen months minimum if you want your old rank back.'"
+    colonel "'Or you can stay civilian. I don't care which.'"
+
+    "He walks away before you answer."
+
+    pause 1.0
+
+    "You sign the paperwork."
+    "Your hands don't shake."
+    "You knew you'd end up here. You knew it the whole time."
+
+    "Some people can leave."
+    "Some people leave and come back."
+    "Some people come back smaller."
+
+    python:
+        _base_score  = (stats.available_money / 100) + (stats.coding_skill * 60)
+        _diff_mult   = diff_setting("score_mult", 1.0)
+        _final_score = int(_base_score * _diff_mult * 0.3)
+        _diff_name   = (stats.difficulty or "unknown").capitalize()
+
+    scene bg_black with slow_dissolve
+
+    call screen ending_screen(
+        "BITTERSWEET ENDING",
+        "THE RETURN",
+        "You beat him. The world beat you. Both can be true.",
+        "neutral",
+        score=_final_score,
+        score_note="x0.3 — You won the fight. You lost the after.",
+        money=stats.available_money,
+        coding=stats.coding_skill,
+        diff_name=_diff_name
+    )
+
+    $ renpy.full_restart()
+
+
+## ---------------------------------------------------------------------------
+## JBDARK ENDING — the simulation breaks. Reality glitches before the
+## confrontation can happen. JB falls into the looping police station.
+## Trigger: 3+ days at 95+ hatred AND the nightmare-wolf event has fired.
+## ---------------------------------------------------------------------------
+
+label jbdark_ending:
+
+    python:
+        unlock_achievement("infinite_loop")
+
+    stop music fadeout 1.0
+    scene bg_black with Dissolve(0.8)
+    pause 1.5
+
+    "Day 25."
+    "You are driving to the station."
+
+    pause 1.0
+
+    "Or you think you are."
+
+    pause 1.0
+
+    "The road keeps going. The exit numbers don't match. The radio plays a song you don't remember turning on."
+
+    pause 1.0
+
+    play music "audio/sevirra_lenoloc.mp3" fadein 2.0
+
+    "You park."
+    "The station is the same. The colour is wrong. The colour is the {i}same{/i}."
+    "You walk inside."
+
+    pause 1.0
+
+    $ renpy.movie_cutscene("video/JBDARK.mp4")
+
+    scene bg_black with Dissolve(0.5)
+
+    "[[ERROR]]: scene_state.player_position = NULL"
+    "[[ERROR]]: Cannot resolve corridor_id."
+    "[[ERROR]]: Falling back to last_known_state..."
+
+    pause 0.8
+
+    "[[ERROR]]: last_known_state CORRUPTED."
+
+    pause 1.0
+
+    scene bg_police_interior with Dissolve(0.4)
+
+    "The corridor is too long."
+    "The lights flicker in a pattern that almost — almost — matches the rhythm of your breathing."
+    "You walk for what feels like an hour. You don't pass any doors."
+
+    pause 1.0
+
+    "The PA crackles."
+    colonel "'JB.'"
+    colonel "'You can't quit a function with no exit clause.'"
+    colonel "'You can't return from a recursive call you never finished.'"
+    colonel "'You can't escape the loop you wrote yourself into.'"
+
+    pause 1.0
+
+    "You realise something."
+    "Your hands are not your hands."
+    "Your uniform is not your uniform — but it fits perfectly."
+    "Your name tag says JB."
+    "You don't remember your name being JB."
+    "You don't remember your name."
+
+    pause 1.5
+
+    scene bg_black with Dissolve(1.0)
+
+    "[[SYSTEM]]: Process did not exit cleanly."
+    "[[SYSTEM]]: Restoring from autosave..."
+
+    pause 1.0
+
+    "[[SYSTEM]]: Autosave is the autosave is the autosave."
+    "[[SYSTEM]]: Day 1."
+
+    pause 2.0
+
+    play music "audio/breakdown_theme.mp3" fadein 2.0
+
+    scene bg_police_interior with Dissolve(0.5)
+
+    "You wake up at your desk."
+    "Your colleague says good morning."
+    "You open your mouth."
+    "You start your shift."
+
+    pause 1.0
+
+    "You do not feel the loop."
+    "The loop is what you are."
+
+    python:
+        _base_score  = (stats.available_money / 100) + (stats.coding_skill * 60)
+        _diff_mult   = diff_setting("score_mult", 1.0)
+        _final_score = int(_base_score * _diff_mult * 0.05)
+        _diff_name   = (stats.difficulty or "unknown").capitalize()
+
+    scene bg_black with slow_dissolve
+
+    call screen ending_screen(
+        "HIDDEN ENDING",
+        "INFINITE LOOP",
+        "You compiled. The compiler was you. There was never an outside.",
+        "secret",
+        score=_final_score,
+        score_note="x0.05 — Some games don't end. They restart.",
+        money=stats.available_money,
+        coding=stats.coding_skill,
+        diff_name=_diff_name
+    )
+
+    $ renpy.full_restart()
+
+
+## ---------------------------------------------------------------------------
 ## HAPPY NATION ENDING
 ## Triggers after defeating the Colonel IF corrupt_chain_3_completed is True.
 ## URNA raids your home. The game ends in handcuffs.
@@ -822,6 +1088,12 @@ label happy_nation_ending:
     "But some debts compile at runtime."
 
     pause 3.0
+
+    stop music fadeout 2.0
+    scene bg_black
+    pause 1.0
+
+    $ renpy.movie_cutscene("video/colonel_laughter.webm")
 
     python:
         _base_score  = (stats.available_money / 100) + (stats.coding_skill * 120)

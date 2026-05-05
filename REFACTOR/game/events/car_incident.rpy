@@ -23,7 +23,14 @@ label car_incident:
     "You throw it into reverse, trusting your muscle memory more than your eyes."
     "You are a professional driver, right? You did the course."
 
+    stop music fadeout 0.3
+
     show jb worried at char_left
+    play sound "audio/car_scrape.mp3" volume 0.5
+
+    "..."
+
+    play music "audio/enter_the_code_theme.mp3" fadein 0.5
 
     "It wasn't a loud noise. It was a sickeningly polite {i}crunch{/i}."
     "Like stepping on a very large, very expensive beetle."

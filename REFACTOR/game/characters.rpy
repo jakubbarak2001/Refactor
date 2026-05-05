@@ -67,6 +67,14 @@ image jb determined     = im.Scale("images/sprites/jb_determined.png",       600
 image jb bored          = im.Scale("images/sprites/jb_bored.png",            600, 900)
 image jb developer_happy = im.Scale("images/sprites/jb_developer_happy.png", 600, 900)
 
+## Class portraits — pre-scaled to fit the 500x750 portrait frame on the
+## right panel of the class selection screen. Same aspect (~0.667) as the
+## existing JB sprites so they can stand in until dedicated DE/BH portraits
+## are drawn.
+image jb_bb_portrait = im.Scale("images/sprites/jb_bodybuilder.jpg", 500, 750)
+image jb_de_portrait = im.Scale("images/sprites/jb_dark_empath.jpg", 500, 750)
+image jb_bh_portrait = im.Scale("images/sprites/jb_biohacker.jpg",   500, 750)
+
 ## Colonel sprites
 image colonel normal        = im.Scale("images/sprites/colonel_normal.png",        600, 900)
 image colonel angry         = im.Scale("images/sprites/colonel_angry.png",         600, 900)

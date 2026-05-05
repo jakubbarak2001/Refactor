@@ -8,6 +8,9 @@ default martin_affection = 0
 
 label martin_meeting:
 
+    ## Autosave: before Martin meeting (Day 24)
+    $ renpy.save("auto-day24-martin", "Day 24 — The Martin Meeting")
+
     $ martin_affection = 0
 
     play music "audio/martin_meeting_event_the_arrival.mp3" fadein 1.0
@@ -17,68 +20,53 @@ label martin_meeting:
     "DAY 24 — 11:30 AM"
 
     ## Phase 1: Preparation
-    call martin_phase1_preparation
-    python:
-        if stats.player_class == "dark_empath":
-            martin_affection += 1
+    call martin_phase1_preparation from _call_martin_phase1_preparation
 
-    ## Phase 2: Meeting
-    call martin_phase2_meeting
+    ## Phase 2: Meeting (DE bonus — first conversation read)
+    call martin_phase2_meeting from _call_martin_phase2_meeting
     python:
         if stats.player_class == "dark_empath":
             martin_affection += 1
 
     ## Phase 3: Drop the Bomb
-    call martin_phase3_bomb
-    python:
-        if stats.player_class == "dark_empath":
-            martin_affection += 1
+    call martin_phase3_bomb from _call_martin_phase3_bomb
 
-    ## Phase 4: Coding Reality Check
-    call martin_phase4_coding_check
+    ## Phase 4: Coding Reality Check (DE bonus — read his real-time feedback)
+    call martin_phase4_coding_check from _call_martin_phase4_coding_check
     python:
         if stats.player_class == "dark_empath":
             martin_affection += 1
 
     ## Phase 5: Financial Reality Check
-    call martin_phase5_money_check
+    call martin_phase5_money_check from _call_martin_phase5_money_check
+
+    ## Phase 6: Hatred Motivation Check (DE bonus — emotional calibration)
+    call martin_phase6_hatred_check from _call_martin_phase6_hatred_check
     python:
         if stats.player_class == "dark_empath":
             martin_affection += 1
 
-    ## Phase 6: Hatred Motivation Check
-    call martin_phase6_hatred_check
-    python:
-        if stats.player_class == "dark_empath":
-            martin_affection += 1
+    ## Phase 6.5: The Dark Question
+    call martin_phase_dark_question from _call_martin_phase_dark_question
 
-    ## Phase 6.5: The Dark Question (NEW)
-    call martin_phase_dark_question
-    python:
-        if stats.player_class == "dark_empath":
-            martin_affection += 1
-
-    ## Phase 6.75: The Price (NEW)
-    call martin_phase_the_price
+    ## Phase 6.75: The Price (DE bonus — sees the manipulation pattern early)
+    call martin_phase_the_price from _call_martin_phase_the_price
     python:
         if stats.player_class == "dark_empath":
             martin_affection += 1
 
     ## Phase 7: Timing Decision
-    call martin_phase7_timing
-    python:
-        if stats.player_class == "dark_empath":
-            martin_affection += 1
+    call martin_phase7_timing from _call_martin_phase7_timing
 
-    ## Phase 8: Ending / Parting Gift
-    call martin_phase8_ending
+    ## Phase 8: Ending / Parting Gift (DE bonus — reads what he's not saying)
+    call martin_phase8_ending from _call_martin_phase8_ending
     python:
         if stats.player_class == "dark_empath":
             martin_affection += 1
 
     python:
         if stats.player_class == "dark_empath":
-            renpy.say(None, "[[DARK EMPATH PERK]]: Your empathy gave you +10 bonus Affection Points across all phases.")
+            renpy.say(None, "[[DARK EMPATH PERK]]: Your empathy gave you +5 bonus Affection Points across the conversation.")
 
     return
 
@@ -101,11 +89,12 @@ label martin_phase1_preparation:
     menu:
         "PAY 12,500 CZK — Original Fit MASH polo shirt + Tobacco Honey Guerlain EDP. (+2 AFFECTION POINTS)":
             python:
-                if stats.try_spend_money(12500):
+                _polo_cost = adjusted_cost(12500)
+                if stats.try_spend_money(_polo_cost):
                     martin_affection += 2
                     _p1text  = "You look at yourself in the mirror and question whether you actually work at Police or Prada."
                     _p1text2 = "'Impressive. Very nice.'\n'Let's see Martin's style.'"
-                    _p1outcome = "- 12,500 CZK, +2 AFFECTION POINTS (He will love the effort you put into your outfit)."
+                    _p1outcome = "- {:,} CZK, +2 AFFECTION POINTS (He will love the effort you put into your outfit).".format(_polo_cost)
                 else:
                     _p1text  = "You check your card balance... declined. Embarrassing."
                     _p1text2 = "You go in your old clothes anyway."
@@ -119,11 +108,12 @@ label martin_phase1_preparation:
 
         "PAY 2,500 CZK — Get a new cut and buy a new cool shirt. (+1 AFFECTION POINT)":
             python:
-                if stats.try_spend_money(2500):
+                _cut_cost = adjusted_cost(2500)
+                if stats.try_spend_money(_cut_cost):
                     martin_affection += 1
                     _p1text  = "The barber played his part really well, you also buy a new sharp shirt. You look in the mirror."
                     _p1text2 = "For a second, you don't look like a tired cop. You look like a civilian."
-                    _p1outcome = "- 2,500 CZK, +1 AFFECTION POINT (He will appreciate the effort)."
+                    _p1outcome = "- {:,} CZK, +1 AFFECTION POINT (He will appreciate the effort).".format(_cut_cost)
                 else:
                     _p1text  = "You check your card balance... declined. Embarrassing."
                     _p1text2 = "You go in your old clothes anyway."
@@ -725,8 +715,10 @@ label martin_neutral_ending:
     martin "'But if you get overwhelmed, just remember that I made it.'"
     martin "'I'm waiting on the other side. Don't let him win.'"
 
-    $ stats.final_boss_buff = "STOIC_ANCHOR"
-    "[[STATUS ACQUIRED]]: STOIC ANCHOR\n(Passive: You are more resistant to the Colonel's attacks.)"
+    python:
+        grant_card("stoic_anchor", silent=True)
+        stats.final_boss_buff = "STOIC_ANCHOR"
+    "[[CARD ACQUIRED]]: STOIC ANCHOR\n(+3 starting block per turn. Heal 3 HP after every colonel attack.)"
 
     return
 
@@ -758,30 +750,33 @@ label martin_good_ending_selection:
     "CHOOSE YOUR FINAL BOSS ADVANTAGE:"
 
     menu:
-        "THE LEGAL NUKE — File proving the 80k debt is void via 'Paragraph 4B'. (Colonel -35 HP, auto-counters Training Debt for +15 DMG)":
+        "THE LEGAL NUKE — Paragraph 4B card. (40 dmg attack — auto-counters 'Training Debt'.)":
             "Martin hands you a crumpled digital file printout."
             martin "'He lies about the contract. Quote this paragraph. Watch him choke.'"
-            $ stats.final_boss_buff = "LEGAL_NUKE"
+            python:
+                grant_card("paragraph_4b", silent=True)
+                stats.final_boss_buff = "PARAGRAPH_4B"
 
-        "GHOST OF THE PAST — Martin reveals the Colonel's big secret. (Immune to Round 1 Fear. Unlocks -40 HP FATAL STRIKE on 'Car Incident'.)":
+        "GHOST OF THE PAST — Ghost Secret card. (Disables one colonel attack + 15 dmg.)":
             "Martin leans in and whispers the Colonel's dirty secret."
             "You smile. Suddenly, the Colonel doesn't look like a monster. He looks like a failure."
-            $ stats.final_boss_buff = "GHOST_SECRET"
+            python:
+                grant_card("ghost_secret", silent=True)
+                stats.final_boss_buff = "GHOST_SECRET"
 
-        "PRODUCTION READY SHIELD — Martin vouches for you and writes a salary figure on a napkin. (Immune Round 1 Fear. Auto-Wins 'Blacklist' and 'Motivation'.)":
+        "PRODUCTION READY SHIELD — Job Offer card. (+5 max HP, +1 starting block per turn.)":
             "Martin makes a call. He hands you a napkin with a number on it."
             martin "'That's your starting salary. He can't threaten a man who has options.'"
-            $ stats.final_boss_buff = "JOB_OFFER"
+            python:
+                grant_card("job_offer", silent=True)
+                stats.final_boss_buff = "JOB_OFFER"
 
-        "STOIC REFACTOR — Martin teaches you the 'Grey Rock' method. (Immune Round 1 Fear. Reduced damage from emotional attacks.)":
+        "STOIC REFACTOR — Stoic Refactor card. (Take 50%% damage from emotional attacks.)":
             "Martin grabs your shoulders. He teaches you to breathe. To detach."
             martin "'He is just broken code, JB. Don't get angry. Just debug him.'"
-            $ stats.final_boss_buff = "STOIC_HEAL"
-
-        "AGGRESSIVE OPENING — Martin hypes you up to strike first. (Colonel starts -20 HP. Immune to Round 1 Fear.)":
-            "Martin slaps your back hard. The adrenaline hits."
-            martin "'Don't let him speak. Throw the badge on the table. Be the alpha.'"
-            $ stats.final_boss_buff = "FIRST_STRIKE"
+            python:
+                grant_card("stoic_refactor", silent=True)
+                stats.final_boss_buff = "STOIC_REFACTOR"
 
     "[[ACE IN THE HOLE ACQUIRED]]: [stats.final_boss_buff]"
 

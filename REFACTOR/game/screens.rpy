@@ -11,6 +11,24 @@ screen stats_bar():
     layer "screens"
     zorder 100
 
+    python:
+        ## Class-specific tracker text appended to the badge
+        _class_track = ""
+        if stats.player_class == "bodybuilder":
+            _soma = getattr(store, 'bb_soma', 0)
+            if _soma > 0:
+                _class_track = "  ·  SOMA {}/10".format(_soma)
+        elif stats.player_class == "dark_empath":
+            _profs = getattr(store, 'de_profiles', {})
+            _deep = sum(1 for n, c in _profs.items() if c >= 3)
+            _total = sum(_profs.values()) if _profs else 0
+            if _total > 0:
+                _class_track = "  ·  PROFILES {} ({} deep)".format(_total, _deep)
+        elif stats.player_class == "biohacker":
+            _proto = getattr(store, 'bh_protocol', None)
+            if _proto:
+                _class_track = "  ·  STACK {}".format(_proto)
+
     frame:
         xalign 0.0
         yalign 0.0
@@ -24,17 +42,17 @@ screen stats_bar():
 
             ## Class badge — colour-coded per class
             if stats.player_class == "bodybuilder":
-                text "[[BODYBUILDER]":
+                text "[[BODYBUILDER][_class_track]":
                     color "#ff6633"
                     size 16
                     bold True
             elif stats.player_class == "dark_empath":
-                text "[[DARK EMPATH]":
+                text "[[DARK EMPATH][_class_track]":
                     color "#9944cc"
                     size 16
                     bold True
             elif stats.player_class == "biohacker":
-                text "[[BIOHACKER]":
+                text "[[BIOHACKER][_class_track]":
                     color "#00cc88"
                     size 16
                     bold True
@@ -75,6 +93,805 @@ screen stats_bar():
             text "Day: [day_cycle.current_day]/30":
                 color "#aaaaaa"
                 size 18
+
+
+## ---------------------------------------------------------------------------
+## Deck Viewer — shows the player's accumulated card collection
+## Usage: call screen deck_viewer
+## ---------------------------------------------------------------------------
+
+screen deck_viewer():
+    modal True
+    zorder 400
+
+    default _deck_tab = "deck"  ## "deck" or "colonel"
+
+    add "#0d0d11ee"
+
+    python:
+        _COLOR_HEX = {
+            "Physical": "#ff6633",
+            "Mental":   "#9944cc",
+            "Money":    "#ffd700",
+            "Logic":    "#00ccff",
+            "Police":   "#3388cc",
+            "Special":  "#00cc88",
+        }
+        _deck_cards = player_deck.cards if player_deck is not None else []
+        _deck_count = len(_deck_cards)
+        ## Group by color
+        _deck_by_color = {}
+        for _cid in _deck_cards:
+            _c = CARD_LIBRARY.get(_cid)
+            if _c is None:
+                continue
+            _col = _c.get("color", "Special")
+            _deck_by_color.setdefault(_col, []).append(_cid)
+        ## For consistent ordering
+        _color_order = ["Physical", "Mental", "Money", "Logic", "Police", "Special"]
+
+    vbox:
+        xalign 0.5
+        yalign 0.5
+        spacing 14
+
+        if _deck_tab == "deck":
+            text "> YOUR DECK <":
+                xalign 0.5
+                color "#cc2200"
+                size 36
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
+            text "[_deck_count] CARDS COLLECTED":
+                xalign 0.5
+                color "#888888"
+                size 18
+        else:
+            text "> VS COLONEL <":
+                xalign 0.5
+                color "#cc2200"
+                size 36
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
+            python:
+                _col_deck_size = diff_setting("colonel_deck_size", 7)
+            text "DIFFICULTY: [stats.difficulty.upper()]   ·   DECK SIZE: [_col_deck_size]":
+                xalign 0.5
+                color "#888888"
+                size 18
+
+        ## Tab switcher
+        hbox:
+            xalign 0.5
+            spacing 12
+
+            textbutton "MY DECK":
+                action SetScreenVariable("_deck_tab", "deck")
+                text_color ("#ffffff" if _deck_tab == "deck" else "#666666")
+                text_hover_color "#ffdd00"
+                text_size 16
+                text_bold (_deck_tab == "deck")
+                text_font "fonts/RobotoMono-Regular.ttf"
+                background (Frame("#1a0011ee", 4, 4) if _deck_tab == "deck" else "#00000000")
+                hover_background Frame("#2a0022ee", 4, 4)
+                padding (16, 8)
+
+            textbutton "VS COLONEL":
+                action SetScreenVariable("_deck_tab", "colonel")
+                text_color ("#ffffff" if _deck_tab == "colonel" else "#666666")
+                text_hover_color "#ffdd00"
+                text_size 16
+                text_bold (_deck_tab == "colonel")
+                text_font "fonts/RobotoMono-Regular.ttf"
+                background (Frame("#1a0000ee", 4, 4) if _deck_tab == "colonel" else "#00000000")
+                hover_background Frame("#2a0000ee", 4, 4)
+                padding (16, 8)
+
+        viewport:
+            xsize 1500
+            ysize 700
+            scrollbars "vertical"
+            mousewheel True
+            draggable True
+
+            if _deck_tab == "deck":
+                vbox:
+                    spacing 14
+
+                    for _col in _color_order:
+                        if _deck_by_color.get(_col):
+                            $ _col_hex = _COLOR_HEX.get(_col, "#888888")
+                            $ _col_cards = _deck_by_color[_col]
+
+                            hbox:
+                                spacing 10
+                                text "{} ({})".format(_col.upper(), len(_col_cards)):
+                                    color _col_hex
+                                    size 18
+                                    bold True
+                                    font "fonts/RobotoMono-Regular.ttf"
+
+                            ## Render cards in rows of 4
+                            $ _rows = [_col_cards[i:i+4] for i in range(0, len(_col_cards), 4)]
+                            vbox:
+                                spacing 8
+                                for _row in _rows:
+                                    hbox:
+                                        spacing 8
+                                        for _cid in _row:
+                                            $ _c = CARD_LIBRARY.get(_cid, {})
+                                            frame:
+                                                xsize 350
+                                                ysize 130
+                                                background Frame("#0d0d0dee", 4, 4)
+                                                padding (12, 10)
+
+                                                vbox:
+                                                    spacing 4
+
+                                                    hbox:
+                                                        spacing 6
+                                                        text "[[ {} ]".format(_c.get("cost", 0)):
+                                                            color _col_hex
+                                                            size 14
+                                                            bold True
+                                                        text _c.get("name", _cid):
+                                                            color "#ffffff"
+                                                            size 16
+                                                            bold True
+
+                                                    text "{} · {} · {}".format(_c.get("type", ""), _c.get("rarity", ""), _c.get("color", "")):
+                                                        color "#666666"
+                                                        size 11
+
+                                                    text _c.get("flavor", ""):
+                                                        color "#aaaaaa"
+                                                        size 13
+                                                        xmaximum 326
+
+                    if not _deck_cards:
+                        text "Your deck is empty.\nDo activities, attend events, or talk to Martin to collect cards.":
+                            color "#666666"
+                            size 16
+                            italic True
+                            xalign 0.5
+                            text_align 0.5
+            else:
+                ## --- COLONEL'S DECK PREVIEW ---
+                python:
+                    _col_template = COLONEL_DECK_TEMPLATES.get(diff_setting("colonel_deck_size", 7), COLONEL_DECK_TEMPLATES[7])
+                    _col_seen = []
+                    _col_dedup = []
+                    for _eid in _col_template:
+                        if _eid not in _col_seen:
+                            _col_seen.append(_eid)
+                            _col_dedup.append(_eid)
+
+                vbox:
+                    spacing 12
+
+                    text "He'll play these (in random order). Build your deck to counter:":
+                        color "#aaaaaa"
+                        size 14
+                        italic True
+
+                    null height 4
+
+                    $ _crows = [_col_dedup[i:i+3] for i in range(0, len(_col_dedup), 3)]
+                    for _crow in _crows:
+                        hbox:
+                            spacing 12
+                            for _eid in _crow:
+                                $ _ec = ENEMY_DECK_LIBRARY.get(_eid, {})
+                                $ _eintent = _ec.get("intent", "attack")
+                                $ _eval = _ec.get("value", 0)
+                                $ _ev2 = _ec.get("value2", 0)
+                                $ _eaccent = "#ff4422" if _eintent in ("attack", "compound") else "#88aaff" if _eintent == "block" else "#ffaa44"
+                                if _eintent == "compound":
+                                    $ _enum = "{}x{}".format(_eval, _ev2)
+                                elif _eintent in ("attack", "block"):
+                                    $ _enum = "{}".format(_eval)
+                                else:
+                                    $ _enum = ""
+                                $ _eimm = _ec.get("immunity", [])
+                                $ _ecnt_keys = list(_ec.get("counter", {}).keys())
+
+                                frame:
+                                    xsize 460
+                                    background Frame("#1a0000ee", 4, 4)
+                                    padding (14, 10)
+
+                                    vbox:
+                                        spacing 4
+
+                                        hbox:
+                                            spacing 8
+                                            text _ec.get("name", _eid):
+                                                color _eaccent
+                                                size 16
+                                                bold True
+                                            if _enum:
+                                                text _enum:
+                                                    color "#ffffff"
+                                                    size 14
+                                                    bold True
+
+                                        text "{} · threat {}".format(_eintent.upper(), _ec.get("threat", 1)):
+                                            color "#666666"
+                                            size 11
+
+                                        text _ec.get("dialogue", ""):
+                                            color "#aaaaaa"
+                                            size 12
+                                            italic True
+                                            xmaximum 432
+
+                                        if _eimm:
+                                            text "IMMUNE: {}".format(", ".join(c.upper() for c in _eimm)):
+                                                color "#88cc88"
+                                                size 11
+                                                italic True
+
+                                        if _ecnt_keys:
+                                            text "COUNTERS: {}".format(", ".join(_ecnt_keys)):
+                                                color "#ccaa66"
+                                                size 11
+                                                italic True
+
+        textbutton "[[ CLOSE ]":
+            xalign 0.5
+            action Return()
+            text_style "class_select_btn"
+            background "#220000"
+            hover_background "#440000"
+            padding (20, 10)
+
+
+## ---------------------------------------------------------------------------
+## Activity Tile — reusable button used in the activity selector grid.
+## Calls a label on click. Renders title + cost + effect + flavor.
+## ---------------------------------------------------------------------------
+
+screen _activity_tile(label_name, title, accent, cost_text, effect_text, detail_text, locked=False, lock_text=""):
+    button:
+        xsize 320
+        ysize 220
+        background Frame("#0d0d0dee", 3, 3)
+        hover_background Frame("#181014ee", 3, 3)
+        sensitive (not locked)
+        action Jump(label_name)
+
+        vbox:
+            xalign 0.5
+            yalign 0.5
+            spacing 4
+            xfill True
+
+            ## Top accent bar
+            frame:
+                xalign 0.5
+                xsize 280
+                ysize 4
+                background Frame(accent, 0, 0)
+
+            null height 16
+
+            text title:
+                color (accent if not locked else "#444444")
+                size 30
+                bold True
+                xalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
+
+            text "─────────":
+                color "#222222"
+                size 12
+                xalign 0.5
+
+            null height 4
+
+            text cost_text:
+                color ("#ffd700" if not locked else "#333333")
+                size 16
+                xalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
+
+            text effect_text:
+                color (accent if not locked else "#444444")
+                size 14
+                xalign 0.5
+
+            null height 6
+
+            if locked and lock_text:
+                text lock_text:
+                    color "#444444"
+                    size 11
+                    italic True
+                    xalign 0.5
+            elif detail_text:
+                text detail_text:
+                    color "#666666"
+                    size 11
+                    italic True
+                    xalign 0.5
+
+
+screen activity_select_screen():
+    modal True
+    zorder 50
+
+    add "#0a0a0acc"
+
+    vbox:
+        xalign 0.5
+        yalign 0.04
+        spacing 4
+
+        text "PICK TODAY'S MOVE":
+            xalign 0.5
+            color "#cc2200"
+            size 36
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+
+        text "One activity per day. Choose carefully.":
+            xalign 0.5
+            color "#666666"
+            size 15
+            font "fonts/RobotoMono-Regular.ttf"
+
+    ## Tile rows — 3 + 2 layout
+    vbox:
+        xalign 0.5
+        yalign 0.5
+        spacing 28
+
+        hbox:
+            spacing 28
+            xalign 0.5
+
+            ## GYM — always available
+            use _activity_tile(
+                label_name = "activity_gym",
+                title      = "GYM",
+                accent     = "#ff6633",
+                cost_text  = "{:,} CZK".format(adjusted_cost(400)),
+                effect_text= "Reduce Hatred",
+                detail_text= "33/33/33% — random reps",
+            )
+
+            ## THERAPY (default) or COLD READ (Dark Empath)
+            if stats.player_class == "dark_empath":
+                use _activity_tile(
+                    label_name = "activity_cold_read",
+                    title      = "COLD READ",
+                    accent     = "#9944cc",
+                    cost_text  = "FREE",
+                    effect_text= "-20 Hatred",
+                    detail_text= "Read others. Drain numbness.",
+                )
+            else:
+                use _activity_tile(
+                    label_name = "activity_therapy",
+                    title      = "THERAPY",
+                    accent     = "#9944cc",
+                    cost_text  = "{:,} CZK".format(adjusted_cost(1500)),
+                    effect_text= "-25 Hatred",
+                    detail_text= "Every 2nd session: SELF-AWARE buff",
+                )
+
+            ## BOUNCER
+            use _activity_tile(
+                label_name = "activity_bouncer",
+                title      = "BOUNCER",
+                accent     = "#ffd700",
+                cost_text  = "EARN",
+                effect_text= "Money + Risk",
+                detail_text= "Nightclub safe. Strip bar volatile.",
+            )
+
+        hbox:
+            spacing 28
+            xalign 0.5
+
+            ## CODING
+            use _activity_tile(
+                label_name = "activity_coding",
+                title      = "CODING",
+                accent     = "#00ccff",
+                cost_text  = "FREE",
+                effect_text= "+ Coding Skill",
+                detail_text= "Practice / Fiverr / Bootcamp / Puzzle",
+            )
+
+            ## NIGHT SHIFT
+            use _activity_tile(
+                label_name = "activity_night_shift",
+                title      = "NIGHT SHIFT",
+                accent     = "#3388cc",
+                cost_text  = "+3,000 CZK",
+                effect_text= "+15 Hatred",
+                detail_text= "Trade time for money.",
+            )
+
+            ## Empty third tile — Back button instead
+            button:
+                xsize 320
+                ysize 220
+                background Frame("#0a0a0acc", 3, 3)
+                hover_background Frame("#1a0000cc", 3, 3)
+                action Jump("daily_menu")
+                vbox:
+                    xalign 0.5
+                    yalign 0.5
+                    spacing 6
+                    text "← BACK":
+                        color "#666666"
+                        size 22
+                        bold True
+                        xalign 0.5
+                        font "fonts/RobotoMono-Regular.ttf"
+                    text "Return to hub":
+                        color "#444444"
+                        size 13
+                        italic True
+                        xalign 0.5
+
+    ## Footer
+    text "Hover for details — click to commit":
+        xalign 0.5
+        yalign 0.94
+        color "#444444"
+        size 13
+        italic True
+        font "fonts/RobotoMono-Regular.ttf"
+
+
+## ---------------------------------------------------------------------------
+## Daily Hub — central screen for the daily flow. Replaces the menu list.
+## Right side: action buttons. Center: pick-activity CTA or done state.
+## ---------------------------------------------------------------------------
+
+screen daily_hub_screen():
+    modal True
+    zorder 50
+
+    ## Side panel — right column actions
+    python:
+        _deck_count    = len(player_deck.cards) if player_deck is not None else 0
+        _ach_unlocked  = len(getattr(store, '_achievements_unlocked', set()))
+        _ach_total     = len(ACHIEVEMENTS)
+        _today         = day_cycle.current_day if day_cycle is not None else 1
+
+        ## Stat threshold hints
+        _hint_lines = []
+        if stats:
+            if stats.coding_skill < 70:
+                _hint_lines.append("Coding < 70 — REUNION risk if you also run out of money.")
+            elif stats.coding_skill < 150:
+                _hint_lines.append("Coding {} — Escape Artist threshold is 150.".format(stats.coding_skill))
+            else:
+                _hint_lines.append("Coding {} — Escape Artist track unlocked.".format(stats.coding_skill))
+
+            if stats.available_money < 25000:
+                _hint_lines.append("Money low — REUNION risk if coding also weak.")
+            elif stats.available_money < 150000:
+                _hint_lines.append("Money {:,} — Escape Artist needs 150,000.".format(stats.available_money))
+
+            if stats.pcr_hatred >= 85:
+                _hint_lines.append("Hatred {}/100 — sustained 95+ for 3 days triggers JBDARK.".format(stats.pcr_hatred))
+            elif stats.pcr_hatred >= 60:
+                _hint_lines.append("Hatred {}/100 — over 60 unlocks contempt mode on Cold Read.".format(stats.pcr_hatred))
+
+            ## Class-tracker hints
+            if stats.player_class == "bodybuilder":
+                _soma = getattr(store, 'bb_soma', 0)
+                if _soma >= 2:
+                    _hint_lines.append("SOMA {}/10 — +{} starting block/turn in the colonel fight.".format(_soma, _soma // 2))
+            elif stats.player_class == "dark_empath":
+                _profs = getattr(store, 'de_profiles', {})
+                _deep = sum(1 for n, c in _profs.items() if c >= 3)
+                if _deep > 0:
+                    _hint_lines.append("PROFILES {} deep — +{} peek-intent depth in the colonel fight.".format(_deep, 1 + _deep))
+            elif stats.player_class == "biohacker":
+                _proto = getattr(store, 'bh_protocol', None)
+                if _proto and _proto != "Daily":
+                    _hint_lines.append("Stack {} active — +1 max energy in the colonel fight.".format(_proto))
+
+    frame:
+        xpos 1690
+        ypos 230
+        xsize 210
+        padding (14, 18)
+        background Frame("#0a0a0aee", 4, 4)
+
+        vbox:
+            spacing 14
+            xfill True
+
+            text "ACTIONS":
+                color "#cc2200"
+                size 13
+                bold True
+                xalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
+
+            text "─────────":
+                color "#222222"
+                size 11
+                xalign 0.5
+
+            ## Stats
+            textbutton "STATS":
+                xalign 0.5
+                action Jump("show_stats")
+                text_color "#aaaaaa"
+                text_hover_color "#ffffff"
+                text_size 18
+                text_bold True
+                text_font "fonts/RobotoMono-Regular.ttf"
+                background "#00000000"
+                hover_background Frame("#1a1a1add", 3, 3)
+                padding (10, 8)
+                xfill True
+
+            ## Deck (with count)
+            textbutton "DECK · [_deck_count]":
+                xalign 0.5
+                action Jump("show_deck")
+                text_color "#00cc88"
+                text_hover_color "#ffffff"
+                text_size 18
+                text_bold True
+                text_font "fonts/RobotoMono-Regular.ttf"
+                background "#00000000"
+                hover_background Frame("#0d1f15dd", 3, 3)
+                padding (10, 8)
+                xfill True
+
+            ## Achievements (with progress)
+            textbutton "TROPHIES · [_ach_unlocked]/[_ach_total]":
+                xalign 0.5
+                action Jump("show_achievements")
+                text_color "#ffd700"
+                text_hover_color "#ffffff"
+                text_size 16
+                text_bold True
+                text_font "fonts/RobotoMono-Regular.ttf"
+                background "#00000000"
+                hover_background Frame("#1f1808dd", 3, 3)
+                padding (10, 8)
+                xfill True
+
+            ## Phone
+            textbutton "PHONE":
+                xalign 0.5
+                action Jump("show_contacts")
+                text_color "#aaaaaa"
+                text_hover_color "#ffffff"
+                text_size 18
+                text_bold True
+                text_font "fonts/RobotoMono-Regular.ttf"
+                background "#00000000"
+                hover_background Frame("#1a1a1add", 3, 3)
+                padding (10, 8)
+                xfill True
+
+            null height 14
+
+            text "─────────":
+                color "#222222"
+                size 11
+                xalign 0.5
+
+            null height 4
+
+            ## End Day — primary, dramatic
+            textbutton "▶ END DAY [_today]":
+                xalign 0.5
+                action Jump("end_day")
+                text_color "#cc2200"
+                text_hover_color "#ff4422"
+                text_size 22
+                text_bold True
+                text_font "fonts/RobotoMono-Regular.ttf"
+                background Frame("#1a0000ee", 3, 3)
+                hover_background Frame("#330000ee", 3, 3)
+                padding (12, 12)
+                xfill True
+
+    ## Threshold hint strip — sits below the calendar, above the CTA
+    if _hint_lines:
+        frame:
+            xalign 0.5
+            yalign 0.18
+            padding (16, 8)
+            background Frame("#0a0a0acc", 4, 4)
+            xmaximum 1400
+
+            vbox:
+                spacing 2
+                xalign 0.5
+                for _hl in _hint_lines:
+                    text _hl:
+                        color "#888888"
+                        size 12
+                        italic True
+                        xalign 0.5
+                        font "fonts/RobotoMono-Regular.ttf"
+
+    ## Center — context-aware CTA (class-themed verb)
+    python:
+        _hub_cta_text = "[[ PICK YOUR MOVE ]"
+        _hub_cta_sub  = "One choice. Earn cards. Build the deck."
+        if stats:
+            if stats.player_class == "bodybuilder":
+                _hub_cta_text = "[[ TRAIN ]"
+                _hub_cta_sub  = "The body is the argument. Pick the rep."
+            elif stats.player_class == "dark_empath":
+                _hub_cta_text = "[[ READ ]"
+                _hub_cta_sub  = "The room is the data. Pick what you watch."
+            elif stats.player_class == "biohacker":
+                _hub_cta_text = "[[ STACK ]"
+                _hub_cta_sub  = "The protocol is the answer. Pick the input."
+
+    if not activity_selected:
+        ## Big inviting "pick today's move" panel
+        frame:
+            xalign 0.45
+            yalign 0.55
+            padding (40, 24)
+            background Frame("#0a0a0aee", 4, 4)
+
+            vbox:
+                spacing 8
+                xalign 0.5
+
+                text "TODAY":
+                    color "#666666"
+                    size 14
+                    bold True
+                    xalign 0.5
+                    font "fonts/RobotoMono-Regular.ttf"
+
+                textbutton _hub_cta_text:
+                    xalign 0.5
+                    action Jump("select_activity")
+                    text_color "#cc2200"
+                    text_hover_color "#ff4422"
+                    text_size 36
+                    text_bold True
+                    text_font "fonts/RobotoMono-Regular.ttf"
+                    background "#00000000"
+                    hover_background "#00000000"
+                    padding (16, 8)
+
+                text _hub_cta_sub:
+                    color "#666666"
+                    size 14
+                    italic True
+                    xalign 0.5
+    else:
+        ## Activity already done — quiet state
+        frame:
+            xalign 0.45
+            yalign 0.55
+            padding (28, 16)
+            background Frame("#0a0a0acc", 4, 4)
+
+            vbox:
+                spacing 6
+                xalign 0.5
+
+                text "DAY [_today] — MOVE COMPLETE":
+                    color "#666666"
+                    size 16
+                    bold True
+                    xalign 0.5
+                    font "fonts/RobotoMono-Regular.ttf"
+
+                text "Sleep on it.":
+                    color "#444444"
+                    size 13
+                    italic True
+                    xalign 0.5
+
+
+## ---------------------------------------------------------------------------
+## Day Calendar — 30-day strip with current day + key event markers.
+## Shown persistently during daily_menu via "show screen day_calendar".
+## ---------------------------------------------------------------------------
+
+screen day_calendar():
+    layer "screens"
+    zorder 90
+
+    python:
+        _today = day_cycle.current_day if day_cycle is not None else 1
+        _events = get_key_event_days()
+        _colonel_day = stats.colonel_day if stats is not None else 30
+        _days_to_colonel = max(0, _colonel_day - _today)
+
+    frame:
+        xalign 0.5
+        yalign 0.0
+        yoffset 56
+        padding (16, 10)
+        background Frame("#0a0a0aee", 4, 4)
+
+        vbox:
+            spacing 6
+            xalign 0.5
+
+            text "DAY [_today] / 30   ▸   [_days_to_colonel] DAYS UNTIL CONFRONTATION":
+                color "#cccccc"
+                size 14
+                bold True
+                xalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
+
+            ## 30-day strip — single horizontal row of small cells
+            hbox:
+                spacing 2
+                xalign 0.5
+
+                for _d in range(1, 31):
+                    $ _is_today = (_d == _today)
+                    $ _is_past  = (_d < _today)
+                    $ _ev       = _events.get(_d)
+
+                    if _is_today:
+                        $ _cell_bg   = "#cc2200"
+                        $ _cell_text = "#ffffff"
+                    elif _ev is not None:
+                        $ _cell_bg   = _ev[1]
+                        $ _cell_text = "#ffffff" if not _is_past else "#666666"
+                    elif _is_past:
+                        $ _cell_bg   = "#1a1a1a"
+                        $ _cell_text = "#444444"
+                    else:
+                        $ _cell_bg   = "#222222"
+                        $ _cell_text = "#888888"
+
+                    frame:
+                        xsize 38
+                        ysize 36
+                        background Frame(_cell_bg, 2, 2)
+
+                        vbox:
+                            xalign 0.5
+                            yalign 0.5
+                            spacing 0
+
+                            text "[_d]":
+                                color _cell_text
+                                size 13
+                                bold _is_today
+                                xalign 0.5
+                                font "fonts/RobotoMono-Regular.ttf"
+
+            ## Legend strip — only show event days that haven't passed
+            python:
+                _upcoming = [(_d, _ev) for _d, _ev in sorted(_events.items()) if _d >= _today]
+
+            if _upcoming:
+                hbox:
+                    spacing 16
+                    xalign 0.5
+
+                    for _d, _ev in _upcoming[:5]:
+                        hbox:
+                            spacing 4
+                            frame:
+                                xsize 10
+                                ysize 10
+                                background Frame(_ev[1], 0, 0)
+                                yalign 0.5
+                            text "D[_d] [_ev[0]]":
+                                color "#aaaaaa"
+                                size 12
+                                font "fonts/RobotoMono-Regular.ttf"
 
 
 ## ---------------------------------------------------------------------------
@@ -119,6 +936,243 @@ screen outcome_panel(outcome_text):
                 color "#ffffff"
                 size 13
                 xalign 0.5
+
+
+## ---------------------------------------------------------------------------
+## Card Offer Screen — TAKE or PASS prompt for activity/event card drops.
+## Returns "take" or "pass" via Return().
+## ---------------------------------------------------------------------------
+
+screen card_offer_screen(card, source_label=""):
+    modal True
+    zorder 700
+
+    add "#0a0a0aee"
+
+    python:
+        _CO_COLORS = {
+            "Physical": "#ff6633",
+            "Mental":   "#9944cc",
+            "Money":    "#ffd700",
+            "Logic":    "#00ccff",
+            "Police":   "#3388cc",
+            "Special":  "#00cc88",
+        }
+        _co_color   = _CO_COLORS.get(card.get("color", "Special"), "#888888")
+        _co_name    = card.get("name", "?")
+        _co_type    = card.get("type", "")
+        _co_rarity  = card.get("rarity", "")
+        _co_cost    = card.get("cost", 0)
+        _co_flavor  = card.get("flavor", "")
+        _co_color_label = card.get("color", "")
+
+    vbox:
+        xalign 0.5
+        yalign 0.06
+        spacing 6
+
+        text "CARD ACQUIRED":
+            xalign 0.5
+            color _co_color
+            size 32
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+
+        if source_label:
+            text "From: [source_label]":
+                xalign 0.5
+                color "#666666"
+                size 14
+                font "fonts/RobotoMono-Regular.ttf"
+
+    ## Card preview — large, centered
+    frame:
+        xalign 0.5
+        yalign 0.5
+        xsize 480
+        ysize 600
+        background Frame("#0d0d0dee", 4, 4)
+        padding (24, 20)
+
+        vbox:
+            spacing 14
+            xalign 0.5
+
+            ## Top accent bar
+            frame:
+                xalign 0.5
+                xsize 420
+                ysize 5
+                background Frame(_co_color, 0, 0)
+
+            null height 8
+
+            ## Cost circle
+            frame:
+                xsize 64
+                ysize 64
+                background Frame(_co_color, 4, 4)
+                xalign 0.5
+                text "[_co_cost]":
+                    color "#000000"
+                    size 38
+                    bold True
+                    xalign 0.5
+                    yalign 0.5
+
+            null height 4
+
+            text _co_name:
+                color "#ffffff"
+                size 36
+                bold True
+                xalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
+
+            text "{} · {} · {}".format(_co_type, _co_rarity.upper(), _co_color_label):
+                color _co_color
+                size 14
+                xalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
+
+            null height 12
+
+            text "─────────────────────────":
+                color "#222222"
+                size 12
+                xalign 0.5
+
+            null height 8
+
+            text _co_flavor:
+                color "#cccccc"
+                size 16
+                xalign 0.5
+                xmaximum 420
+                text_align 0.5
+
+            if card.get("exhaust"):
+                null height 8
+                text "[[EXHAUST]":
+                    color "#cc4444"
+                    size 14
+                    bold True
+                    xalign 0.5
+
+            if card.get("class_lock"):
+                null height 6
+                text "[[{}-LOCKED]".format(card["class_lock"].upper().replace("_", " ")):
+                    color "#888888"
+                    size 12
+                    italic True
+                    xalign 0.5
+
+    ## TAKE / PASS buttons
+    hbox:
+        xalign 0.5
+        yalign 0.92
+        spacing 40
+
+        textbutton "[[ TAKE ]":
+            action Return("take")
+            text_color _co_color
+            text_hover_color "#ffffff"
+            text_size 28
+            text_bold True
+            text_font "fonts/RobotoMono-Regular.ttf"
+            background Frame("#0d1d0dee", 4, 4)
+            hover_background Frame("#1a3a1aee", 4, 4)
+            padding (40, 14)
+
+        textbutton "[[ PASS ]":
+            action Return("pass")
+            text_color "#888888"
+            text_hover_color "#ff4422"
+            text_size 22
+            text_bold True
+            text_font "fonts/RobotoMono-Regular.ttf"
+            background Frame("#1a1a1aee", 4, 4)
+            hover_background Frame("#2a0d0dee", 4, 4)
+            padding (32, 12)
+
+    text "T = TAKE   ·   P = PASS   ·   ESC = PASS":
+        xalign 0.5
+        yalign 0.97
+        color "#444444"
+        size 12
+        font "fonts/RobotoMono-Regular.ttf"
+
+    ## Keyboard shortcuts
+    key "K_t" action Return("take")
+    key "K_RETURN" action Return("take")
+    key "K_KP_ENTER" action Return("take")
+    key "K_p" action Return("pass")
+    key "K_ESCAPE" action Return("pass")
+
+
+## ---------------------------------------------------------------------------
+## Card Acquired Toast — slides in from top-right when grant_card fires non-silently.
+## ---------------------------------------------------------------------------
+
+transform _card_toast_anim:
+    xalign 1.0 yalign 0.0 xoffset 480 yoffset 80
+    on show:
+        linear 0.35 xoffset -20
+    on hide:
+        linear 0.3 xoffset 480
+
+screen card_acquired_toast(card):
+    layer "screens"
+    zorder 310
+
+    python:
+        _CARD_TOAST_COLORS = {
+            "Physical": "#ff6633",
+            "Mental":   "#9944cc",
+            "Money":    "#ffd700",
+            "Logic":    "#00ccff",
+            "Police":   "#3388cc",
+            "Special":  "#00cc88",
+        }
+        _ct_color = _CARD_TOAST_COLORS.get(card.get("color", "Special"), "#888888")
+
+    frame at _card_toast_anim:
+        padding (18, 14)
+        background Frame("#0d1018ff", 4, 4)
+
+        vbox:
+            spacing 5
+            xmaximum 380
+
+            hbox:
+                spacing 10
+                text "[[ {} ]".format(card.get("cost", 0)):
+                    color _ct_color
+                    size 18
+                    bold True
+                text "CARD ACQUIRED":
+                    color _ct_color
+                    size 14
+                    bold True
+
+            text "─────────────────────────":
+                color "#222222"
+                size 12
+
+            text card.get("name", ""):
+                color "#ffffff"
+                size 18
+                bold True
+
+            text "{} · {} · {}".format(card.get("type", ""), card.get("rarity", ""), card.get("color", "")):
+                color "#888888"
+                size 11
+
+            text card.get("flavor", ""):
+                color "#cccccc"
+                size 12
+
+    timer 3.0 action Hide("card_acquired_toast")
 
 
 ## ---------------------------------------------------------------------------
@@ -413,80 +1467,6 @@ screen affection_panel(points, max_points=12):
                 size 20
                 bold True
                 xalign 0.5
-
-
-## ---------------------------------------------------------------------------
-## HP Bar Panel — used during the Colonel boss fight
-## Usage: show screen hp_bar_panel(jb_hp, colonel_hp, round_name)
-## ---------------------------------------------------------------------------
-
-screen hp_bar_panel(jb_hp_val, colonel_hp_val, round_name="Combat"):
-    layer "screens"
-    zorder 200
-
-    frame:
-        xalign 0.5
-        yalign 0.05
-        padding (20, 12)
-        background Frame("#0d0d0dee", 6, 6)
-        minimum (400, 0)
-
-        vbox:
-            spacing 6
-            xalign 0.5
-
-            text "BOSS COMBAT — [round_name]":
-                color "#ffffff"
-                size 16
-                bold True
-                xalign 0.5
-
-            text "─────────────────────────────────":
-                color "#333333"
-                size 14
-                xalign 0.5
-
-            hbox:
-                spacing 12
-                xalign 0.5
-
-                text "JB":
-                    color "#00ff41"
-                    size 18
-                    bold True
-
-                bar:
-                    value jb_hp_val
-                    range 100
-                    xsize 150
-                    ysize 20
-                    left_bar Frame("#00ff41", 2, 2)
-                    right_bar Frame("#1a1a1a", 2, 2)
-
-                text "[jb_hp_val] HP":
-                    color "#00ff41"
-                    size 16
-
-            hbox:
-                spacing 12
-                xalign 0.5
-
-                text "COL":
-                    color "#ff2222"
-                    size 18
-                    bold True
-
-                bar:
-                    value colonel_hp_val
-                    range 100
-                    xsize 150
-                    ysize 20
-                    left_bar Frame("#ff2222", 2, 2)
-                    right_bar Frame("#1a1a1a", 2, 2)
-
-                text "[colonel_hp_val] HP":
-                    color "#ff2222"
-                    size 16
 
 
 ## ---------------------------------------------------------------------------
@@ -822,221 +1802,289 @@ screen difficulty_selection_screen():
     key "K_KP_ENTER" action [SetField(store, "_chosen_difficulty", DIFF_DATA[_hov]["key"]), Return()]
 
 
+## Class display data — order + portrait + flavor + trades. Mirrors DIFF_DATA.
+init python:
+    CLASS_SELECT_ORDER = ["bodybuilder", "dark_empath", "biohacker"]
+    CLASS_PORTRAITS = {
+        "bodybuilder": "jb_bb_portrait",
+        "dark_empath": "jb_de_portrait",
+        "biohacker":   "jb_bh_portrait",
+    }
+    CLASS_STARTERS = {
+        "bodybuilder": "heavy_set",
+        "dark_empath": "read_him",
+        "biohacker":   "stack_up",
+    }
+    CLASS_FLAVOR = {
+        "bodybuilder": "Hatred is fuel. Words bounce off muscle. — Trade-off: the coding curve is steep.",
+        "dark_empath": "The Colonel is a function with predictable inputs. — Trade-off: one mistake costs more.",
+        "biohacker":   "Stack the compounds. Read the data. Optimize the meat. — Trade-off: the crash hits hard.",
+    }
+
+
 screen class_selection_screen():
     modal True
     zorder 500
 
-    add "#0d0d0d"
+    default _cls_hov = 0
 
+    ## Background
+    add "#0a0a0a"
+
+    ## Subtle dark wash on left panel
+    frame:
+        xpos 0
+        ypos 0
+        xsize 720
+        ysize 1080
+        background "#0d000033"
+
+    ## Vertical red separator
+    frame:
+        xpos 718
+        ypos 0
+        xsize 3
+        ysize 1080
+        background "#cc2200"
+
+    ## Title (top-left)
     vbox:
-        xalign 0.5
-        yalign 0.04
-        spacing 10
+        xpos 70
+        ypos 72
+        spacing 6
 
         text "WHO ARE YOU, JB?":
-            xalign 0.5
             color "#cc2200"
-            size 44
+            size 34
             bold True
             font "fonts/RobotoMono-Regular.ttf"
 
-        text "Your class shapes your perks, your dialogue, and your destiny.":
-            xalign 0.5
-            color "#888888"
-            size 22
+        text "Three pivots. Same name. Choose your shape.":
+            color "#444444"
+            size 19
             font "fonts/RobotoMono-Regular.ttf"
 
-    ## Three cards in a row
-    hbox:
-        xalign 0.5
-        yalign 0.52
-        spacing 40
+    ## Class list (left)
+    for _i, _cls_key in enumerate(CLASS_SELECT_ORDER):
+        $ _cd = CLASS_DATA[_cls_key]
+        $ _accent = _cd["color"]
+        $ _y = 220 + _i * 88
 
-        ## --- BODYBUILDER ---
         frame:
-            xsize 360
-            ysize 480
-            background Frame("#1a0800dd", 6, 6)
-            padding (20, 18)
+            xpos 0
+            ypos _y
+            xsize 718
+            ysize 88
+            background ("#1a000018" if _cls_hov == _i else "#00000000")
 
-            vbox:
-                spacing 12
+            hbox:
+                yalign 0.5
+                ## Left accent bar — class color
+                frame:
+                    xsize 5
+                    ysize 88
+                    background (_accent if _cls_hov == _i else "#1a0000")
+                frame:
+                    xsize 22
+                    ysize 88
+                    background "#00000000"
+                text ("▶  " if _cls_hov == _i else "   "):
+                    color _accent
+                    size 28
+                    yalign 0.5
+                    font "fonts/RobotoMono-Regular.ttf"
+                textbutton _cd["name"]:
+                    action [SetField(stats, "player_class", _cls_key), Return()]
+                    hovered SetScreenVariable("_cls_hov", _i)
+                    text_color (_accent if _cls_hov == _i else "#444444")
+                    text_size  (32 if _cls_hov == _i else 28)
+                    text_bold  (_cls_hov == _i)
+                    text_font  "fonts/RobotoMono-Regular.ttf"
+                    background "#00000000"
+                    hover_background "#00000000"
+                    yalign 0.5
+                    padding (0, 22, 0, 22)
 
-                text "BODYBUILDER":
-                    color "#ff6633"
-                    size 26
+    ## --- Hovered class details (bottom-left) ---
+    python:
+        _cur_key      = CLASS_SELECT_ORDER[_cls_hov]
+        _cur_data     = CLASS_DATA[_cur_key]
+        _cur_color    = _cur_data["color"]
+        _cur_tagline  = "\"" + _cur_data["tagline"] + "\""
+        _cur_flavor   = "\"" + CLASS_FLAVOR[_cur_key] + "\""
+        _cur_coding   = "Coding   {:+d}".format(_cur_data["coding_modifier"])
+        _cur_hatred   = "Hatred   {:+d}".format(_cur_data["hatred_modifier"])
+        _cur_btc      = "BTC/day  +{}".format(_cur_data["btc_modifier"])
+        _cur_perks    = list(_cur_data["perks"][:4])
+
+    ## Tagline
+    text _cur_tagline:
+        xpos 70
+        ypos 510
+        color "#cccccc"
+        size 22
+        italic True
+        font "fonts/RobotoMono-Regular.ttf"
+        xmaximum 620
+
+    ## Separator
+    frame:
+        xpos 70
+        ypos 568
+        xsize 580
+        ysize 2
+        background "#2a0000"
+
+    ## Trades block — starting modifiers
+    vbox:
+        xpos 70
+        ypos 584
+        spacing 4
+
+        text "TRADES":
+            color _cur_color
+            size 14
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+
+        text _cur_coding:
+            color "#C8A44E"
+            size 19
+            font "fonts/RobotoMono-Regular.ttf"
+
+        text _cur_hatred:
+            color "#C8A44E"
+            size 19
+            font "fonts/RobotoMono-Regular.ttf"
+
+        text _cur_btc:
+            color "#C8A44E"
+            size 19
+            font "fonts/RobotoMono-Regular.ttf"
+
+    ## Kit block — perks (concise)
+    vbox:
+        xpos 70
+        ypos 730
+        spacing 4
+
+        text "KIT":
+            color _cur_color
+            size 14
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+
+        for _perk in _cur_perks:
+            text _perk:
+                color "#aaaaaa"
+                size 14
+                xmaximum 580
+                font "fonts/RobotoMono-Regular.ttf"
+
+    ## Flavor (manifesto-like)
+    text _cur_flavor:
+        xpos 70
+        ypos 920
+        color "#666666"
+        size 14
+        italic True
+        font "fonts/RobotoMono-Regular.ttf"
+        xmaximum 620
+
+    ## Confirm hint
+    text "— CLICK OR PRESS ENTER TO COMMIT —":
+        xpos 70
+        ypos 1010
+        color "#551100"
+        size 16
+        font "fonts/RobotoMono-Regular.ttf"
+
+    ## Right panel — JB portrait, class-color border, swaps on hover.
+    ## Frame: 504x754 outer (orange border) wrapping a 500x750 inner mask.
+    ## Image is pre-scaled to 500x750 so it fills the inner frame exactly.
+    frame:
+        xpos 1068
+        ypos 163
+        xsize 504
+        ysize 754
+        background _cur_color
+    frame:
+        xpos 1070
+        ypos 165
+        xsize 500
+        ysize 750
+        background "#0a0a0a"
+
+    add CLASS_PORTRAITS[_cur_key]:
+        xpos 1070
+        ypos 165
+        at _cls_portrait_anim
+
+    ## Class name overlay — sits on the bottom 60px of the portrait
+    frame:
+        xpos 1070
+        ypos 855
+        xsize 500
+        ysize 60
+        background Frame("#0a0a0aee", 0, 0)
+
+        text _cur_data["name"]:
+            color _cur_color
+            size 28
+            bold True
+            xalign 0.5
+            yalign 0.5
+            font "fonts/RobotoMono-Regular.ttf"
+
+    ## Starting deck preview — below the portrait
+    python:
+        _starter_signature = CLASS_STARTERS.get(_cur_key, None)
+        _starter_card = CARD_LIBRARY.get(_starter_signature, {}) if _starter_signature else {}
+
+    vbox:
+        xpos 1070
+        ypos 935
+        xsize 500
+        spacing 4
+
+        text "STARTING DECK":
+            color _cur_color
+            size 12
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+
+        text "4× Strike   ·   4× Defend":
+            color "#888888"
+            size 13
+            font "fonts/RobotoMono-Regular.ttf"
+
+        if _starter_card:
+            hbox:
+                spacing 6
+                text "1× {}".format(_starter_card.get("name", "?")):
+                    color "#ffffff"
+                    size 13
                     bold True
-                    xalign 0.5
-
-                text "Iron body. Iron will.\nLimited vocabulary.":
-                    color "#ccaa88"
-                    size 18
-                    xalign 0.5
-                    text_align 0.5
-
-                text "──────────────────":
-                    color "#442200"
-                    size 14
-                    xalign 0.5
-
-                text "PERKS:":
-                    color "#ff6633"
-                    size 16
-                    bold True
-
-                text "+ Gym: extra -5 Hatred always":
-                    color "#e8e8e8"
-                    size 16
-
-                text "+ Bouncer shifts: +1,500 CZK/shift":
-                    color "#e8e8e8"
-                    size 16
-
-                text "+ Brotherhood guilt never lands":
-                    color "#e8e8e8"
-                    size 16
-
-                text "+ Brute-force options in key events":
-                    color "#e8e8e8"
-                    size 16
-
-                text "PASSIVE: -5 Coding Skill at start":
-                    color "#ff9966"
-                    size 15
+                    font "fonts/RobotoMono-Regular.ttf"
+                text "— {}".format(_starter_card.get("flavor", "")):
+                    color "#888888"
+                    size 12
                     italic True
+                    xmaximum 380
 
-                textbutton "SELECT BODYBUILDER":
-                    xalign 0.5
-                    yalign 1.0
-                    action [SetField(stats, "player_class", "bodybuilder"), Return()]
-                    text_style "class_select_btn"
-                    background "#cc3300"
-                    hover_background "#ff5500"
-                    padding (16, 10)
+    ## Keyboard nav
+    key "K_UP"       action SetScreenVariable("_cls_hov", max(0, _cls_hov - 1))
+    key "K_DOWN"     action SetScreenVariable("_cls_hov", min(2, _cls_hov + 1))
+    key "K_RETURN"   action [SetField(stats, "player_class", CLASS_SELECT_ORDER[_cls_hov]), Return()]
+    key "K_KP_ENTER" action [SetField(stats, "player_class", CLASS_SELECT_ORDER[_cls_hov]), Return()]
 
-        ## --- DARK EMPATH ---
-        frame:
-            xsize 360
-            ysize 480
-            background Frame("#0d001add", 6, 6)
-            padding (20, 18)
 
-            vbox:
-                spacing 12
-
-                text "DARK EMPATH":
-                    color "#9944cc"
-                    size 26
-                    bold True
-                    xalign 0.5
-
-                text "You feel everything.\nYou weaponize it.":
-                    color "#bb99cc"
-                    size 18
-                    xalign 0.5
-                    text_align 0.5
-
-                text "──────────────────":
-                    color "#220044"
-                    size 14
-                    xalign 0.5
-
-                text "PERKS:":
-                    color "#9944cc"
-                    size 16
-                    bold True
-
-                text "+ Auto +1 Affection per phase":
-                    color "#e8e8e8"
-                    size 16
-
-                text "+ Colonel dmg halved (2 attacks)":
-                    color "#e8e8e8"
-                    size 16
-
-                text "+ Fatal Strike on Civilian Void":
-                    color "#e8e8e8"
-                    size 16
-
-                text "+ Unique reads throughout the game":
-                    color "#e8e8e8"
-                    size 16
-
-                text "PASSIVE: -10 Hatred start, Cold Read replaces Therapy":
-                    color "#cc99ff"
-                    size 15
-                    italic True
-
-                textbutton "SELECT DARK EMPATH":
-                    xalign 0.5
-                    yalign 1.0
-                    action [SetField(stats, "player_class", "dark_empath"), Return()]
-                    text_style "class_select_btn"
-                    background "#550088"
-                    hover_background "#8800cc"
-                    padding (16, 10)
-
-        ## --- BIOHACKER ---
-        frame:
-            xsize 360
-            ysize 480
-            background Frame("#00100add", 6, 6)
-            padding (20, 18)
-
-            vbox:
-                spacing 12
-
-                text "BIOHACKER":
-                    color "#00cc88"
-                    size 26
-                    bold True
-                    xalign 0.5
-
-                text "Optimized. Caffeinated.\nSlightly illegal.":
-                    color "#88ccaa"
-                    size 18
-                    xalign 0.5
-                    text_align 0.5
-
-                text "──────────────────":
-                    color "#004422"
-                    size 14
-                    xalign 0.5
-
-                text "PERKS:":
-                    color "#00cc88"
-                    size 16
-                    bold True
-
-                text "+ Nootropics Lab (T1-T5 compounds)":
-                    color "#e8e8e8"
-                    size 16
-
-                text "+ Israeli Dev always max reward":
-                    color "#e8e8e8"
-                    size 16
-
-                text "+ Fiverr always +25 Coding":
-                    color "#e8e8e8"
-                    size 16
-
-                text "+ Safety Net auto-countered":
-                    color "#e8e8e8"
-                    size 16
-
-                text "PASSIVE: +10 Coding start, Bootcamp LOCKED":
-                    color "#66ffbb"
-                    size 15
-                    italic True
-
-                textbutton "SELECT BIOHACKER":
-                    xalign 0.5
-                    yalign 1.0
-                    action [SetField(stats, "player_class", "biohacker"), Return()]
-                    text_style "class_select_btn"
-                    background "#007744"
-                    hover_background "#00aa66"
-                    padding (16, 10)
+## Portrait fade-on-show transform (matches difficulty screen)
+transform _cls_portrait_anim:
+    on show:
+        alpha 0.0
+        linear 0.18 alpha 1.0
+    alpha 1.0
 
 
 style class_select_btn is button_text:
@@ -1152,7 +2200,7 @@ screen full_stats_screen():
 
         ## Buffs active
         if stats.ai_paperwork_buff:
-            text "[[SELF-AWARE BUFF ACTIVE]] — -5 Hatred per night":
+            text "[[SELF-AWARE BUFF ACTIVE]] — cancels nightly hatred":
                 xalign 0.5
                 color "#00ff99"
                 size 16
@@ -1182,10 +2230,25 @@ screen achievements_screen():
 
     add "#0d0d11ee"
 
+    python:
+        _unlocked = getattr(store, '_achievements_unlocked', set())
+        _ach_total = len(ACHIEVEMENTS)
+        _ach_count = len(_unlocked)
+        ## Group by category — preserve dict insertion order within each
+        _ach_categories = ["Story", "Combat", "Collection", "Secret"]
+        _ach_by_cat = {c: [] for c in _ach_categories}
+        for _k, _v in ACHIEVEMENTS.items():
+            _cat = _v.get("category", "Story")
+            _ach_by_cat.setdefault(_cat, []).append((_k, _v))
+        ## Per-category counts
+        _ach_cat_counts = {}
+        for _c, _items in _ach_by_cat.items():
+            _ach_cat_counts[_c] = (sum(1 for _k, _ in _items if _k in _unlocked), len(_items))
+
     vbox:
         xalign 0.5
-        yalign 0.1
-        spacing 10
+        yalign 0.5
+        spacing 12
 
         text "> ACHIEVEMENTS <":
             xalign 0.5
@@ -1194,45 +2257,86 @@ screen achievements_screen():
             bold True
             font "fonts/RobotoMono-Regular.ttf"
 
-        python:
-            _unlocked = getattr(store, '_achievements_unlocked', set())
-            _ach_count = len(_unlocked)
-            _ach_total = len(ACHIEVEMENTS)
-
         text "[_ach_count] / [_ach_total] UNLOCKED":
             xalign 0.5
             color "#888888"
             size 18
 
-        grid 2 7:
-            xalign 0.5
-            spacing 15
+        viewport:
+            xsize 1000
+            ysize 720
+            scrollbars "vertical"
+            mousewheel True
+            draggable True
 
-            for _ach_key, _ach_data in ACHIEVEMENTS.items():
-                $ _frame_bg = Frame("#1a0011dd", 4, 4) if _ach_key in _unlocked else Frame("#0d0d0ddd", 4, 4)
-                frame:
-                    xsize 450
-                    background _frame_bg
-                    padding (14, 10)
+            vbox:
+                spacing 14
 
-                    vbox:
-                        spacing 4
-                        if _ach_key in _unlocked:
-                            text _ach_data["name"]:
-                                color "#ffdd00"
-                                size 16
+                for _cat in _ach_categories:
+                    if _ach_by_cat.get(_cat):
+                        $ _cat_done, _cat_total = _ach_cat_counts.get(_cat, (0, 0))
+
+                        hbox:
+                            spacing 10
+                            text "{} ({}/{})".format(_cat.upper(), _cat_done, _cat_total):
+                                color "#cc2200"
+                                size 18
                                 bold True
-                            text _ach_data["desc"]:
-                                color "#cccccc"
-                                size 14
-                        else:
-                            text "???":
-                                color "#444444"
-                                size 16
-                                bold True
-                            text "Achievement locked.":
-                                color "#333333"
-                                size 14
+                                font "fonts/RobotoMono-Regular.ttf"
+
+                        ## Render in pairs so odd-count categories render correctly
+                        $ _entries = _ach_by_cat[_cat]
+                        $ _pairs = [(_entries[i], _entries[i+1] if i+1 < len(_entries) else None) for i in range(0, len(_entries), 2)]
+
+                        vbox:
+                            spacing 12
+
+                            for _left, _right in _pairs:
+                                hbox:
+                                    spacing 12
+
+                                    for _entry in (_left, _right):
+                                        if _entry is None:
+                                            frame:
+                                                xsize 460
+                                                background "#00000000"
+                                        else:
+                                            $ _ach_key, _ach_data = _entry
+                                            $ _is_unlocked = _ach_key in _unlocked
+                                            $ _is_secret   = _ach_data.get("category") == "Secret"
+                                            $ _frame_bg    = Frame("#1a0011dd", 4, 4) if _is_unlocked else Frame("#0d0d0ddd", 4, 4)
+                                            frame:
+                                                xsize 460
+                                                background _frame_bg
+                                                padding (14, 10)
+
+                                                vbox:
+                                                    spacing 4
+                                                    if _is_unlocked:
+                                                        text _ach_data["name"]:
+                                                            color "#ffdd00"
+                                                            size 16
+                                                            bold True
+                                                        text _ach_data["desc"]:
+                                                            color "#cccccc"
+                                                            size 14
+                                                    elif _is_secret:
+                                                        text "???":
+                                                            color "#444444"
+                                                            size 16
+                                                            bold True
+                                                        text "Secret achievement — discover it to reveal.":
+                                                            color "#333333"
+                                                            size 14
+                                                    else:
+                                                        text _ach_data["name"]:
+                                                            color "#666666"
+                                                            size 16
+                                                            bold True
+                                                        text _ach_data.get("hint", "Locked."):
+                                                            color "#555555"
+                                                            size 14
+                                                            italic True
 
         textbutton "[[ CLOSE ]":
             xalign 0.5
@@ -1777,6 +2881,19 @@ screen main_menu():
         color "#cc2200"
         size 28
         font "fonts/RobotoMono-Regular.ttf"
+
+    ## --- DEV: skip straight to the colonel deck-fight ---
+    textbutton "[[DEV] SKIP TO COLONEL FIGHT":
+        xalign 0.98
+        yalign 0.02
+        action Start("dev_skip_to_colonel")
+        text_color "#444444"
+        text_hover_color "#ffcc00"
+        text_size 13
+        text_font "fonts/RobotoMono-Regular.ttf"
+        background "#00000000"
+        hover_background Frame("#1a1a00aa", 3, 3)
+        padding (10, 6)
 
 
 style main_menu_frame is empty

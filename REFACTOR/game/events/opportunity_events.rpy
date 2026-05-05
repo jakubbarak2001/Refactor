@@ -47,7 +47,7 @@ label opportunity_event_check:
         _opp_label = check_opportunity_event()
 
     if _opp_label is not None:
-        call expression _opp_label
+        call expression _opp_label from _call_expression
     else:
         pass
 
@@ -63,15 +63,19 @@ label opp_laptop_deal:
 
     scene bg_police_interior
 
+    python:
+        _lap_cost = adjusted_cost(4000)
+        _lap_cost_str = "{:,}".format(_lap_cost)
+
     "A colleague catches you in the corridor before shift."
-    "'Hey JB — I'm selling my old ThinkPad. X230, runs Linux, still solid. 4,000 CZK. Interested?'"
+    "'Hey JB — I'm selling my old ThinkPad. X230, runs Linux, still solid. [_lap_cost_str] CZK. Interested?'"
     "It's not a gaming rig. But it's a second machine you could code on at home without borrowing the station laptop."
 
     menu:
-        "[[OPPORTUNITY]] Buy the ThinkPad. (-4,000 CZK, +2 Coding/night for 5 days)":
+        "[[OPPORTUNITY]] Buy the ThinkPad. (-[_lap_cost_str] CZK, +2 Coding/night for 5 days)":
             python:
-                if not stats.try_spend_money(4000):
-                    renpy.say(None, "[INSUFFICIENT FUNDS] You check your wallet. You can't swing 4,000 right now.")
+                if not stats.try_spend_money(_lap_cost):
+                    renpy.say(None, "[[INSUFFICIENT FUNDS]] You check your wallet. You can't swing {:,} right now.".format(_lap_cost))
                     renpy.jump("opp_laptop_deal_pass")
                 store._laptop_buff_days = 5
 
@@ -79,7 +83,7 @@ label opp_laptop_deal:
             "'The 'E' key sticks sometimes,' he says. 'Just hit it harder.'"
             "You don't care. You have a machine now. Tonight, you code."
 
-            show screen outcome_panel("-4,000 CZK. [LAPTOP BUFF] +2 Coding/night for 5 days.")
+            show screen outcome_panel("- {} CZK. [[LAPTOP BUFF]] +2 Coding/night for 5 days.".format(_lap_cost))
             pause
             hide screen outcome_panel
 
@@ -173,15 +177,19 @@ label opp_old_friend:
 
     scene bg_police_interior
 
+    python:
+        _beers_cost = adjusted_cost(1500)
+        _beers_cost_str = "{:,}".format(_beers_cost)
+
     "Your phone buzzes. A name you haven't seen in months."
     "'JB! I'm in town. Beers tonight? My treat — well, until I run out, then it's yours.'"
     "It's Tomáš. You grew up together. He has no idea what your job is doing to you, and that's exactly why this might help."
 
     menu:
-        "[[OPPORTUNITY]] Go for beers. (-1,500 CZK, -15 Hatred)":
+        "[[OPPORTUNITY]] Go for beers. (-[_beers_cost_str] CZK, -15 Hatred)":
             python:
-                if not stats.try_spend_money(1500):
-                    renpy.say(None, "[INSUFFICIENT FUNDS] You'd love to, but you're counting coins for groceries. Not tonight.")
+                if not stats.try_spend_money(_beers_cost):
+                    renpy.say(None, "[[INSUFFICIENT FUNDS]] You'd love to, but you're counting coins for groceries. Not tonight.")
                     renpy.jump("opp_old_friend_pass")
                 stats.increment_stats_pcr_hatred(-15)
 
@@ -189,9 +197,9 @@ label opp_old_friend:
             "He talks about his wife, his dog, his new car that makes a weird noise."
             "Normal things. Things that exist outside the station, outside the uniform, outside the rank structure."
             "You laugh. Actually laugh. The sound surprises you."
-            "You pick up the tab. It's 1,500 CZK. Worth every crown."
+            "You pick up the tab. Worth every crown."
 
-            show screen outcome_panel("-1,500 CZK, -15 PCR HATRED. You remembered what normal feels like.")
+            show screen outcome_panel("- {} CZK, -15 PCR HATRED. You remembered what normal feels like.".format(_beers_cost))
             pause
             hide screen outcome_panel
 
@@ -215,22 +223,26 @@ label opp_garage_sale:
 
     scene bg_police_interior
 
-    "On the way to work, you pass a garage sale. A cardboard box of books, 200 CZK each."
+    python:
+        _book_cost = adjusted_cost(200)
+        _book_cost_str = "{:,}".format(_book_cost)
+
+    "On the way to work, you pass a garage sale. A cardboard box of books, [_book_cost_str] CZK each."
     "One of them catches your eye: 'Automate the Boring Stuff with Python.' Dog-eared, coffee-stained, annotated in pencil."
     "Someone else's notes are scribbled in the margins. Half of them are wrong. But you'll learn from the corrections."
 
     menu:
-        "[[OPPORTUNITY]] Buy the book. (-200 CZK, +5 Coding)":
+        "[[OPPORTUNITY]] Buy the book. (-[_book_cost_str] CZK, +5 Coding)":
             python:
-                if not stats.try_spend_money(200):
-                    renpy.say(None, "[INSUFFICIENT FUNDS] You don't have 200 CZK to spare. You put the book back.")
+                if not stats.try_spend_money(_book_cost):
+                    renpy.say(None, "[[INSUFFICIENT FUNDS]] You don't have {:,} CZK to spare. You put the book back.".format(_book_cost))
                     renpy.jump("opp_garage_sale_pass")
                 stats.increment_stats_coding_skill(5)
 
             "You read it during lunch. You read it during the afternoon briefing."
             "By the end of shift you've written a script that renames files in bulk. It's useless. It's beautiful."
 
-            show screen outcome_panel("-200 CZK, +5 CODING SKILL. The margins taught you more than the text.")
+            show screen outcome_panel("- {} CZK, +5 CODING SKILL. The margins taught you more than the text.".format(_book_cost))
             pause
             hide screen outcome_panel
 
@@ -261,7 +273,7 @@ label opp_the_snitch:
     menu:
         "[[OPPORTUNITY]] Listen. Store the information.":
             python:
-                store.snitch_info = True
+                grant_card("snitch_info", silent=True)
 
             "He talks for twelve minutes. You memorize the dates, the amounts, the account numbers."
             "You don't write anything down. That would be evidence."
@@ -270,7 +282,7 @@ label opp_the_snitch:
             "He nods. He walks away. You pour your coffee."
             "The information sits in your head like a loaded gun in a drawer. You hope you never need it."
 
-            show screen outcome_panel("[INFO STORED] You know something about Lt. Kovář. This may matter later.")
+            show screen outcome_panel("[[INFO STORED]] You know something about Lt. Kovář. [[CARD]] SNITCH INFO acquired.")
             pause
             hide screen outcome_panel
 

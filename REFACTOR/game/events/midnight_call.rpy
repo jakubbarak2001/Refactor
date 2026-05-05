@@ -12,6 +12,9 @@ define colonel_voice = Character("Colonel (Phone)", color="#4a7aaa", what_color=
 
 label midnight_call:
 
+    ## Autosave: before midnight call (Day 15)
+    $ renpy.save("auto-day15-midnight", "Day 15 — The Midnight Call")
+
     stop music fadeout 1.0
 
     ## Play the midnight call cinematic
@@ -74,12 +77,12 @@ label midnight_answer:
     "There is background noise. You hear traffic. He's outside, somewhere."
     "That's strange. He's always at home by 9."
 
-    call midnight_phase1
-    call midnight_phase2
-    call midnight_phase3
-    call midnight_phase4
-    call midnight_phase5
-    call midnight_phase6
+    call midnight_phase1 from _call_midnight_phase1
+    call midnight_phase2 from _call_midnight_phase2
+    call midnight_phase3 from _call_midnight_phase3
+    call midnight_phase4 from _call_midnight_phase4
+    call midnight_phase5 from _call_midnight_phase5
+    call midnight_phase6 from _call_midnight_phase6
 
     return
 
@@ -431,6 +434,7 @@ label midnight_phase6:
         "[[LEVERAGE]] 'I'll file through my lawyer. We'll make sure everything's documented.' [[+COMBAT ADVANTAGE]]" if _weakened:
             python:
                 stats.increment_stats_pcr_hatred(-25)
+                grant_card("stoic_anchor", silent=True)
                 stats.final_boss_buff = "STOIC_ANCHOR"
 
             jb "'Actually, Colonel — I'll be filing through legal counsel.'"
@@ -439,7 +443,7 @@ label midnight_phase6:
             "He hangs up."
             "Immediately."
             "That's as close to 'you win' as he'll ever say."
-            show screen outcome_panel("-25 PCR HATRED. [[MIDNIGHT LEVERAGE ACTIVATED]] STOIC_ANCHOR buff applied for final battle!")
+            show screen outcome_panel("-25 PCR HATRED. [[MIDNIGHT LEVERAGE ACTIVATED]] [[CARD]] STOIC ANCHOR")
             pause 2.5
             hide screen outcome_panel
 
