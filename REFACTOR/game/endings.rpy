@@ -175,6 +175,8 @@ label good_ending:
     "It's supposed to be locked. It's supposed to be hard to leave."
     "You simply push it open."
 
+    $ renpy.movie_cutscene("video/jb_good_ending.mp4")
+
     scene bg_black
 
     "The blinding light hits you."
