@@ -39,7 +39,7 @@ label car_incident:
     "You get out. You look."
 
     "Your bumper is intimately kissing the door of the Commandant's brand new Superb."
-    "It's not just a scratch. It's a statement."
+    "It's not just a scratch. It's a {stshl=statement}."
 
     ## Decision
     "You stand between the cars. The parking lot is dead quiet."

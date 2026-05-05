@@ -85,7 +85,7 @@ label colonel_defeat_ending:
     "The Colonel's words are still ringing in your ears."
     colonel "'You're nothing without this uniform, JB.'"
     colonel "'You're nothing without this badge.'"
-    colonel "'You're nothing without ME.'"
+    colonel "'You're nothing without {stshl=ME}.'"
 
     "You open your mouth. You want to argue. You want to fight back."
     "But... nothing comes out."
@@ -158,7 +158,7 @@ label good_ending:
 
     pause 1.0
 
-    jb "'It's just compiling.'"
+    jb "'It's just {stshl=compiling}.'"
 
     pause 2.0
 
@@ -288,7 +288,7 @@ label colonel_pyrrhic_victory:
 
     "The Colonel's voice has gone quiet."
     "Not because you won. Not because you broke him."
-    "Because you outlasted him."
+    "Because you {stshl=outlasted} him."
 
     "You are still standing. Barely."
     "Your hands are shaking. Your voice, if you tried to speak, would crack."
@@ -579,7 +579,7 @@ label escape_artist_ending:
 
     colonel "'JB, I have to say... I didn't see this coming.'"
 
-    jb "'I know. That was the point.'"
+    jb "'I know. {stshl=That was the point}.'"
 
     "You shake his hand. He doesn't grip hard enough. That says everything."
 
@@ -809,7 +809,7 @@ label reunion_ending:
 
     "Some people can leave."
     "Some people leave and come back."
-    "Some people come back smaller."
+    "Some people come back {stshl=smaller}."
 
     python:
         _base_score  = (stats.available_money / 100) + (stats.coding_skill * 60)
@@ -933,7 +933,7 @@ label jbdark_ending:
     pause 1.0
 
     "You do not feel the loop."
-    "The loop is what you are."
+    "The loop is what you {stshl=are}."
 
     python:
         _base_score  = (stats.available_money / 100) + (stats.coding_skill * 60)

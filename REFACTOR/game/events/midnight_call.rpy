@@ -125,7 +125,7 @@ label midnight_phase1:
             jb "'Yes. I've been thinking about leaving.'"
             "A long pause."
             colonel_voice "'Finally. Honest.'"
-            colonel_voice "'See, I can work with honest, JB.'"
+            colonel_voice "'See, I can work with {stshl=honest}, JB.'"
             show screen outcome_panel("-5 PCR HATRED (Dignity in admitting it).")
             pause
             hide screen outcome_panel
@@ -287,7 +287,7 @@ label midnight_phase4:
                 store._midnight_colonel_weakened = True
 
             jb "'Let me make sure I understand. You called me at 2AM to threaten me.'"
-            colonel_voice "'I called you to give you an {i}opportunity{/i} to think clearly.'"
+            colonel_voice "'I called you to give you an {stshl=opportunity} to think clearly.'"
             jb "'You called me to intimidate me. At 2AM.'"
             "The distinction is doing a lot of work."
             "But you named it. And that changes the power dynamic permanently."
