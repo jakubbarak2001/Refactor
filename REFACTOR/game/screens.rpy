@@ -943,7 +943,7 @@ screen outcome_panel(outcome_text):
 ## Returns "take" or "pass" via Return().
 ## ---------------------------------------------------------------------------
 
-screen card_offer_screen(card, source_label=""):
+screen card_offer_screen(card, source_label="", pass_stats_text=""):
     modal True
     zorder 700
 
@@ -1067,10 +1067,27 @@ screen card_offer_screen(card, source_label=""):
                     italic True
                     xalign 0.5
 
+    ## PASS forfeit telegraph — what the player gives up by taking the card.
+    if pass_stats_text:
+        vbox:
+            xalign 0.5
+            yalign 0.86
+            spacing 2
+            text "PASS instead would give:":
+                xalign 0.5
+                color "#666666"
+                size 13
+                font "fonts/RobotoMono-Regular.ttf"
+            text "[pass_stats_text]":
+                xalign 0.5
+                color "#aaaaaa"
+                size 16
+                font "fonts/RobotoMono-Regular.ttf"
+
     ## TAKE / PASS buttons
     hbox:
         xalign 0.5
-        yalign 0.92
+        yalign 0.93
         spacing 40
 
         textbutton "[[ TAKE ]":
@@ -1097,7 +1114,7 @@ screen card_offer_screen(card, source_label=""):
 
     text "T = TAKE   ·   P = PASS   ·   ESC = PASS":
         xalign 0.5
-        yalign 0.97
+        yalign 0.98
         color "#444444"
         size 12
         font "fonts/RobotoMono-Regular.ttf"

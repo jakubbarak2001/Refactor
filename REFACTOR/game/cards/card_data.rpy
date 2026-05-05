@@ -138,11 +138,15 @@ init -1 python:
                 pass
         return True
 
-    def offer_card(card_id, source_label=""):
+    def offer_card(card_id, source_label="", pass_stats_text=""):
         """Show the card-offer screen. Player picks TAKE or PASS.
 
         Returns True if taken, False if passed or filtered by class-lock.
         Use this in activities/events that grant a card the player should consent to.
+
+        pass_stats_text: human-readable forfeit telegraph rendered under the
+        TAKE/PASS buttons (e.g. "+10 CODING SKILL"). Lets the player see what
+        they're giving up by taking the card. Empty string hides the telegraph.
         """
         if player_deck is None or card_id not in CARD_LIBRARY:
             return False
@@ -151,7 +155,7 @@ init -1 python:
             return False
 
         try:
-            result = renpy.call_screen("card_offer_screen", card=c, source_label=source_label)
+            result = renpy.call_screen("card_offer_screen", card=c, source_label=source_label, pass_stats_text=pass_stats_text)
         except Exception:
             ## Fallback if screen not yet defined or call fails — auto-grant
             result = "take"
@@ -160,6 +164,31 @@ init -1 python:
             player_deck.add(card_id)
             return True
         return False
+
+
+    def show_outcome_panel(took_card, card_id, stat_text):
+        """Phase 1 outcome panel renderer.
+
+        Centralizes the post-offer panel branch so all activity sites use the
+        same TAKE-vs-PASS rendering and can't drift from each other.
+
+        - took_card: True if the player took the card (i.e. offer_card returned True)
+        - card_id:   the card that was offered. Used to look up the display name on TAKE.
+                     Pass None if there was no card offered (rare; usually call this
+                     helper only when there's a real choice).
+        - stat_text: the human-readable outcome string for the PASS branch — caller
+                     formats this themselves (with all class bonuses, streak tags etc).
+
+        The CALLER is responsible for applying the pending stat changes BEFORE calling
+        this helper on the PASS branch. This keeps stat-mutation logic at the call site
+        where it belongs (some sites have bespoke side-effects beyond simple deltas).
+        """
+        if took_card and card_id is not None:
+            c = CARD_LIBRARY.get(card_id, {})
+            text = "[[CARD TAKEN]] " + c.get("name", card_id)
+        else:
+            text = stat_text
+        renpy.show_screen("outcome_panel", outcome_text=text)
 
 
     def init_player_deck():

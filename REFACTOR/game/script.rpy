@@ -372,13 +372,11 @@ label activity_gym:
 
             python:
                 _bb_bonus = 5 if stats.player_class == "bodybuilder" else 0
+                ## Always-apply progression (you completed the session — TAKE or PASS):
                 store.gym_streak += 1
-                ## BB-only: SOMA stack accumulates per gym session (max 10)
-                if stats.player_class == "bodybuilder":
-                    store.bb_soma = min(10, getattr(store, 'bb_soma', 0) + 1)
-                    if store.bb_soma >= 10:
-                        unlock_achievement("maximum_stack")
                 ## BB-only common: spotter granted at the 3-day streak (intermediate milestone)
+                ## Streak-milestone cards are NOT the per-session reward — they're cumulative
+                ## attendance unlocks, so they remain unconditional.
                 if store.gym_streak == 3 and stats.player_class == "bodybuilder":
                     grant_card("spotter", silent=True)
                 if store.gym_streak >= 5:
@@ -387,32 +385,39 @@ label activity_gym:
                     if _newly_unlocked and stats.player_class == "bodybuilder":
                         grant_card("iron_stance", silent=True)
                 _streak_add = min(store.gym_streak * 3, 15)
+                ## Pending reward — applied only if the player PASSes the card offer.
                 if _roll == 1:
                     _total_red = 25 + _bb_bonus + _streak_add
-                    stats.increment_stats_pcr_hatred(-_total_red)
                     _gym_card = "personal_record"
                     _gym_text = "Something clicks today.\nYou hit a new personal record and for about 90 minutes the Colonel doesn't exist, the station doesn't exist, the paperwork doesn't exist.\nThere is only the bar, the weight, and the fact that your body does exactly what you tell it to.\nYou drive home in silence but it's the good kind of silence."
-                    _gym_outcome = "- {} CZK, -{} PCR HATRED{}{}".format(_gym_cost, _total_red, " [BODYBUILDER]" if _bb_bonus else "", " [STREAK x{}]".format(store.gym_streak) if _streak_add else "")
                 elif _roll == 2:
                     _total_red = 15 + _bb_bonus + _streak_add
-                    stats.increment_stats_pcr_hatred(-_total_red)
                     _gym_card = "iron_will"
                     _gym_text = "Solid session. Nothing transcendent, but you showed up and that's most of it.\nBy the last set your head is quieter than it was this morning.\nYou eat a chicken breast in your car in the gym parking lot and feel no shame whatsoever."
-                    _gym_outcome = "- {} CZK, -{} PCR HATRED{}{}".format(_gym_cost, _total_red, " [BODYBUILDER]" if _bb_bonus else "", " [STREAK x{}]".format(store.gym_streak) if _streak_add else "")
                 else:
                     _total_red = 10 + _bb_bonus + _streak_add
-                    stats.increment_stats_pcr_hatred(-_total_red)
                     _gym_card = "quick_jab"
                     _gym_text = "You go through the motions. Every rep feels like lifting a filing cabinet full of quarterly reports.\nYour trainer gives you a look that says he's seen more motivated people at DMVs.\nBut you finish. You paid the entry fee. You are slightly less likely to flip a desk today."
-                    _gym_outcome = "- {} CZK, -{} PCR HATRED{}{}".format(_gym_cost, _total_red, " [BODYBUILDER]" if _bb_bonus else "", " [STREAK x{}]".format(store.gym_streak) if _streak_add else "")
+                _gym_outcome = "- {} CZK, -{} PCR HATRED{}{}".format(_gym_cost, _total_red, " [BODYBUILDER]" if _bb_bonus else "", " [STREAK x{}]".format(store.gym_streak) if _streak_add else "")
 
             "[_gym_text]"
-            show screen outcome_panel(_gym_outcome)
+
+            python:
+                _took_gym = offer_card(_gym_card, "GYM", pass_stats_text=_gym_outcome)
+                if not _took_gym:
+                    ## PASS branch: hatred relief AND the BB-only SOMA stack.
+                    ## SOMA represents "I trained the body" — TAKE means "I trained for the deck instead."
+                    stats.increment_stats_pcr_hatred(-_total_red)
+                    if stats.player_class == "bodybuilder":
+                        store.bb_soma = min(10, getattr(store, 'bb_soma', 0) + 1)
+                        if store.bb_soma >= 10:
+                            unlock_achievement("maximum_stack")
+                show_outcome_panel(_took_gym, _gym_card, _gym_outcome)
+
             pause
             hide screen outcome_panel
 
             python:
-                offer_card(_gym_card, "GYM")
                 activity_selected = True
                 store.gym_day = True
             jump daily_menu
@@ -502,31 +507,44 @@ label bouncer_night_club:
         _roll = __import__('random').randint(1, 100)
         _bb_cash = 1500 if stats.player_class == "bodybuilder" else 0
         _bouncer_card = None
+        ## Pending stat deltas — applied unconditionally if no card to offer,
+        ## or only on PASS if there is one.
+        _pending_money = 0
+        _pending_hatred = 0
         if _roll <= 70:
-            stats.increment_stats_pcr_hatred(10)
-            stats.increment_stats_value_money(4000 + _bb_cash)
+            _pending_money = 4000 + _bb_cash
+            _pending_hatred = 10
             _bouncer_card = "side_income"
             _btext = "Uneventful. You stand in a doorway for six hours, nodding at people who are happier than you.\nA man in a pink shirt calls you 'big guy'. You do not react.\nAt 3 AM you calculate exactly how many more shifts like this you'd need to quit forever.\nThe number is getting smaller."
             _boutcome = "+ {} CZK, +10 PCR HATRED{}".format(4000 + _bb_cash, " [BODYBUILDER BONUS]" if _bb_cash else "")
         elif _roll <= 90:
-            stats.increment_stats_value_money(7500 + _bb_cash)
-            stats.increment_stats_pcr_hatred(-10)
+            _pending_money = 7500 + _bb_cash
+            _pending_hatred = -10
             _bouncer_card = "side_income"
             _btext = "Rare night. A group of regulars tips heavy, the manager actually notices your work, and nobody throws up on anyone.\nDriving home at 4 AM, windows down, you think: 'If this was my real job I would hate it slightly less.'\nThat is the closest thing to joy you have felt all week."
             _boutcome = "+ {} CZK, -10 PCR HATRED{}".format(7500 + _bb_cash, " [BODYBUILDER BONUS]" if _bb_cash else "")
         else:
-            stats.increment_stats_pcr_hatred(20)
-            stats.increment_stats_value_money(4000 + _bb_cash)
+            ## Bad outcome — no card offered; stats apply unconditionally below.
+            _pending_money = 4000 + _bb_cash
+            _pending_hatred = 20
             _btext = "Two drunk idiots fight over the same woman who is clearly interested in neither of them.\nYou step in. One of them recognizes you — 'TO JE PŘECE POLDA!' — and now his phone is out.\nYour colleagues see the video the next morning. The group chat has not stopped since.\nLieutenant Kovář sends you a thumbs up emoji. You want to die."
             _boutcome = "+ {} CZK, +20 PCR HATRED{}".format(4000 + _bb_cash, " [BODYBUILDER BONUS]" if _bb_cash else "")
 
     "[_btext]"
-    show screen outcome_panel(_boutcome)
+
+    python:
+        if _bouncer_card:
+            _took_bouncer = offer_card(_bouncer_card, "BOUNCER", pass_stats_text=_boutcome)
+        else:
+            _took_bouncer = False  ## no card — stats apply
+        if not _took_bouncer:
+            stats.increment_stats_value_money(_pending_money)
+            stats.increment_stats_pcr_hatred(_pending_hatred)
+        show_outcome_panel(_took_bouncer, _bouncer_card, _boutcome)
+
     pause
     hide screen outcome_panel
     python:
-        if _bouncer_card:
-            offer_card(_bouncer_card, "BOUNCER")
         activity_selected = True
     jump daily_menu
 
@@ -538,44 +556,63 @@ label bouncer_strip_bar:
         _bb_cash = 1500 if stats.player_class == "bodybuilder" else 0
         _bb_tag = " [BODYBUILDER BONUS]" if _bb_cash else ""
         _strip_card = None
+        ## Pending stat deltas — applied unconditionally if no card; only on PASS otherwise.
+        _pending_money = 0
+        _pending_hatred = 0
+        _pending_coding = 0
         if _roll <= 5:
-            stats.increment_stats_value_money(35000 + _bb_cash)
-            stats.increment_stats_pcr_hatred(-15)
+            _pending_money = 35000 + _bb_cash
+            _pending_hatred = -15
             _strip_card = "vip_treatment"
             _btext = "A famous regular shows up drunk and paranoid. Two guys try to drag him outside, but you intervene with textbook precision.\nYour boss calls you to the office and slides an envelope across the table.\n'Not many can do what you did tonight.'"
             _boutcome = "+{} CZK, -15 PCR HATRED{}".format(35000 + _bb_cash, _bb_tag)
         elif _roll <= 25:
-            stats.increment_stats_value_money(12500 + _bb_cash)
-            stats.increment_stats_coding_skill(2)
+            ## No card — stats apply unconditionally.
+            _pending_money = 12500 + _bb_cash
+            _pending_coding = 2
             _btext = "Steady crowds, few arguments, no real threats. You handle everything with routine precision.\nYou even use downtime to mentally rehearse OOP concepts and class hierarchies — weirdly effective."
             _boutcome = "+{} CZK, +2 CODING SKILLS{}".format(12500 + _bb_cash, _bb_tag)
         elif _roll <= 75:
-            stats.increment_stats_value_money(6500 + _bb_cash)
-            stats.increment_stats_pcr_hatred(5)
-            ## BB-only: brawl prompt fires only for bodybuilder (class_lock filter)
+            _pending_money = 6500 + _bb_cash
+            _pending_hatred = 5
+            ## BB-only: brawl prompt fires only for bodybuilder (class_lock filter).
+            ## Non-BB players: offer_card returns False, stats apply (effectively no choice).
             _strip_card = "brawl"
             _btext = "You stand in a corridor that smells like vodka Red Bull and bad decisions for four hours.\nNothing interesting happens. One person cries in the bathroom. You pretend not to notice.\nYou pretend not to notice a lot of things in this job.\nAt least the envelope is solid."
             _boutcome = "+{} CZK, +5 PCR HATRED{}".format(6500 + _bb_cash, _bb_tag)
         elif _roll <= 95:
-            stats.increment_stats_value_money(1000 + _bb_cash)
-            stats.increment_stats_pcr_hatred(25)
+            ## No card — stats apply unconditionally.
+            _pending_money = 1000 + _bb_cash
+            _pending_hatred = 25
             _btext = "A fight breaks out inside. You break it up, but one participant recognizes your face from the force.\n'Ty vole, to je POLDA!' Your boss gives you only a partial payout."
             _boutcome = "+{} CZK, +25 PCR HATRED{}".format(1000 + _bb_cash, _bb_tag)
         else:
-            stats.increment_stats_value_money(-12500 + _bb_cash)
-            stats.increment_stats_pcr_hatred(35)
-            stats.increment_stats_coding_skill(-5)
+            _pending_money = -12500 + _bb_cash
+            _pending_hatred = 35
+            _pending_coding = -5
             _strip_card = "loan_sharks"
             _btext = "You turn your back for one second — enough for a coked-up idiot to drive a vodka bottle into your skull.\nPolice arrives and discovers you're moonlighting illegally. Your boss is furious."
             _boutcome = "{} CZK, +35 PCR HATRED, -5 CODING SKILLS{}".format(-12500 + _bb_cash, _bb_tag)
 
     "[_btext]"
-    show screen outcome_panel(_boutcome)
+
+    python:
+        if _strip_card:
+            _took_strip = offer_card(_strip_card, "STRIP-BAR", pass_stats_text=_boutcome)
+        else:
+            _took_strip = False
+        if not _took_strip:
+            if _pending_money:
+                stats.increment_stats_value_money(_pending_money)
+            if _pending_hatred:
+                stats.increment_stats_pcr_hatred(_pending_hatred)
+            if _pending_coding:
+                stats.increment_stats_coding_skill(_pending_coding)
+        show_outcome_panel(_took_strip, _strip_card, _boutcome)
+
     pause
     hide screen outcome_panel
     python:
-        if _strip_card:
-            offer_card(_strip_card, "STRIP-BAR")
         activity_selected = True
     jump daily_menu
 
@@ -647,7 +684,7 @@ label coding_practice_puzzle:
     if _result == "pass":
         python:
             _gain = _p.get("reward_coding", 10)
-            stats.increment_stats_coding_skill(_gain)
+            ## Always-apply progression — solving the puzzle counts regardless of card choice.
             store._puzzles_solved.append(_pid)
             ## Pick a Logic-color card to OFFER on pass
             _logic_options = ["compile", "refactor", "algorithm"]
@@ -656,12 +693,17 @@ label coding_practice_puzzle:
 
         "[[TESTS PASSED]] The compiler is silent. The function works."
         "You feel something shift. The pattern clicked."
-        show screen outcome_panel("[_outcome_str]")
+
+        python:
+            _took_puzzle = offer_card(_puzzle_card, "PUZZLE REWARD", pass_stats_text=_outcome_str)
+            if not _took_puzzle:
+                stats.increment_stats_coding_skill(_gain)
+            show_outcome_panel(_took_puzzle, _puzzle_card, _outcome_str)
+
         pause
         hide screen outcome_panel
 
         python:
-            offer_card(_puzzle_card, "PUZZLE REWARD")
             activity_selected = True
         jump daily_menu
 
@@ -714,28 +756,34 @@ label coding_fiverr:
             _roll = 100
         else:
             _roll = __import__('random').randint(1, 100)
+        ## Pending coding gain — applied only on PASS.
         if _roll <= 65:
-            stats.increment_stats_coding_skill(10)
+            _fiverr_gain = 10
             _fiverr_card = "compile"
             _ftext = "You jump on a call with a mid-level developer from Fiverr.\nHe's practical. He shows you how to structure your files and fixes bad habits."
             _foutcome = "- {} CZK, +10 CODING SKILLS".format(_fiverr_cost)
         elif _roll <= 90:
-            stats.increment_stats_coding_skill(15)
+            _fiverr_gain = 15
             _fiverr_card = "compile"
             _ftext = "You luck out. Your tutor is sharp as hell.\nThey explain OOP in a way that finally clicks with your brain."
             _foutcome = "- {} CZK, +15 CODING SKILLS".format(_fiverr_cost)
         else:
-            stats.increment_stats_coding_skill(25)
+            _fiverr_gain = 25
             _fiverr_card = "refactor"
             _ftext = "You accidentally booked a beast. Senior dev, ten years in the field.\nCode review, patterns, mental models. This was a paradigm shift."
             _foutcome = "- {} CZK, +25 CODING SKILLS{}".format(_fiverr_cost, " [[BIOHACKER PERK]]" if stats.player_class == "biohacker" else "")
 
     "[_ftext]"
-    show screen outcome_panel(_foutcome)
+
+    python:
+        _took_fiverr = offer_card(_fiverr_card, "FIVERR", pass_stats_text=_foutcome)
+        if not _took_fiverr:
+            stats.increment_stats_coding_skill(_fiverr_gain)
+        show_outcome_panel(_took_fiverr, _fiverr_card, _foutcome)
+
     pause
     hide screen outcome_panel
     python:
-        offer_card(_fiverr_card, "FIVERR")
         activity_selected = True
     jump daily_menu
 
@@ -1110,32 +1158,40 @@ label activity_cold_read:
         if all(store.de_profiles.get(k, 0) >= 3 for k in ("rookie", "veteran", "lieutenant", "clerk")):
             unlock_achievement("profile_master")
 
-        # Apply effects
-        stats.increment_stats_pcr_hatred(-20)
-        _cr_coding_bonus = 0
+        ## Pending reward — applied only on PASS. Profile-deepening above is progression
+        ## (you observed the target — TAKE or PASS) and stays unconditional.
+        _cr_pending_hatred = -20
+        _cr_pending_coding = 0
         _cr_card = "vigil"
         if _high_hatred:
-            stats.increment_stats_coding_skill(5)
-            _cr_coding_bonus = 5
+            _cr_pending_coding = 5
             _cr_card = "mirror"
 
-        ## DE progression milestone: 5th cold read offers Empath's Insight (rare)
+        ## DE progression milestone: 5th cold read offers Empath's Insight (rare).
+        ## Milestone grant is a separate forced offer (no stat trade) — represents
+        ## the cumulative achievement, not the per-session reward.
         _cr_milestone = (cold_read_index >= 5 and "empaths_insight" not in player_deck.cards)
 
         _cr_outcome = "-20 Police Hatred"
-        if _cr_coding_bonus:
+        if _cr_pending_coding:
             _cr_outcome += ", +5 Coding Skill  [HIGH HATRED — CONTEMPT MODE]"
 
     "SUBJECT: [_target['name']]"
 
     "[_cr_text]"
 
-    show screen outcome_panel(_cr_outcome)
+    python:
+        _took_cr = offer_card(_cr_card, "COLD READ", pass_stats_text=_cr_outcome)
+        if not _took_cr:
+            stats.increment_stats_pcr_hatred(_cr_pending_hatred)
+            if _cr_pending_coding:
+                stats.increment_stats_coding_skill(_cr_pending_coding)
+        show_outcome_panel(_took_cr, _cr_card, _cr_outcome)
+
     pause
     hide screen outcome_panel
 
     python:
-        offer_card(_cr_card, "COLD READ")
         if _cr_milestone:
             offer_card("empaths_insight", "MILESTONE — 5 COLD READS")
         activity_selected = True
