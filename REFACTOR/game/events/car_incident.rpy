@@ -21,7 +21,7 @@ label car_incident:
 
     "You rush to the service vehicle — a battered Octavia that smells permanently of wet dog and criminals."
     "You throw it into reverse, trusting your muscle memory more than your eyes."
-    "You are a professional driver, {stshl=right}?"
+    "You are a professional driver, {stshl=right?}"
 
     stop music fadeout 0.3
 
