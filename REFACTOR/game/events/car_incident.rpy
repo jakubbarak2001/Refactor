@@ -652,7 +652,4 @@ label car_incident_end:
     "DEBUFF: You will gain PCR HATRED every night."
     "MAIN OBJECTIVE: In the next 30 days, you need to become a FULLSTACK DEVELOPER."
 
-    scene bg_black with fade
-    $ renpy.movie_cutscene("video/jb_walk.mp4")
-
     return
