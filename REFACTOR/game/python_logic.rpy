@@ -5,18 +5,21 @@
 
 init python:
 
-    ## --- StS-style highlight tag: {stshl=word} → bobbing gold-bold word ---
-    ## Why: random-event flavor highlight, mirrors Slay the Spire's bobbing
-    ## colored words inside event text.
-    import math as _stshl_math
-
-    def _stshl_bob(trans, st, at):
-        trans.yoffset = int(3 * _stshl_math.sin(st * 2.5))
-        return 0
-
+    ## --- StS-style highlight tag: {stshl=word} → inline gold-bold word ---
+    ## Why: random-event flavor highlight, mirrors Slay the Spire's
+    ## colored event-text words. Implemented as inline color+bold tokens
+    ## (NOT an embedded Text displayable) so the highlighted word flows
+    ## inline with surrounding dialogue. An earlier displayable-based
+    ## version added a gentle bob but introduced a ~100px horizontal gap
+    ## around the word — inline tokens trade the bob for clean layout.
     def _stshl_tag(tag, argument, contents):
-        inner = Text("{b}{color=#f5b042}" + argument + "{/color}{/b}", style="say_dialogue")
-        return [(renpy.TEXT_DISPLAYABLE, Transform(inner, function=_stshl_bob))]
+        return [
+            (renpy.TEXT_TAG, "b"),
+            (renpy.TEXT_TAG, "color=#f5b042"),
+            (renpy.TEXT_TEXT, argument),
+            (renpy.TEXT_TAG, "/color"),
+            (renpy.TEXT_TAG, "/b"),
+        ]
 
     config.custom_text_tags["stshl"] = _stshl_tag
 
