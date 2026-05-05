@@ -5,6 +5,22 @@
 
 init python:
 
+    ## --- StS-style highlight tag: {stshl=word} → bobbing gold-bold word ---
+    ## Why: random-event flavor highlight, mirrors Slay the Spire's bobbing
+    ## colored words inside event text.
+    import math as _stshl_math
+
+    def _stshl_bob(trans, st, at):
+        trans.yoffset = int(3 * _stshl_math.sin(st * 2.5))
+        return 0
+
+    def _stshl_tag(tag, argument, contents):
+        inner = Text("{b}{color=#f5b042}" + argument + "{/color}{/b}", style="say_dialogue")
+        return [(renpy.TEXT_DISPLAYABLE, Transform(inner, function=_stshl_bob))]
+
+    config.custom_text_tags["stshl"] = _stshl_tag
+
+
     class Stats:
         """Core stat container for JB. Ported from stats.py."""
 
