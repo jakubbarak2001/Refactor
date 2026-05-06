@@ -291,31 +291,10 @@ label daily_menu:
     call screen daily_hub_screen
 
 
-label show_stats:
-    hide screen day_calendar
-    call screen full_stats_screen
-    show screen day_calendar
-    jump daily_menu
-
-
 label show_deck:
     hide screen day_calendar
     call screen deck_viewer
     show screen day_calendar
-    jump daily_menu
-
-
-label show_achievements:
-    hide screen day_calendar
-    call screen achievements_screen
-    show screen day_calendar
-    jump daily_menu
-
-
-label show_contacts:
-    hide screen day_calendar
-    "You open your phone contact list."
-    "1. Martin (ex-colleague)\n2. Paul Goodman (lawyer)\n3. Colonel (your boss)\n\n(Contacts are not interactive in this version.)"
     jump daily_menu
 
 
@@ -411,7 +390,7 @@ label activity_gym:
             python:
                 activity_selected = True
                 store.gym_day = True
-            jump daily_menu
+            jump end_day
 
         "Return to menu.":
             jump daily_menu
@@ -467,7 +446,7 @@ label activity_gym_heavy:
     python:
         activity_selected = True
         store.gym_day = True
-    jump daily_menu
+    jump end_day
 
 
 ## ---------------------------------------------------------------------------
@@ -502,7 +481,7 @@ label activity_recovery:
 
     python:
         activity_selected = True
-    jump daily_menu
+    jump end_day
 
 
 ## ---------------------------------------------------------------------------
@@ -571,7 +550,7 @@ label bouncer_night_club:
     hide screen outcome_panel
     python:
         activity_selected = True
-    jump daily_menu
+    jump end_day
 
 
 label bouncer_strip_bar:
@@ -639,7 +618,7 @@ label bouncer_strip_bar:
     hide screen outcome_panel
     python:
         activity_selected = True
-    jump daily_menu
+    jump end_day
 
 
 ## ---------------------------------------------------------------------------
@@ -730,7 +709,7 @@ label coding_practice_puzzle:
 
         python:
             activity_selected = True
-        jump daily_menu
+        jump end_day
 
     else:
         python:
@@ -743,7 +722,7 @@ label coding_practice_puzzle:
         hide screen outcome_panel
         python:
             activity_selected = True
-        jump daily_menu
+        jump end_day
 
 
 label coding_work_for_money:
@@ -764,7 +743,7 @@ label coding_work_for_money:
     show screen outcome_panel("+ {} CZK".format(_earned))
     pause
     hide screen outcome_panel
-    jump daily_menu
+    jump end_day
 
 
 label coding_fiverr:
@@ -810,7 +789,7 @@ label coding_fiverr:
     hide screen outcome_panel
     python:
         activity_selected = True
-    jump daily_menu
+    jump end_day
 
 
 label coding_bootcamp:
@@ -846,7 +825,7 @@ label coding_bootcamp:
             hide screen outcome_panel
             python:
                 activity_selected = True
-            jump daily_menu
+            jump end_day
 
         "NO — I changed my mind.":
             "You step back. It's too much money right now."
@@ -887,7 +866,7 @@ label coding_bootcamp_de:
             hide screen outcome_panel
             python:
                 activity_selected = True
-            jump daily_menu
+            jump end_day
 
         "NO — I changed my mind.":
             "You step back."
@@ -946,7 +925,7 @@ label activity_night_shift:
                 if _ns_extra_card:
                     offer_card(_ns_extra_card, "NIGHT SHIFT BONUS")
                 activity_selected = True
-            jump daily_menu
+            jump end_day
 
         "Return to menu.":
             jump daily_menu
@@ -1239,7 +1218,7 @@ label cold_read_regular:
             offer_card("empaths_insight", "MILESTONE — 5 COLD READS")
         activity_selected = True
 
-    jump daily_menu
+    jump end_day
 
 
 ## ---------------------------------------------------------------------------
@@ -1277,7 +1256,7 @@ label cold_read_observe:
             offer_card("empaths_insight", "MILESTONE — 5 COLD READS")
         activity_selected = True
 
-    jump daily_menu
+    jump end_day
 
 
 ## ---------------------------------------------------------------------------

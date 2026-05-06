@@ -14,6 +14,8 @@ screen stats_bar():
     python:
         ## Class-specific tracker text appended to the badge
         _class_track = ""
+        _coding_tt = None
+        _hatred_tt = None
         if stats.player_class == "bodybuilder":
             _soma = getattr(store, 'bb_soma', 0)
             if _soma > 0:
@@ -28,6 +30,15 @@ screen stats_bar():
             _proto = getattr(store, 'bh_protocol', None)
             if _proto:
                 _class_track = "  ·  STACK {}".format(_proto)
+
+        if stats.coding_skill < 70 and stats.available_money < 25000:
+            _coding_tt = "Coding under 70 + savings under 25k = REUNION risk. The road back to the station gets short fast."
+        elif stats.coding_skill < 70:
+            _coding_tt = "Coding under 70 — if money also runs low, REUNION pulls you back to the uniform."
+        if stats.pcr_hatred >= 60:
+            _hatred_tt = "Hatred {}/100 — over 60 unlocks contempt mode on Cold Read.".format(stats.pcr_hatred)
+
+        _deck_count_bar = len(player_deck.cards) if player_deck is not None else 0
 
     frame:
         xalign 0.0
@@ -83,17 +94,37 @@ screen stats_bar():
                 color "#555555"
                 size 18
 
-            text "Coding: [stats.coding_skill]":
-                color "#00ccff"
-                size 18
+            if _coding_tt:
+                button:
+                    action NullAction()
+                    tooltip _coding_tt
+                    background "#00000000"
+                    padding (0, 0)
+                    text "Coding: [stats.coding_skill]":
+                        color "#00ccff"
+                        size 18
+            else:
+                text "Coding: [stats.coding_skill]":
+                    color "#00ccff"
+                    size 18
 
             text "|":
                 color "#555555"
                 size 18
 
-            text "Hatred: [stats.pcr_hatred]/100":
-                color "#ff4444"
-                size 18
+            if _hatred_tt:
+                button:
+                    action NullAction()
+                    tooltip _hatred_tt
+                    background "#00000000"
+                    padding (0, 0)
+                    text "Hatred: [stats.pcr_hatred]/100":
+                        color "#ff4444"
+                        size 18
+            else:
+                text "Hatred: [stats.pcr_hatred]/100":
+                    color "#ff4444"
+                    size 18
 
             text "|":
                 color "#555555"
@@ -102,6 +133,21 @@ screen stats_bar():
             text "Day: [day_cycle.current_day]/30":
                 color "#aaaaaa"
                 size 18
+
+            text "|":
+                color "#555555"
+                size 18
+
+            textbutton "Deck: [_deck_count_bar]":
+                action Jump("show_deck")
+                tooltip "Click to view your deck."
+                text_color "#00cc88"
+                text_hover_color "#ffffff"
+                text_size 18
+                text_bold True
+                background "#00000000"
+                hover_background "#00000000"
+                padding (0, 0)
 
     $ _stats_tt = GetTooltip()
     if _stats_tt:
@@ -584,200 +630,89 @@ screen activity_select_screen():
 
 
 ## ---------------------------------------------------------------------------
-## Daily Hub — central screen for the daily flow. Replaces the menu list.
-## Right side: action buttons. Center: pick-activity CTA or done state.
+## Daily Hub — central morning ritual. PICK YOUR MOVE is the dominant CTA.
+## Sidebar holds only the context-gated PHONE button. END DAY is a small
+## "Skip Today" link, only visible when no activity has been chosen.
 ## ---------------------------------------------------------------------------
 
 screen daily_hub_screen():
     modal True
     zorder 50
 
-    ## Side panel — right column actions
     python:
-        _deck_count    = len(player_deck.cards) if player_deck is not None else 0
-        _ach_unlocked  = len(getattr(store, '_achievements_unlocked', set()))
-        _ach_total     = len(ACHIEVEMENTS)
-        _today         = day_cycle.current_day if day_cycle is not None else 1
+        _today        = day_cycle.current_day if day_cycle is not None else 1
+        _phone_msgs   = getattr(store, '_phone_notifications', [])
+        _phone_count  = len(_phone_msgs)
 
-        ## Stat threshold hints
-        _hint_lines = []
-        if stats:
-            if stats.coding_skill < 70:
-                _hint_lines.append("Coding < 70 — REUNION risk if you also run out of money.")
+        if stats and stats.player_class == "bodybuilder":
+            _hub_cta_text  = "[[ TRAIN ]"
+            _hub_cta_sub   = "The body is the argument. Pick the rep."
+            _hub_cta_color = "#ff6633"
+            _hub_cta_hover = "#ff8855"
+        elif stats and stats.player_class == "dark_empath":
+            _hub_cta_text  = "[[ READ ]"
+            _hub_cta_sub   = "The room is the data. Pick what you watch."
+            _hub_cta_color = "#9944cc"
+            _hub_cta_hover = "#bb66dd"
+        elif stats and stats.player_class == "biohacker":
+            _hub_cta_text  = "[[ STACK ]"
+            _hub_cta_sub   = "The protocol is the answer. Pick the input."
+            _hub_cta_color = "#33cc66"
+            _hub_cta_hover = "#55ee88"
+        else:
+            _hub_cta_text  = "[[ PICK YOUR MOVE ]"
+            _hub_cta_sub   = "One choice. Earn cards. Build the deck."
+            _hub_cta_color = "#cc2200"
+            _hub_cta_hover = "#ff4422"
 
-            if stats.available_money < 25000:
-                _hint_lines.append("Money low — REUNION risk if coding also weak.")
-
-            if stats.pcr_hatred >= 60:
-                _hint_lines.append("Hatred {}/100 — over 60 unlocks contempt mode on Cold Read.".format(stats.pcr_hatred))
-
-            ## Class-tracker hints
-            if stats.player_class == "bodybuilder":
-                _soma = getattr(store, 'bb_soma', 0)
-                if _soma >= 2:
-                    _hint_lines.append("SOMA {}/10 — +{} starting block/turn in the colonel fight.".format(_soma, _soma // 2))
-            elif stats.player_class == "dark_empath":
-                _profs = getattr(store, 'de_profiles', {})
-                _deep = sum(1 for n, c in _profs.items() if c >= 3)
-                if _deep > 0:
-                    _hint_lines.append("PROFILES {} deep — +{} peek-intent depth in the colonel fight.".format(_deep, 1 + _deep))
-            elif stats.player_class == "biohacker":
-                _doses = sum(getattr(store, 'nootropic_uses', [0,0,0,0,0]))
-                if _doses >= 3:
-                    _hint_lines.append("STACK doses {} — +1 max energy in the colonel fight.".format(_doses))
-
-    frame:
-        xpos 1690
-        ypos 230
-        xsize 210
-        padding (14, 18)
-        background Frame("#0a0a0aee", 4, 4)
-
-        vbox:
-            spacing 14
-            xfill True
-
-            text "ACTIONS":
-                color "#cc2200"
-                size 13
-                bold True
-                xalign 0.5
-                font "fonts/RobotoMono-Regular.ttf"
-
-            text "─────────":
-                color "#222222"
-                size 11
-                xalign 0.5
-
-            ## Stats
-            textbutton "STATS":
-                xalign 0.5
-                action Jump("show_stats")
-                text_color "#aaaaaa"
-                text_hover_color "#ffffff"
-                text_size 18
-                text_bold True
-                text_font "fonts/RobotoMono-Regular.ttf"
-                background "#00000000"
-                hover_background Frame("#1a1a1add", 3, 3)
-                padding (10, 8)
-                xfill True
-
-            ## Deck (with count)
-            textbutton "DECK · [_deck_count]":
-                xalign 0.5
-                action Jump("show_deck")
-                text_color "#00cc88"
-                text_hover_color "#ffffff"
-                text_size 18
-                text_bold True
-                text_font "fonts/RobotoMono-Regular.ttf"
-                background "#00000000"
-                hover_background Frame("#0d1f15dd", 3, 3)
-                padding (10, 8)
-                xfill True
-
-            ## Achievements (with progress)
-            textbutton "TROPHIES · [_ach_unlocked]/[_ach_total]":
-                xalign 0.5
-                action Jump("show_achievements")
-                text_color "#ffd700"
-                text_hover_color "#ffffff"
-                text_size 16
-                text_bold True
-                text_font "fonts/RobotoMono-Regular.ttf"
-                background "#00000000"
-                hover_background Frame("#1f1808dd", 3, 3)
-                padding (10, 8)
-                xfill True
-
-            ## Phone
-            textbutton "PHONE":
-                xalign 0.5
-                action Jump("show_contacts")
-                text_color "#aaaaaa"
-                text_hover_color "#ffffff"
-                text_size 18
-                text_bold True
-                text_font "fonts/RobotoMono-Regular.ttf"
-                background "#00000000"
-                hover_background Frame("#1a1a1add", 3, 3)
-                padding (10, 8)
-                xfill True
-
-            null height 14
-
-            text "─────────":
-                color "#222222"
-                size 11
-                xalign 0.5
-
-            null height 4
-
-            ## End Day — primary, dramatic
-            textbutton "▶ END DAY [_today]":
-                xalign 0.5
-                action Jump("end_day")
-                text_color "#cc2200"
-                text_hover_color "#ff4422"
-                text_size 22
-                text_bold True
-                text_font "fonts/RobotoMono-Regular.ttf"
-                background Frame("#1a0000ee", 3, 3)
-                hover_background Frame("#330000ee", 3, 3)
-                padding (12, 12)
-                xfill True
-
-    ## Threshold hint strip — sits below the calendar, above the CTA
-    if _hint_lines:
+    ## ── Sidebar — PHONE only, gated on unread notifications ─────────────────
+    if _phone_msgs:
         frame:
-            xalign 0.5
-            yalign 0.18
-            padding (16, 8)
-            background Frame("#0a0a0acc", 4, 4)
-            xmaximum 1400
-
-            vbox:
-                spacing 2
-                xalign 0.5
-                for _hl in _hint_lines:
-                    text _hl:
-                        color "#888888"
-                        size 12
-                        italic True
-                        xalign 0.5
-                        font "fonts/RobotoMono-Regular.ttf"
-
-    ## Center — context-aware CTA (class-themed verb)
-    python:
-        _hub_cta_text = "[[ PICK YOUR MOVE ]"
-        _hub_cta_sub  = "One choice. Earn cards. Build the deck."
-        if stats:
-            if stats.player_class == "bodybuilder":
-                _hub_cta_text = "[[ TRAIN ]"
-                _hub_cta_sub  = "The body is the argument. Pick the rep."
-            elif stats.player_class == "dark_empath":
-                _hub_cta_text = "[[ READ ]"
-                _hub_cta_sub  = "The room is the data. Pick what you watch."
-            elif stats.player_class == "biohacker":
-                _hub_cta_text = "[[ STACK ]"
-                _hub_cta_sub  = "The protocol is the answer. Pick the input."
-
-    if not activity_selected:
-        ## Big inviting "pick today's move" panel
-        frame:
-            xalign 0.45
-            yalign 0.55
-            padding (40, 24)
+            xpos 1700
+            ypos 240
+            xsize 200
+            padding (14, 14)
             background Frame("#0a0a0aee", 4, 4)
 
             vbox:
                 spacing 8
+                xfill True
+
+                textbutton "PHONE · [_phone_count]":
+                    xalign 0.5
+                    action Show("phone_screen")
+                    text_color "#ffd700"
+                    text_hover_color "#ffffff"
+                    text_size 18
+                    text_bold True
+                    text_font "fonts/RobotoMono-Regular.ttf"
+                    background "#00000000"
+                    hover_background Frame("#1f1808dd", 3, 3)
+                    padding (10, 8)
+                    xfill True
+
+                text "Unread.":
+                    xalign 0.5
+                    color "#888888"
+                    size 12
+                    italic True
+                    font "fonts/RobotoMono-Regular.ttf"
+
+    ## ── Center stage — the dominant action ──────────────────────────────────
+    if not activity_selected:
+        frame:
+            xalign 0.5
+            yalign 0.58
+            padding (60, 36)
+            background Frame("#0a0a0aee", 6, 6)
+
+            vbox:
+                spacing 12
                 xalign 0.5
 
                 text "TODAY":
                     color "#666666"
-                    size 14
+                    size 16
                     bold True
                     xalign 0.5
                     font "fonts/RobotoMono-Regular.ttf"
@@ -785,49 +720,66 @@ screen daily_hub_screen():
                 textbutton _hub_cta_text:
                     xalign 0.5
                     action Jump("select_activity")
-                    text_color "#cc2200"
-                    text_hover_color "#ff4422"
-                    text_size 36
+                    text_color _hub_cta_color
+                    text_hover_color _hub_cta_hover
+                    text_size 64
                     text_bold True
                     text_font "fonts/RobotoMono-Regular.ttf"
                     background "#00000000"
                     hover_background "#00000000"
-                    padding (16, 8)
+                    padding (24, 12)
 
                 text _hub_cta_sub:
-                    color "#666666"
-                    size 14
+                    color "#888888"
+                    size 16
                     italic True
                     xalign 0.5
+                    font "fonts/RobotoMono-Regular.ttf"
+
+        ## "Skip Today" — small, low-emphasis. Only visible when no activity chosen.
+        textbutton "skip today →":
+            xalign 0.5
+            yalign 0.86
+            action Jump("end_day")
+            text_color "#444444"
+            text_hover_color "#888888"
+            text_size 13
+            text_italic True
+            text_font "fonts/RobotoMono-Regular.ttf"
+            background "#00000000"
+            hover_background "#00000000"
+            padding (8, 4)
     else:
-        ## Activity already done — quiet state
+        ## Lock-in state — class-coloured, distinct from the pick-state.
         frame:
-            xalign 0.45
-            yalign 0.55
-            padding (28, 16)
-            background Frame("#0a0a0acc", 4, 4)
+            xalign 0.5
+            yalign 0.58
+            padding (60, 36)
+            background Frame("#0a0a0aee", 6, 6)
 
             vbox:
-                spacing 6
+                spacing 10
                 xalign 0.5
 
                 text "DAY [_today] — MOVE COMPLETE":
-                    color "#666666"
-                    size 16
+                    color _hub_cta_color
+                    size 40
                     bold True
                     xalign 0.5
                     font "fonts/RobotoMono-Regular.ttf"
 
                 text "Sleep on it.":
-                    color "#444444"
-                    size 13
+                    color "#888888"
+                    size 16
                     italic True
                     xalign 0.5
+                    font "fonts/RobotoMono-Regular.ttf"
 
 
 ## ---------------------------------------------------------------------------
-## Day Calendar — 30-day strip with current day + key event markers.
-## Shown persistently during daily_menu via "show screen day_calendar".
+## Day Calendar — mini 4-day strip (today + next 3) for the hub. Full 30-day
+## view lives in phone_screen. Shown persistently during daily_menu via
+## "show screen day_calendar".
 ## ---------------------------------------------------------------------------
 
 screen day_calendar():
@@ -839,6 +791,8 @@ screen day_calendar():
         _events = get_key_event_days()
         _colonel_day = stats.colonel_day if stats is not None else 30
         _days_to_colonel = max(0, _colonel_day - _today)
+        _strip_end = min(_today + 3, 30)
+        _strip_days = list(range(_today, _strip_end + 1))
 
     frame:
         xalign 0.5
@@ -858,14 +812,13 @@ screen day_calendar():
                 xalign 0.5
                 font "fonts/RobotoMono-Regular.ttf"
 
-            ## 30-day strip — single horizontal row of small cells
+            ## 4-day strip — today + the next three. Full 30-day grid is in phone_screen.
             hbox:
-                spacing 2
+                spacing 6
                 xalign 0.5
 
-                for _d in range(1, 31):
+                for _d in _strip_days:
                     $ _is_today = (_d == _today)
-                    $ _is_past  = (_d < _today)
                     $ _ev       = _events.get(_d)
 
                     if _is_today:
@@ -873,41 +826,172 @@ screen day_calendar():
                         $ _cell_text = "#ffffff"
                     elif _ev is not None:
                         $ _cell_bg   = _ev[1]
-                        $ _cell_text = "#ffffff" if not _is_past else "#666666"
-                    elif _is_past:
-                        $ _cell_bg   = "#1a1a1a"
-                        $ _cell_text = "#444444"
+                        $ _cell_text = "#ffffff"
                     else:
                         $ _cell_bg   = "#222222"
-                        $ _cell_text = "#888888"
+                        $ _cell_text = "#aaaaaa"
 
                     frame:
-                        xsize 38
-                        ysize 36
-                        background Frame(_cell_bg, 2, 2)
+                        xsize 110
+                        ysize 44
+                        background Frame(_cell_bg, 3, 3)
 
                         vbox:
                             xalign 0.5
                             yalign 0.5
                             spacing 0
 
-                            text "[_d]":
+                            text "DAY [_d]":
                                 color _cell_text
                                 size 13
                                 bold _is_today
                                 xalign 0.5
                                 font "fonts/RobotoMono-Regular.ttf"
 
-            ## Legend strip — only show event days that haven't passed
-            python:
-                _upcoming = [(_d, _ev) for _d, _ev in sorted(_events.items()) if _d >= _today]
+                            if _ev is not None:
+                                text "[_ev[0]]":
+                                    color _cell_text
+                                    size 11
+                                    xalign 0.5
+                                    font "fonts/RobotoMono-Regular.ttf"
 
-            if _upcoming:
+
+## ---------------------------------------------------------------------------
+## Phone Screen — full 30-day overview + recent notifications. Reachable
+## from the hub PHONE button (when notifications are pending). Modal.
+## ---------------------------------------------------------------------------
+
+screen phone_screen():
+    modal True
+    zorder 350
+    tag phone
+
+    add "#0a0a0aee"
+
+    python:
+        _phone_today = day_cycle.current_day if day_cycle is not None else 1
+        _phone_events = get_key_event_days()
+        _phone_colonel_day = stats.colonel_day if stats is not None else 30
+        _phone_days_left = max(0, _phone_colonel_day - _phone_today)
+        _phone_msgs_view = list(getattr(store, '_phone_notifications', []))
+
+    vbox:
+        xalign 0.5
+        yalign 0.04
+        spacing 6
+
+        text "> PHONE <":
+            xalign 0.5
+            color "#cc2200"
+            size 36
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+
+        text "DAY [_phone_today] / 30   ·   [_phone_days_left] DAYS UNTIL CONFRONTATION":
+            xalign 0.5
+            color "#888888"
+            size 16
+            font "fonts/RobotoMono-Regular.ttf"
+
+    ## ── Notifications panel ─────────────────────────────────────────────────
+    frame:
+        xalign 0.5
+        yalign 0.18
+        xsize 1200
+        padding (24, 18)
+        background Frame("#0d0d0dee", 4, 4)
+
+        vbox:
+            spacing 8
+            xalign 0.5
+
+            text "NOTIFICATIONS":
+                color "#ffd700"
+                size 16
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
+
+            text "─────────────────":
+                color "#222222"
+                size 11
+
+            if _phone_msgs_view:
+                for _msg in _phone_msgs_view:
+                    text _msg:
+                        color "#cccccc"
+                        size 14
+                        font "fonts/RobotoMono-Regular.ttf"
+            else:
+                text "No new notifications.":
+                    color "#666666"
+                    size 14
+                    italic True
+                    font "fonts/RobotoMono-Regular.ttf"
+
+    ## ── Full 30-day calendar ────────────────────────────────────────────────
+    frame:
+        xalign 0.5
+        yalign 0.46
+        padding (24, 18)
+        background Frame("#0d0d0dee", 4, 4)
+
+        vbox:
+            spacing 10
+            xalign 0.5
+
+            text "CALENDAR":
+                xalign 0.5
+                color "#cc2200"
+                size 16
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
+
+            hbox:
+                spacing 2
+                xalign 0.5
+
+                for _d in range(1, 31):
+                    $ _is_today_p = (_d == _phone_today)
+                    $ _is_past_p  = (_d < _phone_today)
+                    $ _ev_p       = _phone_events.get(_d)
+
+                    if _is_today_p:
+                        $ _cell_bg_p   = "#cc2200"
+                        $ _cell_text_p = "#ffffff"
+                    elif _ev_p is not None:
+                        $ _cell_bg_p   = _ev_p[1]
+                        $ _cell_text_p = "#ffffff" if not _is_past_p else "#666666"
+                    elif _is_past_p:
+                        $ _cell_bg_p   = "#1a1a1a"
+                        $ _cell_text_p = "#444444"
+                    else:
+                        $ _cell_bg_p   = "#222222"
+                        $ _cell_text_p = "#888888"
+
+                    frame:
+                        xsize 42
+                        ysize 40
+                        background Frame(_cell_bg_p, 2, 2)
+
+                        vbox:
+                            xalign 0.5
+                            yalign 0.5
+                            text "[_d]":
+                                color _cell_text_p
+                                size 13
+                                bold _is_today_p
+                                xalign 0.5
+                                font "fonts/RobotoMono-Regular.ttf"
+
+            python:
+                _upcoming_p = [(_d, _ev) for _d, _ev in sorted(_phone_events.items()) if _d >= _phone_today]
+
+            if _upcoming_p:
                 hbox:
-                    spacing 16
+                    spacing 18
                     xalign 0.5
 
-                    for _d, _ev in _upcoming[:5]:
+                    for _d, _ev in _upcoming_p[:6]:
                         hbox:
                             spacing 4
                             frame:
@@ -919,6 +1003,22 @@ screen day_calendar():
                                 color "#aaaaaa"
                                 size 12
                                 font "fonts/RobotoMono-Regular.ttf"
+
+    ## ── Close button — clears the unread queue ─────────────────────────────
+    textbutton "[[ CLOSE ]":
+        xalign 0.5
+        yalign 0.92
+        action [SetField(store, "_phone_notifications", []), Hide("phone_screen")]
+        text_color "#cccccc"
+        text_hover_color "#ffffff"
+        text_size 18
+        text_bold True
+        text_font "fonts/RobotoMono-Regular.ttf"
+        background "#220000"
+        hover_background "#440000"
+        padding (20, 10)
+
+    key "K_ESCAPE" action [SetField(store, "_phone_notifications", []), Hide("phone_screen")]
 
 
 ## ---------------------------------------------------------------------------
@@ -2185,251 +2285,104 @@ style class_select_btn is button_text:
 
 
 ## ---------------------------------------------------------------------------
-## Full Stats Screen — detailed breakdown with descriptions
-## Usage: call screen full_stats_screen
+## Achievements list — render-only sub-screen used by trophies_menu (and
+## reusable wherever else we want to surface trophies). Counts + grid only;
+## caller supplies the container, header, and dismiss control.
 ## ---------------------------------------------------------------------------
-screen full_stats_screen():
-    modal True
-    zorder 400
 
-    add "#0d0d11ee"
-
-    vbox:
-        xalign 0.5
-        yalign 0.5
-        spacing 20
-
-        text "> SYSTEM STATUS <":
-            xalign 0.5
-            color "#cc2200"
-            size 36
-            bold True
-            font "fonts/RobotoMono-Regular.ttf"
-
-        ## Class + Difficulty row
-        hbox:
-            xalign 0.5
-            spacing 30
-
-            if stats.player_class == "bodybuilder":
-                text "CLASS: [[BODYBUILDER]]":
-                    color "#ff6633"
-                    size 20
-                    bold True
-            elif stats.player_class == "dark_empath":
-                text "CLASS: [[DARK EMPATH]]":
-                    color "#9944cc"
-                    size 20
-                    bold True
-            elif stats.player_class == "biohacker":
-                text "CLASS: [[BIOHACKER]]":
-                    color "#00cc88"
-                    size 20
-                    bold True
-
-            text "|":
-                color "#333333"
-                size 20
-
-            text "DIFFICULTY: [stats.difficulty.upper() if stats.difficulty else 'UNKNOWN']":
-                color "#888888"
-                size 20
-
-        ## Stats grid
-        frame:
-            xalign 0.5
-            background Frame("#0d0011cc", 4, 4)
-            padding (30, 20)
-            xsize 800
-
-            vbox:
-                spacing 14
-
-                text "MONEY":
-                    color "#ffd700"
-                    size 18
-                    bold True
-                text "[stats.available_money:,] CZK":
-                    color "#ffffff"
-                    size 22
-                    bold True
-                text "[stats.stats_description_money()]":
-                    color "#aaaaaa"
-                    size 16
-
-                text "─────────────────────────────────────────────":
-                    color "#222222"
-                    size 12
-
-                text "CODING SKILL":
-                    color "#00ccff"
-                    size 18
-                    bold True
-                text "[stats.coding_skill] / 250":
-                    color "#ffffff"
-                    size 22
-                    bold True
-                text "[stats.stats_description_coding_experience()]":
-                    color "#aaaaaa"
-                    size 16
-
-                text "─────────────────────────────────────────────":
-                    color "#222222"
-                    size 12
-
-                text "POLICE HATRED":
-                    color "#ff4444"
-                    size 18
-                    bold True
-                text "[stats.pcr_hatred] / 100":
-                    color "#ffffff"
-                    size 22
-                    bold True
-                text "[stats.stats_description_police_hatred()]":
-                    color "#aaaaaa"
-                    size 16
-
-        ## Buffs active
-        if stats.daily_btc_income > 0:
-            text "[[BTC INCOME]] — [stats.daily_btc_income] CZK per night":
-                xalign 0.5
-                color "#ffaa00"
-                size 16
-
-        textbutton "[[ CLOSE ]":
-            xalign 0.5
-            action Return()
-            text_style "class_select_btn"
-            background "#220000"
-            hover_background "#440000"
-            padding (20, 10)
-
-
-## ---------------------------------------------------------------------------
-## Achievements Screen
-## Usage: call screen achievements_screen
-## ---------------------------------------------------------------------------
-screen achievements_screen():
-    modal True
-    zorder 400
-
-    add "#0d0d11ee"
-
+screen _achievements_list():
     python:
         _unlocked = getattr(store, '_achievements_unlocked', set())
         _ach_total = len(ACHIEVEMENTS)
         _ach_count = len(_unlocked)
-        ## Group by category — preserve dict insertion order within each
         _ach_categories = ["Story", "Combat", "Collection", "Secret"]
         _ach_by_cat = {c: [] for c in _ach_categories}
         for _k, _v in ACHIEVEMENTS.items():
             _cat = _v.get("category", "Story")
             _ach_by_cat.setdefault(_cat, []).append((_k, _v))
-        ## Per-category counts
-        _ach_cat_counts = {}
-        for _c, _items in _ach_by_cat.items():
-            _ach_cat_counts[_c] = (sum(1 for _k, _ in _items if _k in _unlocked), len(_items))
+        _ach_cat_counts = {
+            _c: (sum(1 for _k, _ in _items if _k in _unlocked), len(_items))
+            for _c, _items in _ach_by_cat.items()
+        }
 
     vbox:
-        xalign 0.5
-        yalign 0.5
-        spacing 12
-
-        text "> ACHIEVEMENTS <":
-            xalign 0.5
-            color "#cc2200"
-            size 32
-            bold True
-            font "fonts/RobotoMono-Regular.ttf"
+        spacing 14
 
         text "[_ach_count] / [_ach_total] UNLOCKED":
-            xalign 0.5
             color "#888888"
             size 18
+            font "fonts/RobotoMono-Regular.ttf"
 
-        viewport:
-            xsize 1000
-            ysize 720
-            scrollbars "vertical"
-            mousewheel True
-            draggable True
+        for _cat in _ach_categories:
+            if _ach_by_cat.get(_cat):
+                $ _cat_done, _cat_total = _ach_cat_counts.get(_cat, (0, 0))
 
-            vbox:
-                spacing 14
+                text "{} ({}/{})".format(_cat.upper(), _cat_done, _cat_total):
+                    color "#cc2200"
+                    size 18
+                    bold True
+                    font "fonts/RobotoMono-Regular.ttf"
 
-                for _cat in _ach_categories:
-                    if _ach_by_cat.get(_cat):
-                        $ _cat_done, _cat_total = _ach_cat_counts.get(_cat, (0, 0))
+                $ _entries = _ach_by_cat[_cat]
+                $ _pairs = [(_entries[i], _entries[i+1] if i+1 < len(_entries) else None) for i in range(0, len(_entries), 2)]
 
-                        hbox:
-                            spacing 10
-                            text "{} ({}/{})".format(_cat.upper(), _cat_done, _cat_total):
-                                color "#cc2200"
-                                size 18
-                                bold True
-                                font "fonts/RobotoMono-Regular.ttf"
+                for _left, _right in _pairs:
+                    hbox:
+                        spacing 12
 
-                        ## Render in pairs so odd-count categories render correctly
-                        $ _entries = _ach_by_cat[_cat]
-                        $ _pairs = [(_entries[i], _entries[i+1] if i+1 < len(_entries) else None) for i in range(0, len(_entries), 2)]
+                        for _entry in (_left, _right):
+                            if _entry is None:
+                                frame:
+                                    xsize 460
+                                    background "#00000000"
+                            else:
+                                $ _ach_key, _ach_data = _entry
+                                $ _is_unlocked = _ach_key in _unlocked
+                                $ _is_secret   = _ach_data.get("category") == "Secret"
+                                $ _frame_bg    = Frame("#1a0011dd", 4, 4) if _is_unlocked else Frame("#0d0d0ddd", 4, 4)
+                                frame:
+                                    xsize 460
+                                    background _frame_bg
+                                    padding (14, 10)
 
-                        vbox:
-                            spacing 12
-
-                            for _left, _right in _pairs:
-                                hbox:
-                                    spacing 12
-
-                                    for _entry in (_left, _right):
-                                        if _entry is None:
-                                            frame:
-                                                xsize 460
-                                                background "#00000000"
+                                    vbox:
+                                        spacing 4
+                                        if _is_unlocked:
+                                            text _ach_data["name"]:
+                                                color "#ffdd00"
+                                                size 16
+                                                bold True
+                                            text _ach_data["desc"]:
+                                                color "#cccccc"
+                                                size 14
+                                        elif _is_secret:
+                                            text "???":
+                                                color "#444444"
+                                                size 16
+                                                bold True
+                                            text "Secret achievement — discover it to reveal.":
+                                                color "#333333"
+                                                size 14
                                         else:
-                                            $ _ach_key, _ach_data = _entry
-                                            $ _is_unlocked = _ach_key in _unlocked
-                                            $ _is_secret   = _ach_data.get("category") == "Secret"
-                                            $ _frame_bg    = Frame("#1a0011dd", 4, 4) if _is_unlocked else Frame("#0d0d0ddd", 4, 4)
-                                            frame:
-                                                xsize 460
-                                                background _frame_bg
-                                                padding (14, 10)
+                                            text _ach_data["name"]:
+                                                color "#666666"
+                                                size 16
+                                                bold True
+                                            text _ach_data.get("hint", "Locked."):
+                                                color "#555555"
+                                                size 14
+                                                italic True
 
-                                                vbox:
-                                                    spacing 4
-                                                    if _is_unlocked:
-                                                        text _ach_data["name"]:
-                                                            color "#ffdd00"
-                                                            size 16
-                                                            bold True
-                                                        text _ach_data["desc"]:
-                                                            color "#cccccc"
-                                                            size 14
-                                                    elif _is_secret:
-                                                        text "???":
-                                                            color "#444444"
-                                                            size 16
-                                                            bold True
-                                                        text "Secret achievement — discover it to reveal.":
-                                                            color "#333333"
-                                                            size 14
-                                                    else:
-                                                        text _ach_data["name"]:
-                                                            color "#666666"
-                                                            size 16
-                                                            bold True
-                                                        text _ach_data.get("hint", "Locked."):
-                                                            color "#555555"
-                                                            size 14
-                                                            italic True
 
-        textbutton "[[ CLOSE ]":
-            xalign 0.5
-            action Return()
-            text_style "class_select_btn"
-            background "#220000"
-            hover_background "#440000"
-            padding (20, 10)
+## ---------------------------------------------------------------------------
+## Trophies Menu — opened from the navigation/escape menu.
+## ---------------------------------------------------------------------------
+
+screen trophies_menu():
+    tag menu
+
+    use game_menu(_("Trophies"), scroll="viewport"):
+        use _achievements_list
 
 
 ## ---------------------------------------------------------------------------
@@ -2894,6 +2847,10 @@ screen navigation():
         textbutton _("Load") action ShowMenu("load")
 
         textbutton _("Preferences") action ShowMenu("preferences")
+
+        if stats is not None:
+
+            textbutton _("Trophies") action [Hide("phone_screen"), ShowMenu("trophies_menu")]
 
         if _in_replay:
 

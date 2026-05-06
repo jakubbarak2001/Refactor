@@ -11,6 +11,9 @@ label martin_meeting:
     ## Autosave: before Martin meeting (Day 24)
     $ renpy.save("auto-day24-martin", "Day 24 — The Martin Meeting")
 
+    python:
+        store._phone_notifications.append("Martin: 'Cafe. 11:30. Don't be late.'")
+
     $ martin_affection = 0
 
     play music "audio/martin_meeting_event_the_arrival.mp3" fadein 1.0

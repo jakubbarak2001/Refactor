@@ -276,6 +276,9 @@ init python:
         store.bb_arc_stage = 0
         store.de_arc_stage = 0
         store.bh_arc_stage = 0
+        ## Phone notification queue — set-pieces append strings here, PHONE button
+        ## in the hub appears only when non-empty (cleared on user view).
+        store._phone_notifications = []
         ## Israeli unlock for BH telegram arc (set by re_israeli_developer if BH path taken)
         ## (flmodafinil_unlocked already gates this; bh_arc_stage starts when that flag flips)
 

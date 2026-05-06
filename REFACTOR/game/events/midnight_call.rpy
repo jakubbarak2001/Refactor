@@ -15,6 +15,9 @@ label midnight_call:
     ## Autosave: before midnight call (Day 15)
     $ renpy.save("auto-day15-midnight", "Day 15 — The Midnight Call")
 
+    python:
+        store._phone_notifications.append("Missed call: COLONEL (02:17 AM)")
+
     stop music fadeout 1.0
 
     ## Play the midnight call cinematic
