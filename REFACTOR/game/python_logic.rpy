@@ -160,9 +160,6 @@ init python:
         "insane": {"money": 20000, "coding":  0,  "hatred": 35,
                    "nightly_hatred_mult": 1.2, "salary_mult": 0.85, "purchase_mult": 1.10, "score_mult": 5.0,
                    "opp_rate": 20, "minigame_retries": 0, "colonel_deck_size": 9},
-        "ultra":  {"money": 10000, "coding": -25, "hatred": 50,
-                   "nightly_hatred_mult": 1.5, "salary_mult": 0.70, "purchase_mult": 1.25, "score_mult": 10.0,
-                   "opp_rate": 15, "minigame_retries": 0, "colonel_deck_size": 12},
     }
 
     def diff_setting(key, default=None):

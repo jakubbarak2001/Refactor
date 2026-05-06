@@ -1099,7 +1099,7 @@ label happy_nation_ending:
 
     python:
         _base_score  = (stats.available_money / 100) + (stats.coding_skill * 120)
-        _diff_mult   = {"easy": 1.0, "hard": 2.5, "insane": 5.0, "ultra": 10.0}.get(stats.difficulty, 1.0)
+        _diff_mult   = {"easy": 1.0, "hard": 2.5, "insane": 5.0}.get(stats.difficulty, 1.0)
         _final_score = int(_base_score * _diff_mult * 0.1)
         _diff_name   = (stats.difficulty or "unknown").capitalize()
 

@@ -199,8 +199,6 @@ init python:
         7:  ["training_debt", "why_quit", "civilian_void", "brotherhood", "safety_net", "debt_of_honor", "blacklist"],
         ## Insane: 9 cards — base + 2 fillers
         9:  ["training_debt", "why_quit", "civilian_void", "brotherhood", "safety_net", "debt_of_honor", "blacklist", "cold_stare", "compounding_pressure"],
-        ## Ultra: 12 cards — base + 5 pressure cards (more compounds, final threat)
-        12: ["training_debt", "why_quit", "civilian_void", "brotherhood", "safety_net", "debt_of_honor", "blacklist", "cold_stare", "coffee_pour", "authority_display", "compounding_pressure", "final_threat"],
     }
 
     def build_colonel_deck():

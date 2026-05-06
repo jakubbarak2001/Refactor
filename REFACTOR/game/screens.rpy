@@ -1633,16 +1633,6 @@ init python:
             "portrait": "diff_insane",
             "color":   "#ff4444",
         },
-        {
-            "key":     "ultra",
-            "name":    "SYSTEM FAILURE",
-            "flavor":  "You googled 'what is syntax' and still got it wrong.",
-            "money":   "10,000",
-            "coding":  "-25",
-            "hatred":  "50",
-            "portrait": "diff_ultra",
-            "color":   "#cc44ff",
-        },
     ]
 
 ## Portrait swap — fades in whenever a new portrait is shown
@@ -1808,41 +1798,6 @@ screen difficulty_selection_screen():
                 yalign 0.5
                 padding (0, 18, 0, 18)
 
-    ## Level 4 — I AM THE STACK OVERFLOW
-    frame:
-        xpos 0
-        ypos 448
-        xsize 718
-        ysize 76
-        background ("#cc220018" if _hov == 3 else "#00000000")
-
-        hbox:
-            yalign 0.5
-            frame:
-                xsize 5
-                ysize 76
-                background ("#cc2200" if _hov == 3 else "#1a0000")
-            frame:
-                xsize 22
-                ysize 76
-                background "#00000000"
-            text ("▶  " if _hov == 3 else "   "):
-                color "#cc2200"
-                size 28
-                yalign 0.5
-                font "fonts/RobotoMono-Regular.ttf"
-            textbutton "SYSTEM FAILURE":
-                action [SetField(store, "_chosen_difficulty", "ultra"), Return()]
-                hovered SetScreenVariable("_hov", 3)
-                text_color ("#cc44ff" if _hov == 3 else "#555555")
-                text_size  (32 if _hov == 3 else 28)
-                text_bold  (_hov == 3)
-                text_font  "fonts/RobotoMono-Regular.ttf"
-                background "#00000000"
-                hover_background "#00000000"
-                yalign 0.5
-                padding (0, 18, 0, 18)
-
     ## ── Stats block (bottom-left) ───────────────────────────────────────────
 
     ## Separator
@@ -1918,7 +1873,7 @@ screen difficulty_selection_screen():
 
     ## ── Keyboard navigation ─────────────────────────────────────────────────
     key "K_UP"       action SetScreenVariable("_hov", max(0, _hov - 1))
-    key "K_DOWN"     action SetScreenVariable("_hov", min(3, _hov + 1))
+    key "K_DOWN"     action SetScreenVariable("_hov", min(2, _hov + 1))
     key "K_RETURN"   action [SetField(store, "_chosen_difficulty", DIFF_DATA[_hov]["key"]), Return()]
     key "K_KP_ENTER" action [SetField(store, "_chosen_difficulty", DIFF_DATA[_hov]["key"]), Return()]
 
