@@ -263,6 +263,23 @@ label day_start:
         if current_day == stats.colonel_day:
             renpy.call("colonel_event")
 
+    ## BH-only random spending event — fires on non-event days, ~30% chance.
+    ## "The cost of optimizing." Pool reshuffles when exhausted (events recur).
+    python:
+        _bh_event_day = (
+            current_day == 6 or
+            current_day == 12 or
+            current_day == 14 or
+            current_day == 15 or
+            current_day == 18 or
+            (current_day % 3 == 0 and current_day < 22) or
+            current_day == 24 or
+            current_day == stats.colonel_day
+        )
+        _is_bh_player = (stats and stats.player_class == "biohacker")
+    if _is_bh_player and not _bh_event_day:
+        call bh_spending_check from _call_bh_spending_check
+
     jump daily_menu
 
 

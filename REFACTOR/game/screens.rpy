@@ -683,17 +683,15 @@ screen activity_select_screen():
             size 15
             font "fonts/RobotoMono-Regular.ttf"
 
-    ## Tile rows - 3 + 2 layout (third cell of row 2 is intentionally empty)
-    vbox:
+    ## Tile row — 4 tiles in a single row. Slot 1 is the class-locked relief
+    ## activity (only that class sees that tile). Slots 2-4 are universal.
+    hbox:
         xalign 0.5
         yalign 0.5
         spacing 28
 
-        hbox:
-            spacing 28
-            xalign 0.5
-
-            ## GYM - class-relevant for BB
+        ## Slot 1 - CLASS-LOCKED relief activity. Each class sees only their own.
+        if _is_bb:
             use _activity_tile(
                 label_name     = "activity_gym",
                 title          = "GYM",
@@ -703,94 +701,71 @@ screen activity_select_screen():
                 detail_text    = "ROLL",
                 card_hint      = "Iron Will / Quick Jab / Personal Record",
                 flavor_text    = "An hour where the bar tells the truth.",
-                class_relevant = _is_bb,
+                class_relevant = True,
             )
-
-            ## Class-specific relief tile - the only tile that GLOWS in the
-            ## player's class color, since this slot IS the class-relevant slot.
-            if _is_bb:
-                use _activity_tile(
-                    label_name     = "activity_gym_heavy",
-                    title          = "HEAVY SESSION",
-                    accent         = class_accent_color("bodybuilder"),
-                    cost_text      = "{:,} CZK".format(adjusted_cost(800)),
-                    effect_text    = "-30 Hatred, +1 SOMA",
-                    detail_text    = "FIXED",
-                    card_hint      = "",
-                    flavor_text    = "Vladek's day. The body trains you back.",
-                    class_relevant = True,
-                )
-            elif _is_de:
-                use _activity_tile(
-                    label_name     = "activity_cold_read",
-                    title          = "COLD READ",
-                    accent         = class_accent_color("dark_empath"),
-                    cost_text      = "FREE",
-                    effect_text    = "-20 Hatred",
-                    detail_text    = "BRANCHED",
-                    card_hint      = "Vigil / Mirror",
-                    flavor_text    = "Regular for the card. Deep for the profile.",
-                    class_relevant = True,
-                )
-            elif _is_bh:
-                use _activity_tile(
-                    label_name     = "activity_recovery",
-                    title          = "RECOVERY",
-                    accent         = class_accent_color("biohacker"),
-                    cost_text      = "{:,} CZK".format(adjusted_cost(500)),
-                    effect_text    = "-30 Hatred",
-                    detail_text    = "FIXED",
-                    card_hint      = "",
-                    flavor_text    = "Red light. Sauna. Cold plunge. Data clean.",
-                    class_relevant = True,
-                )
-
-            ## BOUNCER - money path, neutral for every class.
+        elif _is_de:
             use _activity_tile(
-                label_name     = "activity_bouncer",
-                title          = "BOUNCER",
-                accent         = "#ffd700",
+                label_name     = "activity_cold_read",
+                title          = "COLD READ",
+                accent         = class_accent_color("dark_empath"),
                 cost_text      = "FREE",
-                effect_text    = "+ CZK, +/- Hatred",
+                effect_text    = "-20 Hatred",
                 detail_text    = "BRANCHED",
-                card_hint      = "Side Income / Loan Sharks",
-                flavor_text    = "Nightclub safe. Strip bar volatile.",
-                class_relevant = False,
+                card_hint      = "Vigil / Mirror",
+                flavor_text    = "Regular for the card. Deep for the profile.",
+                class_relevant = True,
             )
-
-        hbox:
-            spacing 28
-            xalign 0.5
-
-            ## CODING - class-relevant for BH (the keyboard is BH's gym).
+        elif _is_bh:
             use _activity_tile(
-                label_name     = "activity_coding",
-                title          = "CODING",
+                label_name     = "activity_recovery",
+                title          = "RECOVERY",
                 accent         = class_accent_color("biohacker"),
-                cost_text      = "FREE",
-                effect_text    = "+ Coding",
-                detail_text    = "BRANCHED",
-                card_hint      = "Compile / Refactor / Algorithm / Production Push",
-                flavor_text    = "Practice / Fiverr / Bootcamp / Puzzle.",
-                class_relevant = _is_bh,
+                cost_text      = "{:,} CZK".format(adjusted_cost(500)),
+                effect_text    = "-30 Hatred",
+                detail_text    = "FIXED",
+                card_hint      = "",
+                flavor_text    = "Red light. Sauna. Cold plunge. Data clean.",
+                class_relevant = True,
             )
 
-            ## NIGHT SHIFT - shared money + hatred trade.
-            use _activity_tile(
-                label_name     = "activity_night_shift",
-                title          = "NIGHT SHIFT",
-                accent         = "#3388cc",
-                cost_text      = "FREE",
-                effect_text    = "+3,000 CZK, +15 Hatred",
-                detail_text    = "RANDOM",
-                card_hint      = "Backup",
-                flavor_text    = "Trade time for money.",
-                class_relevant = False,
-            )
+        ## BOUNCER - money path, neutral for every class.
+        use _activity_tile(
+            label_name     = "activity_bouncer",
+            title          = "BOUNCER",
+            accent         = "#ffd700",
+            cost_text      = "FREE",
+            effect_text    = "+ CZK, +/- Hatred",
+            detail_text    = "BRANCHED",
+            card_hint      = "Side Income / Loan Sharks",
+            flavor_text    = "Nightclub safe. Strip bar volatile.",
+            class_relevant = False,
+        )
 
-            ## Third cell intentionally empty - keeps the grid symmetric without
-            ## promoting BACK to a peer activity. BACK floats bottom-left.
-            null width 320 height 260
+        ## CODING - everyone needs to learn the trade.
+        use _activity_tile(
+            label_name     = "activity_coding",
+            title          = "CODING",
+            accent         = "#00ccff",
+            cost_text      = "FREE",
+            effect_text    = "+ Coding",
+            detail_text    = "BRANCHED",
+            card_hint      = "Compile / Refactor / Algorithm / Production Push",
+            flavor_text    = "Practice / Fiverr / Bootcamp / Puzzle.",
+            class_relevant = False,
+        )
+
+        ## NIGHT SHIFT - shared money + hatred trade.
+        use _activity_tile(
+            label_name     = "activity_night_shift",
+            title          = "NIGHT SHIFT",
+            accent         = "#3388cc",
+            cost_text      = "FREE",
+            effect_text    = "+3,000 CZK, +15 Hatred",
+            detail_text    = "RANDOM",
+            card_hint      = "Backup",
+            flavor_text    = "Trade time for money.",
+            class_relevant = False,
+        )
 
     ## Floating BACK button - bottom-left, deliberately separate from the
     ## activity grid so it reads as navigation, not a tile.
@@ -994,7 +969,7 @@ screen day_calendar():
             spacing 6
             xalign 0.5
 
-            text "DAY [_today] / 30   ▸   [_days_to_colonel] DAYS UNTIL CONFRONTATION":
+            text "DAY [_today] / 30   —   [_days_to_colonel] DAYS UNTIL CONFRONTATION":
                 color "#cccccc"
                 size 14
                 bold True
