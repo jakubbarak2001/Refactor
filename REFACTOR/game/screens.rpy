@@ -607,9 +607,9 @@ screen daily_hub_screen():
                 if _deep > 0:
                     _hint_lines.append("PROFILES {} deep — +{} peek-intent depth in the colonel fight.".format(_deep, 1 + _deep))
             elif stats.player_class == "biohacker":
-                _proto = getattr(store, 'bh_protocol', None)
-                if _proto and _proto != "Daily":
-                    _hint_lines.append("Stack {} active — +1 max energy in the colonel fight.".format(_proto))
+                _doses = sum(getattr(store, 'nootropic_uses', [0,0,0,0,0]))
+                if _doses >= 3:
+                    _hint_lines.append("STACK doses {} — +1 max energy in the colonel fight.".format(_doses))
 
     frame:
         xpos 1690

@@ -321,15 +321,15 @@ init python:
             "tagline": "Optimized. Caffeinated. Slightly illegal.",
             "color":   "#00cc88",
             "perks": [
-                "Starts with +10 Coding Skill and 300 CZK/day BTC income.",
+                "Starts with +5 Coding Skill and 200 CZK/day BTC income.",
                 "Israeli Developer event always grants max coding reward.",
                 "Fiverr lessons always grant +25 Coding (top-tier tutor).",
                 "Colonel's Safety Net attack is auto-countered.",
             ],
-            "passive": "Starts with +10 Coding Skill, 300 CZK/day BTC income.",
-            "coding_modifier": 10,
+            "passive": "Starts with +5 Coding Skill, 200 CZK/day BTC income.",
+            "coding_modifier": 5,
             "hatred_modifier":  0,
-            "btc_modifier":   300,
+            "btc_modifier":   200,
         },
     }
 
