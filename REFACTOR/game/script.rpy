@@ -73,7 +73,6 @@ label dev_skip_to_colonel:
         if _picked_class == "bodybuilder":
             grant_card("iron_stance", silent=True)
 
-        ## Skip the day counter forward so colonel_event won't try to JBDARK
         day_cycle.current_day = 25
         stats.colonel_day = 25
 
@@ -195,14 +194,9 @@ label day_start:
     python:
         # Check loss conditions
         if stats.pcr_hatred >= 100:
-            if current_day >= 25:
-                renpy.jump("burnout_ending")
-            else:
-                renpy.jump("mental_breakdown_ending")
+            renpy.jump("hatred_collapse_ending")
         if stats.available_money <= 0:
             renpy.jump("homeless_ending")
-        # NOTE: Perfect-ending (Escape Artist) check moved to colonel_victory_resolution
-        # so the player has to actually beat the colonel — not skip the fight on day 29.
 
     ## Crisis event — fires once per run when Hatred reaches 85
     python:
@@ -286,10 +280,7 @@ label daily_menu:
     python:
         # Check loss conditions at start of each menu loop
         if stats.pcr_hatred >= 100:
-            if day_cycle.current_day >= 25:
-                renpy.jump("burnout_ending")
-            else:
-                renpy.jump("mental_breakdown_ending")
+            renpy.jump("hatred_collapse_ending")
         if stats.available_money <= 0:
             renpy.jump("homeless_ending")
 
@@ -990,10 +981,6 @@ label do_end_day:
     "END OF DAY [day_cycle.current_day]"
 
     python:
-        ## Track sustained-peak-hatred days for JBDARK ending trigger
-        if stats.pcr_hatred >= 95:
-            store._hatred_peak_days = getattr(store, '_hatred_peak_days', 0) + 1
-
         # Base nightly hatred scales with difficulty (Easy 4, Hard 5, Insane 6, Ultra 7-8)
         _nightly_base = int(round(5 * diff_setting("nightly_hatred_mult", 1.0)))
         stats.increment_stats_pcr_hatred(_nightly_base)
@@ -1015,10 +1002,7 @@ label do_end_day:
     python:
         # Check loss conditions after passives
         if stats.pcr_hatred >= 100:
-            if day_cycle.current_day >= 25:
-                renpy.jump("burnout_ending")
-            else:
-                renpy.jump("mental_breakdown_ending")
+            renpy.jump("hatred_collapse_ending")
         if stats.available_money <= 0:
             renpy.jump("homeless_ending")
 

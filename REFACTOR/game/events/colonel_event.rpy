@@ -17,14 +17,6 @@ label colonel_event:
     call colonel_pre_arc_check from _call_colonel_pre_arc_a
     call colonel_pre_arc_check from _call_colonel_pre_arc_b
 
-    ## JBDARK trigger — sustained 95+ hatred AND nightmare wolf event triggered.
-    ## The reality breaks before the fight can happen.
-    python:
-        _hp_days = getattr(store, '_hatred_peak_days', 0)
-        _nw      = getattr(store, '_nightmare_wolf_triggered', False)
-        if _hp_days >= 3 and _nw:
-            renpy.jump("jbdark_ending")
-
     play music "audio/tension_theme.mp3" fadein 1.0
 
     call screen arc_title_card("III", "THE RECKONING") with arc_fade
@@ -78,26 +70,22 @@ label colonel_event:
     if _outcome == "defeat":
         jump colonel_defeat_ending
 
-    ## CORRUPT chain — overrides any victory type. ÚRNA gets you regardless of how clean the fight was.
+    ## Victory routing — collapsed to GOOD / HAPPY_NATION / REUNION.
+    ## CORRUPT chain overrides everything: ÚRNA gets you regardless of fight quality.
+    ## REUNION fires when the fight was won but stats can't sustain a dev career —
+    ## both coding AND money must fail; single-stat fail still rides into GOOD.
     python:
         if getattr(store, 'corrupt_chain_3_completed', False):
             renpy.jump("happy_nation_ending")
-
-    ## REUNION trigger — won the fight but stats can't sustain a dev career.
-    ## Need BOTH unhireable coding AND insufficient runway — single-stat fail still
-    ## allows a normal good ending, since the other stat covers the gap.
-    python:
         if stats.coding_skill < 70 and stats.available_money < 25000:
             renpy.jump("reunion_ending")
 
-    if _outcome == "victory_close":
-        jump colonel_close_victory
+    ## Perfect victory still earns the glitch phase narrative; close/pyrrhic flow
+    ## directly into the standard good ending.
+    if _outcome == "victory_perfect":
+        jump colonel_glitch_phase
 
-    if _outcome == "victory_pyrrhic":
-        jump colonel_pyrrhic_victory
-
-    ## victory_perfect — earn the glitch phase
-    jump colonel_glitch_phase
+    jump good_ending
 
 
 ## ---------------------------------------------------------------------------
@@ -295,9 +283,6 @@ label colonel_victory_resolution:
     python:
         if getattr(store, 'corrupt_chain_3_completed', False):
             renpy.jump("happy_nation_ending")
-        ## Perfect-ending check: only reached AFTER beating the colonel
-        if stats.coding_skill >= 150 and stats.available_money >= 150000 and stats.pcr_hatred <= 30:
-            renpy.jump("escape_artist_ending")
 
     ## Normal victory: escaped
     jump good_ending

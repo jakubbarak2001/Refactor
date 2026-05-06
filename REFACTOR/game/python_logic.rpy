@@ -263,8 +263,6 @@ init python:
         store.corrupt_chain_1 = False
         store.corrupt_chain_2 = False
         store.corrupt_chain_3_completed = False
-        ## JBDARK ending tracking
-        store._hatred_peak_days = 0
         store._nightmare_wolf_triggered = False
 
         ## --- Class progression state ---
@@ -346,14 +344,11 @@ init python:
         "ghost_walker":     {"category": "Story",      "name": "Ghost Walker",            "desc": "Walk away from the car incident and get away with it.",         "hint": "Refuse to help during the car incident — and survive it."},
         "paul_fan":         {"category": "Story",      "name": "Better Call Paul",        "desc": "Call Paul Goodman on the Colonel.",                             "hint": "Use a lawyer in the final fight."},
         "dark_night":       {"category": "Story",      "name": "Dark Night of the Soul",  "desc": "Complete The Midnight Call.",                                   "hint": "Take the Day-15 phone call."},
-        "escape_artist":    {"category": "Combat",     "name": "Escape Artist",           "desc": "Achieve the Perfect Ending.",                                   "hint": "Survive Day 30 with high coding, high savings, and low hatred."},
-        "journalist":       {"category": "Secret",     "name": "The Journalist",          "desc": "Unlock the secret Journalist ending.",                          "hint": "???"},
         "dark_empath_win":  {"category": "Combat",     "name": "Mirror Mirror",           "desc": "Use the FATAL STRIKE as Dark Empath.",                          "hint": "Dark Empath only — find the Colonel's hidden vulnerability."},
         "biohacker_win":    {"category": "Combat",     "name": "Optimized",               "desc": "Auto-counter Safety Net as Biohacker.",                         "hint": "Biohacker only — let the Colonel try the safety net argument."},
         "damage_control":   {"category": "Story",      "name": "Damage Control",          "desc": "Successfully patch the Commandant's car before anyone notices.","hint": "Cover up the car incident and pass the inspection."},
         "hackerman":        {"category": "Collection", "name": "Hackerman",               "desc": "Max out coding skill to 250. You are the compiler now.",        "hint": "Reach 250 Coding Skill (the cap)."},
         "the_return":       {"category": "Story",      "name": "The Return",              "desc": "Beat the Colonel, then crawl back to the station six months later.","hint": "Beat the Colonel without the skills or savings to actually leave."},
-        "infinite_loop":    {"category": "Secret",     "name": "Infinite Loop",           "desc": "Some debts compile at runtime. Some bugs don't compile at all.",  "hint": "???"},
         ## --- Class arc achievements ---
         "vladeks_pupil":    {"category": "Story",      "name": "Vladek's Pupil",          "desc": "Place at the Strongman competition. The trainer was right.",     "hint": "Bodybuilder only — finish Vladek's competition arc on the podium."},
         "bring_the_lt":     {"category": "Story",      "name": "Bring The Lieutenant",    "desc": "Expose Kovář's flagged report to journalists.",                  "hint": "Dark Empath only — choose to expose, not leverage or comply."},

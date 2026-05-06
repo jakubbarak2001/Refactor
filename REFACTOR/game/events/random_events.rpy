@@ -61,7 +61,8 @@ label re_israeli_developer:
 
 ## ---------------------------------------------------------------------------
 ## EVENT 2: The Nightmare
-## Sets _nightmare_wolf_triggered (gates JBDARK ending).
+## Atmospheric Arc-II beat. Flag retained for save-state continuity, no longer
+## gates a hidden ending.
 ## ---------------------------------------------------------------------------
 
 label re_nightmare_wolf:
