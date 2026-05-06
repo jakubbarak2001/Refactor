@@ -512,8 +512,8 @@ init python:
 
     def class_arc_pre_colonel_check():
         """Last-resort firing of any unfinished class arc before the colonel fight.
-        Called from colonel_event before the JBDARK gate.
-        Returns a label name or None.
+        Called twice from colonel_event so a player with stages 2 and 3 still pending
+        sees both before the deck battle starts. Returns a label name or None.
         """
         if stats is None:
             return None

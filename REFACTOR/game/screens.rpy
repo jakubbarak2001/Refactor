@@ -581,19 +581,11 @@ screen daily_hub_screen():
         if stats:
             if stats.coding_skill < 70:
                 _hint_lines.append("Coding < 70 — REUNION risk if you also run out of money.")
-            elif stats.coding_skill < 150:
-                _hint_lines.append("Coding {} — Escape Artist threshold is 150.".format(stats.coding_skill))
-            else:
-                _hint_lines.append("Coding {} — Escape Artist track unlocked.".format(stats.coding_skill))
 
             if stats.available_money < 25000:
                 _hint_lines.append("Money low — REUNION risk if coding also weak.")
-            elif stats.available_money < 150000:
-                _hint_lines.append("Money {:,} — Escape Artist needs 150,000.".format(stats.available_money))
 
-            if stats.pcr_hatred >= 85:
-                _hint_lines.append("Hatred {}/100 — sustained 95+ for 3 days triggers JBDARK.".format(stats.pcr_hatred))
-            elif stats.pcr_hatred >= 60:
+            if stats.pcr_hatred >= 60:
                 _hint_lines.append("Hatred {}/100 — over 60 unlocks contempt mode on Cold Read.".format(stats.pcr_hatred))
 
             ## Class-tracker hints
