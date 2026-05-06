@@ -618,7 +618,15 @@ init python:
     ## ---------------- BATTLE OUTCOME ----------------
 
     def battle_outcome():
-        """Returns 'victory_perfect' / 'victory_pyrrhic' / 'victory_close' / 'defeat'."""
+        """Returns 'victory_perfect' / 'victory_pyrrhic' / 'victory_close' / 'defeat'.
+
+        If bs.over is None at call-time, the battle didn't end normally —
+        return 'defeat' as the conservative default. The floor-clamp on
+        player damage (deal_damage source_kind='effect') ensures bs.over
+        is never set by card-play, so the only way to reach this fallback
+        is genuine engine misuse — better to fail closed than hand the
+        player a free victory.
+        """
         bs = battle_state
         if bs is None:
             return "defeat"
@@ -632,10 +640,4 @@ init python:
                 return "victory_pyrrhic"
             else:
                 return "victory_close"
-        ## bs.over is None — battle didn't end normally. Don't punish the
-        ## player with a defeat: if they're still alive, treat as close
-        ## victory (the worst legitimate win). Prevents the historical
-        ## insta-defeat bug where the screen returned with bs.over unset.
-        if bs.player_hp > 0:
-            return "victory_close"
         return "defeat"
