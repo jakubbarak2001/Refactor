@@ -42,20 +42,29 @@ screen stats_bar():
 
             ## Class badge — colour-coded per class
             if stats.player_class == "bodybuilder":
-                text "[[BODYBUILDER][_class_track]":
-                    color "#ff6633"
-                    size 16
-                    bold True
+                button:
+                    action NullAction()
+                    tooltip "Greek for body. Every rep is one more piece of you that takes up space in the room. The right amount means the Colonel still has to look at you across the desk."
+                    text "[[BODYBUILDER][_class_track]":
+                        color "#ff6633"
+                        size 16
+                        bold True
             elif stats.player_class == "dark_empath":
-                text "[[DARK EMPATH][_class_track]":
-                    color "#9944cc"
-                    size 16
-                    bold True
+                button:
+                    action NullAction()
+                    tooltip "A working theory of someone, built from small things they don't know they're showing you. The deeper the profile, the more predictable they get. You used to do this for suspects. Now you do it for everyone."
+                    text "[[DARK EMPATH][_class_track]":
+                        color "#9944cc"
+                        size 16
+                        bold True
             elif stats.player_class == "biohacker":
-                text "[[BIOHACKER][_class_track]":
-                    color "#00cc88"
-                    size 16
-                    bold True
+                button:
+                    action NullAction()
+                    tooltip "The clinical word for the stack — exact compound, exact dose, exact timing. Started with caffeine. The right one buys you a turn the others don't get."
+                    text "[[BIOHACKER][_class_track]":
+                        color "#00cc88"
+                        size 16
+                        bold True
             else:
                 text "[[ROOKIE]":
                     color "#888888"
@@ -93,6 +102,20 @@ screen stats_bar():
             text "Day: [day_cycle.current_day]/30":
                 color "#aaaaaa"
                 size 18
+
+    $ _stats_tt = GetTooltip()
+    if _stats_tt:
+        frame:
+            xalign 0.5
+            ypos 60
+            padding (12, 8)
+            background Frame("#0d1018ee", 4, 4)
+            text "[_stats_tt]":
+                color "#cccccc"
+                size 14
+                xalign 0.5
+                xmaximum 800
+                text_align 0.5
 
 
 ## ---------------------------------------------------------------------------
