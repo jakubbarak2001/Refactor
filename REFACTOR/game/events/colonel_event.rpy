@@ -147,6 +147,22 @@ label colonel_round_two:
     "He invites you upstairs."
     "You follow."
 
+    if stats.player_class == "bodybuilder":
+        colonel "'You filled out.'"
+        colonel "'You take up more of the doorway than you used to. The chair too.'"
+        colonel "'Iron body. Iron will. {i}Limited vocabulary.{/i}'"
+        "He sets his coffee down on the far side of the desk. Clearing the space between you."
+    elif stats.player_class == "dark_empath":
+        colonel "'You haven't blinked since you walked in.'"
+        colonel "'Most men in your position look at the floor. Or the certificates on the wall. Something safe.'"
+        colonel "'You're looking at me like you already know how this ends.'"
+        "He starts to glance toward the window — and stops himself. Leans back in the chair instead."
+    elif stats.player_class == "biohacker":
+        colonel "'Your pupils are wide. Breathing's shallow. There's a sheen on your forehead the room doesn't justify.'"
+        colonel "'Whatever you took, you took it about forty minutes ago. It's at the top of its curve right now.'"
+        colonel "'Cute. We used to drink before a thing like this.'"
+        "He fastens the top button he never fastens. Trimming a variable he can still control."
+
     return
 
 
