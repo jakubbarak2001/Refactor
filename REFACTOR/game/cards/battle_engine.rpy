@@ -376,9 +376,16 @@ init python:
     def battle_play_card(card_id):
         """Play a card from hand. Returns True if played, False if not playable."""
         bs = battle_state
+        ## DIAG (insta-loss bug): capture state at click moment
+        if bs is not None:
+            bs.add_log("[[CLICK]]: card={} over={} hp={}/{} block={}".format(
+                card_id, bs.over, bs.player_hp, bs.player_max_hp, bs.player_block))
         if bs is None or bs.is_over():
+            if bs is not None:
+                bs.add_log("[[CLICK]]: REJECTED (bs is_over -> {})".format(bs.over))
             return False
         if card_id not in bs.hand:
+            bs.add_log("[[CLICK]]: REJECTED (card not in hand)")
             return False
         ok, reason = bs.hand_playable(card_id)
         if not ok:
@@ -397,6 +404,9 @@ init python:
                 card_effects[eff_id](bs, "player", "enemy")
             except Exception as e:
                 bs.add_log("Effect error: {}".format(e))
+            ## DIAG: post-effect state
+            bs.add_log("[[POST-EFF]]: over={} hp={} enemy={}".format(
+                bs.over, bs.player_hp, bs.enemy_hp))
 
         bs.last_card_played = card_id
 
