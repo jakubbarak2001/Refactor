@@ -168,6 +168,17 @@ init python:
             return default
         return DIFFICULTY_SETTINGS.get(stats.difficulty, {}).get(key, default)
 
+    def class_accent_color(player_class=None):
+        """Return the class accent color hex string. Falls back to neutral grey
+        if class is unset (e.g. before character_class_selection runs)."""
+        if player_class is None and stats is not None:
+            player_class = stats.player_class
+        return {
+            "bodybuilder": "#ff6633",
+            "dark_empath": "#9944cc",
+            "biohacker":   "#33cc66",
+        }.get(player_class, "#888888")
+
     def adjusted_cost(base):
         """Apply the active difficulty's purchase multiplier to a base cost."""
         return int(base * diff_setting("purchase_mult", 1.0))
@@ -289,7 +300,7 @@ init python:
         "bodybuilder": {
             "name":    "BODYBUILDER",
             "tagline": "Iron body. Iron will. Limited vocabulary.",
-            "color":   "#ff6633",
+            "color":   class_accent_color("bodybuilder"),
             "perks": [
                 "Gym sessions deal -5 extra Hatred on all outcomes.",
                 "Bouncer shifts pay +1,500 CZK on every outcome.",
@@ -304,7 +315,7 @@ init python:
         "dark_empath": {
             "name":    "DARK EMPATH",
             "tagline": "You feel everything. You weaponize it.",
-            "color":   "#9944cc",
+            "color":   class_accent_color("dark_empath"),
             "perks": [
                 "Auto +1 Affection per Martin Meeting phase.",
                 "COLD READ — free relief; OBSERVATION HOUR branch goes deeper, no card.",
@@ -320,7 +331,7 @@ init python:
         "biohacker": {
             "name":    "BIOHACKER",
             "tagline": "Optimized. Caffeinated. Slightly illegal.",
-            "color":   "#00cc88",
+            "color":   class_accent_color("biohacker"),
             "perks": [
                 "Starts with +5 Coding Skill and 200 CZK/day BTC income.",
                 "Israeli Developer event always grants max coding reward.",

@@ -277,6 +277,9 @@ screen battle_screen():
         }
         bs = battle_state
 
+    ## Class-color top + bottom border framing the entire fight.
+    use class_color_frame(thickness=6)
+
     if bs is None:
         text "[[BATTLE STATE NULL]]" xalign 0.5 yalign 0.5 color "#ff0000" size 32
     else:
