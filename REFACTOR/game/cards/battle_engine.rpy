@@ -72,8 +72,17 @@ init python:
                 self.log = self.log[-12:]
 
         ## ---------------- DAMAGE / BLOCK ----------------
-        def deal_damage(self, target, amount):
-            """target: 'player' | 'enemy' (or string aliases)"""
+        def deal_damage(self, target, amount, source_kind="effect"):
+            """target: 'player' | 'enemy' (or string aliases).
+
+            source_kind: 'effect' (card-played effect) | 'intent' (colonel's
+            attack resolving on enemy turn). Player-target damage from
+            'effect' sources (i.e., self-damage cards like vip_treatment,
+            hrv_spike, the_compound) is FLOOR-CLAMPED to leave at least 1 HP
+            so a single card play can never insta-defeat the player. This
+            is a fix for the long-standing 'select any card → instantly
+            loose' bug — see commit log.
+            """
             if amount <= 0:
                 return
             if target == "enemy":
@@ -94,6 +103,11 @@ init python:
                 absorbed = min(self.player_block, amount)
                 self.player_block -= absorbed
                 actual = amount - absorbed
+                ## Insta-loss prevention: card self-damage cannot drop HP below 1.
+                ## Only the colonel's actual intent (source_kind='intent') can defeat.
+                if source_kind == "effect" and (self.player_hp - actual) <= 0:
+                    actual = max(0, self.player_hp - 1)
+                    self.add_log("[[Floor]]: self-damage clipped — you survive at 1 HP.")
                 self.player_hp -= actual
                 self.last_damage_to_player = actual
                 self.add_log("JB takes {} damage.".format(actual))
@@ -271,6 +285,15 @@ init python:
         else:
             bs.enemy_max_hp = 160
         bs.enemy_hp = bs.enemy_max_hp
+
+        ## Sanity guard — ensure player HP is never <= 0 at battle start.
+        ## Power-card auto-fire effects + pre-battle debuffs (IMPOSTER_SYNDROME,
+        ## BH withdrawal) could in theory push HP negative if max_hp was tiny.
+        ## A non-positive HP at battle start triggers immediate defeat on the
+        ## first damage tick, which is the long-standing 'insta-loss' bug.
+        if bs.player_hp <= 0:
+            bs.player_hp = max(1, bs.player_max_hp)
+            bs.add_log("[[Sanity]]: HP was non-positive at battle start; reset to {}.".format(bs.player_hp))
 
         bs.add_log("[[INIT]]: HP {}/{}  Enemy {}/{}  deck {}  hand 0".format(
             bs.player_hp, bs.player_max_hp, bs.enemy_hp, bs.enemy_max_hp, len(bs.draw_pile)))
@@ -500,14 +523,14 @@ init python:
 
         if intent_type == "attack":
             dmg = max(1 if ic.get("value", 0) > 0 else 0, ic.get("value", 0) - damage_reduction)
-            bs.deal_damage("player", dmg)
+            bs.deal_damage("player", dmg, source_kind="intent")
         elif intent_type == "compound":
             hits = ic.get("value2", 1)
             per_hit = max(1 if ic.get("value", 0) > 0 else 0, ic.get("value", 0) - (damage_reduction // max(1, hits)))
             for _i in range(hits):
                 if bs.is_over():
                     break
-                bs.deal_damage("player", per_hit)
+                bs.deal_damage("player", per_hit, source_kind="intent")
         elif intent_type == "block":
             bs.gain_block("enemy", ic.get("value", 0))
         elif intent_type == "buff":
@@ -520,7 +543,7 @@ init python:
         if intent_type == "attack" and bs.buffs.get("enemy_attack_bonus"):
             bonus = bs.buffs["enemy_attack_bonus"]
             bs.buffs["enemy_attack_bonus"] = 0
-            bs.deal_damage("player", bonus)
+            bs.deal_damage("player", bonus, source_kind="intent")
             bs.add_log("Pressure bonus: +{} damage.".format(bonus))
 
         ## Stoic Anchor heal-on-hit
@@ -593,4 +616,10 @@ init python:
                 return "victory_pyrrhic"
             else:
                 return "victory_close"
+        ## bs.over is None — battle didn't end normally. Don't punish the
+        ## player with a defeat: if they're still alive, treat as close
+        ## victory (the worst legitimate win). Prevents the historical
+        ## insta-defeat bug where the screen returned with bs.over unset.
+        if bs.player_hp > 0:
+            return "victory_close"
         return "defeat"
