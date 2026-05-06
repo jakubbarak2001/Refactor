@@ -362,7 +362,7 @@ label activity_gym:
     "Gym attendance: [store.gym_streak] day streak.[_streak_msg]"
 
     menu:
-        "PAY [_gym_cost] CZK — We go gym! (33/33/33%% chance for different outcomes)":
+        "PAY [_gym_cost] CZK — We go gym!":
             python:
                 if not stats.try_spend_money(_gym_cost):
                     renpy.say(None, "[[INSUFFICIENT FUNDS]] You check your wallet... you don't even have [_gym_cost] CZK for the gym entry.")
@@ -525,10 +525,10 @@ label activity_bouncer:
     "You were offered to work as a bouncer in either a local night club or a strip bar.\n\nNight club: Generally safe, but some risk.\nStrip bar: VERY RISKY, but VERY HIGH reward."
 
     menu:
-        "WORK AT A NIGHT CLUB — [[70/20/10%%] outcomes":
+        "WORK AT A NIGHT CLUB — Drunks, mostly handled. The owner pays cash.":
             jump bouncer_night_club
 
-        "WORK AT A STRIP BAR — [[5/20/50/20/5%%] outcomes (RISKY!)":
+        "WORK AT A STRIP BAR — Pays better. You'll see things. You'll do things.":
             jump bouncer_strip_bar
 
         "Return to menu.":
@@ -1430,7 +1430,7 @@ label crisis_event_biohacker:
             pause
             hide screen outcome_panel
 
-        "LOG AND CONTINUE — Symptoms are data. Biohackers don't panic. (50%% success)":
+        "LOG AND CONTINUE — Symptoms are data. Biohackers don't panic.":
             python:
                 _bh_crisis_roll = __import__('random').randint(1, 100)
                 if _bh_crisis_roll <= 50:
