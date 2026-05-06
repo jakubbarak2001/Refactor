@@ -11,7 +11,9 @@
 init python:
 
     ## ---------------------------------------------------------------------------
-    ## UNIVERSAL STARTERS — every class begins with 4× Strike, 4× Defend.
+    ## STRIKE / DEFEND — registered so they remain valid card_ids, but no longer
+    ## granted by init_player_deck (Phase 3 empty-deck pivot). Reserved for
+    ## possible future activity grants.
     ## ---------------------------------------------------------------------------
 
     register_card(

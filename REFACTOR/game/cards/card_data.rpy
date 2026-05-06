@@ -192,18 +192,19 @@ init -1 python:
 
 
     def init_player_deck():
-        """Build the starter deck for the chosen class. Called from init_game."""
+        """Build the starter deck for the chosen class. Called from init_game.
+
+        Empty-deck pivot (Phase 3): the universal 4×strike + 4×defend pack
+        is gone. Every card in the player's deck at colonel time is something
+        JB chose to do across the 30 days — the deckbuilding is the run.
+        Only the class starter (heavy_set / read_him / stack_up) is granted
+        unconditionally; it ties the deck to class identity from turn 1.
+        """
         global player_deck
         player_deck = PlayerDeck()
         cls = stats.player_class if stats else None
 
-        ## Universal starter (every class)
-        for _ in range(4):
-            player_deck.add("strike")
-        for _ in range(4):
-            player_deck.add("defend")
-
-        ## Class-specific starter — defined in card_library.rpy
+        ## Class-specific starter — the one card that's about who JB is, not what he did.
         if cls == "bodybuilder":
             player_deck.add("heavy_set")
         elif cls == "dark_empath":
