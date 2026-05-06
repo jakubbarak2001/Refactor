@@ -132,7 +132,7 @@ label character_class_selection:
         elif stats.player_class == "dark_empath":
             _class_msg = "DARK EMPATH selected.\nYou see through people. That is both your weapon and your curse.\n[-5 Police Hatred applied as starting passive]"
         elif stats.player_class == "biohacker":
-            _class_msg = "BIOHACKER selected.\nYour body is a machine. Let's see how far you can push it.\n[+5 Coding Skill | +200 CZK/night BTC income applied]"
+            _class_msg = "BIOHACKER selected.\nYour body is a machine. Let's see how far you can push it.\n[+5 Coding Skill applied as starting passive]"
         else:
             _class_msg = "Class selected."
 
@@ -1044,8 +1044,6 @@ label do_end_day:
         stats.increment_stats_pcr_hatred(_nightly_base)
         if python_bootcamp:
             stats.increment_stats_coding_skill(5) # bootcamp buff
-        if stats.daily_btc_income > 0:
-            stats.increment_stats_value_money(stats.daily_btc_income)
 
         # Advance day
         day_cycle.next_day()
@@ -1621,8 +1619,6 @@ label random_event_check:
             stats.increment_stats_pcr_hatred(_re_nightly)
             if python_bootcamp:
                 stats.increment_stats_coding_skill(5)
-            if stats.daily_btc_income > 0:
-                stats.increment_stats_value_money(stats.daily_btc_income)
             day_cycle.next_day()
             renpy.jump("random_event_check_done")
 
@@ -1640,8 +1636,6 @@ label random_event_check:
             stats.increment_stats_pcr_hatred(_re_nightly)
             if python_bootcamp:
                 stats.increment_stats_coding_skill(5)
-            if stats.daily_btc_income > 0:
-                stats.increment_stats_value_money(stats.daily_btc_income)
             day_cycle.next_day()
 
 label random_event_check_done:

@@ -2297,7 +2297,6 @@ screen class_selection_screen():
         _cur_flavor   = "\"" + CLASS_FLAVOR[_cur_key] + "\""
         _cur_coding   = "Coding   {:+d}".format(_cur_data["coding_modifier"])
         _cur_hatred   = "Hatred   {:+d}".format(_cur_data["hatred_modifier"])
-        _cur_btc      = "BTC/day  +{}".format(_cur_data["btc_modifier"])
         _cur_perks    = list(_cur_data["perks"][:4])
 
     ## Tagline
@@ -2336,11 +2335,6 @@ screen class_selection_screen():
             font "fonts/RobotoMono-Regular.ttf"
 
         text _cur_hatred:
-            color "#C8A44E"
-            size 19
-            font "fonts/RobotoMono-Regular.ttf"
-
-        text _cur_btc:
             color "#C8A44E"
             size 19
             font "fonts/RobotoMono-Regular.ttf"

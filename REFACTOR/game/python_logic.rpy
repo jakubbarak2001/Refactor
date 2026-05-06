@@ -31,7 +31,6 @@ init python:
             self.available_money = available_money
             self.coding_skill = coding_experience
             self.pcr_hatred = pcr_hatred
-            self.daily_btc_income = 0
             self.colonel_day = 30
             self.final_boss_buff = None
             self.difficulty = None
@@ -310,7 +309,6 @@ init python:
             "passive": "Starts with -3 Coding Skill (brains traded for brawn).",
             "coding_modifier": -3,
             "hatred_modifier":  0,
-            "btc_modifier":     0,
         },
         "dark_empath": {
             "name":    "DARK EMPATH",
@@ -326,22 +324,20 @@ init python:
             "passive": "Starts with -5 Police Hatred (already numb to the madness).",
             "coding_modifier":  0,
             "hatred_modifier": -5,
-            "btc_modifier":     0,
         },
         "biohacker": {
             "name":    "BIOHACKER",
             "tagline": "Optimized. Caffeinated. Slightly illegal.",
             "color":   class_accent_color("biohacker"),
             "perks": [
-                "Starts with +5 Coding Skill and 200 CZK/day BTC income.",
+                "Starts with +5 Coding Skill (analytical edge from baseline).",
                 "Israeli Developer event always grants max coding reward.",
                 "Fiverr lessons always grant +25 Coding (top-tier tutor).",
                 "Colonel's Safety Net attack is auto-countered.",
             ],
-            "passive": "Starts with +5 Coding Skill, 200 CZK/day BTC income.",
+            "passive": "Starts with +5 Coding Skill (analytical edge from baseline).",
             "coding_modifier": 5,
             "hatred_modifier":  0,
-            "btc_modifier":   200,
         },
     }
 
@@ -401,7 +397,6 @@ init python:
         data = CLASS_DATA[cls]
         stats_obj.coding_skill  = max(0, stats_obj.coding_skill + data["coding_modifier"])
         stats_obj.pcr_hatred    = max(0, stats_obj.pcr_hatred   + data["hatred_modifier"])
-        stats_obj.daily_btc_income += data["btc_modifier"]
 
     # Salary amounts keyed by hatred bracket (mirrors receive_salary in game_rules.py)
     def salary_amount(pcr_hatred):
