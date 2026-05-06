@@ -133,7 +133,7 @@ label character_class_selection:
         elif stats.player_class == "dark_empath":
             _class_msg = "DARK EMPATH selected.\nYou see through people. That is both your weapon and your curse.\n[-5 Police Hatred applied as starting passive]"
         elif stats.player_class == "biohacker":
-            _class_msg = "BIOHACKER selected.\nYour body is a machine. Let's see how far you can push it.\n[+10 Coding Skill | +300 CZK/night BTC income applied]"
+            _class_msg = "BIOHACKER selected.\nYour body is a machine. Let's see how far you can push it.\n[+5 Coding Skill | +200 CZK/night BTC income applied]"
         else:
             _class_msg = "Class selected."
 

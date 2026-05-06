@@ -221,31 +221,37 @@ init python:
 
         ## Player HP by class
         if stats and stats.player_class == "bodybuilder":
-            bs.player_max_hp = 90
-            bs.player_hp = 90
+            bs.player_max_hp = 115
+            bs.player_hp = 115
             ## SOMA bonus: +1 starting block per turn for every 2 SOMA stacks
             _soma = getattr(store, 'bb_soma', 0)
             if _soma >= 2:
                 bs.buffs["stoic_anchor_block"] = bs.buffs.get("stoic_anchor_block", 0) + (_soma // 2)
                 bs.add_log("[[SOMA x{}]]: +{} starting block per turn.".format(_soma, _soma // 2))
+            bs.buffs["presence_charges"] = 3
+            bs.add_log("[[PRESENCE x3]]: Block you don't have to play for. The room is smaller now. He has to plan around you.")
         elif stats and stats.player_class == "dark_empath":
             bs.player_max_hp = 75
             bs.player_hp = 75
+            ## READ baseline: peek 2 intents at fight start; PROFILES adds further depth.
+            bs.peek_intents(2)
             ## PROFILES bonus: +1 intent peek per profile read 2+ times.
             ## Threshold 2 (was 3) is reachable in a 30-day run with 8 cold reads.
             _de_deep_profiles = sum(1 for n, c in getattr(store, 'de_profiles', {}).items() if c >= 2)
             if _de_deep_profiles > 0:
                 bs.peek_intents(1 + _de_deep_profiles)
                 bs.add_log("[[PROFILES x{}]]: peek depth {}.".format(_de_deep_profiles, 1 + _de_deep_profiles))
+            bs.buffs["read_charges"] = 3
+            bs.add_log("[[READ x3]]: One free look at what he's about to do. He has tells. He's never had to hide them from you before.")
         elif stats and stats.player_class == "biohacker":
             bs.player_max_hp = 80
             bs.player_hp = 80
-            ## BH PROTOCOL bonus: +1 max energy only on a T3+ stack (Racetam/Peptide/Research).
-            ## T2 (Cognitive) is too cheap a baseline to grant the bonus automatically.
-            _proto = getattr(store, 'bh_protocol', None)
-            if _proto in ("Racetam", "Peptide", "Research"):
+            ## BH max-energy gate: dose-counter check (3+ total nootropic uses across all tiers).
+            if sum(getattr(store, 'nootropic_uses', [0,0,0,0,0])) >= 3:
                 bs.max_energy = 4
-                bs.add_log("[[PROTOCOL: {}]]: +1 max energy.".format(_proto))
+                bs.add_log("[[STACK]]: dose count >= 3. +1 max energy.")
+            bs.buffs["kick_charges"] = 3
+            bs.add_log("[[KICK x3]]: The compound kicking in. Each turn it's running, you draw one extra card. He's still finishing the sentence; you've already chosen.")
         else:
             ## No class set (shouldn't happen in normal play) — safe defaults.
             bs.player_max_hp = 80
@@ -315,6 +321,12 @@ init python:
             bs.player_block += 1
         if bs.buffs.get("stoic_anchor_block"):
             bs.player_block += bs.buffs["stoic_anchor_block"]
+        if bs.buffs.get("presence_charges", 0) > 0:
+            bs.player_block += 3
+            bs.buffs["presence_charges"] -= 1
+        if bs.buffs.get("read_charges", 0) > 0:
+            bs.peek_intents(bs.intent_revealed + 1)
+            bs.buffs["read_charges"] -= 1
         if bs.buffs.get("vigil_next_turn_block"):
             bs.player_block += bs.buffs["vigil_next_turn_block"]
             bs.buffs["vigil_next_turn_block"] = 0  ## consume
@@ -353,6 +365,10 @@ init python:
 
         ## Draw 5 cards
         bs.draw_cards(5)
+
+        if bs.buffs.get("kick_charges", 0) > 0:
+            bs.draw_cards(1)
+            bs.buffs["kick_charges"] -= 1
 
         bs.add_log("--- Turn {} ---".format(bs.turn))
 
