@@ -32,7 +32,6 @@ init python:
             self.coding_skill = coding_experience
             self.pcr_hatred = pcr_hatred
             self.daily_btc_income = 0
-            self.ai_paperwork_buff = False
             self.colonel_day = 30
             self.final_boss_buff = None
             self.difficulty = None
@@ -310,7 +309,7 @@ init python:
             "color":   "#9944cc",
             "perks": [
                 "Auto +1 Affection per Martin Meeting phase.",
-                "Therapy is LOCKED — you read people, not the other way around.",
+                "COLD READ — free relief; OBSERVATION HOUR branch goes deeper, no card.",
                 "Colonel's Why Quit / Civilian Void deal 50%% less damage.",
                 "Secret FATAL STRIKE option on Civilian Void attack.",
                 "civilian_small_talk always succeeds (-25 Hatred guaranteed).",
@@ -347,7 +346,6 @@ init python:
         "gym_rat":          {"category": "Collection", "name": "Gym Rat",                 "desc": "Hit a 5-day gym streak.",                                       "hint": "Hit the gym 5 days in a row."},
         "deep_pockets":     {"category": "Collection", "name": "Deep Pockets",            "desc": "Save over 200,000 CZK.",                                        "hint": "Accumulate 200,000 CZK in savings."},
         "code_god":         {"category": "Collection", "name": "Code God",                "desc": "Reach 200+ Coding Skill.",                                      "hint": "Reach 200 Coding Skill."},
-        "cold_turkey":      {"category": "Story",      "name": "Cold Turkey",             "desc": "Quit therapy after the SELF-AWARE buff activates.",             "hint": "Activate the SELF-AWARE therapy buff, then never go to therapy again."},
         "ghost_walker":     {"category": "Story",      "name": "Ghost Walker",            "desc": "Walk away from the car incident and get away with it.",         "hint": "Refuse to help during the car incident — and survive it."},
         "paul_fan":         {"category": "Story",      "name": "Better Call Paul",        "desc": "Call Paul Goodman on the Colonel.",                             "hint": "Use a lawyer in the final fight."},
         "dark_night":       {"category": "Story",      "name": "Dark Night of the Soul",  "desc": "Complete The Midnight Call.",                                   "hint": "Take the Day-15 phone call."},

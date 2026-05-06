@@ -427,57 +427,91 @@ label activity_gym:
 
 
 ## ---------------------------------------------------------------------------
-## ACTIVITY: THERAPY
+## ACTIVITY: HEAVY SESSION (BODYBUILDER ONLY)
+## Class-specific relief replacing the old universal therapy.
+## Deeper hatred drop than regular gym, smaller card-or-stat lottery —
+## you train for the body, the body trains you back.
 ## ---------------------------------------------------------------------------
 
-label activity_therapy:
+label activity_gym_heavy:
 
     scene bg_police_interior
 
     python:
-        _therapy_cost = adjusted_cost(1500)
+        _heavy_cost = adjusted_cost(800)
+        if not stats.try_spend_money(_heavy_cost):
+            renpy.say(None, "[[INSUFFICIENT FUNDS]] Heavy session needs {:,} CZK. The good gym isn't free.".format(_heavy_cost))
+            renpy.jump("select_activity")
+        ## Lazy-init gym_streak — same guard activity_gym uses, since HEAVY SESSION
+        ## might be a player's first gym-equivalent activity on Day 1.
+        if not hasattr(store, 'gym_streak'):
+            store.gym_streak = 0
 
-    "You've selected to go to therapy.\nSomething that might actually help you lower your stress.\nPaying for a therapist is expensive, but the results are worth it."
+    "Vladek meets you at the door. He doesn't say hello. He looks at your shoulders, then your eyes, then nods once."
+    "'Heavy day. We go until you can't grip the bar.'"
+    "Two hours later your forearms feel like wet rope and your back is one long ache."
+    "You drive home with the windows down. The wind is loud. Your head is finally quiet."
 
-    menu:
-        "PAY [_therapy_cost] CZK — Get help. (-25 PCR HATRED)":
-            python:
-                if not stats.try_spend_money(_therapy_cost):
-                    renpy.say(None, "[[INSUFFICIENT FUNDS]] Therapy is a luxury you can't afford right now. You need [_therapy_cost] CZK.")
-                    renpy.jump("select_activity")
-                else:
-                    stats.increment_stats_pcr_hatred(-25)
+    python:
+        ## Always-apply progression — you completed the session.
+        store.gym_streak += 1
+        if stats.player_class == "bodybuilder":
+            store.bb_soma = min(10, getattr(store, 'bb_soma', 0) + 1)
+            if store.bb_soma >= 10:
+                unlock_achievement("maximum_stack")
+        if store.gym_streak == 3 and stats.player_class == "bodybuilder":
+            grant_card("spotter", silent=True)
+        if store.gym_streak >= 5:
+            _newly_unlocked = unlock_achievement("gym_rat")
+            if _newly_unlocked and stats.player_class == "bodybuilder":
+                grant_card("iron_stance", silent=True)
+        ## Pure relief — no card offer here. The trade is "deeper relief instead of card lottery."
+        stats.increment_stats_pcr_hatred(-30)
+        _heavy_outcome = "- {:,} CZK, -30 PCR HATRED, +1 SOMA".format(_heavy_cost)
 
-            "Her office smells like books and mild candles. You sit down and she asks: 'So. How was the week?'"
-            "You open your mouth to say 'fine' — the standard reflex — and instead talk for 40 minutes without stopping."
-            "She takes notes. She doesn't flinch at the parts you expected her to flinch at."
-            "At the end she says: 'You know the job isn't the problem. The job is just where the problem lives right now.'"
-            "You sit with that for a moment."
-            "You don't feel fixed. But you feel like something was put into words that previously just sat in your chest like a stone."
-            python:
-                ## Every 2nd therapy session grants the SELF-AWARE buff (ai_paperwork_buff reused)
-                if not hasattr(store, 'therapy_count'):
-                    store.therapy_count = 0
-                store.therapy_count += 1
-                _therapy_outcome = "- {} CZK, -25 PCR HATRED".format(_therapy_cost)
-                _therapy_2nd_session = (store.therapy_count % 2 == 0)
-                if _therapy_2nd_session:
-                    stats.ai_paperwork_buff = True
-                    _therapy_outcome += " + [[SELF-AWARE BUFF ACTIVATED]] (cancels nightly hatred)"
+    show screen outcome_panel(_heavy_outcome)
+    pause
+    hide screen outcome_panel
 
-            show screen outcome_panel(_therapy_outcome)
-            pause
-            hide screen outcome_panel
+    python:
+        activity_selected = True
+        store.gym_day = True
+    jump daily_menu
 
-            python:
-                offer_card("boundary", "THERAPY")
-                if _therapy_2nd_session:
-                    offer_card("reframe", "THERAPY (SELF-AWARE)")
-                activity_selected = True
-            jump daily_menu
 
-        "Return to menu.":
-            jump daily_menu
+## ---------------------------------------------------------------------------
+## ACTIVITY: RECOVERY (BIOHACKER ONLY)
+## Red light + sauna + cold plunge protocol. Pure relief, no card.
+## Doesn't increment the nootropic dose-counter — it's the body's own kit.
+## ---------------------------------------------------------------------------
+
+label activity_recovery:
+
+    scene bg_police_interior
+
+    python:
+        _recovery_cost = adjusted_cost(500)
+        if not stats.try_spend_money(_recovery_cost):
+            renpy.say(None, "[[INSUFFICIENT FUNDS]] The recovery clinic charges {:,} CZK. You don't have it.".format(_recovery_cost))
+            renpy.jump("select_activity")
+
+    "Twenty minutes in the red-light booth. Eight in the sauna. Two in the cold plunge — long enough that your respiratory rate normalizes back to baseline."
+    "You log everything. Heart-rate variability up four points. Cortisol curve flatter than yesterday."
+    "The data says you're recovering. Whether you {i}feel{/i} recovered is a separate question, but the data is the data."
+    "You sleep eleven hours that night. No dreams. The morning is a clean buffer."
+
+    python:
+        ## Pure relief — no nootropic dose increment, no card.
+        stats.increment_stats_pcr_hatred(-30)
+        _recovery_outcome = "- {:,} CZK, -30 PCR HATRED".format(_recovery_cost)
+
+    show screen outcome_panel(_recovery_outcome)
+    pause
+    hide screen outcome_panel
+
+    python:
+        activity_selected = True
+    jump daily_menu
 
 
 ## ---------------------------------------------------------------------------
@@ -948,8 +982,6 @@ label do_end_day:
         stats.increment_stats_pcr_hatred(_nightly_base)
         if python_bootcamp:
             stats.increment_stats_coding_skill(5) # bootcamp buff
-        if stats.ai_paperwork_buff:
-            stats.increment_stats_pcr_hatred(-_nightly_base)  # AI buff cancels nightly hatred at full magnitude
         if stats.daily_btc_income > 0:
             stats.increment_stats_value_money(stats.daily_btc_income)
 
@@ -1178,6 +1210,16 @@ label activity_cold_read:
 
     "SUBJECT: [_target['name']]"
 
+    menu:
+        "REGULAR READ — Subtle. The card may stick.":
+            jump cold_read_regular
+
+        "OBSERVATION HOUR — Sit with them. Read past the surface.\n(Deeper relief, no card, an extra layer on the profile.)":
+            jump cold_read_observe
+
+
+label cold_read_regular:
+
     "[_cr_text]"
 
     python:
@@ -1188,6 +1230,44 @@ label activity_cold_read:
                 stats.increment_stats_coding_skill(_cr_pending_coding)
         show_outcome_panel(_took_cr, _cr_card, _cr_outcome)
 
+    pause
+    hide screen outcome_panel
+
+    python:
+        if _cr_milestone:
+            offer_card("empaths_insight", "MILESTONE — 5 COLD READS")
+        activity_selected = True
+
+    jump daily_menu
+
+
+## ---------------------------------------------------------------------------
+## OBSERVATION HOUR — DE relief variant. Deeper hatred drop, deeper profile,
+## no card offer. Sub-menu of activity_cold_read; the target/profile setup
+## from the parent label is already applied (one unconditional read), so
+## OBSERVATION HOUR adds a SECOND read on the same target this session.
+## ---------------------------------------------------------------------------
+
+label cold_read_observe:
+
+    "[_cr_text]"
+    "You don't break the gaze. You don't ask the question that ends the moment."
+    "An hour later you walk out of the cafe with a fuller theory. Half their tells, you'd never noticed before. The other half, you'd noticed but never named."
+
+    python:
+        ## Deepen the same target an extra step (the parent label's setup already
+        ## counted +1; this brings the session total to +2 on this NPC).
+        if _profile_key != "unknown":
+            store.de_profiles[_profile_key] = store.de_profiles.get(_profile_key, 0) + 1
+        ## Re-check Profile Master in case this read tipped the threshold.
+        if all(store.de_profiles.get(k, 0) >= 3 for k in ("rookie", "veteran", "lieutenant", "clerk")):
+            unlock_achievement("profile_master")
+        ## Same hatred relief as the regular path (-20). The trade is profile depth
+        ## instead of a card lottery — DE's class-progression contribution.
+        stats.increment_stats_pcr_hatred(-20)
+        _observe_outcome = "-20 PCR HATRED, +1 PROFILE [{}] (deep)".format(_target.get("name", "?"))
+
+    show screen outcome_panel(_observe_outcome)
     pause
     hide screen outcome_panel
 
@@ -1404,8 +1484,6 @@ label random_event_check:
             stats.increment_stats_pcr_hatred(_re_nightly)
             if python_bootcamp:
                 stats.increment_stats_coding_skill(5)
-            if stats.ai_paperwork_buff:
-                stats.increment_stats_pcr_hatred(-_re_nightly)
             if stats.daily_btc_income > 0:
                 stats.increment_stats_value_money(stats.daily_btc_income)
             day_cycle.next_day()
@@ -1425,8 +1503,6 @@ label random_event_check:
             stats.increment_stats_pcr_hatred(_re_nightly)
             if python_bootcamp:
                 stats.increment_stats_coding_skill(5)
-            if stats.ai_paperwork_buff:
-                stats.increment_stats_pcr_hatred(-_re_nightly)
             if stats.daily_btc_income > 0:
                 stats.increment_stats_value_money(stats.daily_btc_income)
             day_cycle.next_day()

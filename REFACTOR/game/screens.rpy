@@ -461,24 +461,36 @@ screen activity_select_screen():
                 detail_text= "33/33/33% — random reps",
             )
 
-            ## THERAPY (default) or COLD READ (Dark Empath)
-            if stats.player_class == "dark_empath":
+            ## Class-specific relief tile (replaces the old universal therapy slot).
+            ## Each class has a distinct relief activity tied to its identity —
+            ## the accent color reflects the class because this slot IS the
+            ## class-relevant tile.
+            if stats.player_class == "bodybuilder":
+                use _activity_tile(
+                    label_name = "activity_gym_heavy",
+                    title      = "HEAVY SESSION",
+                    accent     = "#ff6633",
+                    cost_text  = "{:,} CZK".format(adjusted_cost(800)),
+                    effect_text= "-30 Hatred, +1 SOMA",
+                    detail_text= "Vladek's day. The body trains you back.",
+                )
+            elif stats.player_class == "dark_empath":
                 use _activity_tile(
                     label_name = "activity_cold_read",
                     title      = "COLD READ",
                     accent     = "#9944cc",
                     cost_text  = "FREE",
-                    effect_text= "-20 Hatred",
-                    detail_text= "Read others. Drain numbness.",
+                    effect_text= "-20 Hatred + Card or Profile",
+                    detail_text= "Regular: card offer. Deep: extra profile.",
                 )
-            else:
+            elif stats.player_class == "biohacker":
                 use _activity_tile(
-                    label_name = "activity_therapy",
-                    title      = "THERAPY",
-                    accent     = "#9944cc",
-                    cost_text  = "{:,} CZK".format(adjusted_cost(1500)),
-                    effect_text= "-25 Hatred",
-                    detail_text= "Every 2nd session: SELF-AWARE buff",
+                    label_name = "activity_recovery",
+                    title      = "RECOVERY",
+                    accent     = "#33cc66",
+                    cost_text  = "{:,} CZK".format(adjusted_cost(500)),
+                    effect_text= "-30 Hatred",
+                    detail_text= "Red light. Sauna. Cold plunge. Data clean.",
                 )
 
             ## BOUNCER
@@ -2308,12 +2320,6 @@ screen full_stats_screen():
                     size 16
 
         ## Buffs active
-        if stats.ai_paperwork_buff:
-            text "[[SELF-AWARE BUFF ACTIVE]] — cancels nightly hatred":
-                xalign 0.5
-                color "#00ff99"
-                size 16
-
         if stats.daily_btc_income > 0:
             text "[[BTC INCOME]] — [stats.daily_btc_income] CZK per night":
                 xalign 0.5
