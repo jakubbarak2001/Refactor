@@ -100,6 +100,25 @@ init python:
     ## Class starters
     ## ---------------------------------------------------------------------------
 
+    @register_effect("production_push")
+    def _eff_production_push(state, source, target):
+        ## Bootcamp graduation reward — versatile rare attack.
+        ## 14 damage + 1 draw, with a hand-mix bonus that rewards tempo decks.
+        dmg = 14
+        ## Bonus: if any Skill is in hand, add +6 (rewards mixed hands, the
+        ## "I shipped a feature" feeling — block + attack thinking together).
+        try:
+            for cid in state.hand:
+                c = CARD_LIBRARY.get(cid, {})
+                if c.get("type") == "Skill":
+                    dmg += 6
+                    break
+        except Exception:
+            pass
+        state.deal_damage(target, dmg)
+        state.draw_cards(1)
+        state.add_log("Production Push: {} damage + draw.".format(dmg))
+
     @register_effect("heavy_set")
     def _eff_heavy_set(state, source, target):
         ## BB signature — damage scales with player's pcr_hatred

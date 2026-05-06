@@ -173,6 +173,18 @@ init python:
         effect = "compile",
         flavor = "Draw 2 cards.",
     )
+    ## BOOTCAMP graduation card — substantial reward for the 35k investment.
+    ## A versatile rare attack that rewards mixed hands.
+    register_card(
+        "production_push",
+        name   = "Production Push",
+        type   = "Attack",
+        color  = "Logic",
+        cost   = 1,
+        rarity = "rare",
+        effect = "production_push",
+        flavor = "Tests pass. Lint passes. Push to main without flinching.",
+    )
 
     ## NIGHT SHIFT
     register_card(

@@ -837,13 +837,23 @@ label coding_bootcamp:
                     renpy.say(None, "[[INSUFFICIENT FUNDS]] You need {:,} CZK. That is a lot of money. Maybe stick to free docs for now?".format(_bc_cost))
                     renpy.jump("activity_coding")
             "You sign a contract and pay for an on-line Python bootcamp.\nDeadlines, assignments, code reviews. The full package.\nThis is no longer a hobby. This is a commitment."
-            show screen outcome_panel("- {} CZK, [[BOOTCAMP BUFF ACTIVATED]] +5 Coding/night".format(_bc_cost))
+            "Six weeks in, the Friday capstone hits. You ship a working REST API in a single sitting. The instructor pings you privately: 'You're ready to push to production.'"
+
+            $ python_bootcamp = True
+
+            python:
+                ## Locked-in reward of paying 35k: the perm buff. The card-or-stats
+                ## trade is the BONUS choice on top — a substantive rare card OR
+                ## +25 coding skill pumped immediately into the run.
+                _bc_outcome = "- {:,} CZK, [[BOOTCAMP BUFF ACTIVATED]] +5 Coding/night, +25 CODING".format(_bc_cost)
+                _took_bc = offer_card("production_push", "BOOTCAMP", pass_stats_text=_bc_outcome)
+                if not _took_bc:
+                    stats.increment_stats_coding_skill(25)
+                show_outcome_panel(_took_bc, "production_push", _bc_outcome)
+
             pause
             hide screen outcome_panel
-            $ python_bootcamp = True
             python:
-                offer_card("compile", "BOOTCAMP")
-                offer_card("refactor", "BOOTCAMP")
                 activity_selected = True
             jump daily_menu
 
@@ -871,13 +881,20 @@ label coding_bootcamp_de:
             "While others grind through the curriculum mechanically, you read your cohort."
             "You know which questions to ask. You know when to stay late and when the instructor is in a generous mood."
             "The bootcamp that costs others 35k costs you 28k. You extracted a 20%% discount through competence."
-            show screen outcome_panel("- {} CZK [[DARK EMPATH DISCOUNT]], [[BOOTCAMP BUFF ACTIVATED]] +5 Coding/night".format(_bc_cost))
+            "Six weeks in, the Friday capstone hits. You ship a clean REST API while the rest of the cohort is still wrestling with imports. The instructor doesn't say it, but you already read it on her face: 'You're ready to push to production.'"
+
+            $ python_bootcamp = True
+
+            python:
+                _bc_outcome = "- {:,} CZK [[DARK EMPATH DISCOUNT]], [[BOOTCAMP BUFF ACTIVATED]] +5 Coding/night, +25 CODING".format(_bc_cost)
+                _took_bc = offer_card("production_push", "BOOTCAMP", pass_stats_text=_bc_outcome)
+                if not _took_bc:
+                    stats.increment_stats_coding_skill(25)
+                show_outcome_panel(_took_bc, "production_push", _bc_outcome)
+
             pause
             hide screen outcome_panel
-            $ python_bootcamp = True
             python:
-                offer_card("compile", "BOOTCAMP")
-                offer_card("refactor", "BOOTCAMP")
                 activity_selected = True
             jump daily_menu
 
