@@ -21,6 +21,9 @@ label re_bb_trainer_intro:
     scene bg_random_event
     play sound "audio/police_siren.mp3"
 
+    python:
+        store._phone_notifications.append("Vladek: 'Talk after your set. — V'")
+
     "[[BB ARC — STAGE 1]]"
     "THE TRAINER"
 
@@ -156,6 +159,9 @@ label re_bb_competition_day:
 label re_de_kovar_eyes:
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+
+    python:
+        store._phone_notifications.append("Internal note: Lt. Kovář — pattern flagged.")
 
     "[[DE ARC — STAGE 1]]"
     "THE EXPENSE REPORTS"
@@ -299,6 +305,9 @@ label re_de_kovar_choice:
 label re_bh_telegram_meet:
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+
+    python:
+        store._phone_notifications.append("Telegram: K-Café, Vinohrady, 14:00. Bring nothing.")
 
     "[[BH ARC — STAGE 1]]"
     "THE CONTACT"
