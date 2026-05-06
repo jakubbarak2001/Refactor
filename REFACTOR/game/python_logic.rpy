@@ -306,8 +306,8 @@ init python:
                 "Immune to Colonel's Brotherhood guilt trip.",
                 "Extra brute-force option if caught at car incident.",
             ],
-            "passive": "Starts with -3 Coding Skill (brains traded for brawn).",
-            "coding_modifier": -3,
+            "passive": "Starts with -5 Coding Skill (brains traded for brawn).",
+            "coding_modifier": -5,
             "hatred_modifier":  0,
         },
         "dark_empath": {

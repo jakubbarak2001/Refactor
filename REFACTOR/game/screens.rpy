@@ -667,7 +667,7 @@ screen activity_select_screen():
 
     vbox:
         xalign 0.5
-        yalign 0.04
+        ypos 88
         spacing 4
 
         text "PICK TODAY'S MOVE":

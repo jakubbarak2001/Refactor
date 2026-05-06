@@ -128,7 +128,7 @@ label character_class_selection:
 
     python:
         if stats.player_class == "bodybuilder":
-            _class_msg = "BODYBUILDER selected.\nEvery rep is a rep closer to freedom.\n[-3 Coding Skill applied as starting passive]"
+            _class_msg = "BODYBUILDER selected.\nEvery rep is a rep closer to freedom.\n[-5 Coding Skill applied as starting passive]"
         elif stats.player_class == "dark_empath":
             _class_msg = "DARK EMPATH selected.\nYou see through people. That is both your weapon and your curse.\n[-5 Police Hatred applied as starting passive]"
         elif stats.player_class == "biohacker":
