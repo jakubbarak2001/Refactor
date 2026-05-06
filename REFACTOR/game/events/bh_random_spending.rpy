@@ -70,18 +70,20 @@ label bh_spend_red_light:
         "REPLACE — 3,500 CZK. Recovery stack stays intact.":
             python:
                 _cost = adjusted_cost(3500)
-                if not stats.try_spend_money(_cost):
-                    renpy.say(None, "[[INSUFFICIENT FUNDS]] You can't afford it. The cortisol option picks itself.")
-                    stats.increment_stats_pcr_hatred(8)
-                    show screen outcome_panel("+8 PCR HATRED. The recovery deficit lands.")
+                _spent = stats.try_spend_money(_cost)
+                if _spent:
+                    _outcome = "- {:,} CZK. Panel back online tomorrow.".format(_cost)
                 else:
-                    show screen outcome_panel("- {:,} CZK. Panel back online tomorrow.".format(_cost))
-                pause
-                hide screen outcome_panel
+                    stats.increment_stats_pcr_hatred(8)
+                    _outcome = "+8 PCR HATRED. The recovery deficit lands."
+            if not _spent:
+                "[[INSUFFICIENT FUNDS]] You can't afford it. The cortisol option picks itself."
+            show screen outcome_panel(_outcome)
+            pause
+            hide screen outcome_panel
 
         "SKIP — sleep without it. (+5 Hatred from disrupted recovery)":
-            python:
-                stats.increment_stats_pcr_hatred(5)
+            $ stats.increment_stats_pcr_hatred(5)
             "You sleep poorly. The data shows it. You log the regression and move on."
             show screen outcome_panel("+5 PCR HATRED.")
             pause
@@ -109,18 +111,20 @@ label bh_spend_bacopa:
         "RESTOCK — 1,200 CZK. Stack continuity preserved.":
             python:
                 _cost = adjusted_cost(1200)
-                if not stats.try_spend_money(_cost):
-                    renpy.say(None, "[[INSUFFICIENT FUNDS]] Wallet says no. You'll feel it.")
-                    stats.increment_stats_coding_skill(-3)
-                    show screen outcome_panel("-3 CODING SKILL. Memory dips this week.")
+                _spent = stats.try_spend_money(_cost)
+                if _spent:
+                    _outcome = "- {:,} CZK. Two pills daily. Back to baseline in two weeks.".format(_cost)
                 else:
-                    show screen outcome_panel("- {:,} CZK. Two pills daily. Back to baseline in two weeks.".format(_cost))
-                pause
-                hide screen outcome_panel
+                    stats.increment_stats_coding_skill(-3)
+                    _outcome = "-3 CODING SKILL. Memory dips this week."
+            if not _spent:
+                "[[INSUFFICIENT FUNDS]] Wallet says no. You'll feel it."
+            show screen outcome_panel(_outcome)
+            pause
+            hide screen outcome_panel
 
         "SKIP — wing it without. (-3 Coding from memory dip)":
-            python:
-                stats.increment_stats_coding_skill(-3)
+            $ stats.increment_stats_coding_skill(-3)
             "You read the same paragraph three times. You log it. You move on."
             show screen outcome_panel("-3 CODING SKILL.")
             pause
@@ -148,14 +152,17 @@ label bh_spend_new_paper:
         "BUY — 4,500 CZK. Add to stack. (+6 Coding from new compound)":
             python:
                 _cost = adjusted_cost(4500)
-                if not stats.try_spend_money(_cost):
-                    renpy.say(None, "[[INSUFFICIENT FUNDS]] You bookmark the paper. You'll come back to it. You won't.")
-                    show screen outcome_panel("Bookmarked. The wallet has limits.")
-                else:
+                _spent = stats.try_spend_money(_cost)
+                if _spent:
                     stats.increment_stats_coding_skill(6)
-                    show screen outcome_panel("- {:,} CZK, +6 CODING SKILL. Two-week ramp-up. Curve looks good already.".format(_cost))
-                pause
-                hide screen outcome_panel
+                    _outcome = "- {:,} CZK, +6 CODING SKILL. Two-week ramp-up. Curve looks good already.".format(_cost)
+                else:
+                    _outcome = "Bookmarked. The wallet has limits."
+            if not _spent:
+                "[[INSUFFICIENT FUNDS]] You bookmark the paper. You'll come back to it. You won't."
+            show screen outcome_panel(_outcome)
+            pause
+            hide screen outcome_panel
 
         "SKIP — close the tab. The current stack is enough.":
             "You close the tab. You will think about it for the next four nights."
@@ -186,18 +193,20 @@ label bh_spend_hrv_battery:
         "REPLACE — 1,500 CZK. Telemetry restored.":
             python:
                 _cost = adjusted_cost(1500)
-                if not stats.try_spend_money(_cost):
-                    renpy.say(None, "[[INSUFFICIENT FUNDS]] Can't afford the calibration. Anxiety spike.")
-                    stats.increment_stats_pcr_hatred(6)
-                    show screen outcome_panel("+6 PCR HATRED. Sleeping blind is sleeping anxious.")
+                _spent = stats.try_spend_money(_cost)
+                if _spent:
+                    _outcome = "- {:,} CZK. Strap back online. Recovery score visible again.".format(_cost)
                 else:
-                    show screen outcome_panel("- {:,} CZK. Strap back online. Recovery score visible again.".format(_cost))
-                pause
-                hide screen outcome_panel
+                    stats.increment_stats_pcr_hatred(6)
+                    _outcome = "+6 PCR HATRED. Sleeping blind is sleeping anxious."
+            if not _spent:
+                "[[INSUFFICIENT FUNDS]] Can't afford the calibration. Anxiety spike."
+            show screen outcome_panel(_outcome)
+            pause
+            hide screen outcome_panel
 
         "SKIP — sleep without telemetry. (+4 Hatred from data anxiety)":
-            python:
-                stats.increment_stats_pcr_hatred(4)
+            $ stats.increment_stats_pcr_hatred(4)
             "You sleep without the strap. You wake up at 03:14 wondering what the deep-sleep score is."
             "There's no number. The number is not the night. You repeat that to yourself."
             show screen outcome_panel("+4 PCR HATRED.")
@@ -226,18 +235,20 @@ label bh_spend_vendor_markup:
         "STOCKPILE — 2,000 CZK. Three-month buffer at old prices.":
             python:
                 _cost = adjusted_cost(2000)
-                if not stats.try_spend_money(_cost):
-                    renpy.say(None, "[[INSUFFICIENT FUNDS]] He marks you down on the no-stockpile list. Cold.")
-                    stats.increment_stats_pcr_hatred(3)
-                    show screen outcome_panel("+3 PCR HATRED. Future-self pays the markup.")
+                _spent = stats.try_spend_money(_cost)
+                if _spent:
+                    _outcome = "- {:,} CZK. Buffer secured. The system holds.".format(_cost)
                 else:
-                    show screen outcome_panel("- {:,} CZK. Buffer secured. The system holds.".format(_cost))
-                pause
-                hide screen outcome_panel
+                    stats.increment_stats_pcr_hatred(3)
+                    _outcome = "+3 PCR HATRED. Future-self pays the markup."
+            if not _spent:
+                "[[INSUFFICIENT FUNDS]] He marks you down on the no-stockpile list. Cold."
+            show screen outcome_panel(_outcome)
+            pause
+            hide screen outcome_panel
 
         "DECLINE — start tapering. (+5 Hatred — withdrawal flavor)":
-            python:
-                stats.increment_stats_pcr_hatred(5)
+            $ stats.increment_stats_pcr_hatred(5)
             "You tell him you're cycling off. He says 'Sure' in the way that means 'see you next month.'"
             "Three nights later you reach for the bottle that isn't there. The hand remembers before the brain."
             show screen outcome_panel("+5 PCR HATRED. Tapering is also a stack input.")
