@@ -494,15 +494,38 @@ label activity_bouncer:
 
     "You were offered to work as a bouncer in either a local night club or a strip bar.\n\nNight club: Generally safe, but some risk.\nStrip bar: VERY RISKY, but VERY HIGH reward."
 
-    menu:
-        "WORK AT A NIGHT CLUB — Drunks, mostly handled. The owner pays cash.":
-            jump bouncer_night_club
+    python:
+        _bouncer_options = [
+            {
+                "label_name":     "bouncer_night_club",
+                "title":          "NIGHT CLUB",
+                "accent":         "#ffd700",
+                "cost_text":      "FREE",
+                "effect_text":    "+ CZK · low risk",
+                "detail_text":    "RANDOM",
+                "card_hint":      "Side Income",
+                "flavor_text":    "Drunks, mostly handled. The owner pays cash.",
+                "class_relevant": False,
+            },
+            {
+                "label_name":     "bouncer_strip_bar",
+                "title":          "STRIP BAR",
+                "accent":         "#ffd700",
+                "cost_text":      "FREE",
+                "effect_text":    "+ more CZK · ugly outcomes possible",
+                "detail_text":    "RANDOM · RISKY",
+                "card_hint":      "VIP Treatment / Brawl / Loan Sharks",
+                "flavor_text":    "Pays better. You'll see things. You'll do things.",
+                "class_relevant": False,
+            },
+        ]
 
-        "WORK AT A STRIP BAR — Pays better. You'll see things. You'll do things.":
-            jump bouncer_strip_bar
-
-        "Return to menu.":
-            jump daily_menu
+    call screen activity_submenu(
+        title       = "BOUNCER — PICK A VENUE",
+        subtitle    = "Two doors. Different math.",
+        options     = _bouncer_options,
+        back_label  = "select_activity",
+    )
 
 
 label bouncer_night_club:
@@ -635,33 +658,88 @@ label activity_coding:
         _tier_name, _tier_info = get_coding_tier_info(stats.coding_skill)
         _tier_display = "{} | SKILL: {} | BASE: {} CZK | HOURLY: {}".format(
             _tier_name, _tier_info["range"], _tier_info["standard"], _tier_info["hourly"])
-        _fiverr_cost_str = "{:,}".format(adjusted_cost(2500))
-        _bc_full_cost_str = "{:,}".format(adjusted_cost(35000))
-        _bc_de_cost_str = "{:,}".format(adjusted_cost(28000))
+        _is_bh = (stats.player_class == "biohacker")
+        _is_de = (stats.player_class == "dark_empath")
+        _bc_done = bool(python_bootcamp)
+        _bc_label = "coding_bootcamp_de" if _is_de else "coding_bootcamp"
+        _bc_cost = adjusted_cost(28000) if _is_de else adjusted_cost(35000)
+        _bc_cost_text = "{:,} CZK".format(_bc_cost)
+        _bc_flavor = "You stop being a guy with a hobby."
+        if _is_de:
+            _bc_flavor = "You stop being a guy with a hobby. Discount: read the room."
+        _coding_options = [
+            {
+                "label_name":     "coding_work_for_money",
+                "title":          "CODE FOR MONEY",
+                "accent":         "#33cc66",
+                "cost_text":      "FREE",
+                "effect_text":    "+ CZK (scales with tier)",
+                "detail_text":    "FIXED",
+                "card_hint":      "",
+                "flavor_text":    "Take what your skill's worth right now.",
+                "class_relevant": _is_bh,
+            },
+            {
+                "label_name":     "coding_practice_puzzle",
+                "title":          "PRACTICE PUZZLE",
+                "accent":         "#33cc66",
+                "cost_text":      "FREE",
+                "effect_text":    "+ Coding",
+                "detail_text":    "ROLL",
+                "card_hint":      "Compile / Refactor / Algorithm",
+                "flavor_text":    "Solve a function. Some stick.",
+                "class_relevant": _is_bh,
+            },
+            {
+                "label_name":     "coding_fiverr",
+                "title":          "FIVERR LESSON",
+                "accent":         "#33cc66",
+                "cost_text":      "{:,} CZK".format(adjusted_cost(2500)),
+                "effect_text":    "+ Coding",
+                "detail_text":    "RANDOM",
+                "card_hint":      "Compile / Refactor",
+                "flavor_text":    "Someone in Mumbai who knows your stack.",
+                "class_relevant": _is_bh,
+            },
+        ]
+        ## BH gets a Nootropics Lab tile in this slot (their commitment curve);
+        ## every other class gets a Bootcamp tile. The Bootcamp locks (instead
+        ## of hiding) once enrolled so players can see the buff is permanent.
+        if _is_bh:
+            _coding_options.append({
+                "label_name":     "activity_nootropics",
+                "title":          "NOOTROPICS LAB",
+                "accent":         "#33cc66",
+                "cost_text":      "VARIES",
+                "effect_text":    "+ Coding, +/- Hatred",
+                "detail_text":    "BRANCHED · BIOHACKER",
+                "card_hint":      "Racetam / FLModafinil",
+                "flavor_text":    "Exact compound. Exact dose. Exact timing.",
+                "class_relevant": True,
+            })
+        else:
+            _coding_options.append({
+                "label_name":     _bc_label,
+                "title":          "JOIN BOOTCAMP",
+                "accent":         "#33cc66",
+                "cost_text":      _bc_cost_text,
+                "effect_text":    "+25 Coding, +5/night",
+                "detail_text":    "FIXED · PERMANENT",
+                "card_hint":      "Production Push",
+                "flavor_text":    _bc_flavor,
+                "class_relevant": False,
+                "locked":         _bc_done,
+                "lock_text":      "Already enrolled. The buff is live.",
+            })
 
     "You open the laptop. The apartment is quiet.\nThis is the only hour of the day that belongs entirely to you.\n\nCurrent tier: [_tier_display]"
 
-    menu:
-        "CODE FOR MONEY — Earn CZK based on your tier.":
-            jump coding_work_for_money
-
-        "PRACTICE PUZZLE — Solve a function. Pass = +Coding +1 Logic card.":
-            jump coding_practice_puzzle
-
-        "FIVERR LESSON — Pay [_fiverr_cost_str] CZK for a study session.":
-            jump coding_fiverr
-
-        "JOIN ONLINE BOOTCAMP — Pay [_bc_de_cost_str] CZK. Unlocks +5 coding/night.  [[DARK EMPATH DISCOUNT]" if not python_bootcamp and stats.player_class == "dark_empath":
-            jump coding_bootcamp_de
-
-        "JOIN ONLINE BOOTCAMP — Pay [_bc_full_cost_str] CZK. Unlocks +5 coding/night." if not python_bootcamp and stats.player_class not in ["biohacker", "dark_empath"]:
-            jump coding_bootcamp
-
-        "NOOTROPICS LAB — Optimise your cognition.  [[BIOHACKER ONLY]" if stats.player_class == "biohacker":
-            jump activity_nootropics
-
-        "Return to menu.":
-            jump daily_menu
+    call screen activity_submenu(
+        title       = "CODING — PICK A PATH",
+        subtitle    = "The hour is yours. The keyboard does what you tell it to.",
+        options     = _coding_options,
+        back_label  = "select_activity",
+    )
 
 
 label coding_practice_puzzle:
@@ -1032,33 +1110,83 @@ label activity_nootropics:
         _dep_warning = ""
         if nootropic_dependency:
             _dep_warning = "\n\n[[DEPENDENCY ACTIVE]] — Skipping a dose costs -20 Coding, +20 Hatred."
-        _noot_cost_str = {t: "{:,}".format(adjusted_cost(NOOTROPIC_TIERS[t]["cost"])) for t in range(1, 6)}
+
+        _NOOT_TITLES = {
+            1: "TIER 1 — DAILY",
+            2: "TIER 2 — STACK",
+            3: "TIER 3 — RACETAMS",
+            4: "TIER 4 — PEPTIDES",
+            5: "TIER 5 — RESEARCH",
+        }
+        _NOOT_FLAVORS = {
+            1: "Omega-3, creatine, magnesium. The foundation.",
+            2: "L-theanine + caffeine. Alpha-GPC. Bacopa.",
+            3: "Aniracetam. Oxiracetam. Phenylpiracetam.",
+            4: "Noopept. Semax. Selank. Gray-market shelf.",
+            5: "FLModafinil. Wakefulness agent. Dose discipline.",
+        }
+        _NOOT_VIS = {
+            1: True,
+            2: nootropic_tier_max >= 2,
+            3: nootropic_tier_max >= 3,
+            4: nootropic_tier_max >= 4,
+            5: flmodafinil_unlocked or nootropic_tier_max >= 5,
+        }
+        _noot_options = []
+        for _tn in range(1, 6):
+            _ti = NOOTROPIC_TIERS[_tn]
+            _hatred_sign = "+" if _ti["hatred"] >= 0 else ""
+            _eff = "+{} Coding, {}{} Hatred".format(_ti["coding"], _hatred_sign, _ti["hatred"])
+            _hint = ""
+            if _tn >= 5:
+                _hint = "FLModafinil"
+            elif _tn >= 3:
+                _hint = "Racetam"
+            _noot_options.append({
+                "label_name":     "_apply_noot_t{}".format(_tn),
+                "title":          _NOOT_TITLES[_tn],
+                "accent":         "#33cc66",
+                "cost_text":      "{:,} CZK".format(adjusted_cost(_ti["cost"])),
+                "effect_text":    _eff,
+                "detail_text":    "FIXED" + (" · CRASH" if _ti.get("crash_coding") or _ti.get("crash_hatred") else ""),
+                "card_hint":      _hint,
+                "flavor_text":    _NOOT_FLAVORS[_tn],
+                "class_relevant": True,
+                "visible":        _NOOT_VIS[_tn],
+            })
 
     "You open the cabinet. The protocol is specific. Every compound has a purpose.[_dep_warning]"
 
-    menu:
-        "TIER 1 — Daily Supplements ([_noot_cost_str[1]] CZK)\n[NOOTROPIC_TIERS[1]['compounds']]":
-            python:
-                _tier = 1
+    call screen activity_submenu(
+        title       = "NOOTROPICS — PICK A TIER",
+        subtitle    = "Exact compound. Exact dose. Exact timing.",
+        options     = _noot_options,
+        back_label  = "activity_coding",
+    )
 
-        "TIER 2 — Cognitive Stack ([_noot_cost_str[2]] CZK)\n[NOOTROPIC_TIERS[2]['compounds']]" if nootropic_tier_max >= 2:
-            python:
-                _tier = 2
 
-        "TIER 3 — Racetams ([_noot_cost_str[3]] CZK)\n[NOOTROPIC_TIERS[3]['compounds']]" if nootropic_tier_max >= 3:
-            python:
-                _tier = 3
+label _apply_noot_t1:
+    $ _tier = 1
+    jump _apply_nootropic_tier
 
-        "TIER 4 — Peptides ([_noot_cost_str[4]] CZK)\n[NOOTROPIC_TIERS[4]['compounds']]" if nootropic_tier_max >= 4:
-            python:
-                _tier = 4
+label _apply_noot_t2:
+    $ _tier = 2
+    jump _apply_nootropic_tier
 
-        "TIER 5 — FLModafinil (CRL-40,940) ([_noot_cost_str[5]] CZK)\n[NOOTROPIC_TIERS[5]['compounds']]" if flmodafinil_unlocked or nootropic_tier_max >= 5:
-            python:
-                _tier = 5
+label _apply_noot_t3:
+    $ _tier = 3
+    jump _apply_nootropic_tier
 
-        "Return to menu.":
-            jump activity_coding
+label _apply_noot_t4:
+    $ _tier = 4
+    jump _apply_nootropic_tier
+
+label _apply_noot_t5:
+    $ _tier = 5
+    jump _apply_nootropic_tier
+
+
+label _apply_nootropic_tier:
 
     ## --- Process selected tier ---
     python:
@@ -1190,12 +1318,39 @@ label activity_cold_read:
 
     "SUBJECT: [_target['name']]"
 
-    menu:
-        "REGULAR READ — Subtle. The card may stick.":
-            jump cold_read_regular
+    python:
+        _cr_options = [
+            {
+                "label_name":     "cold_read_regular",
+                "title":          "REGULAR READ",
+                "accent":         "#9944cc",
+                "cost_text":      "FREE",
+                "effect_text":    "-20 Hatred",
+                "detail_text":    "FIXED",
+                "card_hint":      _cr_card.replace("_", " ").upper(),
+                "flavor_text":    "Subtle. The card may stick.",
+                "class_relevant": True,
+            },
+            {
+                "label_name":     "cold_read_observe",
+                "title":          "OBSERVATION HOUR",
+                "accent":         "#9944cc",
+                "cost_text":      "FREE",
+                "effect_text":    "-20 Hatred, +1 PROFILE",
+                "detail_text":    "FIXED",
+                "card_hint":      "",
+                "flavor_text":    "Sit with them. Read past the surface.",
+                "class_relevant": True,
+            },
+        ]
+        _cr_subtitle = "SUBJECT: {}".format(_target.get("name", "?"))
 
-        "OBSERVATION HOUR — Sit with them. Read past the surface.\n(Deeper relief, no card, an extra layer on the profile.)":
-            jump cold_read_observe
+    call screen activity_submenu(
+        title       = "COLD READ — PICK YOUR ANGLE",
+        subtitle    = _cr_subtitle,
+        options     = _cr_options,
+        back_label  = "select_activity",
+    )
 
 
 label cold_read_regular:
