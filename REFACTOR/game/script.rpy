@@ -667,11 +667,12 @@ label activity_coding:
         _bc_flavor = "You stop being a guy with a hobby."
         if _is_de:
             _bc_flavor = "You stop being a guy with a hobby. Discount: read the room."
+        _bh_accent = class_accent_color("biohacker")
         _coding_options = [
             {
                 "label_name":     "coding_work_for_money",
                 "title":          "CODE FOR MONEY",
-                "accent":         "#33cc66",
+                "accent":         _bh_accent,
                 "cost_text":      "FREE",
                 "effect_text":    "+ CZK (scales with tier)",
                 "detail_text":    "FIXED",
@@ -682,7 +683,7 @@ label activity_coding:
             {
                 "label_name":     "coding_practice_puzzle",
                 "title":          "PRACTICE PUZZLE",
-                "accent":         "#33cc66",
+                "accent":         _bh_accent,
                 "cost_text":      "FREE",
                 "effect_text":    "+ Coding",
                 "detail_text":    "ROLL",
@@ -693,7 +694,7 @@ label activity_coding:
             {
                 "label_name":     "coding_fiverr",
                 "title":          "FIVERR LESSON",
-                "accent":         "#33cc66",
+                "accent":         _bh_accent,
                 "cost_text":      "{:,} CZK".format(adjusted_cost(2500)),
                 "effect_text":    "+ Coding",
                 "detail_text":    "RANDOM",
@@ -709,7 +710,7 @@ label activity_coding:
             _coding_options.append({
                 "label_name":     "activity_nootropics",
                 "title":          "NOOTROPICS LAB",
-                "accent":         "#33cc66",
+                "accent":         _bh_accent,
                 "cost_text":      "VARIES",
                 "effect_text":    "+ Coding, +/- Hatred",
                 "detail_text":    "BRANCHED · BIOHACKER",
@@ -721,7 +722,7 @@ label activity_coding:
             _coding_options.append({
                 "label_name":     _bc_label,
                 "title":          "JOIN BOOTCAMP",
-                "accent":         "#33cc66",
+                "accent":         _bh_accent,
                 "cost_text":      _bc_cost_text,
                 "effect_text":    "+25 Coding, +5/night",
                 "detail_text":    "FIXED · PERMANENT",
@@ -1145,7 +1146,7 @@ label activity_nootropics:
             _noot_options.append({
                 "label_name":     "_apply_noot_t{}".format(_tn),
                 "title":          _NOOT_TITLES[_tn],
-                "accent":         "#33cc66",
+                "accent":         class_accent_color("biohacker"),
                 "cost_text":      "{:,} CZK".format(adjusted_cost(_ti["cost"])),
                 "effect_text":    _eff,
                 "detail_text":    "FIXED" + (" · CRASH" if _ti.get("crash_coding") or _ti.get("crash_hatred") else ""),
@@ -1319,11 +1320,12 @@ label activity_cold_read:
     "SUBJECT: [_target['name']]"
 
     python:
+        _de_accent = class_accent_color("dark_empath")
         _cr_options = [
             {
                 "label_name":     "cold_read_regular",
                 "title":          "REGULAR READ",
-                "accent":         "#9944cc",
+                "accent":         _de_accent,
                 "cost_text":      "FREE",
                 "effect_text":    "-20 Hatred",
                 "detail_text":    "FIXED",
@@ -1334,7 +1336,7 @@ label activity_cold_read:
             {
                 "label_name":     "cold_read_observe",
                 "title":          "OBSERVATION HOUR",
-                "accent":         "#9944cc",
+                "accent":         _de_accent,
                 "cost_text":      "FREE",
                 "effect_text":    "-20 Hatred, +1 PROFILE",
                 "detail_text":    "FIXED",

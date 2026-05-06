@@ -4,6 +4,28 @@
 ################################################################################
 
 ## ---------------------------------------------------------------------------
+## Class-color frame — thin top + bottom border bars in the player's class
+## color. Used to frame full-screen modals (battle / deck / card-offer) so the
+## class identity reads through.
+## ---------------------------------------------------------------------------
+
+screen class_color_frame(thickness=3, alpha_suffix=""):
+    $ _ccf_color = class_accent_color() + alpha_suffix
+    frame:
+        xpos 0
+        ypos 0
+        xsize config.screen_width
+        ysize thickness
+        background Frame(_ccf_color, 0, 0)
+    frame:
+        xpos 0
+        ypos (config.screen_height - thickness)
+        xsize config.screen_width
+        ysize thickness
+        background Frame(_ccf_color, 0, 0)
+
+
+## ---------------------------------------------------------------------------
 ## Stats Bar — displayed during gameplay via "show screen stats_bar"
 ## ---------------------------------------------------------------------------
 
@@ -16,6 +38,7 @@ screen stats_bar():
         _class_track = ""
         _coding_tt = None
         _hatred_tt = None
+        _class_color = class_accent_color()
         if stats.player_class == "bodybuilder":
             _soma = getattr(store, 'bb_soma', 0)
             if _soma > 0:
@@ -48,106 +71,115 @@ screen stats_bar():
         padding (10, 6)
         background Frame("#00000099", 4, 4)
 
-        hbox:
-            spacing 20
+        vbox:
+            spacing 4
 
-            ## Class badge — colour-coded per class
-            if stats.player_class == "bodybuilder":
-                button:
-                    action NullAction()
-                    tooltip "Greek for body. Every rep is one more piece of you that takes up space in the room. The right amount means the Colonel still has to look at you across the desk."
-                    text "[[BODYBUILDER][_class_track]":
-                        color "#ff6633"
+            hbox:
+                spacing 20
+
+                ## Class badge — colour-coded per class via class_accent_color()
+                if stats.player_class == "bodybuilder":
+                    button:
+                        action NullAction()
+                        tooltip "Greek for body. Every rep is one more piece of you that takes up space in the room. The right amount means the Colonel still has to look at you across the desk."
+                        text "[[BODYBUILDER][_class_track]":
+                            color _class_color
+                            size 16
+                            bold True
+                elif stats.player_class == "dark_empath":
+                    button:
+                        action NullAction()
+                        tooltip "A working theory of someone, built from small things they don't know they're showing you. The deeper the profile, the more predictable they get. You used to do this for suspects. Now you do it for everyone."
+                        text "[[DARK EMPATH][_class_track]":
+                            color _class_color
+                            size 16
+                            bold True
+                elif stats.player_class == "biohacker":
+                    button:
+                        action NullAction()
+                        tooltip "The clinical word for the stack — exact compound, exact dose, exact timing. Started with caffeine. The right one buys you a turn the others don't get."
+                        text "[[BIOHACKER][_class_track]":
+                            color _class_color
+                            size 16
+                            bold True
+                else:
+                    text "[[ROOKIE]":
+                        color _class_color
                         size 16
                         bold True
-            elif stats.player_class == "dark_empath":
-                button:
-                    action NullAction()
-                    tooltip "A working theory of someone, built from small things they don't know they're showing you. The deeper the profile, the more predictable they get. You used to do this for suspects. Now you do it for everyone."
-                    text "[[DARK EMPATH][_class_track]":
-                        color "#9944cc"
-                        size 16
-                        bold True
-            elif stats.player_class == "biohacker":
-                button:
-                    action NullAction()
-                    tooltip "The clinical word for the stack — exact compound, exact dose, exact timing. Started with caffeine. The right one buys you a turn the others don't get."
-                    text "[[BIOHACKER][_class_track]":
-                        color "#00cc88"
-                        size 16
-                        bold True
-            else:
-                text "[[ROOKIE]":
-                    color "#888888"
-                    size 16
-                    bold True
 
-            text "|":
-                color "#555555"
-                size 18
+                text "|":
+                    color "#555555"
+                    size 18
 
-            text "Money: [stats.available_money] CZK":
-                color "#ffd700"
-                size 18
+                text "Money: [stats.available_money] CZK":
+                    color "#ffd700"
+                    size 18
 
-            text "|":
-                color "#555555"
-                size 18
+                text "|":
+                    color "#555555"
+                    size 18
 
-            if _coding_tt:
-                button:
-                    action NullAction()
-                    tooltip _coding_tt
-                    background "#00000000"
-                    padding (0, 0)
+                if _coding_tt:
+                    button:
+                        action NullAction()
+                        tooltip _coding_tt
+                        background "#00000000"
+                        padding (0, 0)
+                        text "Coding: [stats.coding_skill]":
+                            color "#00ccff"
+                            size 18
+                else:
                     text "Coding: [stats.coding_skill]":
                         color "#00ccff"
                         size 18
-            else:
-                text "Coding: [stats.coding_skill]":
-                    color "#00ccff"
+
+                text "|":
+                    color "#555555"
                     size 18
 
-            text "|":
-                color "#555555"
-                size 18
-
-            if _hatred_tt:
-                button:
-                    action NullAction()
-                    tooltip _hatred_tt
-                    background "#00000000"
-                    padding (0, 0)
+                if _hatred_tt:
+                    button:
+                        action NullAction()
+                        tooltip _hatred_tt
+                        background "#00000000"
+                        padding (0, 0)
+                        text "Hatred: [stats.pcr_hatred]/100":
+                            color "#ff4444"
+                            size 18
+                else:
                     text "Hatred: [stats.pcr_hatred]/100":
                         color "#ff4444"
                         size 18
-            else:
-                text "Hatred: [stats.pcr_hatred]/100":
-                    color "#ff4444"
+
+                text "|":
+                    color "#555555"
                     size 18
 
-            text "|":
-                color "#555555"
-                size 18
+                text "Day: [day_cycle.current_day]/30":
+                    color "#aaaaaa"
+                    size 18
 
-            text "Day: [day_cycle.current_day]/30":
-                color "#aaaaaa"
-                size 18
+                text "|":
+                    color "#555555"
+                    size 18
 
-            text "|":
-                color "#555555"
-                size 18
+                textbutton "Deck: [_deck_count_bar]":
+                    action Jump("show_deck")
+                    tooltip "Click to view your deck."
+                    text_color "#00cc88"
+                    text_hover_color "#ffffff"
+                    text_size 18
+                    text_bold True
+                    background "#00000000"
+                    hover_background "#00000000"
+                    padding (0, 0)
 
-            textbutton "Deck: [_deck_count_bar]":
-                action Jump("show_deck")
-                tooltip "Click to view your deck."
-                text_color "#00cc88"
-                text_hover_color "#ffffff"
-                text_size 18
-                text_bold True
-                background "#00000000"
-                hover_background "#00000000"
-                padding (0, 0)
+            ## Class-color underline — sits below the row so it spans the row width.
+            frame:
+                xfill True
+                ysize 2
+                background Frame(_class_color, 0, 0)
 
     $ _stats_tt = GetTooltip()
     if _stats_tt:
@@ -198,6 +230,9 @@ screen deck_viewer():
             _deck_by_color.setdefault(_col, []).append(_cid)
         ## For consistent ordering
         _color_order = ["Physical", "Mental", "Money", "Logic", "Police", "Special"]
+
+    ## Class-color outer frame — "this is YOUR deck" without overriding per-card colors.
+    use class_color_frame(thickness=3, alpha_suffix="aa")
 
     vbox:
         xalign 0.5
@@ -662,7 +697,7 @@ screen activity_select_screen():
             use _activity_tile(
                 label_name     = "activity_gym",
                 title          = "GYM",
-                accent         = "#ff6633",
+                accent         = class_accent_color("bodybuilder"),
                 cost_text      = "{:,} CZK".format(adjusted_cost(400)),
                 effect_text    = "- Hatred",
                 detail_text    = "ROLL",
@@ -677,7 +712,7 @@ screen activity_select_screen():
                 use _activity_tile(
                     label_name     = "activity_gym_heavy",
                     title          = "HEAVY SESSION",
-                    accent         = "#ff6633",
+                    accent         = class_accent_color("bodybuilder"),
                     cost_text      = "{:,} CZK".format(adjusted_cost(800)),
                     effect_text    = "-30 Hatred, +1 SOMA",
                     detail_text    = "FIXED",
@@ -689,7 +724,7 @@ screen activity_select_screen():
                 use _activity_tile(
                     label_name     = "activity_cold_read",
                     title          = "COLD READ",
-                    accent         = "#9944cc",
+                    accent         = class_accent_color("dark_empath"),
                     cost_text      = "FREE",
                     effect_text    = "-20 Hatred",
                     detail_text    = "BRANCHED",
@@ -701,7 +736,7 @@ screen activity_select_screen():
                 use _activity_tile(
                     label_name     = "activity_recovery",
                     title          = "RECOVERY",
-                    accent         = "#33cc66",
+                    accent         = class_accent_color("biohacker"),
                     cost_text      = "{:,} CZK".format(adjusted_cost(500)),
                     effect_text    = "-30 Hatred",
                     detail_text    = "FIXED",
@@ -731,7 +766,7 @@ screen activity_select_screen():
             use _activity_tile(
                 label_name     = "activity_coding",
                 title          = "CODING",
-                accent         = "#33cc66",
+                accent         = class_accent_color("biohacker"),
                 cost_text      = "FREE",
                 effect_text    = "+ Coding",
                 detail_text    = "BRANCHED",
@@ -796,21 +831,22 @@ screen daily_hub_screen():
         _today        = day_cycle.current_day if day_cycle is not None else 1
         _phone_msgs   = getattr(store, '_phone_notifications', [])
         _phone_count  = len(_phone_msgs)
+        _hub_class_color = class_accent_color()
 
         if stats and stats.player_class == "bodybuilder":
             _hub_cta_text  = "[[ TRAIN ]"
             _hub_cta_sub   = "The body is the argument. Pick the rep."
-            _hub_cta_color = "#ff6633"
+            _hub_cta_color = _hub_class_color
             _hub_cta_hover = "#ff8855"
         elif stats and stats.player_class == "dark_empath":
             _hub_cta_text  = "[[ READ ]"
             _hub_cta_sub   = "The room is the data. Pick what you watch."
-            _hub_cta_color = "#9944cc"
+            _hub_cta_color = _hub_class_color
             _hub_cta_hover = "#bb66dd"
         elif stats and stats.player_class == "biohacker":
             _hub_cta_text  = "[[ STACK ]"
             _hub_cta_sub   = "The protocol is the answer. Pick the input."
-            _hub_cta_color = "#33cc66"
+            _hub_cta_color = _hub_class_color
             _hub_cta_hover = "#55ee88"
         else:
             _hub_cta_text  = "[[ PICK YOUR MOVE ]"
@@ -1245,6 +1281,9 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
         _co_cost    = card.get("cost", 0)
         _co_flavor  = card.get("flavor", "")
         _co_color_label = card.get("color", "")
+
+    ## Outer class-color accent — frames the modal so the offer reads as YOURS.
+    use class_color_frame(thickness=3, alpha_suffix="aa")
 
     vbox:
         xalign 0.5
