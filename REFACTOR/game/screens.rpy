@@ -968,13 +968,13 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
 
     vbox:
         xalign 0.5
-        yalign 0.06
+        yalign 0.04
         spacing 6
 
-        text "CARD ACQUIRED":
+        text "CHOOSE ONE":
             xalign 0.5
-            color _co_color
-            size 32
+            color "#ffffff"
+            size 28
             bold True
             font "fonts/RobotoMono-Regular.ttf"
 
@@ -985,136 +985,228 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
                 size 14
                 font "fonts/RobotoMono-Regular.ttf"
 
-    ## Card preview — large, centered
-    frame:
+    ## ── Side-by-side: TAKE-the-card on the left, PASS-keep-stats on the right ──
+    hbox:
         xalign 0.5
-        yalign 0.5
-        xsize 480
-        ysize 600
-        background Frame("#0d0d0dee", 4, 4)
-        padding (24, 20)
+        yalign 0.46
+        spacing 50
 
-        vbox:
-            spacing 14
-            xalign 0.5
+        ## ─────────────── LEFT: card preview ───────────────
+        frame:
+            xsize 420
+            ysize 540
+            background Frame("#0d0d0dee", 4, 4)
+            padding (22, 18)
 
-            ## Top accent bar
-            frame:
+            vbox:
+                spacing 12
                 xalign 0.5
-                xsize 420
-                ysize 5
-                background Frame(_co_color, 0, 0)
 
-            null height 8
+                ## Top accent bar
+                frame:
+                    xalign 0.5
+                    xsize 360
+                    ysize 5
+                    background Frame(_co_color, 0, 0)
 
-            ## Cost circle
-            frame:
-                xsize 64
-                ysize 64
-                background Frame(_co_color, 4, 4)
-                xalign 0.5
-                text "[_co_cost]":
-                    color "#000000"
-                    size 38
+                null height 6
+
+                ## Cost circle
+                frame:
+                    xsize 56
+                    ysize 56
+                    background Frame(_co_color, 4, 4)
+                    xalign 0.5
+                    text "[_co_cost]":
+                        color "#000000"
+                        size 32
+                        bold True
+                        xalign 0.5
+                        yalign 0.5
+
+                null height 2
+
+                text _co_name:
+                    color "#ffffff"
+                    size 30
                     bold True
                     xalign 0.5
-                    yalign 0.5
+                    font "fonts/RobotoMono-Regular.ttf"
 
-            null height 4
+                text "{} · {} · {}".format(_co_type, _co_rarity.upper(), _co_color_label):
+                    color _co_color
+                    size 13
+                    xalign 0.5
+                    font "fonts/RobotoMono-Regular.ttf"
 
-            text _co_name:
-                color "#ffffff"
-                size 36
+                null height 10
+
+                text "─────────────────────────":
+                    color "#222222"
+                    size 12
+                    xalign 0.5
+
+                null height 6
+
+                text _co_flavor:
+                    color "#cccccc"
+                    size 15
+                    xalign 0.5
+                    xmaximum 360
+                    text_align 0.5
+
+                if card.get("exhaust"):
+                    null height 6
+                    text "[[EXHAUST]":
+                        color "#cc4444"
+                        size 13
+                        bold True
+                        xalign 0.5
+
+                if card.get("class_lock"):
+                    null height 4
+                    text "[[{}-LOCKED]".format(card["class_lock"].upper().replace("_", " ")):
+                        color "#888888"
+                        size 11
+                        italic True
+                        xalign 0.5
+
+        ## ─────────────── DIVIDER: "OR" between the two paths ───────────────
+        vbox:
+            yalign 0.5
+            spacing 6
+            text "OR":
+                color "#666666"
+                size 22
                 bold True
                 xalign 0.5
                 font "fonts/RobotoMono-Regular.ttf"
 
-            text "{} · {} · {}".format(_co_type, _co_rarity.upper(), _co_color_label):
-                color _co_color
-                size 14
-                xalign 0.5
-                font "fonts/RobotoMono-Regular.ttf"
+        ## ─────────────── RIGHT: PASS / stat reward preview ───────────────
+        frame:
+            xsize 420
+            ysize 540
+            background Frame("#0d0d0dee", 4, 4)
+            padding (22, 18)
 
-            null height 12
-
-            text "─────────────────────────":
-                color "#222222"
-                size 12
+            vbox:
+                spacing 12
                 xalign 0.5
 
-            null height 8
+                ## Top accent bar (muted neutral, NOT the card color)
+                frame:
+                    xalign 0.5
+                    xsize 360
+                    ysize 5
+                    background Frame("#888888", 0, 0)
 
-            text _co_flavor:
-                color "#cccccc"
-                size 16
-                xalign 0.5
-                xmaximum 420
-                text_align 0.5
+                null height 6
 
-            if card.get("exhaust"):
-                null height 8
-                text "[[EXHAUST]":
-                    color "#cc4444"
-                    size 14
+                ## Stat icon — generic "ledger" glyph in a circle
+                frame:
+                    xsize 56
+                    ysize 56
+                    background Frame("#888888", 4, 4)
+                    xalign 0.5
+                    text "Σ":
+                        color "#000000"
+                        size 32
+                        bold True
+                        xalign 0.5
+                        yalign 0.5
+
+                null height 2
+
+                text "STAT REWARD":
+                    color "#ffffff"
+                    size 30
                     bold True
                     xalign 0.5
+                    font "fonts/RobotoMono-Regular.ttf"
 
-            if card.get("class_lock"):
-                null height 6
-                text "[[{}-LOCKED]".format(card["class_lock"].upper().replace("_", " ")):
+                text "Skill · Money · Hatred":
                     color "#888888"
+                    size 13
+                    xalign 0.5
+                    font "fonts/RobotoMono-Regular.ttf"
+
+                null height 10
+
+                text "─────────────────────────":
+                    color "#222222"
                     size 12
-                    italic True
                     xalign 0.5
 
-    ## PASS forfeit telegraph — what the player gives up by taking the card.
-    if pass_stats_text:
-        vbox:
-            xalign 0.5
-            yalign 0.86
-            spacing 2
-            text "PASS instead would give:":
-                xalign 0.5
-                color "#666666"
-                size 13
-                font "fonts/RobotoMono-Regular.ttf"
-            text "[pass_stats_text]":
-                xalign 0.5
-                color "#aaaaaa"
-                size 16
-                font "fonts/RobotoMono-Regular.ttf"
+                null height 6
 
-    ## TAKE / PASS buttons
+                if pass_stats_text:
+                    text "[pass_stats_text]":
+                        color "#ffcc66"
+                        size 18
+                        bold True
+                        xalign 0.5
+                        xmaximum 360
+                        text_align 0.5
+                else:
+                    text "Keep the day's stat changes.":
+                        color "#cccccc"
+                        size 15
+                        xalign 0.5
+                        xmaximum 360
+                        text_align 0.5
+
+                null height 8
+
+                text "Walk away. The deck stays as it is.":
+                    color "#888888"
+                    size 13
+                    italic True
+                    xalign 0.5
+                    xmaximum 360
+                    text_align 0.5
+
+    ## ── TAKE / PASS buttons, each directly under its frame ──
     hbox:
         xalign 0.5
         yalign 0.93
-        spacing 40
+        spacing 50
 
-        textbutton "[[ TAKE ]":
+        ## TAKE — under the card frame
+        textbutton "[[ TAKE THE CARD ]":
+            xsize 420
+            xalign 0.5
             action Return("take")
             text_color _co_color
             text_hover_color "#ffffff"
-            text_size 28
+            text_size 24
             text_bold True
             text_font "fonts/RobotoMono-Regular.ttf"
+            text_xalign 0.5
             background Frame("#0d1d0dee", 4, 4)
             hover_background Frame("#1a3a1aee", 4, 4)
-            padding (40, 14)
+            padding (20, 14)
 
-        textbutton "[[ PASS ]":
+        ## OR-spacer to match the divider above
+        null width 22
+
+        ## PASS — under the stat-reward frame
+        textbutton "[[ PASS — KEEP STATS ]":
+            xsize 420
+            xalign 0.5
             action Return("pass")
-            text_color "#888888"
-            text_hover_color "#ff4422"
-            text_size 22
+            text_color "#ffcc66"
+            text_hover_color "#ffffff"
+            text_size 24
             text_bold True
             text_font "fonts/RobotoMono-Regular.ttf"
+            text_xalign 0.5
             background Frame("#1a1a1aee", 4, 4)
-            hover_background Frame("#2a0d0dee", 4, 4)
-            padding (32, 12)
+            hover_background Frame("#3a2a0dee", 4, 4)
+            padding (20, 14)
 
     text "T = TAKE   ·   P = PASS   ·   ESC = PASS":
         xalign 0.5
-        yalign 0.98
+        yalign 0.985
         color "#444444"
         size 12
         font "fonts/RobotoMono-Regular.ttf"
