@@ -198,17 +198,23 @@ init python:
 
 
     def puzzle_submit():
-        """Check chosen vs correct. Increments attempts. Sets puzzle_result."""
+        """Check chosen vs correct. Increments attempts. Sets puzzle_result.
+
+        Returns None unconditionally — same Ren'Py-action-propagation
+        hazard as battle_play_card: any non-None return from a Function
+        action would short-circuit the screen, beating the timer-gated
+        Return(puzzle_result) and mis-classifying even correct submissions
+        as fail. The screen reads puzzle_result as a side-effect.
+        """
         global puzzle_attempts, puzzle_result
         puzzle_attempts += 1
         p = PUZZLES.get(puzzle_id, {})
         correct = p.get("correct", [])
         if puzzle_chosen == correct:
             puzzle_result = "pass"
-            return True
+            return
         if puzzle_attempts >= puzzle_max_attempts:
             puzzle_result = "fail"
-            return False
+            return
         ## Reset for retry
         puzzle_reset()
-        return False

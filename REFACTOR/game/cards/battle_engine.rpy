@@ -374,23 +374,27 @@ init python:
 
 
     def battle_play_card(card_id):
-        """Play a card from hand. Returns True if played, False if not playable."""
+        """Play a card from hand.
+
+        Returns None unconditionally. We deliberately do NOT return a
+        bool here: this function is wired up as a Ren'Py screen Function
+        action, and Ren'Py's behavior.run() propagates the LAST non-None
+        return value from an action list as an implicit screen Return —
+        which would exit battle_screen on every click. battle_outcome()
+        then falls through to its conservative 'defeat' default because
+        bs.over was never set, jumping the player straight to the defeat
+        ending. This was the long-standing 'play any card → instant
+        defeat' bug. Keep the early-exits as bare `return` statements.
+        """
         bs = battle_state
-        ## DIAG (insta-loss bug): capture state at click moment
-        if bs is not None:
-            bs.add_log("[[CLICK]]: card={} over={} hp={}/{} block={}".format(
-                card_id, bs.over, bs.player_hp, bs.player_max_hp, bs.player_block))
         if bs is None or bs.is_over():
-            if bs is not None:
-                bs.add_log("[[CLICK]]: REJECTED (bs is_over -> {})".format(bs.over))
-            return False
+            return
         if card_id not in bs.hand:
-            bs.add_log("[[CLICK]]: REJECTED (card not in hand)")
-            return False
+            return
         ok, reason = bs.hand_playable(card_id)
         if not ok:
             bs.add_log("Cannot play: " + reason)
-            return False
+            return
 
         c = CARD_LIBRARY.get(card_id, {})
         cost = c.get("cost", 0)
@@ -404,9 +408,6 @@ init python:
                 card_effects[eff_id](bs, "player", "enemy")
             except Exception as e:
                 bs.add_log("Effect error: {}".format(e))
-            ## DIAG: post-effect state
-            bs.add_log("[[POST-EFF]]: over={} hp={} enemy={}".format(
-                bs.over, bs.player_hp, bs.enemy_hp))
 
         bs.last_card_played = card_id
 
@@ -427,8 +428,6 @@ init python:
                 except Exception:
                     pass
             bs.add_log("Personal Record: doubled.")
-
-        return True
 
 
     def battle_end_player_turn():
