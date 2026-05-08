@@ -274,6 +274,7 @@ init python:
         store.corrupt_chain_2 = False
         store.corrupt_chain_3_completed = False
         store._nightmare_wolf_triggered = False
+        store._reunion_via_defeat = False
 
         ## --- Class progression state ---
         ## BB: SOMA stack (each gym session +1, max 10). 5+ unlocks Iron Body buff in fight.
@@ -355,7 +356,7 @@ init python:
         "dark_empath_win":  {"category": "Combat",     "name": "Mirror Mirror",           "desc": "Use the FATAL STRIKE as Dark Empath.",                          "hint": "Dark Empath only — find the Colonel's hidden vulnerability."},
         "biohacker_win":    {"category": "Combat",     "name": "Optimized",               "desc": "Auto-counter Safety Net as Biohacker.",                         "hint": "Biohacker only — let the Colonel try the safety net argument."},
         "hackerman":        {"category": "Collection", "name": "Hackerman",               "desc": "Max out coding skill to 250. You are the compiler now.",        "hint": "Reach 250 Coding Skill (the cap)."},
-        "the_return":       {"category": "Story",      "name": "The Return",              "desc": "Beat the Colonel, then crawl back to the station six months later.","hint": "Beat the Colonel, but not perfectly — six months later you'll find out what that costs."},
+        "the_return":       {"category": "Story",      "name": "The Return",              "desc": "Walk out of the station, then walk back six months later.",         "hint": "Leave the Colonel behind without the perfect exit. Six months later you'll find out what that costs."},
         ## --- Class arc achievements ---
         "vladeks_pupil":    {"category": "Story",      "name": "Vladek's Pupil",          "desc": "Place at the Strongman competition. The trainer was right.",     "hint": "Bodybuilder only — finish Vladek's competition arc on the podium."},
         "bring_the_lt":     {"category": "Story",      "name": "Bring The Lieutenant",    "desc": "Expose Kovář's flagged report to journalists.",                  "hint": "Dark Empath only — choose to expose, not leverage or comply."},

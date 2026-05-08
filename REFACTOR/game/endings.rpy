@@ -76,75 +76,6 @@ label homeless_ending:
 
 
 ## ---------------------------------------------------------------------------
-## COLONEL DEFEAT ENDING
-## Triggered when JB HP <= 0 or loses the HP comparison at stalemate
-## ---------------------------------------------------------------------------
-
-label colonel_defeat_ending:
-
-    play music "audio/breakdown_theme.mp3" fadein 1.0
-    scene bg_police_office
-    show colonel normal at char_right
-
-    "You slowly sit back down in the chair."
-    "The Colonel watches you. His face shows no emotion. No satisfaction. Just... emptiness."
-
-    "You look at your hands. They're shaking."
-    "The Colonel's words are still ringing in your ears."
-    colonel "'You're nothing without this uniform, JB.'"
-    colonel "'You're nothing without this badge.'"
-    colonel "'You're nothing without {stshl=ME}.'"
-
-    "You open your mouth. You want to argue. You want to fight back."
-    "But... nothing comes out."
-
-    "Instead, you hear your own voice. Soft. Broken. Apologetic."
-    jb "'I... I'm sorry, Colonel.'"
-    jb "'I was wrong.'"
-
-    "The words feel foreign on your tongue. Like you're reading from a script."
-    "But as you say them, something strange happens."
-    "The weight on your chest... it starts to lift."
-
-    jb "'You're right, Colonel.'"
-    jb "'There is no better job than being a police officer.'"
-    jb "'I... I realize that now.'"
-
-    "The Colonel's expression doesn't change. But he nods slowly."
-    colonel "'Good. I'm glad you understand.'"
-    colonel "'You can go back to your duties now.'"
-
-    "You stand up. Your legs feel heavy. But you stand."
-    "You walk to the door. Your hand reaches for the handle."
-    "And as you turn it, you feel... nothing."
-    "No anger. No hatred. No dreams of coding or freedom."
-
-    python:
-        stats.coding_skill = -100
-        stats.pcr_hatred   = -100
-
-    "Just... acceptance."
-    "This is your life now."
-    "This has always been your life."
-    "And you're okay with that."
-
-    "You return to your desk."
-    "You pick up a report."
-    "You start filling it out."
-
-    scene bg_black with slow_dissolve
-
-    call screen ending_screen(
-        "BAD ENDING",
-        "ACCEPTANCE",
-        "War is peace. Freedom is slavery. Ignorance is strength.",
-        "bad"
-    )
-
-    $ renpy.full_restart()
-
-
-## ---------------------------------------------------------------------------
 ## GOOD ENDING
 ## Triggered from colonel_glitch_phase via [sys.exit()] WAKE UP
 ## ---------------------------------------------------------------------------
@@ -273,13 +204,31 @@ label reunion_ending:
     python:
         unlock_achievement("the_return")
 
-    stop music fadeout 2.0
-    scene bg_black
-    pause 1.5
+    if getattr(store, '_reunion_via_defeat', False):
+        ## Defeat path — JB lost the argument but walked out anyway.
+        scene bg_police_office
+        show colonel normal at char_right
 
-    "You did it."
-    "You walked out of his office."
-    "You felt the air outside the station."
+        "You stand up."
+        "Your hands are shaking. Your voice isn't."
+
+        jb "'I'm doing it anyway.'"
+
+        "He doesn't answer. He doesn't need to."
+        "You walk to the door. You don't look back."
+
+        stop music fadeout 2.0
+        scene bg_black with slow_dissolve
+        pause 1.5
+    else:
+        ## Victory path — JB beat the Colonel (close / pyrrhic / stat-starved perfect).
+        stop music fadeout 2.0
+        scene bg_black
+        pause 1.5
+
+        "You did it."
+        "You walked out of his office."
+        "You felt the air outside the station."
 
     pause 1.0
 
