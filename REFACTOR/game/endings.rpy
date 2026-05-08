@@ -269,40 +269,7 @@ label reunion_ending:
 
     play music "audio/coding_in_snow_theme.mp3" fadein 2.0
 
-    "You walk back to the station."
-    "It's October. You wear civilian clothes — the same hoodie you used to wear off-shift."
-    "You pause at the door for a long time."
-
-    pause 1.0
-
     $ renpy.movie_cutscene("video/refactor_true_ending.mp4")
-
-    scene bg_police_interior with slow_dissolve
-
-    "He sees you in the corridor."
-    "You expected anger. Or vindication. Or a speech."
-
-    show colonel normal at char_right with dissolve
-
-    colonel "'JB.'"
-
-    "His voice is flat. Not warm. Not cold."
-
-    colonel "'I had a feeling.'"
-    colonel "'There's a desk free in records. Eighteen months minimum if you want your old rank back.'"
-    colonel "'Or you can stay civilian. I don't care which.'"
-
-    "He walks away before you answer."
-
-    pause 1.0
-
-    "You sign the paperwork."
-    "Your hands don't shake."
-    "You knew you'd end up here. You knew it the whole time."
-
-    "Some people can leave."
-    "Some people leave and come back."
-    "Some people come back {stshl=smaller}."
 
     python:
         _base_score  = (stats.available_money / 100) + (stats.coding_skill * 60)
