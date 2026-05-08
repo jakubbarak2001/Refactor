@@ -70,22 +70,22 @@ label colonel_event:
     if _outcome == "defeat":
         jump colonel_defeat_ending
 
-    ## Victory routing — collapsed to GOOD / HAPPY_NATION / REUNION.
+    ## Victory routing.
     ## CORRUPT chain overrides everything: ÚRNA gets you regardless of fight quality.
-    ## REUNION fires when the fight was won but stats can't sustain a dev career —
-    ## both coding AND money must fail; single-stat fail still rides into GOOD.
+    ## Only a perfect victory earns the triumphant good_ending — the glitch phase
+    ## confirms JB actually broke the loop. Anything less (close/pyrrhic, OR a
+    ## perfect fight followed by a stat-starved life) routes to reunion_ending,
+    ## the "six months later you walked back to the station" coda. The
+    ## refactor_true_ending.mp4 cutscene plays inside reunion_ending and IS that
+    ## six-months-later disillusionment.
     python:
         if getattr(store, 'corrupt_chain_3_completed', False):
             renpy.jump("happy_nation_ending")
-        if stats.coding_skill < 70 and stats.available_money < 25000:
-            renpy.jump("reunion_ending")
 
-    ## Perfect victory still earns the glitch phase narrative; close/pyrrhic flow
-    ## directly into the standard good ending.
-    if _outcome == "victory_perfect":
-        jump colonel_glitch_phase
+    if _outcome != "victory_perfect" or (stats.coding_skill < 70 and stats.available_money < 25000):
+        jump reunion_ending
 
-    jump good_ending
+    jump colonel_glitch_phase
 
 
 ## ---------------------------------------------------------------------------

@@ -185,28 +185,9 @@ label good_ending:
 
     $ renpy.movie_cutscene("video/jb_good_ending.mp4")
 
-    scene bg_black
-
-    "The blinding light hits you."
-
-    pause 2.0
-
-    "You step out. You expect the grey, dirty street of the city."
-    "Instead..."
-
-    "It is a field. A vast, golden wheat field under a perfect blue sky."
-    "The sun is warm on your face. The air smells of summer and freedom."
-
-    "You look back."
-    "The Police Station isn't a building anymore."
-    "It's just a small, grey, cardboard box sitting in the middle of the field."
-    "You can still hear a tiny, squeaky voice inside yelling about regulations."
-
     scene bg_cafe with slow_dissolve
     show jb developer_happy at char_left with dissolve
 
-    "You smile."
-    "You reach out and touch the wheat. It feels real."
     "You take a deep breath."
 
     "SYSTEM: BUILD SUCCESSFUL."
@@ -345,7 +326,7 @@ label reunion_ending:
 
     pause 1.0
 
-    $ renpy.movie_cutscene("video/reunion.mp4")
+    $ renpy.movie_cutscene("video/refactor_true_ending.mp4")
 
     scene bg_police_interior with slow_dissolve
 
