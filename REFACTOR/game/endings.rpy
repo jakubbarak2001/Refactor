@@ -269,7 +269,7 @@ label reunion_ending:
 
     play music "audio/coding_in_snow_theme.mp3" fadein 2.0
 
-    $ renpy.movie_cutscene("video/refactor_true_ending.mp4")
+    $ renpy.movie_cutscene("video/refactor_true_ending.webm")
 
     python:
         _base_score  = (stats.available_money / 100) + (stats.coding_skill * 60)
