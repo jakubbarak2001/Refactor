@@ -27,6 +27,7 @@ image bg_police_office       = im.Scale("images/backgrounds/police_station_colon
 image bg_police_interior     = im.Scale("images/backgrounds/police_station_interior.jpg", 1920, 1080)
 image bg_cafe                = im.Scale("images/backgrounds/cafe.jpg", 1920, 1080)
 image bg_random_event        = im.Scale("images/backgrounds/random_event.jpg", 1920, 1080)
+image bg_class_intro         = im.Scale("images/backgrounds/class_intro.png", 1920, 1080)
 
 ## Black screen used for title cards, glitch moments, etc.
 image bg_black = "#000000"
@@ -65,7 +66,9 @@ image jb neutral        = im.Scale("images/sprites/jb_neutral.png",         600,
 image jb worried        = im.Scale("images/sprites/jb_worried.png",          600, 900)
 image jb determined     = im.Scale("images/sprites/jb_determined.png",       600, 900)
 image jb bored          = im.Scale("images/sprites/jb_bored.png",            600, 900)
-image jb developer_happy = im.Scale("images/sprites/jb_developer_happy.png", 600, 900)
+## Source is 1024x1024 (1:1, unlike the other 2:3 JB sprites). Scaling to
+## 600x900 stretches the face vertically by 50% — keep the native aspect.
+image jb developer_happy = im.Scale("images/sprites/jb_developer_happy.png", 600, 600)
 
 ## Class portraits — pre-scaled to fit the 500x750 portrait frame on the
 ## right panel of the class selection screen. Same aspect (~0.667) as the

@@ -6,7 +6,7 @@ Project-level guidance for Claude. This file is auto-loaded every session.
 
 **REFACTOR** is a Ren'Py game — visual novel / deckbuilder hybrid. Player is JB, a Czech cop trying to escape into tech over a 30-day countdown to a confrontation with the Colonel. Three character classes (Bodybuilder / Dark Empath / Biohacker), four difficulty tiers, ~20 random events, multiple endings.
 
-**Status:** Mid-refactor. Phase 0 (balance + polish) → Phase 1 (deckbuilder pivot, replaces text-Colonel-fight with Slay-the-Spire-style turn-based deck battle) → Phase 2 (coding mini-game) → Phase 3 (new endings: Reunion, JBDARK). See `docs/REFACTOR_PLAYBOOK.md` for the full plan and per-phase checklists.
+**Status:** Mid-refactor. Phase 0 (balance + polish) → Phase 1 (deckbuilder pivot, replaces text-Colonel-fight with Slay-the-Spire-style turn-based deck battle) → Phase 2 (coding mini-game) → Phase 3 (new endings: Reunion). See `docs/REFACTOR_PLAYBOOK.md` for the full plan and per-phase checklists.
 
 ## Tech
 

@@ -114,7 +114,7 @@ label good_ending:
     "It's supposed to be locked. It's supposed to be hard to leave."
     "You simply push it open."
 
-    $ renpy.movie_cutscene("video/jb_good_ending.mp4")
+    $ renpy.movie_cutscene("video/jb_good_ending.webm")
 
     scene bg_cafe with slow_dissolve
     show jb developer_happy at char_left with dissolve

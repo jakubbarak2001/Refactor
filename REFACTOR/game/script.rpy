@@ -114,10 +114,16 @@ label difficulty_selection:
 
 label character_class_selection:
 
-    scene bg_black
+    ## Suppress the Ren'Py quick_menu so it doesn't flash during the fade
+    ## transition between the (modal) difficulty screen and this intro.
+    $ quick_menu = False
+
+    scene bg_class_intro with fade
 
     "Before the grind begins — who are you, JB?"
     "Your class is permanent. Choose carefully."
+
+    $ quick_menu = True
 
     call screen class_selection_screen
 
@@ -163,6 +169,11 @@ label character_class_selection:
 ## ---------------------------------------------------------------------------
 
 label main_loop:
+
+    ## Self-heal: if the player saved mid-intro while quick_menu was suppressed
+    ## (character_class_selection wraps two narrative lines with quick_menu=False),
+    ## any reload past that point should re-enable it.
+    $ quick_menu = True
 
     python:
         # Ensure state is initialised (fallback in case jump used directly)
