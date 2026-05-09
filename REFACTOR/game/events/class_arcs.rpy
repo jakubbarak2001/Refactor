@@ -32,7 +32,7 @@ label re_bb_trainer_intro:
     "'I run a private programme. Olympic prep. Three months. I'd take you on. No money up front.'"
 
     menu:
-        "TAKE THE OFFER — Train private. [[+1 SOMA, -10 Hatred, arc continues]]":
+        "Take the offer. [[+1 SOMA, -10 Hatred, arc continues]]":
             python:
                 store.bb_arc_stage = 1
                 store.bb_soma += 1
@@ -43,7 +43,7 @@ label re_bb_trainer_intro:
             pause
             hide screen outcome_panel
 
-        "DECLINE — 'I can't commit to that, Vladek. Not yet.' [[arc closes]]":
+        "Decline. [[arc closes]]":
             python:
                 store.bb_arc_stage = -1
             "He shrugs. 'Suit yourself. The body keeps score either way.'"
@@ -69,7 +69,7 @@ label re_bb_competition_offer:
     "'You'd be the only cop in the field. They'd remember you.'"
 
     menu:
-        "REGISTER — Pay the entry. Train hard. [[-[_bb_entry_cost] CZK, arc continues]]" if stats.available_money >= _bb_entry_cost:
+        "Register. [[-[_bb_entry_cost] CZK, arc continues]]" if stats.available_money >= _bb_entry_cost:
             python:
                 stats.try_spend_money(_bb_entry_cost)
                 store.bb_arc_stage = 2
@@ -80,7 +80,7 @@ label re_bb_competition_offer:
             pause
             hide screen outcome_panel
 
-        "PASS — 'Not the right time, Vladek.' [[arc closes]]":
+        "Pass. [[arc closes]]":
             python:
                 store.bb_arc_stage = -1
             "He doesn't argue. He doesn't call again."
@@ -138,7 +138,7 @@ label re_bb_competition_day:
                     unlock_achievement("vladeks_pupil")
                     offer_card("vladeks_form", "ARC: COMPETITION WON")
 
-        "PLAY IT SAFE — Finish without injury. [[guaranteed +5,000 CZK, no SOMA]]":
+        "Play it safe. [[guaranteed +5,000 CZK, no SOMA]]":
             python:
                 stats.increment_stats_value_money(5000)
                 stats.increment_stats_pcr_hatred(-5)
@@ -172,7 +172,7 @@ label re_de_kovar_eyes:
     "His left hand drums on the table in a 4-4 rhythm only nervous men do."
 
     menu:
-        "READ HIM CAREFULLY — Profile. [[arc continues, +5 Coding]]":
+        "Read him carefully. [[arc continues, +5 Coding]]":
             python:
                 store.de_arc_stage = 1
                 store.de_profiles["lieutenant"] = store.de_profiles.get("lieutenant", 0) + 1
@@ -184,7 +184,7 @@ label re_de_kovar_eyes:
             pause
             hide screen outcome_panel
 
-        "LOOK AWAY — Not your problem. [[arc closes]]":
+        "Look away. [[arc closes]]":
             python:
                 store.de_arc_stage = -1
             "You go back to your screen."
@@ -211,7 +211,7 @@ label re_de_kovar_warning:
     "'So we have an exchange to make.'"
 
     menu:
-        "DEFER — 'I'm listening, Lieutenant.' [[arc continues, profile deepens]]":
+        "Defer. [[arc continues, profile deepens]]":
             python:
                 store.de_arc_stage = 2
                 store.de_profiles["lieutenant"] = store.de_profiles.get("lieutenant", 0) + 2
@@ -223,7 +223,7 @@ label re_de_kovar_warning:
             pause
             hide screen outcome_panel
 
-        "WALK OUT — 'Your file means nothing. Show me, then.' [[+15 Hatred, arc closes]]":
+        "Walk out. [[+15 Hatred, arc closes]]":
             python:
                 store.de_arc_stage = -1
                 stats.increment_stats_pcr_hatred(15)
@@ -249,7 +249,7 @@ label re_de_kovar_choice:
     "He didn't take a kickback. He {i}was{/i} the kickback."
 
     menu:
-        "DELETE THE REPORT — Square the deal. [[+25,000 CZK, +20 Hatred — arc closes dark]]":
+        "Delete the report. [[+25,000 CZK, +20 Hatred — arc closes dark]]":
             python:
                 store.de_arc_stage = 3
                 stats.increment_stats_value_money(25000)
@@ -262,7 +262,7 @@ label re_de_kovar_choice:
             pause
             hide screen outcome_panel
 
-        "EXPOSE HIM — Send the file to Internal Affairs anonymously. [[-15 Hatred, +30 Coding, arc closes clean]]":
+        "Expose him. [[-15 Hatred, +30 Coding, arc closes clean]]":
             python:
                 store.de_arc_stage = 3
                 stats.increment_stats_pcr_hatred(-15)
@@ -280,7 +280,7 @@ label re_de_kovar_choice:
                 unlock_achievement("bring_the_lt")
                 offer_card("the_dossier", "ARC: KOVÁŘ EXPOSED")
 
-        "OFFER A TRADE — 'I'll keep this safe. You stop. Forever.' [[-5 Hatred, +10 Coding, leverage]]":
+        "Offer a trade. [[-5 Hatred, +10 Coding, leverage]]":
             python:
                 store.de_arc_stage = 3
                 stats.increment_stats_pcr_hatred(-5)
@@ -316,7 +316,7 @@ label re_bh_telegram_meet:
     "Reply in 4 minutes: 'In Prague Friday. Coffee. K-Café, Vinohrady, 14:00. Bring nothing. Wear nothing identifying.'"
 
     menu:
-        "GO — Show up. [[arc continues, +5 Coding]]":
+        "Go. [[arc continues, +5 Coding]]":
             python:
                 store.bh_arc_stage = 1
                 stats.increment_stats_coding_skill(5)
@@ -329,7 +329,7 @@ label re_bh_telegram_meet:
             pause
             hide screen outcome_panel
 
-        "GHOST HIM — Don't show. [[arc closes]]":
+        "Ghost him. [[arc closes]]":
             python:
                 store.bh_arc_stage = -1
             "You delete the conversation. Then the app."
@@ -356,7 +356,7 @@ label re_bh_sketchy_lab:
     "'I would like to know what they do.'"
 
     menu:
-        "TAKE A VIAL — One sample. Document everything. [[+15 Coding, +10 Hatred]]":
+        "Take a vial. [[+15 Coding, +10 Hatred]]":
             python:
                 store.bh_arc_stage = 2
                 stats.increment_stats_coding_skill(15)
@@ -369,7 +369,7 @@ label re_bh_sketchy_lab:
             pause
             hide screen outcome_panel
 
-        "ASK INSTEAD — 'Show me the synthesis. Teach me.' [[+25 Coding, no compound]]":
+        "Ask instead. [[+25 Coding, no compound]]":
             python:
                 store.bh_arc_stage = 2
                 stats.increment_stats_coding_skill(25)
@@ -383,7 +383,7 @@ label re_bh_sketchy_lab:
             pause
             hide screen outcome_panel
 
-        "WALK OUT — 'This is too far.' [[arc closes, -5 Hatred]]":
+        "Walk out. [[arc closes, -5 Hatred]]":
             python:
                 store.bh_arc_stage = -1
                 stats.increment_stats_pcr_hatred(-5)
@@ -408,7 +408,7 @@ label re_bh_test_subject:
     "'You would be patient zero. The data would be yours and mine.'"
 
     menu:
-        "AGREE — Become the trial. [[+30 Coding, +25 Hatred, dependency risk]]":
+        "Agree. [[+30 Coding, +25 Hatred, dependency risk]]":
             python:
                 store.bh_arc_stage = 3
                 stats.increment_stats_coding_skill(30)
@@ -429,7 +429,7 @@ label re_bh_test_subject:
                 unlock_achievement("subject_zero")
                 offer_card("the_compound", "ARC: TRIAL SUBJECT")
 
-        "REFUSE — 'I'll keep using what I have. No experiments.' [[+10 Coding from refusing]]":
+        "Refuse. [[+10 Coding from refusing]]":
             python:
                 store.bh_arc_stage = 3
                 stats.increment_stats_coding_skill(10)
@@ -440,7 +440,7 @@ label re_bh_test_subject:
             pause
             hide screen outcome_panel
 
-        "COUNTER — 'I'll do it. Triple my fee. Cash. Anonymous.' [[risk: 50/50]]":
+        "Counter. [[risk: 50/50]]":
             python:
                 _bh_roll = __import__('random').randint(1, 100)
                 store.bh_arc_stage = 3

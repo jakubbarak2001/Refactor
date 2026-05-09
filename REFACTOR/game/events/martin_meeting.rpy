@@ -128,7 +128,7 @@ label martin_phase1_preparation:
             pause
             hide screen outcome_panel
 
-        "FREE — Go as is. Sweatpants and a hoodie. You don't have energy to pretend.":
+        "Free.":
             "You splash some cold water on your face. This is who you are right now."
             "If he's really your friend, he won't care about the hoodie."
             show screen outcome_panel("NO CHANGE.")
@@ -182,7 +182,7 @@ label martin_phase2_meeting:
     "Before the food arrives, you need to break the ice. What do you talk about?"
 
     menu:
-        "VENT OUT — Complain about the police, the Colonel, and the bureaucracy. (-50 PCR HATRED)":
+        "Vent out. (-50 PCR HATRED)":
             python:
                 stats.increment_stats_pcr_hatred(-50)
 
@@ -192,7 +192,7 @@ label martin_phase2_meeting:
             pause
             hide screen outcome_panel
 
-        "BRAG — Talk about your Python projects and how much you've learned. (+25 CODING SKILLS)":
+        "Brag. (+25 CODING SKILLS)":
             python:
                 stats.increment_stats_coding_skill(25)
 
@@ -202,7 +202,7 @@ label martin_phase2_meeting:
             pause
             hide screen outcome_panel
 
-        "LISTEN — Let him talk. Ask him how he did it. (+2 AFFECTION POINTS)":
+        "Listen. (+2 AFFECTION POINTS)":
             python:
                 martin_affection += 2
 
@@ -423,7 +423,7 @@ label martin_phase6_hatred_check:
     "REALITY CHECK — Current PCR HATRED: [stats.pcr_hatred]/100"
 
     menu:
-        "PURE RAGE — 'I hate them. I want to watch the station burn.'":
+        "Pure rage.":
             python:
                 stats.increment_stats_pcr_hatred(25)
                 martin_affection += 2
@@ -435,7 +435,7 @@ label martin_phase6_hatred_check:
             pause
             hide screen outcome_panel
 
-        "HATRED — 'I'm done. I despise what I've become here.'":
+        "Hatred.":
             python:
                 stats.increment_stats_pcr_hatred(10)
                 martin_affection += 1
@@ -446,14 +446,14 @@ label martin_phase6_hatred_check:
             pause
             hide screen outcome_panel
 
-        "NEUTRAL — 'It's just a job. It didn't work out.'":
+        "Neutral.":
             jb "'It's business. We just aren't a good fit.'"
             martin "'Diplomatic answer. Boring, but safe.'"
             show screen outcome_panel("NEUTRAL.")
             pause
             hide screen outcome_panel
 
-        "SOFT — 'I don't have hard feelings. Maybe it's me who is the problem.'":
+        "Soft.":
             python:
                 stats.increment_stats_pcr_hatred(-25)
                 martin_affection -= 1
@@ -464,7 +464,7 @@ label martin_phase6_hatred_check:
             pause
             hide screen outcome_panel
 
-        "COPING — 'Actually, the police is vital for society! The Colonel is just misunderstood!'":
+        "Coping.":
             python:
                 stats.increment_stats_pcr_hatred(-50)
                 martin_affection -= 2
@@ -506,7 +506,7 @@ label martin_phase7_timing:
     martin "'Or do you need time to prepare your mind and your wallet?'"
 
     menu:
-        "BRAVE — 'I'm doing it tomorrow. I want it over with.' (Colonel fight Day 25, +2 AFFECTION POINTS)":
+        "Brave. (Colonel fight Day 25, +2 AFFECTION POINTS)":
             python:
                 martin_affection += 2
                 stats.colonel_day = 25
@@ -517,7 +517,7 @@ label martin_phase7_timing:
             pause
             hide screen outcome_panel
 
-        "REASONABLE — 'I need more time. I'll wait until the last moment.' (Colonel fight Day 30)":
+        "Reasonable. (Colonel fight Day 30)":
             python:
                 stats.colonel_day = 30
 
@@ -571,7 +571,7 @@ label martin_phase_dark_question:
     "You pause."
 
     menu:
-        "AFRAID OF FAILURE — 'What if I quit and I can't make it as a developer?'":
+        "Afraid of failure.":
             python:
                 martin_affection += 1
                 stats.increment_stats_pcr_hatred(-5)
@@ -586,7 +586,7 @@ label martin_phase_dark_question:
             pause
             hide screen outcome_panel
 
-        "AFRAID OF IDENTITY — 'Without the badge, who am I?'":
+        "Afraid of identity.":
             python:
                 martin_affection += 2
                 stats.increment_stats_pcr_hatred(-10)
@@ -601,7 +601,7 @@ label martin_phase_dark_question:
             pause
             hide screen outcome_panel
 
-        "AFRAID OF NOTHING — 'I'm not afraid. I'm ready.'":
+        "Afraid of nothing.":
             python:
                 stats.increment_stats_pcr_hatred(10)
 
@@ -614,7 +614,7 @@ label martin_phase_dark_question:
             pause
             hide screen outcome_panel
 
-        "ADMIT THE REAL FEAR — 'I'm afraid of the Colonel finding me after I leave.'":
+        "Admit the real fear.":
             python:
                 martin_affection += 3
                 stats.increment_stats_pcr_hatred(-15)
@@ -661,7 +661,7 @@ label martin_phase_the_price:
         _ci_done = getattr(store, 'coding_interview_passed', False)
 
     menu:
-        "YES — 'I've already processed that. I'm ready to be alone in this.'":
+        "Yes.":
             python:
                 martin_affection += 2
 
@@ -672,7 +672,7 @@ label martin_phase_the_price:
             pause
             hide screen outcome_panel
 
-        "NOT SURE — 'I'll probably still care about what they think. Can't help it.'":
+        "Not sure.":
             python:
                 martin_affection += 1
                 stats.increment_stats_pcr_hatred(-5)
@@ -753,28 +753,28 @@ label martin_good_ending_selection:
     "CHOOSE YOUR FINAL BOSS ADVANTAGE:"
 
     menu:
-        "THE LEGAL NUKE — Paragraph 4B card. (40 dmg attack — auto-counters 'Training Debt'.)":
+        "The legal nuke. (40 dmg attack — auto-counters 'Training Debt'.)":
             "Martin hands you a crumpled digital file printout."
             martin "'He lies about the contract. Quote this paragraph. Watch him choke.'"
             python:
                 grant_card("paragraph_4b", silent=True)
                 stats.final_boss_buff = "PARAGRAPH_4B"
 
-        "GHOST OF THE PAST — Ghost Secret card. (Disables one colonel attack + 15 dmg.)":
+        "Ghost of the past. (Disables one colonel attack + 15 dmg.)":
             "Martin leans in and whispers the Colonel's dirty secret."
             "You smile. Suddenly, the Colonel doesn't look like a monster. He looks like a failure."
             python:
                 grant_card("ghost_secret", silent=True)
                 stats.final_boss_buff = "GHOST_SECRET"
 
-        "PRODUCTION READY SHIELD — Job Offer card. (+5 max HP, +1 starting block per turn.)":
+        "Production ready shield. (+5 max HP, +1 starting block per turn.)":
             "Martin makes a call. He hands you a napkin with a number on it."
             martin "'That's your starting salary. He can't threaten a man who has options.'"
             python:
                 grant_card("job_offer", silent=True)
                 stats.final_boss_buff = "JOB_OFFER"
 
-        "STOIC REFACTOR — Stoic Refactor card. (Take 50%% damage from emotional attacks.)":
+        "Stoic refactor. (Take 50%% damage from emotional attacks.)":
             "Martin grabs your shoulders. He teaches you to breathe. To detach."
             martin "'He is just broken code, JB. Don't get angry. Just debug him.'"
             python:

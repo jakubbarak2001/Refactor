@@ -67,7 +67,7 @@ label bh_spend_red_light:
     "Replacement: 3,500 CZK plus shipping. Or skip the recovery protocol and pay in cortisol."
 
     menu:
-        "REPLACE — 3,500 CZK. Recovery stack stays intact.":
+        "Replace.":
             python:
                 _cost = adjusted_cost(3500)
                 _spent = stats.try_spend_money(_cost)
@@ -82,7 +82,7 @@ label bh_spend_red_light:
             pause
             hide screen outcome_panel
 
-        "SKIP — sleep without it. (+5 Hatred from disrupted recovery)":
+        "Skip. (+5 Hatred from disrupted recovery)":
             $ stats.increment_stats_pcr_hatred(5)
             "You sleep poorly. The data shows it. You log the regression and move on."
             show screen outcome_panel("+5 PCR HATRED.")
@@ -108,7 +108,7 @@ label bh_spend_bacopa:
     "Restock: 1,200 CZK from the usual vendor. Or skip and feel it for a week."
 
     menu:
-        "RESTOCK — 1,200 CZK. Stack continuity preserved.":
+        "Restock.":
             python:
                 _cost = adjusted_cost(1200)
                 _spent = stats.try_spend_money(_cost)
@@ -123,7 +123,7 @@ label bh_spend_bacopa:
             pause
             hide screen outcome_panel
 
-        "SKIP — wing it without. (-3 Coding from memory dip)":
+        "Skip. (-3 Coding from memory dip)":
             $ stats.increment_stats_coding_skill(-3)
             "You read the same paragraph three times. You log it. You move on."
             show screen outcome_panel("-3 CODING SKILL.")
@@ -149,7 +149,7 @@ label bh_spend_new_paper:
     "You've never felt this much FOMO from a footnote. The compound stack is 4,500 CZK on the gray market."
 
     menu:
-        "BUY — 4,500 CZK. Add to stack. (+6 Coding from new compound)":
+        "Buy. (+6 Coding from new compound)":
             python:
                 _cost = adjusted_cost(4500)
                 _spent = stats.try_spend_money(_cost)
@@ -164,7 +164,7 @@ label bh_spend_new_paper:
             pause
             hide screen outcome_panel
 
-        "SKIP — close the tab. The current stack is enough.":
+        "Skip.":
             "You close the tab. You will think about it for the next four nights."
             "Actually it's fine. Discipline is a stack input too."
             show screen outcome_panel("No change. (Discipline +0, FOMO undocumented.)")
@@ -190,7 +190,7 @@ label bh_spend_hrv_battery:
     "Total: 1,500 CZK. Or sleep blind for a week."
 
     menu:
-        "REPLACE — 1,500 CZK. Telemetry restored.":
+        "Replace.":
             python:
                 _cost = adjusted_cost(1500)
                 _spent = stats.try_spend_money(_cost)
@@ -205,7 +205,7 @@ label bh_spend_hrv_battery:
             pause
             hide screen outcome_panel
 
-        "SKIP — sleep without telemetry. (+4 Hatred from data anxiety)":
+        "Skip. (+4 Hatred from data anxiety)":
             $ stats.increment_stats_pcr_hatred(4)
             "You sleep without the strap. You wake up at 03:14 wondering what the deep-sleep score is."
             "There's no number. The number is not the night. You repeat that to yourself."
@@ -232,7 +232,7 @@ label bh_spend_vendor_markup:
     "Pay now, or pay more later. Or — third option — start cycling off."
 
     menu:
-        "STOCKPILE — 2,000 CZK. Three-month buffer at old prices.":
+        "Stockpile.":
             python:
                 _cost = adjusted_cost(2000)
                 _spent = stats.try_spend_money(_cost)
@@ -247,7 +247,7 @@ label bh_spend_vendor_markup:
             pause
             hide screen outcome_panel
 
-        "DECLINE — start tapering. (+5 Hatred — withdrawal flavor)":
+        "Decline. (+5 Hatred — withdrawal flavor)":
             $ stats.increment_stats_pcr_hatred(5)
             "You tell him you're cycling off. He says 'Sure' in the way that means 'see you next month.'"
             "Three nights later you reach for the bottle that isn't there. The hand remembers before the brain."

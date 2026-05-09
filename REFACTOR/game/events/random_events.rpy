@@ -30,7 +30,7 @@ label re_israeli_developer:
         _can_code = stats.coding_skill >= 35 or stats.player_class == "biohacker"
 
     menu:
-        "TALK CODE — Tell him the truth. [[+30 Coding, BH: FLMod source]]" if _can_code:
+        "Talk code. [[+30 Coding, BH: FLMod source]]" if _can_code:
             python:
                 stats.increment_stats_coding_skill(30)
                 _bh = (stats.player_class == "biohacker")
@@ -48,7 +48,7 @@ label re_israeli_developer:
             pause
             hide screen outcome_panel
 
-        "STAY SILENT — 'Me? No. I just work here.' [[+10 Coding]]":
+        "Stay silent. [[+10 Coding]]":
             $ stats.increment_stats_coding_skill(10)
             "He shrugs. Gives you sixty seconds on abstraction layers anyway."
             "You learn something. The fear chokes the rest."
@@ -78,14 +78,14 @@ label re_nightmare_wolf:
     "You wake up choking. The room is silent. The dream had teeth."
 
     menu:
-        "SHAKE IT OFF — Coffee. Patrol. Forget. [[+5 Hatred]]":
+        "Shake it off. [[+5 Hatred]]":
             $ stats.increment_stats_pcr_hatred(5)
             "You don't forget."
             show screen outcome_panel("+5 PCR HATRED.")
             pause
             hide screen outcome_panel
 
-        "ANALYZE IT — What did the dream actually mean?":
+        "Analyze it.":
             python:
                 if stats.player_class == "dark_empath":
                     stats.increment_stats_pcr_hatred(-10)
@@ -125,7 +125,7 @@ label re_civilian_small_talk:
     "'Just polite,' she says. 'I notice things.'"
 
     menu:
-        "SMALL TALK — Stay a minute. Let her remember you exist.":
+        "Small talk.":
             python:
                 if stats.player_class == "dark_empath":
                     stats.increment_stats_pcr_hatred(-25)
@@ -149,7 +149,7 @@ label re_civilian_small_talk:
             pause
             hide screen outcome_panel
 
-        "PROFESSIONAL NOD — 'Thank you, ma'am. Have a good day.' [[no change]]":
+        "Professional nod. [[no change]]":
             "You move on. So does she."
             show screen outcome_panel("NO CHANGE.")
             pause
@@ -173,7 +173,7 @@ label re_admin_mistake:
     "You've never seen this case before."
 
     menu:
-        "FIX IT QUIETLY — Find the actual officer. Re-sign. No fuss. [[-5 Hatred, +1 Coding]]":
+        "Fix it quietly. [[-5 Hatred, +1 Coding]]":
             python:
                 stats.increment_stats_pcr_hatred(-5)
                 stats.increment_stats_coding_skill(1)
@@ -183,7 +183,7 @@ label re_admin_mistake:
             pause
             hide screen outcome_panel
 
-        "ESCALATE — Send it to internal review. [[+10 Hatred]]":
+        "Escalate. [[+10 Hatred]]":
             $ stats.increment_stats_pcr_hatred(10)
             "Internal Review opens an inquiry. Three colleagues are interviewed."
             "By Friday everyone knows you ratted. The atmosphere does not improve."
@@ -208,7 +208,7 @@ label re_overtime_offer:
     "Dispatch needs a double tonight. Cash bonus, no questions. The shift supervisor is already walking away."
 
     menu:
-        "TAKE IT — +6,000 CZK. (BB: 0 Hatred. Other: +15 Hatred.)":
+        "Take it. (+6,000 CZK) (BB: 0 Hatred. Other: +15 Hatred.)":
             python:
                 stats.increment_stats_value_money(6000)
                 if stats.player_class == "bodybuilder":
@@ -223,7 +223,7 @@ label re_overtime_offer:
             pause
             hide screen outcome_panel
 
-        "PASS — 'Not today.' [[no change]]":
+        "Pass. [[no change]]":
             "He blinks. Nobody says no. He shrugs and walks off."
             show screen outcome_panel("NO CHANGE.")
             pause
@@ -247,7 +247,7 @@ label re_birthday_gift:
     "An envelope. Heavy. You can feel the cash through the paper."
 
     menu:
-        "ACCEPT — +5,000 CZK, +15 Hatred. Debt of complicity.":
+        "Accept. (+5,000 CZK, +15 Hatred)":
             python:
                 stats.increment_stats_value_money(5000)
                 stats.increment_stats_pcr_hatred(15)
@@ -257,7 +257,7 @@ label re_birthday_gift:
             pause
             hide screen outcome_panel
 
-        "REFUSE — 'Sergeant. I appreciate it. I can't.' [[-5 Hatred]]":
+        "Refuse. [[-5 Hatred]]":
             $ stats.increment_stats_pcr_hatred(-5)
             "He looks at you for a long moment. Then nods. 'Fair enough.'"
             "Your spine straightens slightly."
@@ -283,7 +283,7 @@ label re_corpse_in_care_home:
     "'Sorry for the trouble.'"
 
     menu:
-        "PROCESS PROFESSIONALLY — Forms, photos, body bag. [[+15 Hatred, +1 Coding]]":
+        "Process professionally. [[+15 Hatred, +1 Coding]]":
             python:
                 stats.increment_stats_pcr_hatred(15)
                 stats.increment_stats_coding_skill(1)
@@ -292,7 +292,7 @@ label re_corpse_in_care_home:
             pause
             hide screen outcome_panel
 
-        "STAY WITH HER — Sit on the bed. Read the note slowly.":
+        "Stay with her.":
             python:
                 stats.increment_stats_pcr_hatred(-10)
                 stats.increment_stats_coding_skill(5)
@@ -323,7 +323,7 @@ label re_forgotten_usb:
     "A USB stick on your keyboard. No label. Not yours."
 
     menu:
-        "PLUG IT IN — On a personal laptop. Carefully.":
+        "Plug it in.":
             python:
                 _usb_roll = __import__('random').randint(1, 100)
                 stats.increment_stats_coding_skill(10)
@@ -340,7 +340,7 @@ label re_forgotten_usb:
             pause
             hide screen outcome_panel
 
-        "TURN IT IN — Chain of custody. Lost-and-found. [[+5 Hatred]]":
+        "Turn it in. [[+5 Hatred]]":
             $ stats.increment_stats_pcr_hatred(5)
             "Lieutenant Kovář takes it without making eye contact. You never see it again."
             show screen outcome_panel("+5 PCR HATRED.")
@@ -365,7 +365,7 @@ label re_turkish_fraud:
     "'I think he's running a scam. Or maybe I'm paranoid.'"
 
     menu:
-        "FOLLOW UP — Visit the address. See what's actually there. [[+10 Coding]]":
+        "Follow up. [[+10 Coding]]":
             $ stats.increment_stats_coding_skill(10)
             "An empty Airbnb. Three burner phones in a drawer. You run the IPs."
             "You find a fraud ring you can't dismantle alone — but you understand the topology now."
@@ -373,7 +373,7 @@ label re_turkish_fraud:
             pause
             hide screen outcome_panel
 
-        "DISMISS — 'It's probably nothing, sir.' [[+5 Hatred]]":
+        "Dismiss. [[+5 Hatred]]":
             $ stats.increment_stats_pcr_hatred(5)
             "He leaves. He looks smaller than when he came in."
             show screen outcome_panel("+5 PCR HATRED.")
@@ -397,7 +397,7 @@ label re_printer_incident:
     "The printer eats your incident report. You have ten minutes to get it to the prosecutor."
 
     menu:
-        "SLAM IT — One good hit. The old way.":
+        "Slam it.":
             python:
                 if stats.player_class == "bodybuilder":
                     stats.increment_stats_coding_skill(5)
@@ -412,7 +412,7 @@ label re_printer_incident:
             pause
             hide screen outcome_panel
 
-        "DEBUG IT — Open the back panel. Trace the jam. [[+5 Coding]]":
+        "Debug it. [[+5 Coding]]":
             $ stats.increment_stats_coding_skill(5)
             "You find the rolled paper. You release it. The printer respects you, briefly."
             show screen outcome_panel("+5 CODING SKILL.")
@@ -437,7 +437,7 @@ label re_citizen_czechoslovakia:
     "He sees the uniform. He locks onto you. 'Officer. You have a minute?'"
 
     menu:
-        "LISTEN — Sit on the bench. Let him talk. [[-10 Hatred]]":
+        "Listen. [[-10 Hatred]]":
             $ stats.increment_stats_pcr_hatred(-10)
             "He talks for six minutes. Beer was 1.20 Kčs. The trams ran on time. His wife died in 2003."
             "You don't say much. He doesn't need you to."
@@ -445,7 +445,7 @@ label re_citizen_czechoslovakia:
             pause
             hide screen outcome_panel
 
-        "MOVE HIM ALONG — 'Pane, please don't block the stop.' [[+10 Hatred]]":
+        "Move him along. [[+10 Hatred]]":
             $ stats.increment_stats_pcr_hatred(10)
             "He shuffles off. He doesn't look back."
             show screen outcome_panel("+10 PCR HATRED.")
@@ -469,7 +469,7 @@ label re_paperwork_overload:
     "200 incident reports, due tomorrow. Half are duplicates. The form fields are inconsistent."
 
     menu:
-        "STACK UP — Dial in. Burn through them like a machine.":
+        "Stack up.":
             python:
                 if stats.player_class == "biohacker":
                     stats.increment_stats_coding_skill(20)
@@ -484,7 +484,7 @@ label re_paperwork_overload:
             pause
             hide screen outcome_panel
 
-        "MANUAL GRIND — One form at a time. No shortcuts. [[+10 Hatred, +1 Coding]]":
+        "Manual grind. [[+10 Hatred, +1 Coding]]":
             python:
                 stats.increment_stats_pcr_hatred(10)
                 stats.increment_stats_coding_skill(1)
@@ -510,7 +510,7 @@ label re_dispatch_blue_screen:
     "'Dispatch is offline.' The room freezes. Three patrols are mid-pursuit. The radio works. The terminal doesn't."
 
     menu:
-        "REBOOT IT — Get to the dispatch terminal. Try the standard recovery. [[+10 Coding]]":
+        "Reboot it. [[+10 Coding]]":
             $ stats.increment_stats_coding_skill(10)
             "You restart the service. You clear the lock file. You re-establish the database connection."
             "Dispatch is back online in eleven minutes. The unit chief looks at you for the first time in three years."
@@ -518,7 +518,7 @@ label re_dispatch_blue_screen:
             pause
             hide screen outcome_panel
 
-        "USE THE RADIO — Old-school comms until IT shows up. [[-5 Hatred]]":
+        "Use the radio. [[-5 Hatred]]":
             $ stats.increment_stats_pcr_hatred(-5)
             "Voice channel only, like the 90s. Things move slower. Nobody dies. You like it."
             show screen outcome_panel("-5 PCR HATRED.")
@@ -543,7 +543,7 @@ label re_tech_bro_speeding:
     "He hands you a business card before he hands you his license. CTO. Fintech. Smug."
 
     menu:
-        "TAKE THE CARD — Pocket it. Write a warning, not a ticket.":
+        "Take the card.":
             python:
                 stats.increment_stats_coding_skill(5)
                 if stats.player_class == "biohacker":
@@ -558,7 +558,7 @@ label re_tech_bro_speeding:
             pause
             hide screen outcome_panel
 
-        "WRITE THE TICKET — He pays the state. [[+1,500 CZK]]":
+        "Write the ticket. [[+1,500 CZK]]":
             $ stats.increment_stats_value_money(1500)
             "He pays without arguing. He drives at exactly 130 km/h afterwards."
             show screen outcome_panel("+1,500 CZK.")
@@ -583,7 +583,7 @@ label re_the_informant:
     "'I've got something on Lieutenant Kovář. Expense reports. Doctored. Want to know?'"
 
     menu:
-        "LISTEN — Take the info. Decide later. [[CARD: SNITCH INFO]]":
+        "Listen. [[CARD: SNITCH INFO]]":
             "He talks for twelve minutes. Dates, amounts, account numbers. You memorize them."
             "You walk away with information that has weight."
             python:
@@ -592,7 +592,7 @@ label re_the_informant:
             pause
             hide screen outcome_panel
 
-        "PASS — 'I don't want to know.' [[+5 Hatred]]":
+        "Pass. [[+5 Hatred]]":
             $ stats.increment_stats_pcr_hatred(5)
             "He nods. He walks away. Now you wonder."
             show screen outcome_panel("+5 PCR HATRED.")
@@ -617,14 +617,14 @@ label re_the_evaluation:
     "'How are you feeling about the work, JB?'"
 
     menu:
-        "BE HONEST — 'It's eating me alive.' [[-10 Hatred]]":
+        "Be honest. [[-10 Hatred]]":
             $ stats.increment_stats_pcr_hatred(-10)
             "She nods slowly. Doesn't write it down. Says: 'I'm not your enemy. I'll mark you fit. Take care of yourself.'"
             show screen outcome_panel("-10 PCR HATRED.")
             pause
             hide screen outcome_panel
 
-        "PERFORM SANITY — 'Job's a job. I'm fine.' [[+5 Hatred]]":
+        "Perform sanity. [[+5 Hatred]]":
             $ stats.increment_stats_pcr_hatred(5)
             "You hear yourself say things the academy taught you to say. She marks you fit."
             "The lie taxes you on the drive home."
@@ -650,7 +650,7 @@ label re_suicide_call:
     "He's not asking for help. He's just talking."
 
     menu:
-        "STAY ON THE LINE — Don't transfer. Don't hang up. Talk.":
+        "Stay on the line.":
             python:
                 stats.increment_stats_pcr_hatred(-15)
                 stats.increment_stats_coding_skill(5)
@@ -663,7 +663,7 @@ label re_suicide_call:
             pause
             hide screen outcome_panel
 
-        "TRANSFER IT — 'Sir, please hold for a specialist.' [[+10 Hatred]]":
+        "Transfer it. [[+10 Hatred]]":
             $ stats.increment_stats_pcr_hatred(10)
             "You patch him to the suicide hotline. The call drops during the transfer."
             "You don't know what happened. The shift continues."
@@ -689,7 +689,7 @@ label re_retirement_party:
     "Drinks at U Slunce, 7 PM. Half the station will be there."
 
     menu:
-        "GO — -1,500 CZK on the bar tab. Hand on his shoulder.":
+        "Go. (-1,500 CZK)":
             python:
                 stats.increment_stats_value_money(-1500)
                 stats.increment_stats_pcr_hatred(-10)
@@ -699,7 +699,7 @@ label re_retirement_party:
             pause
             hide screen outcome_panel
 
-        "SKIP IT — You can't face the mirror tonight. [[+5 Hatred]]":
+        "Skip it. [[+5 Hatred]]":
             $ stats.increment_stats_pcr_hatred(5)
             "You see the photos on Monday. He looks happy. You look at your reflection."
             show screen outcome_panel("+5 PCR HATRED.")
@@ -724,7 +724,7 @@ label re_coding_interview:
     "You're parked in a patrol car. Phone in your lap. They're already on the line."
 
     menu:
-        "TAKE IT — Solve the puzzle live. In uniform.":
+        "Take it.":
             python:
                 _ci_solved = getattr(store, '_puzzles_solved', None)
                 if _ci_solved is None:
@@ -759,7 +759,7 @@ label re_coding_interview:
             pause
             hide screen outcome_panel
 
-        "RESCHEDULE — 'Sorry, can we move it to Friday?' [[+3 Coding, +10 Hatred]]":
+        "Reschedule. [[+3 Coding, +10 Hatred]]":
             python:
                 stats.increment_stats_coding_skill(3)
                 stats.increment_stats_pcr_hatred(10)
@@ -811,7 +811,7 @@ label re_system_update:
             pause
             hide screen outcome_panel
 
-        "FIX IT — Open a terminal. [[CODING CHECK: [_su_chance]%%]]":
+        "Fix it. [[CODING CHECK: [_su_chance]%%]]":
             python:
                 _su_roll = __import__('random').randint(1, 100)
                 if _su_roll <= _su_chance:
@@ -830,7 +830,7 @@ label re_system_update:
             pause
             hide screen outcome_panel
 
-        "WALK OUT — Not your problem. Patrol calls. [[+10 Hatred, +2 Coding]]":
+        "Walk out. [[+10 Hatred, +2 Coding]]":
             python:
                 stats.increment_stats_pcr_hatred(10)
                 stats.increment_stats_coding_skill(2)
@@ -984,7 +984,7 @@ label re_the_bribe:
             pause
             hide screen outcome_panel
 
-        "TAKE IT AND DOUBLE DOWN — Accept the bribe then report him anonymously.":
+        "Take it and double down.":
             python:
                 _br_roll = __import__('random').randint(1, 100)
                 if _br_roll <= 40:

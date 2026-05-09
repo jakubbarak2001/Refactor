@@ -913,7 +913,7 @@ label coding_bootcamp:
     "The bootcamp costs [_bc_cost_str] CZK. This is a massive investment.\nAre you sure you want to sign the contract?"
 
     menu:
-        "YES — Sign the contract.":
+        "Yes.":
             python:
                 if not stats.try_spend_money(_bc_cost):
                     renpy.say(None, "[[INSUFFICIENT FUNDS]] You need {:,} CZK. That is a lot of money. Maybe stick to free docs for now?".format(_bc_cost))
@@ -939,7 +939,7 @@ label coding_bootcamp:
                 activity_selected = True
             jump end_day
 
-        "NO — I changed my mind.":
+        "No.":
             "You step back. It's too much money right now."
             jump activity_coding
 
@@ -954,7 +954,7 @@ label coding_bootcamp_de:
     "You've already mapped the instructor's communication style. You will extract maximum value."
 
     menu:
-        "YES — Sign the contract.":
+        "Yes.":
             python:
                 if not stats.try_spend_money(_bc_cost):
                     renpy.say(None, "[[INSUFFICIENT FUNDS]] You need {:,} CZK. Current: {:,} CZK.".format(_bc_cost, stats.available_money))
@@ -980,7 +980,7 @@ label coding_bootcamp_de:
                 activity_selected = True
             jump end_day
 
-        "NO — I changed my mind.":
+        "No.":
             "You step back."
             jump activity_coding
 
@@ -998,7 +998,7 @@ label activity_night_shift:
     "You don't need the money. But you do need the distraction."
 
     menu:
-        "TAKE THE SHIFT — +3,000 CZK, certain +15 PCR HATRED. (+ [[CARD]] BACKUP)":
+        "Take the shift. (+3,000 CZK) (+ [[CARD]] BACKUP)":
             python:
                 stats.increment_stats_value_money(3000)
                 stats.increment_stats_pcr_hatred(15)
@@ -1468,7 +1468,7 @@ label crisis_event_bodybuilder:
     "Your hands are still shaking."
 
     menu:
-        "OWN IT — Apologize. Pay for the plate. Leave with your head up. (-2,000 CZK, -20 Hatred)":
+        "Own it. (-2,000 CZK, -20 Hatred)":
             python:
                 stats.increment_stats_pcr_hatred(-20)
                 stats.increment_stats_value_money(-2000)
@@ -1482,7 +1482,7 @@ label crisis_event_bodybuilder:
             pause
             hide screen outcome_panel
 
-        "STORM OUT — You don't have the words. Just leave before it gets worse. (+5 Hatred)":
+        "Storm out. (+5 Hatred)":
             python:
                 stats.increment_stats_pcr_hatred(5)
             "You walk to the exit."
@@ -1517,7 +1517,7 @@ label crisis_event_dark_empath:
     "It flipped to null."
 
     menu:
-        "SIT WITH IT — The emptiness is data. Read it.  (-15 Hatred)":
+        "Sit with it. (-15 Hatred)":
             python:
                 stats.increment_stats_pcr_hatred(-15)
                 stats.increment_stats_coding_skill(3)
@@ -1533,7 +1533,7 @@ label crisis_event_dark_empath:
             pause
             hide screen outcome_panel
 
-        "DISSOCIATE — Turn the null state into armor. Work the shift like a machine. (+3 Hatred)":
+        "Dissociate. (+3 Hatred)":
             python:
                 stats.increment_stats_pcr_hatred(3)
             "You do exactly what you're supposed to do."
@@ -1566,7 +1566,7 @@ label crisis_event_biohacker:
     "Your biosignals are telling you to stop."
 
     menu:
-        "COLD PROTOCOL — Full system halt. Ice water, no compounds, sleep early. (-25 Hatred, -5 Coding today)":
+        "Cold protocol. (-25 Hatred, -5 Coding today)":
             python:
                 stats.increment_stats_pcr_hatred(-25)
                 stats.increment_stats_coding_skill(-5)
@@ -1581,7 +1581,7 @@ label crisis_event_biohacker:
             pause
             hide screen outcome_panel
 
-        "LOG AND CONTINUE — Symptoms are data. Biohackers don't panic.":
+        "Log and continue.":
             python:
                 _bh_crisis_roll = __import__('random').randint(1, 100)
                 if _bh_crisis_roll <= 50:
