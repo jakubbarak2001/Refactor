@@ -76,6 +76,116 @@ init python:
         trans.xoffset = int(amp * _juice_math.sin(age * 40.0))
         return 0.016
 
+    def _energy_pulse_fn(trans, st, at):
+        """Phase B juice — energy counter scales 1.0 -> 1.25 -> 1.0 over
+        0.35s after a card is played (i.e. last_energy_spend_time was just
+        bumped). Visual confirmation that the click registered."""
+        bs = battle_state
+        if bs is None or getattr(bs, 'last_energy_spend_time', -1.0) < 0:
+            trans.zoom = 1.0
+            return None
+        try:
+            age = renpy.get_game_runtime() - bs.last_energy_spend_time
+        except Exception:
+            trans.zoom = 1.0
+            return None
+        if age >= 0.35:
+            trans.zoom = 1.0
+            return None
+        ## Triangle pulse: ramp up over first 40%, ramp down over remaining 60%.
+        progress = age / 0.35
+        if progress < 0.4:
+            trans.zoom = 1.0 + 0.25 * (progress / 0.4)
+        else:
+            trans.zoom = 1.25 - 0.25 * ((progress - 0.4) / 0.6)
+        return 0.016
+
+    def _turn_banner_fn(trans, st, at):
+        """Phase C juice — TURN N banner slides in from left, holds 0.7s,
+        slides out right. Total duration ~1.4s. Driven by bs.last_turn_start_time
+        which the engine sets at the top of battle_start_player_turn."""
+        bs = battle_state
+        if bs is None or getattr(bs, 'last_turn_start_time', -1.0) < 0:
+            trans.alpha = 0.0
+            trans.xoffset = -400
+            return None
+        try:
+            age = renpy.get_game_runtime() - bs.last_turn_start_time
+        except Exception:
+            trans.alpha = 0.0
+            return None
+        if age >= 1.4:
+            trans.alpha = 0.0
+            trans.xoffset = 400
+            return None
+        if age < 0.3:
+            ## Slide in from left + fade in
+            p = age / 0.3
+            trans.alpha = p
+            trans.xoffset = int((1.0 - p) * -400)
+        elif age < 1.0:
+            ## Hold center
+            trans.alpha = 1.0
+            trans.xoffset = 0
+        else:
+            ## Slide out right + fade
+            p = (age - 1.0) / 0.4
+            trans.alpha = 1.0 - p
+            trans.xoffset = int(p * 400)
+        return 0.016
+
+    def _battle_end_fanfare_fn(trans, st, at):
+        """Phase D juice — VICTORY/DEFEAT text scales from 0.3 -> 1.3 (bounce)
+        -> 1.0 over 0.6s, fades in alpha 0 -> 1 over 0.4s. Driven by
+        bs.battle_end_time which the engine sets when bs.over is assigned."""
+        bs = battle_state
+        if bs is None or getattr(bs, 'battle_end_time', -1.0) < 0:
+            trans.zoom = 1.0
+            trans.alpha = 1.0
+            return None
+        try:
+            age = renpy.get_game_runtime() - bs.battle_end_time
+        except Exception:
+            return None
+        if age >= 0.7:
+            trans.zoom = 1.0
+            trans.alpha = 1.0
+            return None
+        ## Scale curve: 0.3 -> 1.3 (overshoot) -> 1.0 (settle)
+        if age < 0.45:
+            p = age / 0.45
+            ## Smooth ease-out from 0.3 to 1.3
+            trans.zoom = 0.3 + 1.0 * (1.0 - (1.0 - p) ** 2)
+        else:
+            p = (age - 0.45) / 0.25
+            trans.zoom = 1.3 - 0.3 * p
+        ## Alpha fade in over first 0.4s
+        if age < 0.4:
+            trans.alpha = age / 0.4
+        else:
+            trans.alpha = 1.0
+        return 0.016
+
+    def _battle_end_subtitle_fn(trans, st, at):
+        """Phase D juice — subtitle reveal delayed 0.4s after the main
+        VICTORY/DEFEAT text starts, fades in over 0.5s."""
+        bs = battle_state
+        if bs is None or getattr(bs, 'battle_end_time', -1.0) < 0:
+            trans.alpha = 1.0
+            return None
+        try:
+            age = renpy.get_game_runtime() - bs.battle_end_time
+        except Exception:
+            return None
+        if age < 0.4:
+            trans.alpha = 0.0
+            return 0.016
+        if age >= 0.9:
+            trans.alpha = 1.0
+            return None
+        trans.alpha = (age - 0.4) / 0.5
+        return 0.016
+
 transform colonel_hit_shake:
     function _colonel_shake_fn
 
@@ -100,6 +210,18 @@ transform damage_flash_enemy:
     alpha 0.0
     linear 0.05 alpha 0.3
     linear 0.25 alpha 0.0
+
+transform energy_pulse:
+    function _energy_pulse_fn
+
+transform turn_banner_anim:
+    function _turn_banner_fn
+
+transform battle_end_fanfare:
+    function _battle_end_fanfare_fn
+
+transform battle_end_subtitle:
+    function _battle_end_subtitle_fn
 
 
 ## Inner screen for a single damage popup. Wrapped via `use ... id <tick>`
@@ -384,50 +506,74 @@ screen battle_screen():
     if bs is None:
         text "[[BATTLE STATE NULL]]" xalign 0.5 yalign 0.5 color "#ff0000" size 32
     else:
-        ## ── Auto-end on victory or defeat ──────────────────────────────────────
+        ## ── Auto-end on victory or defeat (Phase D fanfare) ──────────────────
+        ## Background dim overlay + bouncing big text + delayed subtitle.
+        ## battle_end_fanfare scales 0.3 -> 1.3 (overshoot) -> 1.0 with alpha
+        ## fade-in; battle_end_subtitle reveals after 0.4s. Total dwell still
+        ## 2.5s before Return so player has time to read the line.
         if bs.over == "victory":
-            ## Splash + return after 2.5s
+            ## Soft green tint dims the battle behind the splash.
+            add Solid("#001a00cc") xsize 1920 ysize 1080
             frame:
                 xalign 0.5
                 yalign 0.5
-                padding (60, 36)
+                padding (80, 50)
                 background Frame("#001a00ee", 6, 6)
                 vbox:
-                    spacing 8
+                    spacing 14
                     xalign 0.5
                     text "VICTORY":
                         color "#00ff41"
-                        size 72
+                        size 96
                         bold True
                         xalign 0.5
                         font "fonts/RobotoMono-Regular.ttf"
+                        outlines [(4, "#000000", 0, 0)]
+                        at battle_end_fanfare
                     text "His face is empty. He has nothing left to say.":
                         color "#88ff88"
-                        size 18
+                        size 20
                         italic True
                         xalign 0.5
+                        at battle_end_subtitle
+                    text "HP {}/{}  ·  Round {}".format(bs.player_hp, bs.player_max_hp, bs.turn):
+                        color "#557755"
+                        size 14
+                        xalign 0.5
+                        font "fonts/RobotoMono-Regular.ttf"
+                        at battle_end_subtitle
             timer 2.5 action Return("victory")
 
         if bs.over == "defeat":
+            add Solid("#1a0000cc") xsize 1920 ysize 1080
             frame:
                 xalign 0.5
                 yalign 0.5
-                padding (60, 36)
+                padding (80, 50)
                 background Frame("#1a0000ee", 6, 6)
                 vbox:
-                    spacing 8
+                    spacing 14
                     xalign 0.5
                     text "DEFEAT":
                         color "#ff2222"
-                        size 72
+                        size 96
                         bold True
                         xalign 0.5
                         font "fonts/RobotoMono-Regular.ttf"
+                        outlines [(4, "#000000", 0, 0)]
+                        at battle_end_fanfare
                     text "You sit back down. The room goes quiet.":
                         color "#ff8888"
-                        size 18
+                        size 20
                         italic True
                         xalign 0.5
+                        at battle_end_subtitle
+                    text "Round {}".format(bs.turn):
+                        color "#775555"
+                        size 14
+                        xalign 0.5
+                        font "fonts/RobotoMono-Regular.ttf"
+                        at battle_end_subtitle
             timer 2.5 action Return("defeat")
 
         ## ── Background portrait ────────────────────────────────────────────────
@@ -504,39 +650,73 @@ screen battle_screen():
                             if _intent:
                                 $ _label = _intent.get("name", "?")
                                 $ _itype = _intent.get("intent", "attack")
+                                ## Phase C — compute total incoming damage so we
+                                ## can scale the intent display by threat tier.
                                 if _itype == "attack":
                                     $ _icon = "🗡"
                                     $ _ic_color = "#ff4422"
-                                    $ _val_text = "{}".format(_intent.get("value", 0))
+                                    $ _dmg = _intent.get("value", 0)
+                                    $ _val_text = "{}".format(_dmg)
                                 elif _itype == "compound":
                                     $ _icon = "⚔"
                                     $ _ic_color = "#ff6644"
+                                    $ _dmg = _intent.get("value", 0) * _intent.get("value2", 1)
                                     $ _val_text = "{}x{}".format(_intent.get("value", 0), _intent.get("value2", 1))
                                 elif _itype == "block":
                                     $ _icon = "■"
                                     $ _ic_color = "#88aaff"
+                                    $ _dmg = 0
                                     $ _val_text = "+{}".format(_intent.get("value", 0))
                                 elif _itype == "buff":
                                     $ _icon = "↑"
                                     $ _ic_color = "#ffaa44"
+                                    $ _dmg = 0
                                     $ _val_text = "+{}".format(_intent.get("value", 0))
                                 else:
                                     $ _icon = "↓"
                                     $ _ic_color = "#aa44cc"
+                                    $ _dmg = 0
                                     $ _val_text = "DEBUFF"
 
+                                ## Threat tier — only escalate styling on the
+                                ## CURRENT intent (i==0); peeked ones stay
+                                ## subdued so the player's eye lands on the
+                                ## imminent hit.
+                                python:
+                                    _is_current = (_i == 0)
+                                    if _is_current and _dmg >= 15:
+                                        _intent_size = 22
+                                        _intent_color = "#ff2222"
+                                        _intent_bg = "#3a0000ee"
+                                        _icon_size = 24
+                                    elif _is_current and _dmg >= 8:
+                                        _intent_size = 18
+                                        _intent_color = "#ffcc44"
+                                        _intent_bg = "#2a1a00dd"
+                                        _icon_size = 20
+                                    elif _is_current:
+                                        _intent_size = 14
+                                        _intent_color = "#ffffff"
+                                        _intent_bg = "#1a1a1add"
+                                        _icon_size = 16
+                                    else:
+                                        _intent_size = 14
+                                        _intent_color = "#888888"
+                                        _intent_bg = "#1a1a1add"
+                                        _icon_size = 16
+
                                 frame:
-                                    background Frame("#1a1a1add", 4, 4)
+                                    background Frame(_intent_bg, 4, 4)
                                     padding (8, 4)
                                     hbox:
                                         spacing 4
                                         text _icon:
                                             color _ic_color
-                                            size 16
+                                            size _icon_size
                                         text "[_label] [_val_text]":
-                                            color ("#ffffff" if _i == 0 else "#888888")
-                                            size 14
-                                            bold (_i == 0)
+                                            color _intent_color
+                                            size _intent_size
+                                            bold _is_current
 
         ## ── BATTLE LOG (left side) ────────────────────────────────────────────
         frame:
@@ -630,11 +810,14 @@ screen battle_screen():
                     xalign 0.5
                     font "fonts/RobotoMono-Regular.ttf"
 
+                ## Phase B — energy_pulse scales 1.0 -> 1.25 -> 1.0 over 0.35s
+                ## after a card spend. No-op when no recent spend.
                 text "[bs.energy] / [bs.max_energy]":
                     color "#ffffff"
                     size 38
                     bold True
                     xalign 0.5
+                    at energy_pulse
 
         ## ── END TURN BUTTON ───────────────────────────────────────────────────
         textbutton "[[ END TURN ]":
@@ -813,3 +996,21 @@ screen battle_screen():
         $ _enemy_hit_age = (_fx_now - _last_enemy_hit) if _last_enemy_hit > 0 else 999.0
         if _enemy_hit_age < 0.30:
             add Solid("#00ff41") xsize 1920 ysize 1080 at damage_flash_enemy
+
+        ## ── PHASE C TURN BANNER ───────────────────────────────────────────────
+        ## Slides in from left, holds, slides out right when bs.last_turn_start_time
+        ## is recent. Function-driven; out of window = invisible (alpha 0).
+        $ _turn_start = getattr(bs, 'last_turn_start_time', -1.0)
+        if _turn_start >= 0 and (_fx_now - _turn_start) < 1.5:
+            frame:
+                xalign 0.5
+                ypos 240
+                padding (40, 16)
+                background Frame("#0a0a0aee", 4, 4)
+                at turn_banner_anim
+                text "TURN [bs.turn]":
+                    color "#ffaa00"
+                    size 56
+                    bold True
+                    font "fonts/RobotoMono-Regular.ttf"
+                    outlines [(3, "#000000", 0, 0)]

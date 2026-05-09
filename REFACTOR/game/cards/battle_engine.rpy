@@ -85,9 +85,15 @@ init python:
             self.last_enemy_hit_time = -1.0  ## game-runtime sec; -1 = never
             self.last_player_hit_time = -1.0
 
+            ## Phase B/C/D juice — additional timestamps for energy pulse,
+            ## turn-banner slide-in, victory/defeat fanfare reveal.
+            self.last_energy_spend_time = -1.0
+            self.last_turn_start_time = -1.0
+            self.battle_end_time = -1.0      ## set when bs.over flips to victory/defeat
+
         def __setstate__(self, state):
-            """Restore from pickle. Backfill Phase A fields if missing so saves
-            taken DURING a battle on a pre-Phase-A build don't AttributeError
+            """Restore from pickle. Backfill juice fields if missing so saves
+            taken DURING a battle on an older build don't AttributeError
             on the first screen redraw after resume."""
             self.__dict__.update(state)
             if not hasattr(self, 'fx_events'):
@@ -100,6 +106,12 @@ init python:
                 self.last_enemy_hit_time = -1.0
             if not hasattr(self, 'last_player_hit_time'):
                 self.last_player_hit_time = -1.0
+            if not hasattr(self, 'last_energy_spend_time'):
+                self.last_energy_spend_time = -1.0
+            if not hasattr(self, 'last_turn_start_time'):
+                self.last_turn_start_time = -1.0
+            if not hasattr(self, 'battle_end_time'):
+                self.battle_end_time = -1.0
 
         ## ---------------- FX QUEUE (Phase A) ----------------
         def push_fx(self, event_type, **data):
@@ -150,6 +162,10 @@ init python:
                 if self.enemy_hp <= 0:
                     self.enemy_hp = 0
                     self.over = "victory"
+                    try:
+                        self.battle_end_time = renpy.get_game_runtime()
+                    except Exception:
+                        pass
                 ## Phase A juice — visual popup + portrait shake + sfx
                 if actual > 0:
                     self.last_enemy_hit_time = self.push_fx("damage", target="enemy", amount=actual)
@@ -172,6 +188,10 @@ init python:
                 if self.player_hp <= 0:
                     self.player_hp = 0
                     self.over = "defeat"
+                    try:
+                        self.battle_end_time = renpy.get_game_runtime()
+                    except Exception:
+                        pass
                 ## Phase A juice — visual popup + flash overlay + sfx
                 if actual > 0:
                     self.last_player_hit_time = self.push_fx("damage", target="player", amount=actual)
@@ -226,6 +246,12 @@ init python:
             self.energy += n
 
         def spend_energy(self, n):
+            ## Phase B juice — timestamp the spend so the energy counter pulses.
+            if n > 0:
+                try:
+                    self.last_energy_spend_time = renpy.get_game_runtime()
+                except Exception:
+                    pass
             self.energy = max(0, self.energy - n)
 
         ## ---------------- INTENT MANAGEMENT ----------------
@@ -380,6 +406,13 @@ init python:
             return
         bs.turn += 1
         bs.player_block = bs.starting_block
+
+        ## Phase C juice — timestamp the turn start so the screen can render
+        ## a sliding TURN N banner that auto-fades after 1.4s.
+        try:
+            bs.last_turn_start_time = renpy.get_game_runtime()
+        except Exception:
+            pass
 
         ## Apply start-of-turn buffs
         if bs.buffs.get("starting_block_+1"):
@@ -555,6 +588,10 @@ init python:
             ## Out of cards — colonel is exhausted, treat as victory if HP <= 25
             if bs.enemy_hp <= 25:
                 bs.over = "victory"
+                try:
+                    bs.battle_end_time = renpy.get_game_runtime()
+                except Exception:
+                    pass
                 bs.add_log("Colonel runs out of arguments. You win.")
             else:
                 ## Reshuffle: rebuild deck and continue
