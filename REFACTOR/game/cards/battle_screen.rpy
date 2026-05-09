@@ -223,6 +223,16 @@ transform battle_end_fanfare:
 transform battle_end_subtitle:
     function _battle_end_subtitle_fn
 
+## Phase B juice — card hover lift. Cards in hand scale up + lift slightly
+## on mouse-hover, settle on idle. Smooth ease so the cursor's-on-this-card
+## affordance is unmistakable. ATL `on hover` / `on idle` blocks fire when
+## the parent button transitions states.
+transform card_hover_lift:
+    on hover:
+        ease 0.14 zoom 1.07 yoffset -18
+    on idle:
+        ease 0.14 zoom 1.0 yoffset 0
+
 
 ## Inner screen for a single damage popup. Wrapped via `use ... id <tick>`
 ## from battle_screen so each popup gets a STABLE identity across redraws —
@@ -952,6 +962,7 @@ screen battle_screen():
                         sensitive _ok
                         tooltip _effect_text
                         action [Function(battle_play_card, _cid), Function(renpy.restart_interaction)]
+                        at card_hover_lift
 
                         ## Inner panel — inset 4px from each edge for the border effect
                         frame:
