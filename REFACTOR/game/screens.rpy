@@ -2901,36 +2901,56 @@ style input:
 ## https://www.renpy.org/doc/html/screen_special.html#choice
 
 screen choice(items):
-    style_prefix "choice"
+    ## Each option = [class-color left strip | dark button with hover tint].
+    ## The strip ties the choice into the rest of the game's visual system
+    ## (stats bar underline, class-color frame in battle screen) so menus
+    ## stop reading as bare default Ren'Py UI.
+    python:
+        _choice_accent = class_accent_color(stats.player_class) if stats else "#888888"
 
     vbox:
+        xalign 0.5
+        yalign 0.55
+        spacing 14
+
         for i in items:
-            textbutton i.caption action i.action
+            hbox:
+                spacing 0
+                xalign 0.5
+
+                ## Left-edge accent strip — pulses class color on hover via a
+                ## button's hover_background. Uses the textbutton's hover state
+                ## by piggybacking the row layout rather than a separate widget.
+                frame:
+                    xsize 5
+                    ysize 64
+                    background Solid(_choice_accent)
+
+                textbutton i.caption:
+                    action i.action
+                    style "choice_button"
 
 
-style choice_vbox is vbox
 style choice_button is button
 style choice_button_text is button_text
 
-style choice_vbox:
-    xalign 0.5
-    ypos 405
-    yanchor 0.5
-    spacing 22
-
-style choice_button is default:
+style choice_button:
     properties gui.button_properties("choice_button")
     xminimum 900
-    background Frame("#0d0d11ee", 4, 4)
-    hover_background Frame("#1a0000ee", 4, 4)
-    padding (30, 18)
+    xmaximum 1200
+    ysize 64
+    background Frame("#0d0d11ee", 0, 0)
+    hover_background Frame("#1a0000ee", 0, 0)
+    padding (28, 16)
 
-style choice_button_text is default:
+style choice_button_text:
     properties gui.text_properties("choice_button")
     color "#c8c8d8"
-    hover_color "#ff4422"
-    size 30
-    xalign 0.5
+    hover_color "#ff6644"
+    size 22
+    bold True
+    font "fonts/RobotoMono-Regular.ttf"
+    xalign 0.0
 
 
 ## Quick Menu screen ###########################################################
