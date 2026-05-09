@@ -5,6 +5,8 @@
 
 ## Affection points tracked as a screen-level variable
 default martin_affection = 0
+## MM outfit picked in Phase 1 — drives JB sprite in Phase 2+
+default mm_outfit = "hoodie"
 
 label martin_meeting:
 
@@ -15,6 +17,7 @@ label martin_meeting:
         store._phone_notifications.append("Martin: 'Cafe. 11:30. Don't be late.'")
 
     $ martin_affection = 0
+    $ mm_outfit = "hoodie"
 
     play music "audio/martin_meeting_event_the_arrival.mp3" fadein 1.0
 
@@ -22,54 +25,42 @@ label martin_meeting:
     scene bg_cafe with compile_flash
     "DAY 24 — 11:30 AM"
 
+    show screen mm_affection_panel
+
+    ## DE bonuses are now earned inline (in P2 Listen branch + P4 read-Martin
+    ## narration block) — no more unconditional auto-stack from the orchestrator.
+
     ## Phase 1: Preparation
     call martin_phase1_preparation from _call_martin_phase1_preparation
 
-    ## Phase 2: Meeting (DE bonus — first conversation read)
+    ## Phase 2: Meeting
     call martin_phase2_meeting from _call_martin_phase2_meeting
-    python:
-        if stats.player_class == "dark_empath":
-            martin_affection += 1
 
     ## Phase 3: Drop the Bomb
     call martin_phase3_bomb from _call_martin_phase3_bomb
 
-    ## Phase 4: Coding Reality Check (DE bonus — read his real-time feedback)
+    ## Phase 4: Coding Reality Check
     call martin_phase4_coding_check from _call_martin_phase4_coding_check
-    python:
-        if stats.player_class == "dark_empath":
-            martin_affection += 1
 
     ## Phase 5: Financial Reality Check
     call martin_phase5_money_check from _call_martin_phase5_money_check
 
-    ## Phase 6: Hatred Motivation Check (DE bonus — emotional calibration)
+    ## Phase 6: Hatred Motivation Check
     call martin_phase6_hatred_check from _call_martin_phase6_hatred_check
-    python:
-        if stats.player_class == "dark_empath":
-            martin_affection += 1
 
-    ## Phase 6.5: The Dark Question
+    ## Phase 6.5: The Dark Question (the swing — biggest single point swing)
     call martin_phase_dark_question from _call_martin_phase_dark_question
 
-    ## Phase 6.75: The Price (DE bonus — sees the manipulation pattern early)
+    ## Phase 6.75: The Price
     call martin_phase_the_price from _call_martin_phase_the_price
-    python:
-        if stats.player_class == "dark_empath":
-            martin_affection += 1
 
     ## Phase 7: Timing Decision
     call martin_phase7_timing from _call_martin_phase7_timing
 
-    ## Phase 8: Ending / Parting Gift (DE bonus — reads what he's not saying)
+    ## Phase 8: Ending / Parting Gift
     call martin_phase8_ending from _call_martin_phase8_ending
-    python:
-        if stats.player_class == "dark_empath":
-            martin_affection += 1
 
-    python:
-        if stats.player_class == "dark_empath":
-            renpy.say(None, "[[DARK EMPATH PERK]: Your empathy gave you +5 bonus Affection Points across the conversation.")
+    hide screen mm_affection_panel
 
     return
 
@@ -90,14 +81,15 @@ label martin_phase1_preparation:
     "You could stop by the mall and buy something sharp to show him you aren't completely dead inside yet."
 
     menu:
-        "Splurge — designer fit. (-12,500 CZK, +2 AFFECTION POINTS)":
+        "Splurge — designer fit. (-12,500 CZK, +1 AFFECTION)":
             python:
                 _polo_cost = adjusted_cost(12500)
                 if stats.try_spend_money(_polo_cost):
-                    martin_affection += 2
+                    martin_affection += 1
+                    mm_outfit = "polo"
                     _p1text  = "You look at yourself in the mirror and question whether you actually work at Police or Prada."
                     _p1text2 = "'Impressive. Very nice.'\n'Let's see Martin's style.'"
-                    _p1outcome = "- {:,} CZK, +2 AFFECTION POINTS (He will love the effort you put into your outfit).".format(_polo_cost)
+                    _p1outcome = "- {:,} CZK, +1 AFFECTION (He will respect the effort).".format(_polo_cost)
                 else:
                     _p1text  = "You check your card balance... declined. Embarrassing."
                     _p1text2 = "You go in your old clothes anyway."
@@ -109,14 +101,14 @@ label martin_phase1_preparation:
             pause
             hide screen outcome_panel
 
-        "Modest — cut and a sharp shirt. (-2,500 CZK, +1 AFFECTION POINT)":
+        "Modest — cut and a sharp shirt. (-2,500 CZK)":
             python:
                 _cut_cost = adjusted_cost(2500)
                 if stats.try_spend_money(_cut_cost):
-                    martin_affection += 1
+                    mm_outfit = "collar"
                     _p1text  = "The barber played his part really well, you also buy a new sharp shirt. You look in the mirror."
                     _p1text2 = "For a second, you don't look like a tired cop. You look like a civilian."
-                    _p1outcome = "- {:,} CZK, +1 AFFECTION POINT (He will appreciate the effort).".format(_cut_cost)
+                    _p1outcome = "- {:,} CZK (You showed up. He'll see it but won't say anything.)".format(_cut_cost)
                 else:
                     _p1text  = "You check your card balance... declined. Embarrassing."
                     _p1text2 = "You go in your old clothes anyway."
@@ -128,10 +120,13 @@ label martin_phase1_preparation:
             pause
             hide screen outcome_panel
 
-        "Free.":
+        "Free. (-1 AFFECTION)":
+            python:
+                martin_affection -= 1
             "You splash some cold water on your face. This is who you are right now."
             "If he's really your friend, he won't care about the hoodie."
-            show screen outcome_panel("NO CHANGE.")
+            "(Martin will care.)"
+            show screen outcome_panel("-1 AFFECTION (He notices the lack of effort).")
             pause
             hide screen outcome_panel
 
@@ -157,9 +152,6 @@ label martin_phase1_preparation:
             show screen outcome_panel("+1 AFFECTION POINT [BIOHACKER: optimized state for high-stakes social interaction].")
             pause
             hide screen outcome_panel
-
-    "AFFECTION POINTS: [martin_affection] / 12"
-
     return
 
 
@@ -172,10 +164,30 @@ label martin_phase2_meeting:
     scene bg_cafe
 
     "You arrive at the restaurant. You see him in the distance."
+
+    window hide dissolve
+    pause 0.6
     show martin normal at char_right with Dissolve(0.9)
+    pause 0.5
+
     "It's a shock. He looks... different. Bigger. Buffed."
     "His skin has color. He is smiling at the waitress."
     "He looks like a totally different person compared to the wreck you remember from the service."
+
+    window hide dissolve
+    pause 0.6
+    show expression "jb " + mm_outfit as jb at char_left with Dissolve(0.9)
+    pause 0.5
+
+    if mm_outfit == "polo":
+        martin "'Damn, JB. Polo, the watch, all of it. You actually showed up.'"
+        martin "'Sit down. Let me look at you for a second.'"
+    elif mm_outfit == "collar":
+        martin "'Fresh cut. Sharp shirt. You made the effort.'"
+        martin "'Good. That's a start.'"
+    else:
+        martin "'A hoodie. To lunch.'"
+        martin "'...Okay. Same old JB. Sit down.'"
 
     "You sit down. Your brain is running on cheap caffeine and 2 hours of sleep after a 24hr shift."
     "He orders a steak. You order a coffee."
@@ -202,19 +214,26 @@ label martin_phase2_meeting:
             pause
             hide screen outcome_panel
 
-        "Listen. (+2 AFFECTION POINTS)":
+        "Listen. (+1 AFFECTION)":
             python:
-                martin_affection += 2
+                martin_affection += 1
+                ## DE bonus is gated on actually having done cold reads —
+                ## class identity isn't enough; the player must have used it.
+                _p2_de_bonus = (stats.player_class == "dark_empath" and
+                                sum(getattr(store, 'de_profiles', {}).values()) >= 1)
+                if _p2_de_bonus:
+                    martin_affection += 1
 
             "You stay quiet. You ask him about his life."
             "He talks about his freedom. About sleeping 8 hours a day. About respect."
             "He appreciates that you actually listen."
-            show screen outcome_panel("+2 AFFECTION POINTS.")
+            if _p2_de_bonus:
+                "You catch the things he's not saying — what he wishes you'd ask. You ask those instead."
+                show screen outcome_panel("+1 AFFECTION  ·  +1 [DARK EMPATH: real listening, not waiting to talk].")
+            else:
+                show screen outcome_panel("+1 AFFECTION.")
             pause
             hide screen outcome_panel
-
-    "AFFECTION POINTS: [martin_affection] / 12"
-
     return
 
 
@@ -226,6 +245,7 @@ label martin_phase3_bomb:
 
     scene bg_cafe
     show martin serious at char_right
+    show expression "jb " + mm_outfit as jb at char_left
 
     "The food arrives. The smell of steak fills the air, but your stomach is tied in a knot."
     "You put down your fork. It's time."
@@ -264,8 +284,6 @@ label martin_phase3_bomb:
     hide screen outcome_panel
 
     "Your current hatred is: [stats.pcr_hatred]."
-    "AFFECTION POINTS: [martin_affection] / 12"
-
     return
 
 
@@ -277,6 +295,7 @@ label martin_phase4_coding_check:
 
     scene bg_cafe
     show martin serious at char_right
+    show expression "jb " + mm_outfit as jb at char_left
 
     martin "Okay. You said it. Now, can you actually do it?"
     martin "Do you have the skills? If you leave tomorrow, can you feed yourself?"
@@ -285,17 +304,17 @@ label martin_phase4_coding_check:
 
     python:
         if stats.coding_skill >= 200:
-            martin_affection += 2
+            martin_affection += 1
             stats.increment_stats_pcr_hatred(-20)
             _code_text    = "You smile. You don't just know syntax. You dream in code.\nYou are a God Tier developer trapped in a uniform."
             _code_jb      = "'I am ready,' you say. And you mean it."
-            _code_outcome = "+2 AFFECTION POINTS, -20 PCR HATRED (Confidence)."
+            _code_outcome = "+1 AFFECTION, -20 PCR HATRED (Confidence)."
         elif stats.coding_skill >= 150:
             martin_affection += 1
             stats.increment_stats_pcr_hatred(-10)
             _code_text    = "You are solid. You can build apps. You understand the backend.\nYou aren't a genius, but you are hireable. Today."
             _code_jb      = "'I can do this,' you nod."
-            _code_outcome = "+1 AFFECTION POINT, -10 PCR HATRED."
+            _code_outcome = "+1 AFFECTION, -10 PCR HATRED."
         elif stats.coding_skill >= 100:
             _code_text    = "You are a Junior. You know enough to get into trouble, maybe enough to get an internship.\nIt's going to be hard. But not impossible."
             _code_jb      = "'I think I have a shot,' you say, hesitating slightly."
@@ -305,13 +324,13 @@ label martin_phase4_coding_check:
             stats.increment_stats_pcr_hatred(10)
             _code_text    = "You know the basics. Loops, functions, some libraries.\nBut a job? Real software? You are miles away."
             _code_jb      = "'I... I'm still learning.'"
-            _code_outcome = "-1 AFFECTION POINT, +10 PCR HATRED (Doubt creeps in)."
+            _code_outcome = "-1 AFFECTION, +10 PCR HATRED (Doubt creeps in)."
         else:
-            martin_affection -= 2
+            martin_affection -= 1
             stats.increment_stats_pcr_hatred(20)
             _code_text    = "You have nothing. You spent your time drinking beer instead of studying.\nYou are just a cop with a dream and zero skills."
             _code_jb      = "Martin sees it. He sighs. It's a sigh of pity."
-            _code_outcome = "-2 AFFECTION POINTS, +20 PCR HATRED (Shame)."
+            _code_outcome = "-1 AFFECTION, +20 PCR HATRED (Shame)."
 
     "[_code_text]"
     jb "[_code_jb]"
@@ -349,9 +368,6 @@ label martin_phase4_coding_check:
         show screen outcome_panel("+1 AFFECTION [DARK EMPATH: read Martin's real-time feedback and adapted].")
         pause
         hide screen outcome_panel
-
-    "AFFECTION POINTS: [martin_affection] / 12"
-
     return
 
 
@@ -363,6 +379,7 @@ label martin_phase5_money_check:
 
     scene bg_cafe
     show martin serious at char_right
+    show expression "jb " + mm_outfit as jb at char_left
 
     martin "Skills are one thing. But freedom isn't free."
     martin "They are going to make you pay for your uniform, your training, every single koruna."
@@ -372,15 +389,15 @@ label martin_phase5_money_check:
 
     python:
         if stats.available_money >= 200000:
-            martin_affection += 2
+            martin_affection += 1
             _mon_text    = "You nod confidently. You have been saving aggressively.\nYou have a war chest. You can buy your freedom twice over."
             _mon_martin  = "'Smart man.'"
-            _mon_outcome = "+2 AFFECTION POINTS (Financial Freedom)."
+            _mon_outcome = "+1 AFFECTION (Financial Freedom)."
         elif stats.available_money >= 150000:
             martin_affection += 1
             _mon_text    = "You have enough. It will hurt, but you won't starve.\nYou can pay the exit fee and still have a buffer for a few months."
             _mon_martin  = "'I'm covered,' you say."
-            _mon_outcome = "+1 AFFECTION POINT (Secure)."
+            _mon_outcome = "+1 AFFECTION (Secure)."
         elif stats.available_money >= 100000:
             _mon_text    = "You do the math in your head. It's going to be extremely tight.\nIf you pay them off, you'll be eating instant noodles for weeks."
             _mon_martin  = "'I can scrape it together,' you admit."
@@ -389,21 +406,18 @@ label martin_phase5_money_check:
             martin_affection -= 1
             _mon_text    = "You sweat a little. You don't have enough for the full fee.\nYou'll need a loan, or help from parents. It's messy."
             _mon_martin  = "'That's dangerous ground, JB.'"
-            _mon_outcome = "-1 AFFECTION POINT (Financial Risk)."
+            _mon_outcome = "-1 AFFECTION (Financial Risk)."
         else:
-            martin_affection -= 2
+            martin_affection -= 1
             _mon_text    = "You are broke. You have nothing.\nIf you quit, you will be in immediate debt with no income.\nYou are trapped."
             _mon_martin  = "'So you want to quit but you can't afford it?'"
-            _mon_outcome = "-2 AFFECTION POINTS (Total Disaster)."
+            _mon_outcome = "-1 AFFECTION (Total Disaster)."
 
     "[_mon_text]"
     martin "[_mon_martin]"
     show screen outcome_panel(_mon_outcome)
     pause
     hide screen outcome_panel
-
-    "AFFECTION POINTS: [martin_affection] / 12"
-
     return
 
 
@@ -415,6 +429,7 @@ label martin_phase6_hatred_check:
 
     scene bg_cafe
     show martin serious at char_right
+    show expression "jb " + mm_outfit as jb at char_left
 
     "Martin finishes his steak. He wipes his mouth."
     martin "One last thing. The system. The Colonel. The meaningless orders."
@@ -426,12 +441,12 @@ label martin_phase6_hatred_check:
         "Pure rage.":
             python:
                 stats.increment_stats_pcr_hatred(25)
-                martin_affection += 2
+                martin_affection += 1
 
             "Your eyes flash with anger. You practically spit the words out."
             jb "'I hate them so much it hurts. Every second in that uniform is torture.'"
             martin "'Good. Use that anger.'"
-            show screen outcome_panel("+2 AFFECTION POINTS, +25 PCR HATRED (Fuel for the fire).")
+            show screen outcome_panel("+1 AFFECTION, +25 PCR HATRED (Fuel for the fire).")
             pause
             hide screen outcome_panel
 
@@ -467,19 +482,16 @@ label martin_phase6_hatred_check:
         "Coping.":
             python:
                 stats.increment_stats_pcr_hatred(-50)
-                martin_affection -= 2
+                martin_affection -= 1
 
             "You start rambling."
             jb "'I mean, the job is stable and hierarchy is important and also that pension after 15 years of service is really good!'"
             "You sound like a brainwashed cadet in training."
             "He just stares at you in utter disbelief. The cringe has filled the air completely."
             martin "'Wow. Stockholm Syndrome much? What happened to you dude?'"
-            show screen outcome_panel("-2 AFFECTION POINTS, -50 PCR HATRED (Your mental gymnastics are just insane).")
+            show screen outcome_panel("-1 AFFECTION, -50 PCR HATRED (Your mental gymnastics are just insane).")
             pause
             hide screen outcome_panel
-
-    "AFFECTION POINTS: [martin_affection] / 12"
-
     return
 
 
@@ -491,6 +503,7 @@ label martin_phase7_timing:
 
     scene bg_cafe
     show martin serious at char_right
+    show expression "jb " + mm_outfit as jb at char_left
 
     "Martin's expression darkens. The nostalgia is gone."
     martin "'One last thing, JB. The Colonel.'"
@@ -506,14 +519,14 @@ label martin_phase7_timing:
     martin "'Or do you need time to prepare your mind and your wallet?'"
 
     menu:
-        "Brave. (Colonel fight Day 25, +2 AFFECTION POINTS)":
+        "Brave. (Colonel fight Day 25, +1 AFFECTION)":
             python:
-                martin_affection += 2
+                martin_affection += 1
                 stats.colonel_day = 25
 
             jb "'Tomorrow. I'm not waiting.'"
             martin "'Good. Strike while the iron is hot. Don't let the fear settle.'"
-            show screen outcome_panel("+2 AFFECTION POINTS, FINAL BOSS SET FOR DAY 25.")
+            show screen outcome_panel("+1 AFFECTION, FINAL BOSS SET FOR DAY 25.")
             pause
             hide screen outcome_panel
 
@@ -527,9 +540,6 @@ label martin_phase7_timing:
             show screen outcome_panel("FINAL BOSS SET FOR DAY 30.")
             pause
             hide screen outcome_panel
-
-    "FINAL AFFECTION SCORE: [martin_affection] / 12 POINTS"
-
     return
 
 
@@ -541,14 +551,15 @@ label martin_phase8_ending:
 
     scene bg_cafe
     show martin normal at char_right
+    show expression "jb " + mm_outfit as jb at char_left
 
     "The lunch is over. You pay the bill."
     "You walk out into the cold street. The wind hits your face."
 
     python:
-        if martin_affection >= 8:
+        if martin_affection >= 7:
             renpy.jump("martin_good_ending_selection")
-        elif martin_affection >= 5:
+        elif martin_affection >= 3:
             renpy.jump("martin_neutral_ending")
         else:
             renpy.jump("martin_bad_ending")
@@ -562,6 +573,7 @@ label martin_phase_dark_question:
 
     scene bg_cafe
     show martin serious at char_right
+    show expression "jb " + mm_outfit as jb at char_left
 
     "The restaurant has thinned out. It's just you and Martin and two couples who aren't talking to each other."
     "He refills your coffee without asking."
@@ -590,6 +602,9 @@ label martin_phase_dark_question:
             python:
                 martin_affection += 2
                 stats.increment_stats_pcr_hatred(-10)
+                _p65_de_bonus = (stats.player_class == "dark_empath")
+                if _p65_de_bonus:
+                    martin_affection += 1
 
             jb "'The badge is... the only thing some people respect about me.'"
             jb "'Without it I'm just some guy. Thirty-something. No degree. Living in a rented flat.'"
@@ -597,12 +612,16 @@ label martin_phase_dark_question:
             martin "'Bro. You just described me three years ago.'"
             martin "'I am not nothing. And you are not nothing. You just haven't built your thing yet.'"
             martin "'The badge was never your identity. It was your cage.'"
-            show screen outcome_panel("+2 AFFECTION, -10 PCR HATRED (Martin sees through you. In the good way).")
+            if _p65_de_bonus:
+                show screen outcome_panel("+2 AFFECTION  ·  +1 [DARK EMPATH: you let him see the wound], -10 PCR HATRED.")
+            else:
+                show screen outcome_panel("+2 AFFECTION, -10 PCR HATRED (Martin sees through you. In the good way).")
             pause
             hide screen outcome_panel
 
         "Afraid of nothing.":
             python:
+                martin_affection -= 2
                 stats.increment_stats_pcr_hatred(10)
 
             jb "'Nothing. I've made my peace with it.'"
@@ -610,13 +629,14 @@ label martin_phase_dark_question:
             martin "'Sure you have.'"
             "He says it gently, but you both know he doesn't believe you."
             "Lying to Martin is like lying to yourself. He was you, three years ago."
-            show screen outcome_panel("+10 PCR HATRED (Supressed fear doesn't disappear, it just goes underground).")
+            "Something pulls back behind his eyes — not gone, just guarded."
+            show screen outcome_panel("-2 AFFECTION, +10 PCR HATRED (You closed the door he was holding open).")
             pause
             hide screen outcome_panel
 
         "Admit the real fear.":
             python:
-                martin_affection += 3
+                martin_affection += 2
                 stats.increment_stats_pcr_hatred(-15)
 
             jb "'He will ruin me. He has contacts. He will make calls. He will follow my career.'"
@@ -628,12 +648,9 @@ label martin_phase_dark_question:
             "He leans in. He whispers two sentences."
             "Your jaw drops."
             "The fear drains out of you like water."
-            show screen outcome_panel("+3 AFFECTION, -15 PCR HATRED (Martin just neutralized your deepest fear).")
+            show screen outcome_panel("+2 AFFECTION, -15 PCR HATRED (Martin just neutralized your deepest fear).")
             pause
             hide screen outcome_panel
-
-    "AFFECTION POINTS: [martin_affection] / 12"
-
     return
 
 
@@ -645,6 +662,7 @@ label martin_phase_the_price:
 
     scene bg_cafe
     show martin default at char_right
+    show expression "jb " + mm_outfit as jb at char_left
 
     "Martin looks down at his steak for a moment. When he looks up, his expression has changed."
     martin "'Before I help you — I need you to understand something.'"
@@ -663,12 +681,12 @@ label martin_phase_the_price:
     menu:
         "Yes.":
             python:
-                martin_affection += 2
+                martin_affection += 1
 
             jb "'I've thought about this. The ones who matter will understand.'"
             jb "'And if they don't... then they aren't the ones who matter.'"
             martin "'Good answer. That's exactly the mindset.'"
-            show screen outcome_panel("+2 AFFECTION POINTS (The right mindset).")
+            show screen outcome_panel("+1 AFFECTION (The right mindset).")
             pause
             hide screen outcome_panel
 
@@ -687,7 +705,7 @@ label martin_phase_the_price:
 
         "[[CODING INTERVIEW PASSED] 'I have a job offer pending. I don't need their validation anymore.'" if _ci_done:
             python:
-                martin_affection += 3
+                martin_affection += 2
                 stats.increment_stats_pcr_hatred(-20)
 
             jb "'I already have a company interested in me. I passed the technical screen.'"
@@ -696,12 +714,9 @@ label martin_phase_the_price:
             jb "'Working on it.'"
             "Martin laughs. Genuinely laughs."
             martin "'JB, you madman. You are already out. You just haven't told yourself yet.'"
-            show screen outcome_panel("+3 AFFECTION, -20 PCR HATRED [CODING INTERVIEW PERK — Maximum confidence].")
+            show screen outcome_panel("+2 AFFECTION, -20 PCR HATRED (Coding interview clears him.)")
             pause 2.5
             hide screen outcome_panel
-
-    "AFFECTION POINTS: [martin_affection] / 12"
-
     return
 
 
@@ -712,6 +727,7 @@ label martin_phase_the_price:
 label martin_neutral_ending:
 
     show martin default at char_right
+    show expression "jb " + mm_outfit as jb at char_left
 
     "Your friend shakes your hand. His grip is firm."
     martin "'It's going to be hell, JB. He will try to break you.'"
@@ -729,15 +745,21 @@ label martin_neutral_ending:
 label martin_bad_ending:
 
     show martin serious at char_right
+    show expression "jb " + mm_outfit as jb at char_left
 
     "Martin looks at you with pity. He doesn't shake your hand."
     martin "'JB, do you remember that one guy from high school, who always wanted to open a car tuning shop but never did anything about it?'"
     martin "'Well... you kinda remind me of him now — big dreams, but no action at all.'"
     martin "'If you go in there like this, he's going to eat you alive.'"
-    martin "'Good luck kiddo. You are going to need it.'"
 
-    $ stats.final_boss_buff = "IMPOSTER_SYNDROME"
-    "[[Imposter Syndrome — you start the boss fight with a debuff]"
+    "He pauses at the door. He looks at you one more time — like a man weighing whether to throw a rope to someone he's not sure wants to climb."
+    martin "'Take this anyway. I don't have to. But you came to lunch, so...'"
+    martin "'It's a stoic anchor. Breathe through what he says. Don't believe the worst of it.'"
+
+    python:
+        grant_card("stoic_anchor", silent=True)
+        stats.final_boss_buff = "STOIC_ANCHOR"
+    "[Stoic Anchor card unlocked — minimum gift, no warmth]"
 
     return
 
@@ -745,6 +767,7 @@ label martin_bad_ending:
 label martin_good_ending_selection:
 
     show martin smiling at char_right
+    show expression "jb " + mm_outfit as jb at char_left
 
     martin "'Wait, JB. I have a good feeling about this. You are actually ready.'"
     martin "'I want to help you. I can't fight him for you, but I can give you an edge.'"

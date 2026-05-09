@@ -1164,6 +1164,63 @@ screen phone_screen():
 ##        hide screen outcome_panel
 ## ---------------------------------------------------------------------------
 
+## ---------------------------------------------------------------------------
+## Martin Meeting affection panel — top-left floating, only shown during MM.
+## Threshold ≥ 7 unlocks the boss-card pick. Class accent for the live count,
+## subtle gold once the threshold is cleared.
+## ---------------------------------------------------------------------------
+
+screen mm_affection_panel():
+    zorder 90
+
+    python:
+        _mm_aff    = getattr(store, 'martin_affection', 0)
+        _mm_max    = 10
+        _mm_goal   = 7
+        _mm_color  = "#ffd24a" if _mm_aff >= _mm_goal else (class_accent_color() if stats else "#c8c8d8")
+        _mm_label  = "GIFT UNLOCKED" if _mm_aff >= _mm_goal else "AFFECTION"
+        _mm_filled = max(0, min(_mm_max, _mm_aff))
+        _mm_pips   = ("●" * _mm_filled) + ("○" * (_mm_max - _mm_filled))
+
+    frame:
+        xpos 30
+        ypos 80
+        padding (16, 10)
+        background Frame("#0a0a0aee", 4, 4)
+
+        vbox:
+            spacing 4
+
+            text "MARTIN":
+                color "#666666"
+                size 11
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
+
+            hbox:
+                spacing 8
+                text _mm_label:
+                    color _mm_color
+                    size 16
+                    bold True
+                    font "fonts/RobotoMono-Regular.ttf"
+                text "[_mm_aff]/[_mm_max]":
+                    color "#c8c8d8"
+                    size 16
+                    bold True
+                    font "fonts/RobotoMono-Regular.ttf"
+
+            text _mm_pips:
+                color _mm_color
+                size 14
+                font "fonts/RobotoMono-Regular.ttf"
+
+            text "Goal: [_mm_goal] for boss card":
+                color "#666666"
+                size 10
+                font "fonts/RobotoMono-Regular.ttf"
+
+
 screen outcome_panel(outcome_text):
     layer "screens"
     zorder 200
@@ -2777,20 +2834,24 @@ style frame:
 
 screen say(who, what):
 
-    window:
-        id "window"
-        background Frame("#0d0d1aee", 8, 8)
+    ## Hide the say-window while a menu (choice screen) is up. Keeps the
+    ## bottom screen band free for the menu options instead of bleeding
+    ## the previous dialogue's textbox over the lower buttons.
+    if not renpy.get_screen("choice"):
+        window:
+            id "window"
+            background Frame("#0d0d1aee", 8, 8)
 
-        vbox:
-            spacing 8
+            vbox:
+                spacing 8
 
-            if who is not None:
-                window:
-                    id "namebox"
-                    style "namebox"
-                    text who id "who"
+                if who is not None:
+                    window:
+                        id "namebox"
+                        style "namebox"
+                        text who id "who"
 
-            text what id "what"
+                text what id "what"
 
 
     ## If there's a side image, display it above the text. Do not display on the
@@ -2894,6 +2955,11 @@ screen choice(items):
     ## The strip ties the choice into the rest of the game's visual system
     ## (stats bar underline, class-color frame in battle screen) so menus
     ## stop reading as bare default Ren'Py UI.
+    ## zorder 250 keeps the menu above the lingering say-window. Combined
+    ## with the conditional hide on the say screen below, the textbox stays
+    ## out of the way during menus so choices have the full bottom band.
+    zorder 250
+
     python:
         _choice_accent = class_accent_color(stats.player_class) if stats else "#888888"
 

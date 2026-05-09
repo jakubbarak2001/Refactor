@@ -392,8 +392,8 @@ init python:
         bs.enemy_hp = bs.enemy_max_hp
 
         ## Sanity guard — ensure player HP is never <= 0 at battle start.
-        ## Power-card auto-fire effects + pre-battle debuffs (IMPOSTER_SYNDROME,
-        ## BH withdrawal) could in theory push HP negative if max_hp was tiny.
+        ## Power-card auto-fire effects + BH withdrawal could in theory push
+        ## HP negative if max_hp was tiny.
         ## A non-positive HP at battle start triggers immediate defeat on the
         ## first damage tick, which is the long-standing 'insta-loss' bug.
         if bs.player_hp <= 0:

@@ -72,6 +72,11 @@ image jb defeated       = im.Scale("images/sprites/jb_defeated.png",         600
 image jb broken         = im.Scale("images/sprites/jb_broken.png",           600, 900)
 image jb developer_happy = im.Scale("images/sprites/jb_developer_happy.png", 600, 900)
 
+## Martin Meeting outfit sprites — wardrobe set by Phase 1 choice
+image jb polo           = im.Scale("images/sprites/jb_polo.png",             600, 900)
+image jb collar         = im.Scale("images/sprites/jb_collar_shirt.png",     600, 900)
+image jb hoodie         = im.Scale("images/sprites/jb_hoodie.png",           600, 900)
+
 ## Class portraits — pre-scaled to fit the 500x750 portrait frame on the
 ## right panel of the class selection screen. Same aspect (~0.667) as the
 ## existing JB sprites so they can stand in until dedicated DE/BH portraits
@@ -98,10 +103,10 @@ image diff_insane = im.Scale("images/pictures/insane_difficulty_pic.png", 420, 6
 image diff_ultra  = im.Scale("images/pictures/ultra_difficulty_pic.png",  420, 630)
 
 ## Martin sprites — source is square, scale proportionally to match 900px height
-image martin normal  = im.Scale("images/sprites/martin_normal.png", 900, 900)
-image martin default = im.Scale("images/sprites/martin_normal.png", 900, 900)
-image martin smiling = im.Scale("images/sprites/martin_normal.png", 900, 900)
-image martin serious = im.Scale("images/sprites/martin_normal.png", 900, 900)
+image martin normal  = im.Scale("images/sprites/martin_normal.png", 600, 900)
+image martin default = im.Scale("images/sprites/martin_normal.png", 600, 900)
+image martin smiling = im.Scale("images/sprites/martin_normal.png", 600, 900)
+image martin serious = im.Scale("images/sprites/martin_normal.png", 600, 900)
 
 ## Inspector sprites (GIBS — Happy Nation ending)
 image inspector neutral = im.Scale("images/sprites/inspector_neutral.png", 600, 900)

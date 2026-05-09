@@ -31,11 +31,6 @@ label colonel_event:
     python:
         battle_init()
 
-        ## Apply pre-battle legacy debuff
-        if stats.final_boss_buff == "IMPOSTER_SYNDROME":
-            battle_state.player_hp = max(1, battle_state.player_hp - 10)
-            renpy.say(None, "[[DEBUFF]: You feel like a fraud. -10 HP at battle start.")
-
         ## Biohacker compound state — same logic as before, applied to BattleState
         _bh_withdrawal = (stats.player_class == "biohacker" and nootropic_dependency and nootropic_last_tier == 0)
         _bh_flmod      = (stats.player_class == "biohacker" and nootropic_last_tier == 5)
