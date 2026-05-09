@@ -461,13 +461,11 @@ screen deck_viewer():
 ## Calls a label on click. Renders title + cost + effect + flavor.
 ## ---------------------------------------------------------------------------
 
-screen _activity_tile(label_name, title, accent, cost_text, effect_text, detail_text, locked=False, lock_text="", class_relevant=False, card_hint="", flavor_text=""):
-    ## Five-line schema (top -> bottom):
+screen _activity_tile(label_name, title, accent, cost_text, effect_text, locked=False, lock_text="", class_relevant=False, flavor_text=""):
+    ## Three-line schema (top -> bottom):
     ##   1. cost_text       - CZK number or FREE
-    ##   2. effect_text     - primary stat delta (sign+number)
-    ##   3. detail_text     - variability tag (random / fixed / branched / roll)
-    ##   4. card_hint       - "May add: <CARD NAME(s)>" - omitted when empty
-    ##   5. flavor_text     - italic mood line - omitted when empty
+    ##   2. effect_text     - "Reward: <delta>" line
+    ##   3. flavor_text     - italic mood line - omitted when empty
     ##
     ## Color scheme: only the class-relevant tile glows in the player's class
     ## color. Every other tile defaults to neutral white/gray to avoid the
@@ -523,10 +521,11 @@ screen _activity_tile(label_name, title, accent, cost_text, effect_text, detail_
                 xalign 0.5
                 font "fonts/RobotoMono-Regular.ttf"
 
-            text effect_text:
-                color _at_text_color
-                size 13
-                xalign 0.5
+            if effect_text:
+                text "Reward: [effect_text]":
+                    color _at_text_color
+                    size 13
+                    xalign 0.5
 
             null height 4
 
@@ -536,22 +535,6 @@ screen _activity_tile(label_name, title, accent, cost_text, effect_text, detail_
                     size 11
                     italic True
                     xalign 0.5
-            elif detail_text:
-                text detail_text:
-                    color "#888888"
-                    size 11
-                    bold True
-                    xalign 0.5
-                    font "fonts/RobotoMono-Regular.ttf"
-
-            if not locked and card_hint:
-                text "May add: [card_hint]":
-                    color "#779977"
-                    size 10
-                    italic True
-                    xalign 0.5
-                    xmaximum 290
-                    text_align 0.5
 
             if not locked and flavor_text:
                 text flavor_text:
@@ -574,9 +557,7 @@ screen _activity_tile(label_name, title, accent, cost_text, effect_text, detail_
 ##   title           - bold title (required)
 ##   accent          - accent color hex (defaults to neutral if omitted)
 ##   cost_text       - top line - cost or FREE
-##   effect_text     - primary stat delta
-##   detail_text     - variability tag
-##   card_hint       - "May add: <CARD>" (omitted when empty)
+##   effect_text     - "Reward: <delta>" line
 ##   flavor_text     - italic mood line (omitted when empty)
 ##   class_relevant  - bool - glow in the option's accent color
 ##   locked          - bool - gray out, click disabled
@@ -635,11 +616,9 @@ screen activity_submenu(title, options, subtitle="", back_label="daily_menu"):
                         accent         = _opt.get("accent", "#cccccc"),
                         cost_text      = _opt.get("cost_text", ""),
                         effect_text    = _opt.get("effect_text", ""),
-                        detail_text    = _opt.get("detail_text", ""),
                         locked         = _opt.get("locked", False),
                         lock_text      = _opt.get("lock_text", ""),
                         class_relevant = _opt.get("class_relevant", False),
-                        card_hint      = _opt.get("card_hint", ""),
                         flavor_text    = _opt.get("flavor_text", ""),
                     )
 
@@ -703,8 +682,6 @@ screen activity_select_screen():
                 accent         = class_accent_color("bodybuilder"),
                 cost_text      = "{:,} CZK".format(adjusted_cost(400)),
                 effect_text    = "- Hatred",
-                detail_text    = "ROLL",
-                card_hint      = "Iron Will / Quick Jab / Personal Record",
                 flavor_text    = "An hour where the bar tells the truth.",
                 class_relevant = True,
             )
@@ -715,8 +692,6 @@ screen activity_select_screen():
                 accent         = class_accent_color("dark_empath"),
                 cost_text      = "FREE",
                 effect_text    = "-20 Hatred",
-                detail_text    = "BRANCHED",
-                card_hint      = "Vigil / Mirror",
                 flavor_text    = "Regular for the card. Deep for the profile.",
                 class_relevant = True,
             )
@@ -727,8 +702,6 @@ screen activity_select_screen():
                 accent         = class_accent_color("biohacker"),
                 cost_text      = "{:,} CZK".format(adjusted_cost(500)),
                 effect_text    = "-30 Hatred",
-                detail_text    = "FIXED",
-                card_hint      = "",
                 flavor_text    = "Red light. Sauna. Cold plunge. Data clean.",
                 class_relevant = True,
             )
@@ -740,8 +713,6 @@ screen activity_select_screen():
             accent         = "#ffd700",
             cost_text      = "FREE",
             effect_text    = "+ CZK, +/- Hatred",
-            detail_text    = "BRANCHED",
-            card_hint      = "Side Income / Loan Sharks",
             flavor_text    = "Nightclub safe. Strip bar volatile.",
             class_relevant = False,
         )
@@ -753,8 +724,6 @@ screen activity_select_screen():
             accent         = "#00ccff",
             cost_text      = "FREE",
             effect_text    = "+ Coding",
-            detail_text    = "BRANCHED",
-            card_hint      = "Compile / Refactor / Algorithm / Production Push",
             flavor_text    = "Practice / Fiverr / Bootcamp / Puzzle.",
             class_relevant = False,
         )
@@ -766,8 +735,6 @@ screen activity_select_screen():
             accent         = "#3388cc",
             cost_text      = "FREE",
             effect_text    = "+3,000 CZK, +15 Hatred",
-            detail_text    = "RANDOM",
-            card_hint      = "Backup",
             flavor_text    = "Trade time for money.",
             class_relevant = False,
         )
@@ -1347,9 +1314,24 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
 
                 null height 6
 
+                ## EFFECT — what the card actually does. Mechanics first, vibes second.
+                $ _co_effect = EFFECT_DESCRIPTIONS.get(card.get("effect"), "")
+                if _co_effect:
+                    text _co_effect:
+                        color "#ffffff"
+                        size 16
+                        bold True
+                        xalign 0.5
+                        xmaximum 360
+                        text_align 0.5
+                        line_spacing 3
+
+                    null height 8
+
                 text _co_flavor:
-                    color "#cccccc"
-                    size 15
+                    color "#888888"
+                    size 13
+                    italic True
                     xalign 0.5
                     xmaximum 360
                     text_align 0.5
@@ -2410,11 +2392,6 @@ screen class_selection_screen():
             bold True
             font "fonts/RobotoMono-Regular.ttf"
 
-        text "4× Strike   ·   4× Defend":
-            color "#888888"
-            size 13
-            font "fonts/RobotoMono-Regular.ttf"
-
         if _starter_card:
             hbox:
                 spacing 6
@@ -2428,6 +2405,11 @@ screen class_selection_screen():
                     size 12
                     italic True
                     xmaximum 380
+
+        text "4× Strike   ·   4× Defend":
+            color "#aaaaaa"
+            size 12
+            font "fonts/RobotoMono-Regular.ttf"
 
     ## Keyboard nav
     key "K_UP"       action SetScreenVariable("_cls_hov", max(0, _cls_hov - 1))

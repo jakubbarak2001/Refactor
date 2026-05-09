@@ -535,8 +535,6 @@ label activity_bouncer:
                 "accent":         "#ffd700",
                 "cost_text":      "FREE",
                 "effect_text":    "+ CZK · low risk",
-                "detail_text":    "RANDOM",
-                "card_hint":      "Side Income",
                 "flavor_text":    "Drunks, mostly handled. The owner pays cash.",
                 "class_relevant": False,
             },
@@ -546,8 +544,6 @@ label activity_bouncer:
                 "accent":         "#ffd700",
                 "cost_text":      "FREE",
                 "effect_text":    "+ more CZK · ugly outcomes possible",
-                "detail_text":    "RANDOM · RISKY",
-                "card_hint":      "VIP Treatment / Brawl / Loan Sharks",
                 "flavor_text":    "Pays better. You'll see things. You'll do things.",
                 "class_relevant": False,
             },
@@ -708,8 +704,6 @@ label activity_coding:
                 "accent":         _bh_accent,
                 "cost_text":      "FREE",
                 "effect_text":    "+ CZK (scales with tier)",
-                "detail_text":    "FIXED",
-                "card_hint":      "",
                 "flavor_text":    "Take what your skill's worth right now.",
                 "class_relevant": _is_bh,
             },
@@ -719,8 +713,6 @@ label activity_coding:
                 "accent":         _bh_accent,
                 "cost_text":      "FREE",
                 "effect_text":    "+ Coding",
-                "detail_text":    "ROLL",
-                "card_hint":      "Compile / Refactor / Algorithm",
                 "flavor_text":    "Solve a function. Some stick.",
                 "class_relevant": _is_bh,
             },
@@ -730,8 +722,6 @@ label activity_coding:
                 "accent":         _bh_accent,
                 "cost_text":      "{:,} CZK".format(adjusted_cost(2500)),
                 "effect_text":    "+ Coding",
-                "detail_text":    "RANDOM",
-                "card_hint":      "Compile / Refactor",
                 "flavor_text":    "Someone in Mumbai who knows your stack.",
                 "class_relevant": _is_bh,
             },
@@ -746,8 +736,6 @@ label activity_coding:
                 "accent":         _bh_accent,
                 "cost_text":      "VARIES",
                 "effect_text":    "+ Coding, +/- Hatred",
-                "detail_text":    "BRANCHED · BIOHACKER",
-                "card_hint":      "Racetam / FLModafinil",
                 "flavor_text":    "Exact compound. Exact dose. Exact timing.",
                 "class_relevant": True,
             })
@@ -758,8 +746,6 @@ label activity_coding:
                 "accent":         _bh_accent,
                 "cost_text":      _bc_cost_text,
                 "effect_text":    "+25 Coding, +5/night",
-                "detail_text":    "FIXED · PERMANENT",
-                "card_hint":      "Production Push",
                 "flavor_text":    _bc_flavor,
                 "class_relevant": False,
                 "locked":         _bc_done,
@@ -1169,19 +1155,12 @@ label activity_nootropics:
             _ti = NOOTROPIC_TIERS[_tn]
             _hatred_sign = "+" if _ti["hatred"] >= 0 else ""
             _eff = "+{} Coding, {}{} Hatred".format(_ti["coding"], _hatred_sign, _ti["hatred"])
-            _hint = ""
-            if _tn >= 5:
-                _hint = "FLModafinil"
-            elif _tn >= 3:
-                _hint = "Racetam"
             _noot_options.append({
                 "label_name":     "_apply_noot_t{}".format(_tn),
                 "title":          _NOOT_TITLES[_tn],
                 "accent":         class_accent_color("biohacker"),
                 "cost_text":      "{:,} CZK".format(adjusted_cost(_ti["cost"])),
                 "effect_text":    _eff,
-                "detail_text":    "FIXED" + (" · CRASH" if _ti.get("crash_coding") or _ti.get("crash_hatred") else ""),
-                "card_hint":      _hint,
                 "flavor_text":    _NOOT_FLAVORS[_tn],
                 "class_relevant": True,
                 "visible":        _NOOT_VIS[_tn],
@@ -1359,8 +1338,6 @@ label activity_cold_read:
                 "accent":         _de_accent,
                 "cost_text":      "FREE",
                 "effect_text":    "-20 Hatred",
-                "detail_text":    "FIXED",
-                "card_hint":      _cr_card.replace("_", " ").upper(),
                 "flavor_text":    "Subtle. The card may stick.",
                 "class_relevant": True,
             },
@@ -1370,8 +1347,6 @@ label activity_cold_read:
                 "accent":         _de_accent,
                 "cost_text":      "FREE",
                 "effect_text":    "-20 Hatred, +1 PROFILE",
-                "detail_text":    "FIXED",
-                "card_hint":      "",
                 "flavor_text":    "Sit with them. Read past the surface.",
                 "class_relevant": True,
             },
