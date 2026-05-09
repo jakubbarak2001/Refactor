@@ -325,7 +325,10 @@ label show_deck:
     hide screen day_calendar
     call screen deck_viewer
     show screen day_calendar
-    jump daily_menu
+    ## Return to whatever called us — was `jump daily_menu` which let
+    ## players escape mid-event by clicking the stats-bar Deck button.
+    ## Now reachable only via Call() from the stats bar.
+    return
 
 
 label select_activity:

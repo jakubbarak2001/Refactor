@@ -165,7 +165,12 @@ screen stats_bar():
                     size 18
 
                 textbutton "Deck: [_deck_count_bar]":
-                    action Jump("show_deck")
+                    ## Call (push/return) instead of Jump so the deck viewer
+                    ## doesn't tear out of mid-event flow. Was Jump → forced
+                    ## an unconditional `jump daily_menu` at the end of
+                    ## show_deck, which let players skip Martin Meeting and
+                    ## any random event by clicking this button.
+                    action Call("show_deck")
                     tooltip "Click to view your deck."
                     text_color "#00cc88"
                     text_hover_color "#ffffff"
