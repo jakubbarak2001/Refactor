@@ -194,20 +194,27 @@ init -1 python:
     def init_player_deck():
         """Build the starter deck for the chosen class. Called from init_game.
 
-        Empty-deck pivot (Phase 3): the universal 4×strike + 4×defend pack
-        is gone. Every card in the player's deck at colonel time is something
-        JB chose to do across the 30 days — the deckbuilding is the run.
-        Only the class starter (heavy_set / read_him / stack_up) is granted
-        unconditionally; it ties the deck to class identity from turn 1.
+        StS-style baseline: every player gets a viable kit at game start —
+        the class signature card plus 4×Strike and 4×Defend. The 30-day grind
+        is about UPGRADING that kit (adding rares, replacing strikes), not
+        building it from zero. The previous empty-deck pivot left DE and BH
+        unable to deal any damage at the colonel fight if they didn't grind
+        activities — the read_him / stack_up starters are utility, not damage.
         """
         global player_deck
         player_deck = PlayerDeck()
         cls = stats.player_class if stats else None
 
-        ## Class-specific starter — the one card that's about who JB is, not what he did.
+        ## Class-specific starter — the card that's about who JB is.
         if cls == "bodybuilder":
             player_deck.add("heavy_set")
         elif cls == "dark_empath":
             player_deck.add("read_him")
         elif cls == "biohacker":
             player_deck.add("stack_up")
+
+        ## Universal baseline — muscle memory for the fight that's coming.
+        for _ in range(4):
+            player_deck.add("strike")
+        for _ in range(4):
+            player_deck.add("defend")
