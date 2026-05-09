@@ -411,6 +411,7 @@ label midnight_phase6:
 
             colonel_voice "'Good.'"
             "He hangs up."
+            show jb defeated at char_center
             "You sit in the dark for a while."
             "You consider it. You already know the answer."
             "But agreeing to think cost you more than it was worth."
@@ -422,6 +423,7 @@ label midnight_phase6:
             python:
                 stats.increment_stats_pcr_hatred(-15)
 
+            show jb determined at char_center
             jb "'I've thought about nothing else for six months, Colonel.'"
             jb "'The answer is yes. I'm leaving.'"
             "Silence."
@@ -440,6 +442,7 @@ label midnight_phase6:
                 grant_card("stoic_anchor", silent=True)
                 stats.final_boss_buff = "STOIC_ANCHOR"
 
+            show jb smirk at char_center
             jb "'Actually, Colonel — I'll be filing through legal counsel.'"
             jb "'Everything I have is documented. I hope yours is too.'"
             colonel_voice "'...'"

@@ -1455,7 +1455,7 @@ label crisis_event_bodybuilder:
 
     play music "audio/tension_theme.mp3" fadein 1.0
     scene bg_police_interior
-    show jb worried at char_left
+    show jb angry at char_left
 
     "[[CRISIS EVENT — BODYBUILDER]]"
     "It happened at the gym."
@@ -1502,7 +1502,7 @@ label crisis_event_dark_empath:
 
     play music "audio/tension_theme.mp3" fadein 1.0
     scene bg_police_interior
-    show jb bored at char_left
+    show jb defeated at char_left
 
     "[[CRISIS EVENT — DARK EMPATH]]"
     "You woke up this morning and something was different."

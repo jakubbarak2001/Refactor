@@ -268,7 +268,10 @@ label colonel_glitch_wake_up:
     pause 1.0
 
     scene bg_police_office with dissolve
-    show jb determined at char_left
+    ## smirk reads as "I see through you, finally" — fits the
+    ## "no volume, no anger" cue better than determined (which reads
+    ## as committed-but-fighting). JB has TRANSCENDED the fight here.
+    show jb smirk at char_left
 
     jb "'I'm done.'"
     "Two words. No volume. No anger."
