@@ -806,10 +806,10 @@ screen battle_screen():
         $ _last_player_hit = getattr(bs, 'last_player_hit_time', -1.0)
         $ _player_hit_age = (_fx_now - _last_player_hit) if _last_player_hit > 0 else 999.0
         if _player_hit_age < 0.35:
-            add Solid("#ff2222") xfill True yfill True at damage_flash_player
+            add Solid("#ff2222") xsize 1920 ysize 1080 at damage_flash_player
 
         ## Enemy-hit flash — subtle green wash
         $ _last_enemy_hit = getattr(bs, 'last_enemy_hit_time', -1.0)
         $ _enemy_hit_age = (_fx_now - _last_enemy_hit) if _last_enemy_hit > 0 else 999.0
         if _enemy_hit_age < 0.30:
-            add Solid("#00ff41") xfill True yfill True at damage_flash_enemy
+            add Solid("#00ff41") xsize 1920 ysize 1080 at damage_flash_enemy
