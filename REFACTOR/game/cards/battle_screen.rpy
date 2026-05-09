@@ -783,13 +783,50 @@ screen battle_screen():
                         size 16
                         bold True
 
-                ## Active buffs
+                ## Active buffs — human-readable, internal-key gibberish hidden
                 python:
-                    _active_buffs = [k for k, v in bs.buffs.items() if v]
+                    _BUFF_LABELS = {
+                        "starting_block_+1":   "+1 Starting Block",
+                        "stoic_anchor_block":  "Stoic Anchor (block)",
+                        "stoic_anchor_heal":   "Stoic Anchor (heal)",
+                        "presence_charges":    "Presence",
+                        "read_charges":        "Read",
+                        "kick_charges":        "Kick",
+                        "mental_dr_50":        "Stoic Refactor",
+                        "iron_stance_active":  "Iron Stance",
+                        "vladeks_active":      "Vladek's Form",
+                        "single_retaliate_dmg":"Iron Body",
+                        "vigil_next_turn_block":"Vigil",
+                        "insight_block":       "Insight",
+                        "insight_turns_left":  "Insight (turns)",
+                        "block_next_turn":     "Procedural Defense",
+                        "double_next_attack":  "Personal Record",
+                        "mirror_next":         "Mirror (armed)",
+                        "mirror_cooldown":     "Mirror (cooldown)",
+                        "reframe_next":        "Reframe (armed)",
+                        "next_attack_reduction":"Frame Trap",
+                        "bleed_dmg":           "Bleed (dmg)",
+                        "bleed_turns":         "Bleed (turns)",
+                        "crash_next_turn":     "Stack-Up Crash",
+                        "max_energy_penalty_next_turn":"FLMod Ebb",
+                        "skip_next_turn":      "FLMod Crash",
+                        "enemy_attack_bonus":  "Pressure",
+                        "player_draw_penalty": "Authority Display",
+                    }
+                    _active_buffs = []
+                    for _k, _v in bs.buffs.items():
+                        if not _v:
+                            continue
+                        _label = _BUFF_LABELS.get(_k, _k)
+                        if isinstance(_v, int) and _v > 1:
+                            _active_buffs.append("{} x{}".format(_label, _v))
+                        else:
+                            _active_buffs.append(_label)
                 if _active_buffs:
                     text "BUFFS: {}".format(", ".join(_active_buffs)):
                         color "#ffdd44"
                         size 11
+                        xmaximum 340
 
         ## ── ENERGY (right side) ───────────────────────────────────────────────
         frame:
@@ -883,82 +920,146 @@ screen battle_screen():
                     text_align 0.5
 
         ## ── HAND ──────────────────────────────────────────────────────────────
+        ## Each card: 200×280 button. Color-coded border (4px) wrapping a dark
+        ## inner panel. Cost gem overlaps the top-left corner. Effect text is
+        ## the centerpiece — what the card actually does, not just flavor.
         frame:
             xalign 0.5
-            ypos 800
-            padding (20, 12)
+            ypos 790
+            padding (16, 10)
             background Frame("#0a0a0acc", 4, 4)
 
             hbox:
-                spacing 12
+                spacing 14
                 xalign 0.5
 
                 for _cid in bs.hand:
                     $ _card = CARD_LIBRARY.get(_cid, {})
                     $ _color = _CARD_COLORS.get(_card.get("color", "Special"), "#888888")
                     $ _ok, _reason = bs.hand_playable(_cid)
-                    $ _bg = Frame("#0d0d0dff", 3, 3) if _ok else Frame("#1a0000aa", 3, 3)
-                    $ _hover_bg = Frame("#1a1a2add", 3, 3) if _ok else _bg
-                    $ _tooltip_text = EFFECT_DESCRIPTIONS.get(_card.get("effect"), _card.get("flavor", ""))
+                    $ _border = _color if _ok else "#3a1010"
+                    $ _border_hover = "#ffffff" if _ok else _border
+                    $ _effect_text = EFFECT_DESCRIPTIONS.get(_card.get("effect"), _card.get("flavor", ""))
+                    $ _ctype = _card.get("type", "Skill")
+                    ## Geometric glyphs in BMP (well-supported across fonts) — visual hierarchy for type
+                    $ _type_glyph = {"Attack": "▲", "Skill": "■", "Power": "★"}.get(_ctype, "●")
 
                     button:
-                        xsize 180
-                        ysize 250
-                        background _bg
-                        hover_background _hover_bg
+                        xsize 200
+                        ysize 280
+                        background Solid(_border)
+                        hover_background Solid(_border_hover)
                         sensitive _ok
-                        tooltip _tooltip_text
+                        tooltip _effect_text
                         action [Function(battle_play_card, _cid), Function(renpy.restart_interaction)]
 
-                        vbox:
-                            spacing 6
-                            xalign 0.5
+                        ## Inner panel — inset 4px from each edge for the border effect
+                        frame:
+                            xpos 4
+                            ypos 4
+                            xsize 192
+                            ysize 272
+                            background Solid("#0d0d0dff" if _ok else "#1a0a0aff")
+                            padding (10, 10)
 
-                            ## Cost circle
-                            frame:
-                                xsize 36
-                                ysize 36
-                                background Frame(_color, 3, 3)
+                            vbox:
+                                spacing 3
+                                xfill True
+
+                                ## Top row: name centered, room left for the cost gem corner
+                                frame:
+                                    xfill True
+                                    ysize 32
+                                    background None
+                                    text _card.get("name", _cid):
+                                        color ("#ffffff" if _ok else "#666666")
+                                        size 15
+                                        bold True
+                                        xalign 0.5
+                                        yalign 0.5
+                                        xmaximum 160
+                                        text_align 0.5
+                                        font "fonts/RobotoMono-Regular.ttf"
+
+                                ## Type strip — colored, small caps feel
+                                hbox:
+                                    spacing 6
+                                    xalign 0.5
+                                    text _type_glyph:
+                                        color _color
+                                        size 12
+                                    text _ctype.upper():
+                                        color _color
+                                        size 10
+                                        bold True
+                                        font "fonts/RobotoMono-Regular.ttf"
+                                    text "·":
+                                        color "#444444"
+                                        size 10
+                                    text _card.get("color", "").upper():
+                                        color _color
+                                        size 10
+                                        font "fonts/RobotoMono-Regular.ttf"
+
+                                ## Divider
+                                frame:
+                                    xalign 0.5
+                                    xsize 150
+                                    ysize 1
+                                    background Solid(_color)
+
+                                null height 3
+
+                                ## EFFECT — the meaty middle
+                                text _effect_text:
+                                    color ("#e8e8e8" if _ok else "#555555")
+                                    size 12
+                                    xalign 0.5
+                                    xmaximum 168
+                                    text_align 0.5
+                                    line_spacing 2
+
+                                null height 4
+
+                                ## Flavor — italic, gray, smaller
+                                text _card.get("flavor", ""):
+                                    color ("#777777" if _ok else "#3a3a3a")
+                                    size 9
+                                    italic True
+                                    xalign 0.5
+                                    xmaximum 168
+                                    text_align 0.5
+
+                        ## Cost gem — overlaps the top-left corner of the border
+                        frame:
+                            xpos -4
+                            ypos -4
+                            xsize 36
+                            ysize 36
+                            background Solid(_color if _ok else "#552222")
+                            text "[_card.get('cost', 0)]":
+                                color ("#000000" if _ok else "#222222")
+                                size 20
+                                bold True
                                 xalign 0.5
-                                yoffset 4
-                                text "[_card.get('cost', 0)]":
-                                    color "#000000"
-                                    size 22
+                                yalign 0.5
+                                font "fonts/RobotoMono-Regular.ttf"
+
+                        ## Exhaust badge — bottom-right corner
+                        if _card.get("exhaust"):
+                            frame:
+                                xpos 138
+                                ypos 254
+                                xsize 60
+                                ysize 18
+                                background Solid("#3a0000")
+                                text "EXHAUST":
+                                    color "#ff6644"
+                                    size 9
                                     bold True
                                     xalign 0.5
                                     yalign 0.5
-
-                            ## Name
-                            text _card.get("name", _cid):
-                                color "#ffffff"
-                                size 14
-                                bold True
-                                xalign 0.5
-                                xmaximum 168
-                                text_align 0.5
-
-                            ## Type/color badge
-                            text "{} · {}".format(_card.get("type", ""), _card.get("color", "")):
-                                color _color
-                                size 10
-                                xalign 0.5
-
-                            null height 4
-
-                            ## Flavor / effect text
-                            text _card.get("flavor", ""):
-                                color "#aaaaaa"
-                                size 11
-                                xalign 0.5
-                                xmaximum 168
-                                text_align 0.5
-
-                            if _card.get("exhaust"):
-                                null height 2
-                                text "[[EXHAUST]":
-                                    color "#cc4444"
-                                    size 10
-                                    xalign 0.5
+                                    font "fonts/RobotoMono-Regular.ttf"
 
         ## ── ROUND COUNTER ─────────────────────────────────────────────────────
         text "Round [bs.turn]":
