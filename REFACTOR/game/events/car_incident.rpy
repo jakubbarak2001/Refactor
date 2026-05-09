@@ -16,7 +16,7 @@ label car_incident:
     scene bg_parking_lot with arc_fade
     show jb neutral at char_left with dissolve
 
-    "It is 06:45 AM. The sun is technically rising, but in this part of Bohemia, it just looks like the sky is slowly bruising purple."
+    "It is 06:30 AM. The sun is technically rising, but in this part of Bohemia, it just looks like the sky is slowly bruising purple."
     "You just parked your private car. You are already late for the overtime shift at the other station."
 
     if stats.player_class == "bodybuilder":
@@ -30,6 +30,7 @@ label car_incident:
 
     "You rush to the service vehicle — a battered Octavia that smells permanently of wet dog and criminals."
     "You throw it into reverse, trusting your muscle memory more than your eyes."
+    "The back lane is always clear at 06:30."
     "You are a professional driver, {stshl=right?}"
 
     stop music fadeout 0.3
@@ -43,11 +44,13 @@ label car_incident:
 
     "It wasn't a loud noise. It was a sickeningly polite {i}crunch{/i}."
     "Like stepping on a very large, very expensive beetle."
-    "You freeze. You look in the mirror. You see nothing."
+    "You freeze. You look in the mirror. You see grey."
 
     "You get out. You look."
 
-    "Your bumper is intimately kissing the door of the Commandant's brand new Superb."
+    "The Kodiaq is parked sideways across the back lane. Diagonal. Blocking the entire row of bays."
+    "Nobody parks like that. Except the Commandant. Who parks where he wants."
+    "Your rear bumper is intimately kissing the side door of his brand new Kodiaq."
     "The damage is barely there. A faint scuff. A shadow of paint transfer. You'd have to know it was there to find it."
 
     ## Decision frame — both paths converge on the Colonel.
@@ -188,7 +191,7 @@ label car_incident_hide:
     "The shift supervisor nods at you. 'Morning, JB.' He suspects nothing. Yet."
 
     "You sit at your desk. You open a case file. You don't read a single word."
-    "Your eyes keep drifting to the window. To the parking lot. To the Superb sitting there like evidence."
+    "Your eyes keep drifting to the window. To the parking lot. To the Kodiaq sitting there like evidence."
 
     scene bg_police_interior
     show jb neutral at char_left
@@ -210,8 +213,8 @@ label car_incident_hide:
     show jb neutral at char_left
 
     "He plugs the USB into his laptop and turns the screen toward you."
-    "Parking lot camera. 06:45 AM. High angle, wide shot."
-    "You watch yourself reverse into the Superb. You watch yourself crouch, scrub, kick gravel, walk away."
+    "Parking lot camera. 06:30 AM. High angle, wide shot."
+    "You watch yourself reverse into the Kodiaq. You watch yourself crouch, scrub, kick gravel, walk away."
     "The footage is grainy, but it's enough."
 
     "'Every Tuesday,' the Commandant says. 'I review the footage every Tuesday.'"
