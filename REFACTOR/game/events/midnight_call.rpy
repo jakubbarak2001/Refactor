@@ -44,10 +44,10 @@ label midnight_call:
     "It's still ringing."
 
     menu:
-        "ANSWER — 'This can't be good.'":
+        "Answer.":
             jump midnight_answer
 
-        "IGNORE — Let it ring out. He's your boss but it's 2AM.":
+        "Let it ring out.":
             jump midnight_ignore
 
 
@@ -110,7 +110,7 @@ label midnight_phase1:
     "He let that sit for exactly the right amount of time."
 
     menu:
-        "DENY — 'That was a personal letter. Not an official submission.'":
+        "Deny it.":
             python:
                 stats.increment_stats_pcr_hatred(10)
 
@@ -121,7 +121,7 @@ label midnight_phase1:
             pause
             hide screen outcome_panel
 
-        "ADMIT — 'Yes. I've been thinking about it.'":
+        "Admit it.":
             python:
                 stats.increment_stats_pcr_hatred(-5)
 
@@ -133,7 +133,7 @@ label midnight_phase1:
             pause
             hide screen outcome_panel
 
-        "SILENCE — Say nothing. Wait him out.":
+        "Stay silent.":
             python:
                 stats.increment_stats_pcr_hatred(5)
 
@@ -170,7 +170,7 @@ label midnight_phase2:
     colonel_voice "'I want to offer you something before you make a decision you can't take back.'"
 
     menu:
-        "LISTEN — 'What kind of offer?'":
+        "Listen.":
             python:
                 pass  ## Listening here is neutral — just getting info
 
@@ -181,7 +181,7 @@ label midnight_phase2:
             pause
             hide screen outcome_panel
 
-        "SHUT IT DOWN — 'Colonel, no promotion will change this.'":
+        "Shut it down.":
             python:
                 stats.increment_stats_pcr_hatred(-10)
                 stats.increment_stats_value_money(-0)
@@ -220,7 +220,7 @@ label midnight_phase3:
     colonel_voice "'Is this because of how I treated you?'"
 
     menu:
-        "YES — 'Partly. The way you run this station is toxic.'" :
+        "Yes." :
             python:
                 stats.increment_stats_pcr_hatred(15)
 
@@ -234,7 +234,7 @@ label midnight_phase3:
             pause
             hide screen outcome_panel
 
-        "NO — 'This isn't about you, Colonel. It's bigger than that.'":
+        "No.":
             python:
                 stats.increment_stats_pcr_hatred(-15)
 
@@ -247,7 +247,7 @@ label midnight_phase3:
             pause
             hide screen outcome_panel
 
-        "COMPLICATED ANSWER — 'It's both. And neither. And more than that.'":
+        "It's complicated.":
             python:
                 stats.increment_stats_pcr_hatred(-5)
                 stats.increment_stats_coding_skill(2)
@@ -284,7 +284,7 @@ label midnight_phase4:
     "The warmth was a setup."
 
     menu:
-        "CALL IT OUT — 'So this is a threat.'":
+        "Call it out.":
             python:
                 stats.increment_stats_pcr_hatred(-10)
                 store._midnight_colonel_weakened = True
@@ -298,7 +298,7 @@ label midnight_phase4:
             pause
             hide screen outcome_panel
 
-        "ABSORB IT — Sit with it. Don't react emotionally.":
+        "Absorb it.":
             python:
                 stats.increment_stats_pcr_hatred(5)
 
@@ -313,7 +313,7 @@ label midnight_phase4:
             pause
             hide screen outcome_panel
 
-        "COUNTER — 'I have my own file on this station, Colonel.'" if stats.coding_skill >= 40:
+        "Counter him." if stats.coding_skill >= 40:
             python:
                 stats.increment_stats_pcr_hatred(-20)
                 store._midnight_colonel_weakened = True
@@ -361,7 +361,7 @@ label midnight_phase5:
     "But here it is."
 
     menu:
-        "ACKNOWLEDGE — 'That sounds lonely, Colonel.'":
+        "Acknowledge it.":
             python:
                 stats.increment_stats_pcr_hatred(-20)
 
@@ -376,7 +376,7 @@ label midnight_phase5:
             pause
             hide screen outcome_panel
 
-        "REDIRECT — 'With respect, Colonel, this isn't why you called.'":
+        "Redirect.":
             python:
                 stats.increment_stats_pcr_hatred(5)
 
@@ -405,7 +405,7 @@ label midnight_phase6:
         _weakened = getattr(store, '_midnight_colonel_weakened', False)
 
     menu:
-        "AGREE TO THINK — 'I'll consider it, Colonel.'":
+        "Agree to think.":
             python:
                 stats.increment_stats_pcr_hatred(10)
 
@@ -419,7 +419,7 @@ label midnight_phase6:
             pause
             hide screen outcome_panel
 
-        "DECLINE DIRECTLY — 'I've already thought about it. The letter stands.'":
+        "Decline directly.":
             python:
                 stats.increment_stats_pcr_hatred(-15)
 
@@ -436,7 +436,7 @@ label midnight_phase6:
             pause
             hide screen outcome_panel
 
-        "[[LEVERAGE]] 'I'll file through my lawyer. We'll make sure everything's documented.' [[+COMBAT ADVANTAGE]]" if _weakened:
+        "[[LEVERAGE]] File through legal counsel. [[+COMBAT ADVANTAGE]]" if _weakened:
             python:
                 stats.increment_stats_pcr_hatred(-25)
                 grant_card("stoic_anchor", silent=True)
