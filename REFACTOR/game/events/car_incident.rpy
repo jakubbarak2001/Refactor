@@ -1,8 +1,9 @@
 ################################################################################
 ## REFACTOR - Arc I: The Car Incident
-## Three paths: Own It / Assess & Patch / Walk Away
-## Sets colonel_attitude for downstream events
-## Caught paths trigger Colonel arrival + video on Day 1
+## Two paths: Admit / Hide. Both end with the Colonel arriving on Day 1.
+## Trade-off: Admit pays small but earns the Colonel's attention (paternal).
+##            Hide pays big and gets written off (hostile, lower oversight).
+## Sets colonel_attitude for downstream events.
 ################################################################################
 
 label car_incident:
@@ -17,7 +18,15 @@ label car_incident:
 
     "It is 06:45 AM. The sun is technically rising, but in this part of Bohemia, it just looks like the sky is slowly bruising purple."
     "You just parked your private car. You are already late for the overtime shift at the other station."
-    "Your brain is running on 3 hours of sleep and a protein bar that tasted like chalk."
+
+    if stats.player_class == "bodybuilder":
+        "Your brain is running on 3 hours of sleep, a protein bar that tasted like chalk, and the dull ache of yesterday's deadlifts."
+    elif stats.player_class == "dark_empath":
+        "Your brain is running on 3 hours of sleep and the residue of a dream where you were reading the sergeant's face like a cheap paperback."
+    elif stats.player_class == "biohacker":
+        "Your brain is running on 3 hours of sleep, 200mg caffeine, 100mg L-theanine, and the precise regret of skipping the racetam stack."
+    else:
+        "Your brain is running on 3 hours of sleep and the leftover noise of yesterday."
 
     "You rush to the service vehicle — a battered Octavia that smells permanently of wet dog and criminals."
     "You throw it into reverse, trusting your muscle memory more than your eyes."
@@ -39,30 +48,44 @@ label car_incident:
     "You get out. You look."
 
     "Your bumper is intimately kissing the door of the Commandant's brand new Superb."
-    "It's not just a scratch. It's a {stshl=statement}."
+    "The damage is barely there. A faint scuff. A shadow of paint transfer. You'd have to know it was there to find it."
 
-    ## Decision
-    "You stand between the cars. The parking lot is dead quiet."
-    "Nobody saw. Not yet. Shift change is in three minutes."
-    "Your pulse is doing things that would concern a cardiologist."
+    ## Decision frame — both paths converge on the Colonel.
+    "You stand between the cars. The parking lot is dead quiet. Shift change is in three minutes."
+
+    if stats.player_class == "bodybuilder":
+        "Your pulse is doing things that would concern a cardiologist. You hit 180 on the bike yesterday. This feels worse."
+    elif stats.player_class == "dark_empath":
+        "Your pulse is doing things you would, in any other context, find fascinating to study."
+    elif stats.player_class == "biohacker":
+        "Your pulse is doing things that would concern a cardiologist. HRV is going to be garbage tomorrow."
+    else:
+        "Your pulse is doing things that would concern a cardiologist."
+
+    "Two facts settle into focus."
+    "First: in a station this small, the Commandant {i}will{/i} find out by lunch. Cameras, gossip, his own paranoid morning walk-around — pick one."
+    "Second: he will call the Colonel either way. That's how this place works. You are not getting out of a meeting today."
+
+    if stats.player_class == "bodybuilder":
+        "It's a scratch. The math is simple. The damage isn't the damage — the damage is who has to know."
+    elif stats.player_class == "dark_empath":
+        "The Commandant won't read this as damage. He'll read it as disrespect. That's the only variable."
+    elif stats.player_class == "biohacker":
+        "Two paths. One has known cost, low variance. The other is a coin flip with a long tail. Run the EV."
 
     menu:
-        "OWN IT — Leave a note. Tell the shift supervisor. Handle it like a professional.":
-            jump car_incident_own_it
+        "ADMIT — Note on the windshield. Tell the supervisor. He files you as salvageable. (Pay small. He watches you closely from now on.)":
+            jump car_incident_admit
 
-        "ASSESS & PATCH — Check the damage. Reposition the car. Minimize the evidence.":
-            jump car_incident_patch
-
-        "WALK AWAY — You were never here. The parking lot was empty. Nothing happened.":
-            jump car_incident_ghost
+        "HIDE — Spit, scrub, shuffle the Octavia. Pretend it didn't happen. He files you as a lost cause. (Pay big. He stops expecting anything from you.)":
+            jump car_incident_hide
 
 
 ## ---------------------------------------------------------------------------
-## PATH A: OWN IT (safe, predictable — no Colonel, no video)
-## colonel_attitude = "paternal"
+## PATH A: ADMIT — small cost, paternal Colonel (he's watching you now)
 ## ---------------------------------------------------------------------------
 
-label car_incident_own_it:
+label car_incident_admit:
 
     scene bg_parking_lot
     show jb determined at char_left
@@ -81,143 +104,8 @@ label car_incident_own_it:
     "'You're telling me this at 06:48 in the morning, JB. Before I've even had coffee.'"
     "'Great. Really stellar start to the day.'"
 
-    "He hands you a stack of forms."
-    "'Insurance will cover most of it. You're paying the deductible. And you owe the Commandant a very sincere apology.'"
-
-    "You fill out the forms. Your pen runs out twice."
-    "The Commandant arrives at 08:00, sees the note, inspects the damage, and walks inside without a word."
-
-    "At 08:15 he finds you in the break room."
-    "'JB. I appreciate the honesty. Most guys would have bolted.'"
-    "He shakes your hand. His grip could crack a walnut."
-    "'Deductible is 3,000. I'll cover half. You pay yours by Friday.'"
-
-    show jb determined at char_left
-
-    "That's it. No speech. No power play. Just two professionals handling a problem."
-    "If only the rest of this place worked like that."
-
-    "Word travels. It always does in a police station."
-    "By noon, the story has reached two districts over."
-
-    python:
-        stats.colonel_attitude = "paternal"
-        stats.increment_stats_pcr_hatred(5)
-        stats.increment_stats_value_money(-3000)
-
-    show screen outcome_panel("-3,000 CZK (deductible), +5 PCR HATRED (another form, another process, another day).")
-    pause
-    hide screen outcome_panel
-
-    "You did the right thing. That should count for something around here."
-    "It never does."
-
-    jump car_incident_end
-
-
-## ---------------------------------------------------------------------------
-## PATH B: ASSESS & PATCH (calculated risk — 60/40)
-## Success: colonel_attitude = "suspicious"
-## Caught: Colonel arrives Day 1, video plays, colonel_attitude = "disgusted"
-## ---------------------------------------------------------------------------
-
-label car_incident_patch:
-
-    scene bg_parking_lot
-    show jb worried at char_left
-
-    "You crouch between the cars. Your knees crack like gunshots in the silence."
-    "You run your finger along the scratch. It's deep enough to catch your nail, but not deep enough to see bare metal."
-    "The dent is subtle. A shadow, really. You'd have to know it was there."
-
-    "You check your watch. Two minutes before the morning smokers come out."
-    "You spit on your sleeve."
-    "This is your life now. A grown man spitting on government property at dawn."
-
-    "You scrub the white transfer paint in small circles. Some of it flakes off."
-    "You reposition the Octavia six inches to the left, creating the illusion of a wider gap."
-    "You kick some gravel over the paint chips on the ground."
-
-    "Your heart is hammering so hard you can feel it in your teeth."
-
-    python:
-        _patch_roll = __import__('random').randint(1, 100)
-
-    if _patch_roll <= 60:
-        jump car_incident_patch_success
-    else:
-        jump car_incident_patch_caught
-
-
-label car_incident_patch_success:
-
-    scene bg_parking_lot
-    show jb determined at char_left
-
-    "You step back. You assess your work."
-    "The scratch is still there if you look closely. But the transfer paint is gone, and the angle of the Octavia makes it ambiguous."
-    "Did someone hit the Superb? Or was it always like that? The gravel certainly looks undisturbed."
-
-    "You walk inside. Your hands are still shaking. You shove them in your pockets."
-    "The shift supervisor nods at you. 'Morning, JB.' He suspects nothing."
-
-    "You sit down at your desk. You open a case file. You don't read a single word."
-    "Your eyes keep drifting to the window. To the parking lot. To the Superb sitting there like evidence."
-
-    python:
-        unlock_achievement("damage_control")
-        stats.colonel_attitude = "suspicious"
-        stats.increment_stats_pcr_hatred(8)
-
-    show screen outcome_panel("+8 PCR HATRED (you patched the car — now patch the knot in your stomach).")
-    pause
-    hide screen outcome_panel
-
-    "You got away with it. Probably."
-    "The word {i}probably{/i} is going to keep you company for a while."
-
-    jump car_incident_end
-
-
-label car_incident_patch_caught:
-
-    scene bg_parking_lot
-    show jb worried at char_left
-
-    stop music fadeout 0.1
-    play sound "audio/metal-gear-alert-sound-effect.mp3"
-    show screen alert_exclamation
-    pause 1.2
-    hide screen alert_exclamation
-
-    play music "audio/enter_the_code_theme.mp3" fadein 1.0
-
-    "'JB? What the hell are you doing down there?'"
-
-    "You freeze. Your sleeve is still wet."
-    "Sergeant Dvořák is standing three meters away, cigarette in one hand, coffee in the other."
-    "He looks at the Superb. He looks at the Octavia. He looks at the gravel you kicked."
-    "He looks at you, crouching like a man who just lost a contact lens and also his dignity."
-
-    "'Is that... is that the Commandant's car?'"
-
-    show jb neutral at char_left
-
-    "There is no lie good enough for this moment."
-    "'Yeah,' you say. 'Yeah, that's the Commandant's car.'"
-
-    "Dvořák takes a long drag of his cigarette."
-    "'You know I have to report this.'"
-    "'I know.'"
-    "'The covering up part makes it worse.'"
-    "'I also know that.'"
-
-    scene bg_police_interior
-    show jb neutral at char_left
-
-    "By 09:00, the Commandant has a full incident report on his desk."
-    "By 09:30, he's called the Colonel's office."
-    "Not because of the scratch. Because you tried to hide it."
+    "He picks up the phone. He calls the Commandant. The Commandant calls the Colonel."
+    "Nobody is shouting. That is somehow worse."
 
     "The Colonel is 45 minutes away. He gets in his car anyway."
 
@@ -232,190 +120,80 @@ label car_incident_patch_caught:
     scene bg_police_office with fade
     show colonel omniman think at colonel_think_pos
 
-    "Fast forward two hours. The Colonel is sitting behind the Commandant's desk like he owns it. He does, technically."
-    "He's been waiting for you. The whole station knows. Nobody warned you."
+    "By 09:00 he is sitting in the Commandant's chair. The Commandant is standing in the corner of his own office, which is its own kind of message."
 
-    show colonel angry at char_right with dissolve
+    show colonel disappointed at char_right with dissolve
     show jb neutral at char_left with dissolve
     pause 0.5
 
     colonel "Sit down, JB."
 
-    "You sit. Not because he told you to. Because your legs are tired and this is going to take a while."
+    "You sit."
 
-    colonel "You damaged a department vehicle. Then you attempted to conceal the damage. Is that correct?"
+    colonel "You damaged a department vehicle. You reported it within three minutes. You wrote a note in your own handwriting and signed it with your badge number."
+    colonel "That is the only reason this is a conversation and not a hearing."
 
-    jb "'It's a scratch, Colonel.'"
+    "He slides a single page across the desk. Insurance form. Deductible: 3,500 CZK. Out of your pocket. The Commandant 'forgot' to initial the line for splitting the cost."
 
-    colonel "It's a scratch on the Commandant's vehicle that you tried to cover with spit and your sleeve. In front of a witness."
-
-    "He slides a piece of paper across the desk."
-    "Full repair cost. 5,000 CZK. Out of your pocket. No insurance, because you failed to report it."
-
-    colonel "Sign it."
+    colonel "Sign it. Pay it by Friday. Don't make me come here again over a parking lot."
 
     show jb determined at char_left
 
-    "You look at the paper. You look at him."
-    "5,000 CZK for a scratch you could polish out with a rag and ten minutes."
-    "But that's not what this is about. This is about a man who drove 45 minutes to remind you who's in charge."
-
-    "You pick up the pen."
-
-    menu:
-        "SIGN IT — Not worth the fight. Not today.":
-            jump car_incident_patch_submit
-
-        "CALL PAUL GOODMAN — 'Actually, Colonel, I think I'd like to speak to a lawyer first.'":
-            jump car_incident_patch_paul
-
-    ## --- Patch: Submit ---
-
-label car_incident_patch_submit:
-
-    show jb neutral at char_left
-
-    "You sign the paper."
-    "The Colonel takes it without looking at it. He was always going to get the signature."
-    "This was never a negotiation. It was a demonstration."
-
-    colonel "You can go."
-
-    "You stand up. You walk to the door."
+    "You sign. He doesn't watch. He's already done with this part."
 
     colonel "JB."
 
-    "You stop."
+    "You stop at the door."
 
-    colonel "Next time, just tell the truth. I would have respected that."
+    colonel "Honesty is the cheapest currency we have. Spend it before the expensive stuff."
+    colonel "I'll be checking in on you. Often."
 
-    "You don't turn around. You know exactly what his face looks like."
-    "The face of a man who thinks he just taught you something."
+    "He lets that sit. Then he waves you out."
 
     python:
-        stats.colonel_attitude = "disgusted"
-        stats.increment_stats_pcr_hatred(15)
-        stats.increment_stats_value_money(-5000)
+        stats.colonel_attitude = "paternal"
+        stats.increment_stats_pcr_hatred(8)
+        stats.increment_stats_value_money(-3500)
 
-    show screen outcome_panel("-5,000 CZK (full repair), +15 PCR HATRED (45 minutes of driving for a power play).")
+    show screen outcome_panel("-3,500 CZK (your half of the deductible), +8 PCR HATRED (he still drove 45 minutes to remind you who's watching).")
     pause
     hide screen outcome_panel
 
-    "The scratch on the Superb will be fixed by Thursday."
-    "The memory of a grown man driving 45 minutes to make you feel small will last longer."
-
-    jump car_incident_end
-
-    ## --- Patch: Paul Goodman ---
-
-label car_incident_patch_paul:
-
-    python:
-        unlock_achievement("paul_fan")
-
-    show jb determined at char_left
-
-    jb "'Actually, Colonel — I think I'd like to speak to a lawyer first.'"
-
-    "The room temperature drops three degrees."
-
-    show colonel angry at char_right
-
-    colonel "A lawyer. For a parking lot scratch."
-
-    jb "'For a 5,000 CZK charge with no insurance assessment, no independent damage report, and no formal disciplinary hearing. Yeah. A lawyer.'"
-
-    "You pull out your phone. You have Paul Goodman's number saved under 'Nuclear Option.'"
-    "You call. He answers on the first ring."
-
-    "'Did you say police department? Disproportionate penalty? Say no more.'"
-    "'I'll take it pro bono. Tell the Colonel I said hello.'"
-
-    "You put the phone on speaker. You set it on the desk between you and the Colonel."
-    "Paul Goodman's voice fills the room like cheap cologne — aggressive, persistent, impossible to ignore."
-
-    "The Colonel stares at the phone. Then at you. Then at the phone again."
-    "You can see the calculation behind his eyes. Is this worth the paperwork? The scrutiny? The attention from upstairs?"
-
-    show colonel disappointed at char_right
-
-    colonel "...Forget the 5,000."
-
-    "He tears the paper in half. Slowly. Making sure you watch."
-
-    colonel "But understand something, JB. I drove here for {i}you{/i}. Because I thought you were worth the trip."
-
-    "He stands up. He buttons his jacket."
-
-    colonel "Don't make me reconsider."
-
-    "He leaves. The room smells like his aftershave for the rest of the afternoon."
-    "You sit there for a long time, holding your phone."
-    "Paul Goodman is still on the line. 'So... we good? That was quick.'"
-
-    python:
-        stats.colonel_attitude = "disgusted"
-        stats.increment_stats_pcr_hatred(5)
-
-    show screen outcome_panel("0 CZK (Paul Goodman earned his reputation), +5 PCR HATRED (you won, so why does it feel like a warning?).")
-    pause
-    hide screen outcome_panel
-
-    "You didn't pay a cent. But the look on the Colonel's face when he left —"
-    "That's going on your tab. And he doesn't forget tabs."
+    if stats.player_class == "bodybuilder":
+        "You did the work. The work was honesty. That counts for one rep."
+    elif stats.player_class == "dark_empath":
+        "You showed your hand on purpose. Now watch what they do with it."
+    elif stats.player_class == "biohacker":
+        "Lowest variance play. Floor is locked in. Now optimize from here."
 
     jump car_incident_end
 
 
 ## ---------------------------------------------------------------------------
-## PATH C: WALK AWAY (the gamble — three outcomes)
-## Camera (35%): Colonel arrives Day 1, video plays
-## Slow burn (40%): No Colonel, paranoia
-## Ghost clean (25%): Nothing happens
+## PATH B: HIDE — big cost, hostile Colonel (he writes you off)
 ## ---------------------------------------------------------------------------
 
-label car_incident_ghost:
+label car_incident_hide:
 
     scene bg_parking_lot
     show jb worried at char_left
 
-    "You look left. You look right."
-    "The parking lot is empty. The cameras — you glance up — the nearest one is mounted on the east wall, pointed at the gate."
-    "Maybe it covers this spot. Maybe it doesn't. You've never thought about camera angles before."
-    "You are thinking about them now."
+    "You crouch between the cars. Your knees crack like gunshots in the silence."
+    "You spit on your sleeve. This is your life now. A grown man spitting on government property at dawn."
+    "You scrub the white transfer paint in small circles. You reposition the Octavia six inches to the left to widen the gap. You kick gravel over the chips on the ground."
 
-    "You straighten up. You brush off your pants."
-    "You walk inside like a man who has absolutely nothing to hide."
-    "Your face is a mask. Your armpits are a crime scene."
+    "You step back. The scratch is still there if you look closely. But the angle is ambiguous now. The gravel looks undisturbed."
 
-    show jb neutral at char_left
+    "You walk inside like a man who has nothing to hide. Your face is a mask. Your armpits are a crime scene."
+    "The shift supervisor nods at you. 'Morning, JB.' He suspects nothing. Yet."
 
-    "The shift supervisor nods at you. 'Morning, JB.'"
-    "'Morning,' you say. Your voice sounds normal. You are astonished by this."
-
-    "You sit down at your desk. You do not look out the window at the parking lot."
-    "You absolutely do not think about the Commandant's Superb."
-    "You think about it every four seconds for the next three hours."
-
-    python:
-        _ghost_roll = __import__('random').randint(1, 100)
-
-    if _ghost_roll <= 35:
-        jump car_incident_ghost_camera
-    elif _ghost_roll <= 75:
-        jump car_incident_ghost_slow_burn
-    else:
-        jump car_incident_ghost_clean
-
-
-## --- GHOST OUTCOME 1: Camera catches you (35%) — Colonel arrives, video plays ---
-
-label car_incident_ghost_camera:
+    "You sit at your desk. You open a case file. You don't read a single word."
+    "Your eyes keep drifting to the window. To the parking lot. To the Superb sitting there like evidence."
 
     scene bg_police_interior
     show jb neutral at char_left
 
-    "14:00. You're halfway through a shift report when the Commandant's door opens."
+    "14:00. The Commandant's door opens."
 
     stop music fadeout 0.1
     play sound "audio/metal-gear-alert-sound-effect.mp3"
@@ -432,8 +210,8 @@ label car_incident_ghost_camera:
     show jb neutral at char_left
 
     "He plugs the USB into his laptop and turns the screen toward you."
-    "The parking lot camera. 06:45 AM. High angle, wide shot."
-    "You watch yourself reverse into the Superb. You watch yourself get out, inspect the damage, and walk back inside."
+    "Parking lot camera. 06:45 AM. High angle, wide shot."
+    "You watch yourself reverse into the Superb. You watch yourself crouch, scrub, kick gravel, walk away."
     "The footage is grainy, but it's enough."
 
     "'Every Tuesday,' the Commandant says. 'I review the footage every Tuesday.'"
@@ -476,26 +254,25 @@ label car_incident_ghost_camera:
     "He slides the repair bill across the desk. 7,000 CZK. Full repair plus a 'disciplinary processing fee.'"
     "You've never heard of a disciplinary processing fee. You're fairly certain he just invented it."
 
-    menu:
-        "SIGN IT — Pick your battles. This isn't one of them.":
-            jump car_incident_ghost_camera_submit
-
-        "CALL PAUL GOODMAN — 'Disciplinary processing fee? That's not a real thing, Colonel.'":
-            jump car_incident_ghost_camera_paul
-
-
-label car_incident_ghost_camera_submit:
+    colonel "Sign it."
 
     show jb neutral at char_left
 
-    "You sign. It's not surrender. It's resource management."
-    "This man drove 45 minutes to charge you a made-up fee for a parking lot scratch."
-    "That tells you everything you need to know about where you work."
+    "You sign. There is no negotiation here. There never was."
+    "This man drove 45 minutes to charge you a made-up fee for a parking lot scratch. That tells you everything you need to know about where you work."
 
     colonel "You can go."
 
-    "You walk out. The Commandant won't look at you."
-    "Not because he's angry. Because he's embarrassed — for both of you."
+    "You stand. You walk to the door."
+
+    colonel "JB."
+
+    "You stop."
+
+    colonel "I'm not going to waste any more of my time on you."
+
+    "You don't turn around. You know what his face looks like."
+    "The face of a man who has just decided you are not worth saving."
 
     python:
         stats.colonel_attitude = "hostile"
@@ -506,135 +283,14 @@ label car_incident_ghost_camera_submit:
     pause
     hide screen outcome_panel
 
-    "7,000 CZK for a scratch and a man's ego."
+    if stats.player_class == "bodybuilder":
+        "Seven thousand for a scuff. You can rep that out in a week of overtime. The bruise to your pride won't fade that fast."
+    elif stats.player_class == "dark_empath":
+        "He didn't want the money. He wanted the signature. He got both. File it under 'never again.'"
+    elif stats.player_class == "biohacker":
+        "Worst-case branch realized. Variance was the cost of admission. Update the model and move."
+
     "Somewhere in this building there are actual criminals. None of them got this much attention today."
-
-    jump car_incident_end
-
-
-label car_incident_ghost_camera_paul:
-
-    python:
-        unlock_achievement("paul_fan")
-
-    show jb determined at char_left
-
-    jb "'Disciplinary processing fee.' That's not in any regulation I've seen, Colonel.'"
-
-    colonel "Excuse me?"
-
-    jb "'And I've read them. All of them. I had a lot of free time during night shifts.'"
-
-    "You pull out your phone."
-
-    jb "'I'm going to call my lawyer. His name is Paul Goodman. He specializes in exactly this kind of thing.'"
-
-    show colonel angry at char_right
-
-    colonel "You're calling a lawyer. Over a parking lot incident."
-
-    jb "'I'm calling a lawyer over a made-up fee, a two-hour interrogation, and a 45-minute drive to intimidate a subordinate. His words, not mine. I texted him while you were parking.'"
-
-    "Silence. The Commandant shifts his weight in the corner. He suddenly finds the ceiling very interesting."
-
-    "The Colonel looks at your phone. He looks at your face."
-    "He's doing the math. A lawyer means paperwork. Paperwork means oversight. Oversight means questions he doesn't want answered."
-
-    show colonel disappointed at char_right
-
-    colonel "...Drop the processing fee. Full repair cost only. 5,000."
-
-    "He tears the original bill. Writes a new number."
-
-    colonel "And JB — don't ever pull a stunt like this again. The walking away part. Or the lawyer part."
-
-    "He leaves. The Commandant exhales for what seems like the first time in an hour."
-
-    python:
-        stats.colonel_attitude = "hostile"
-        stats.increment_stats_pcr_hatred(12)
-        stats.increment_stats_value_money(-5000)
-
-    show screen outcome_panel("-5,000 CZK (repair only — Paul Goodman killed the fake fee), +12 PCR HATRED (you fought back, but he'll remember that).")
-    pause
-    hide screen outcome_panel
-
-    "You saved 2,000 CZK and gained an enemy who outranks you by four pay grades."
-    "Fair trade."
-
-    jump car_incident_end
-
-
-## --- GHOST OUTCOME 2: Slow burn — colleague gossip (40%) — no Colonel ---
-
-label car_incident_ghost_slow_burn:
-
-    scene bg_police_interior
-    show jb neutral at char_left
-
-    "The rest of the shift passes without incident."
-    "Nobody walks up to your desk with a USB stick. Nobody calls you into an office."
-    "The Commandant leaves at 16:00. He doesn't look at the parking lot."
-
-    "You start to breathe again. Slowly."
-
-    show jb determined at char_left
-
-    "But you know how this place works."
-    "Nothing stays secret in a police station. Secrets are currency here, and somebody always needs to make a deposit."
-
-    "You glance out the window one more time before you leave."
-    "The Superb is still sitting there. The scratch is still visible if you know where to look."
-    "Someone will look. Eventually."
-
-    python:
-        stats.colonel_attitude = "cold"
-        stats.increment_stats_pcr_hatred(10)
-
-    show screen outcome_panel("+10 PCR HATRED (the scratch is still there — and so is the question of who's going to notice).")
-    pause
-    hide screen outcome_panel
-
-    "You drive home in silence. No radio. No music."
-    "Just you and the knowledge that you left something unfinished in that parking lot."
-
-    jump car_incident_end
-
-
-## --- GHOST OUTCOME 3: Ghost clean — rain washes evidence (25%) — no Colonel ---
-
-label car_incident_ghost_clean:
-
-    scene bg_parking_lot
-    show jb neutral at char_left
-
-    "It rains that afternoon."
-    "Not a drizzle. A proper Bohemian downpour, the kind that turns parking lots into lakes and washes away the evidence of small crimes."
-
-    "You watch it from the break room window."
-    "The transfer paint dissolves. The gravel shifts. The white mark on the Superb fades into the general wear of a car that lives in a police parking lot."
-
-    show jb determined at char_left
-
-    "By end of shift, the scratch looks like it could have been there for months."
-    "Nobody says anything. Nobody looks at you."
-
-    "You walk to your car. You sit behind the wheel. Engine off."
-    "You stare at the empty parking spot where the Superb was."
-
-    "You got away with it."
-
-    python:
-        unlock_achievement("ghost_walker")
-        stats.colonel_attitude = "unaware"
-
-    show screen outcome_panel("0 CZK, 0 HATRED. The rain handled it. Sometimes the universe picks your side.")
-    pause
-    hide screen outcome_panel
-
-    "You start the engine. You drive home."
-    "The windshield wipers beat back and forth. The rain keeps coming."
-    "You don't feel relieved. You feel something quieter. Something you'll think about later."
 
     jump car_incident_end
 
