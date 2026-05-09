@@ -228,22 +228,22 @@ label day_start:
 
     if _noot_tag == "withdrawal":
         scene bg_police_interior
-        "[[WITHDRAWAL]]"
+        "[[WITHDRAWAL]"
         "[_noot_flavor]"
 
     if _noot_tag == "dependency_triggered":
         scene bg_police_interior
-        "[[DEPENDENCY TRIGGERED]]"
+        "[[DEPENDENCY TRIGGERED]"
         "[_noot_flavor]"
 
     if _noot_tag == "soft_dependency":
         scene bg_police_interior
-        "[[TOLERANCE WARNING]]"
+        "[[TOLERANCE WARNING]"
         "[_noot_flavor]"
 
     if _noot_tag == "crash":
         scene bg_police_interior
-        "[[AFTEREFFECTS]]"
+        "[[AFTEREFFECTS]"
         "[_noot_flavor]"
 
     ## Special events
@@ -368,7 +368,7 @@ label activity_gym:
         "PAY [_gym_cost] CZK — We go gym!":
             python:
                 if not stats.try_spend_money(_gym_cost):
-                    renpy.say(None, "[[INSUFFICIENT FUNDS]] You check your wallet... you don't even have [_gym_cost] CZK for the gym entry.")
+                    renpy.say(None, "[[INSUFFICIENT FUNDS] You check your wallet... you don't even have [_gym_cost] CZK for the gym entry.")
                     renpy.jump("select_activity")
                 else:
                     _roll = __import__('random').randint(1, 3)
@@ -406,16 +406,18 @@ label activity_gym:
             "[_gym_text]"
 
             python:
+                ## SOMA always lands for BB — gym session is "I trained the body."
+                ## Hatred relief still gates on PASS (TAKE traded the relief for a card).
+                add_soma(1)
                 _took_gym = offer_card(_gym_card, "GYM", pass_stats_text=_gym_outcome)
                 if not _took_gym:
-                    ## PASS branch: hatred relief AND the BB-only SOMA stack.
-                    ## SOMA represents "I trained the body" — TAKE means "I trained for the deck instead."
                     stats.increment_stats_pcr_hatred(-_total_red)
-                    if stats.player_class == "bodybuilder":
-                        store.bb_soma = min(10, getattr(store, 'bb_soma', 0) + 1)
-                        if store.bb_soma >= 10:
-                            unlock_achievement("maximum_stack")
-                show_outcome_panel(_took_gym, _gym_card, _gym_outcome)
+                _soma_suffix = "  ·  +1 SOMA" if stats.player_class == "bodybuilder" else ""
+                if _took_gym:
+                    _c = CARD_LIBRARY.get(_gym_card, {})
+                    renpy.show_screen("outcome_panel", outcome_text="[CARD TAKEN] " + _c.get("name", _gym_card) + _soma_suffix)
+                else:
+                    renpy.show_screen("outcome_panel", outcome_text=_gym_outcome + _soma_suffix)
 
             pause
             hide screen outcome_panel
@@ -443,7 +445,7 @@ label activity_gym_heavy:
     python:
         _heavy_cost = adjusted_cost(800)
         if not stats.try_spend_money(_heavy_cost):
-            renpy.say(None, "[[INSUFFICIENT FUNDS]] Heavy session needs {:,} CZK. The good gym isn't free.".format(_heavy_cost))
+            renpy.say(None, "[[INSUFFICIENT FUNDS] Heavy session needs {:,} CZK. The good gym isn't free.".format(_heavy_cost))
             renpy.jump("select_activity")
         ## Lazy-init gym_streak — same guard activity_gym uses, since HEAVY SESSION
         ## might be a player's first gym-equivalent activity on Day 1.
@@ -458,10 +460,7 @@ label activity_gym_heavy:
     python:
         ## Always-apply progression — you completed the session.
         store.gym_streak += 1
-        if stats.player_class == "bodybuilder":
-            store.bb_soma = min(10, getattr(store, 'bb_soma', 0) + 1)
-            if store.bb_soma >= 10:
-                unlock_achievement("maximum_stack")
+        add_soma(1)
         if store.gym_streak == 3 and stats.player_class == "bodybuilder":
             grant_card("spotter", silent=True)
         if store.gym_streak >= 5:
@@ -495,7 +494,7 @@ label activity_recovery:
     python:
         _recovery_cost = adjusted_cost(500)
         if not stats.try_spend_money(_recovery_cost):
-            renpy.say(None, "[[INSUFFICIENT FUNDS]] The recovery clinic charges {:,} CZK. You don't have it.".format(_recovery_cost))
+            renpy.say(None, "[[INSUFFICIENT FUNDS] The recovery clinic charges {:,} CZK. You don't have it.".format(_recovery_cost))
             renpy.jump("select_activity")
 
     "Twenty minutes in the red-light booth. Eight in the sauna. Two in the cold plunge — long enough that your respiratory rate normalizes back to baseline."
@@ -770,7 +769,7 @@ label coding_practice_puzzle:
             store._puzzles_solved = []
         _pid = pick_puzzle_for_skill(stats.coding_skill, exclude=store._puzzles_solved)
         if _pid is None:
-            renpy.say(None, "[[NOTHING NEW]] You've solved every puzzle you can find tonight. Get back to work tomorrow.")
+            renpy.say(None, "[[NOTHING NEW] You've solved every puzzle you can find tonight. Get back to work tomorrow.")
             renpy.jump("activity_coding")
         _retries = diff_setting("minigame_retries", 1)
         puzzle_init(_pid, max_attempts=1 + _retries)
@@ -793,7 +792,7 @@ label coding_practice_puzzle:
             _puzzle_card = __import__('random').choice(_logic_options)
             _outcome_str = "+{} CODING SKILL".format(_gain)
 
-        "[[TESTS PASSED]] The compiler is silent. The function works."
+        "[[TESTS PASSED] The compiler is silent. The function works."
         "You feel something shift. The pattern clicked."
 
         python:
@@ -813,7 +812,7 @@ label coding_practice_puzzle:
         python:
             stats.increment_stats_pcr_hatred(5)
 
-        "[[TESTS FAILED]] The compiler is patient. The compiler is also unimpressed."
+        "[[TESTS FAILED] The compiler is patient. The compiler is also unimpressed."
         "You stare at the screen. You close the laptop. You open it again. Nothing has changed."
         show screen outcome_panel("+5 PCR HATRED — frustration tax. The puzzle bested you tonight.")
         pause
@@ -828,7 +827,7 @@ label coding_work_for_money:
     python:
         _tier_name, _tier_info = get_coding_tier_info(stats.coding_skill)
         if _tier_name == "TIER 1":
-            renpy.say(None, "[[TIER 1]] Still learning.\nYou can't code for money yet. Keep practicing and building tiny projects.\nUnlock paid work at 50 Coding Skill.")
+            renpy.say(None, "[[TIER 1] Still learning.\nYou can't code for money yet. Keep practicing and building tiny projects.\nUnlock paid work at 50 Coding Skill.")
             renpy.jump("activity_coding")
         else:
             _standard = _tier_info["standard"]
@@ -849,7 +848,7 @@ label coding_fiverr:
     python:
         _fiverr_cost = adjusted_cost(2500)
         if not stats.try_spend_money(_fiverr_cost):
-            renpy.say(None, "[[INSUFFICIENT FUNDS]] You need {:,} CZK. Current: {:,} CZK.".format(_fiverr_cost, stats.available_money))
+            renpy.say(None, "[[INSUFFICIENT FUNDS] You need {:,} CZK. Current: {:,} CZK.".format(_fiverr_cost, stats.available_money))
             renpy.jump("activity_coding")
 
     python:
@@ -873,7 +872,7 @@ label coding_fiverr:
             _fiverr_gain = 25
             _fiverr_card = "refactor"
             _ftext = "You accidentally booked a beast. Senior dev, ten years in the field.\nCode review, patterns, mental models. This was a paradigm shift."
-            _foutcome = "- {} CZK, +25 CODING SKILLS{}".format(_fiverr_cost, " [[BIOHACKER PERK]]" if stats.player_class == "biohacker" else "")
+            _foutcome = "- {} CZK, +25 CODING SKILLS{}".format(_fiverr_cost, " [BIOHACKER PERK]" if stats.player_class == "biohacker" else "")
 
     "[_ftext]"
 
@@ -902,7 +901,7 @@ label coding_bootcamp:
         "Yes.":
             python:
                 if not stats.try_spend_money(_bc_cost):
-                    renpy.say(None, "[[INSUFFICIENT FUNDS]] You need {:,} CZK. That is a lot of money. Maybe stick to free docs for now?".format(_bc_cost))
+                    renpy.say(None, "[[INSUFFICIENT FUNDS] You need {:,} CZK. That is a lot of money. Maybe stick to free docs for now?".format(_bc_cost))
                     renpy.jump("activity_coding")
             "You sign a contract and pay for an on-line Python bootcamp.\nDeadlines, assignments, code reviews. The full package.\nThis is no longer a hobby. This is a commitment."
             "Six weeks in, the Friday capstone hits. You ship a working REST API in a single sitting. The instructor pings you privately: 'You're ready to push to production.'"
@@ -913,7 +912,7 @@ label coding_bootcamp:
                 ## Locked-in reward of paying 35k: the perm buff. The card-or-stats
                 ## trade is the BONUS choice on top — a substantive rare card OR
                 ## +25 coding skill pumped immediately into the run.
-                _bc_outcome = "- {:,} CZK, [[BOOTCAMP BUFF ACTIVATED]] +5 Coding/night, +25 CODING".format(_bc_cost)
+                _bc_outcome = "- {:,} CZK, [BOOTCAMP BUFF ACTIVATED] +5 Coding/night, +25 CODING".format(_bc_cost)
                 _took_bc = offer_card("production_push", "BOOTCAMP", pass_stats_text=_bc_outcome)
                 if not _took_bc:
                     stats.increment_stats_coding_skill(25)
@@ -943,7 +942,7 @@ label coding_bootcamp_de:
         "Yes.":
             python:
                 if not stats.try_spend_money(_bc_cost):
-                    renpy.say(None, "[[INSUFFICIENT FUNDS]] You need {:,} CZK. Current: {:,} CZK.".format(_bc_cost, stats.available_money))
+                    renpy.say(None, "[[INSUFFICIENT FUNDS] You need {:,} CZK. Current: {:,} CZK.".format(_bc_cost, stats.available_money))
                     renpy.jump("activity_coding")
             "You sign the contract."
             "While others grind through the curriculum mechanically, you read your cohort."
@@ -954,7 +953,7 @@ label coding_bootcamp_de:
             $ python_bootcamp = True
 
             python:
-                _bc_outcome = "- {:,} CZK [[DARK EMPATH DISCOUNT]], [[BOOTCAMP BUFF ACTIVATED]] +5 Coding/night, +25 CODING".format(_bc_cost)
+                _bc_outcome = "- {:,} CZK [DARK EMPATH DISCOUNT], [BOOTCAMP BUFF ACTIVATED] +5 Coding/night, +25 CODING".format(_bc_cost)
                 _took_bc = offer_card("production_push", "BOOTCAMP", pass_stats_text=_bc_outcome)
                 if not _took_bc:
                     stats.increment_stats_coding_skill(25)
@@ -984,7 +983,7 @@ label activity_night_shift:
     "You don't need the money. But you do need the distraction."
 
     menu:
-        "Take the shift. (+3,000 CZK) (+ [[CARD]] BACKUP)":
+        "Take the shift. (+3,000 CZK) (+ [[CARD] BACKUP)":
             python:
                 stats.increment_stats_value_money(3000)
                 stats.increment_stats_pcr_hatred(15)
@@ -999,14 +998,14 @@ label activity_night_shift:
                     stats.increment_stats_coding_skill(8)
                     stats.increment_stats_pcr_hatred(-5)
                     _ns_extra_card = "procedural_defense"
-                    _ns_bonus = "\n[[NIGHT BONUS]]: Dead quiet shift. You studied Python for 4 hours. +8 Coding, -5 Hatred."
+                    _ns_bonus = "\n[NIGHT BONUS]: Dead quiet shift. You studied Python for 4 hours. +8 Coding, -5 Hatred."
                 elif _ns_roll <= 40:
                     stats.increment_stats_value_money(1500)
-                    _ns_bonus = "\n[[NIGHT BONUS]]: Helped with an accident. Extra callout pay. +1,500 CZK."
+                    _ns_bonus = "\n[NIGHT BONUS]: Helped with an accident. Extra callout pay. +1,500 CZK."
                 elif _ns_roll <= 60:
                     stats.increment_stats_pcr_hatred(10)
                     _ns_extra_card = "chain_of_command"
-                    _ns_bonus = "\n[[NIGHT PENALTY]]: Paperwork from an arrest took until 6AM. +10 PCR HATRED."
+                    _ns_bonus = "\n[NIGHT PENALTY]: Paperwork from an arrest took until 6AM. +10 PCR HATRED."
                 else:
                     _ns_bonus = ""
 
@@ -1127,7 +1126,7 @@ label activity_nootropics:
     python:
         _dep_warning = ""
         if nootropic_dependency:
-            _dep_warning = "\n\n[[DEPENDENCY ACTIVE]] — Skipping a dose costs -20 Coding, +20 Hatred."
+            _dep_warning = "\n\n[DEPENDENCY ACTIVE] — Skipping a dose costs -20 Coding, +20 Hatred."
 
         _NOOT_TITLES = {
             1: "TIER 1 — DAILY",
@@ -1211,7 +1210,7 @@ label _apply_nootropic_tier:
 
         _cost = adjusted_cost(_cost)
         if not stats.try_spend_money(_cost):
-            renpy.say(None, "[[INSUFFICIENT FUNDS]] You need {:,} CZK. Current: {:,} CZK.".format(
+            renpy.say(None, "[[INSUFFICIENT FUNDS] You need {:,} CZK. Current: {:,} CZK.".format(
                 _cost, stats.available_money))
             renpy.jump("activity_nootropics")
 
@@ -1260,27 +1259,27 @@ label _apply_nootropic_tier:
             _crash_str = "  |  ".join(parts)
 
     if _has_crash:
-        "[[NEXT-DAY EFFECT]] [_crash_str]"
+        "[[NEXT-DAY EFFECT] [_crash_str]"
 
     ## Tier unlock announcement
     if _unlock == "T2_UNLOCKED":
-        "\nYou've been reading late at night. The forums mention something stronger than supplements.\n[[NEW TIER UNLOCKED: Cognitive Stack]]"
+        "\nYou've been reading late at night. The forums mention something stronger than supplements.\n[[NEW TIER UNLOCKED: Cognitive Stack]"
 
     if _unlock == "T3_UNLOCKED":
-        "\nYou've gone deeper. The r/nootropics rabbit hole has no bottom.\n[[NEW TIER UNLOCKED: Racetams]]"
+        "\nYou've gone deeper. The r/nootropics rabbit hole has no bottom.\n[[NEW TIER UNLOCKED: Racetams]"
 
     if _unlock == "T4_UNLOCKED":
-        "\nThere's a gray market if you know where to look. You do.\n[[NEW TIER UNLOCKED: Peptides]]"
+        "\nThere's a gray market if you know where to look. You do.\n[[NEW TIER UNLOCKED: Peptides]"
 
     if _unlock == "T5_UNLOCKED":
-        "\nYou've been deep enough in the forums to find the name. CRL-40,940. Eugeroic. Wakefulness agent.\nThe supplier is three steps removed from anything legal.\n[[NEW TIER UNLOCKED: FLModafinil (CRL-40,940)]]"
+        "\nYou've been deep enough in the forums to find the name. CRL-40,940. Eugeroic. Wakefulness agent.\nThe supplier is three steps removed from anything legal.\n[[NEW TIER UNLOCKED: FLModafinil (CRL-40,940)]"
 
     ## Dependency warning at 2 T5 uses (one before threshold)
     python:
         _dep_warn = nootropic_uses[4] == 1 and _tier == 5
 
     if _dep_warn:
-        "[[WARNING]] One more dose and your baseline changes permanently.\nFLModafinil (CRL-40,940) dependency triggers at 2 total uses."
+        "[[WARNING] One more dose and your baseline changes permanently.\nFLModafinil (CRL-40,940) dependency triggers at 2 total uses."
 
     ## Nootropics do not consume the daily activity slot — jump back to coding menu
     jump activity_coding
@@ -1432,7 +1431,7 @@ label crisis_event_bodybuilder:
     scene bg_police_interior
     show jb angry at char_left
 
-    "[[CRISIS EVENT — BODYBUILDER]]"
+    "[[CRISIS EVENT — BODYBUILDER]"
     "It happened at the gym."
     "A man in a Levi's jacket made a joke about cops. Something about donuts."
     "You don't remember deciding to react. You just did."
@@ -1479,7 +1478,7 @@ label crisis_event_dark_empath:
     scene bg_police_interior
     show jb defeated at char_left
 
-    "[[CRISIS EVENT — DARK EMPATH]]"
+    "[[CRISIS EVENT — DARK EMPATH]"
     "You woke up this morning and something was different."
     "Not wrong. Just... absent."
     "Your colleague said good morning and you opened your mouth."
@@ -1530,7 +1529,7 @@ label crisis_event_biohacker:
     scene bg_police_interior
     show jb worried at char_left
 
-    "[[CRISIS EVENT — BIOHACKER]]"
+    "[[CRISIS EVENT — BIOHACKER]"
     "Your resting heart rate is 140 BPM."
     "You know this because you checked. Twice."
     "Your hands have a micro-tremor. Your focus, which is usually a narrow laser, is scattering."

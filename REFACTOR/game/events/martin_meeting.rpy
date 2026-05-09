@@ -69,7 +69,7 @@ label martin_meeting:
 
     python:
         if stats.player_class == "dark_empath":
-            renpy.say(None, "[[DARK EMPATH PERK]]: Your empathy gave you +5 bonus Affection Points across the conversation.")
+            renpy.say(None, "[[DARK EMPATH PERK]: Your empathy gave you +5 bonus Affection Points across the conversation.")
 
     return
 
@@ -90,7 +90,7 @@ label martin_phase1_preparation:
     "You could stop by the mall and buy something sharp to show him you aren't completely dead inside yet."
 
     menu:
-        "PAY 12,500 CZK — Original Fit MASH polo shirt + Tobacco Honey Guerlain EDP. (+2 AFFECTION POINTS)":
+        "Splurge — designer fit. (-12,500 CZK, +2 AFFECTION POINTS)":
             python:
                 _polo_cost = adjusted_cost(12500)
                 if stats.try_spend_money(_polo_cost):
@@ -109,7 +109,7 @@ label martin_phase1_preparation:
             pause
             hide screen outcome_panel
 
-        "PAY 2,500 CZK — Get a new cut and buy a new cool shirt. (+1 AFFECTION POINT)":
+        "Modest — cut and a sharp shirt. (-2,500 CZK, +1 AFFECTION POINT)":
             python:
                 _cut_cost = adjusted_cost(2500)
                 if stats.try_spend_money(_cut_cost):
@@ -135,7 +135,7 @@ label martin_phase1_preparation:
             pause
             hide screen outcome_panel
 
-        "[[BODYBUILDER]] GYM FIRST — Show up at your physical best. Your presence says everything. (+1 Affection, free)" if stats.player_class == "bodybuilder" and getattr(store, 'gym_streak', 0) >= 5:
+        "[[BODYBUILDER] GYM FIRST — Show up at your physical best. Your presence says everything. (+1 Affection, free)" if stats.player_class == "bodybuilder" and getattr(store, 'gym_streak', 0) >= 5:
             python:
                 martin_affection += 1
             "You hit the gym before the meeting."
@@ -147,7 +147,7 @@ label martin_phase1_preparation:
             pause
             hide screen outcome_panel
 
-        "[[BIOHACKER]] STACK UP — Take your cognitive supplement before the meeting. (+1 Affection, free)" if stats.player_class == "biohacker" and nootropic_tier_max >= 2:
+        "[[BIOHACKER] STACK UP — Take your cognitive supplement before the meeting. (+1 Affection, free)" if stats.player_class == "biohacker" and nootropic_tier_max >= 2:
             python:
                 martin_affection += 1
             "You take your stack an hour before the meeting. T[nootropic_tier_max] protocol."
@@ -170,9 +170,9 @@ label martin_phase1_preparation:
 label martin_phase2_meeting:
 
     scene bg_cafe
-    show martin normal at char_right
 
     "You arrive at the restaurant. You see him in the distance."
+    show martin normal at char_right with Dissolve(0.9)
     "It's a shock. He looks... different. Bigger. Buffed."
     "His skin has color. He is smiling at the waitress."
     "He looks like a totally different person compared to the wreck you remember from the service."
@@ -254,10 +254,10 @@ label martin_phase3_bomb:
     python:
         if stats.pcr_hatred >= 60:
             stats.increment_stats_pcr_hatred(-15)
-            _bomb_outcome = "[[RELIEF]]: -15 PCR HATRED (It feels so good to say aloud what you already knew)."
+            _bomb_outcome = "[RELIEF]: -15 PCR HATRED (It feels so good to say aloud what you already knew)."
         else:
             stats.increment_stats_pcr_hatred(15)
-            _bomb_outcome = "[[CRITICAL EFFECT]]: +15 PCR HATRED (The Fear of leaving is now real)."
+            _bomb_outcome = "[CRITICAL EFFECT]: +15 PCR HATRED (The Fear of leaving is now real)."
 
     show screen outcome_panel(_bomb_outcome)
     pause
@@ -685,7 +685,7 @@ label martin_phase_the_price:
             pause
             hide screen outcome_panel
 
-        "[[CODING INTERVIEW PASSED]] 'I have a job offer pending. I don't need their validation anymore.'" if _ci_done:
+        "[[CODING INTERVIEW PASSED] 'I have a job offer pending. I don't need their validation anymore.'" if _ci_done:
             python:
                 martin_affection += 3
                 stats.increment_stats_pcr_hatred(-20)
@@ -696,7 +696,7 @@ label martin_phase_the_price:
             jb "'Working on it.'"
             "Martin laughs. Genuinely laughs."
             martin "'JB, you madman. You are already out. You just haven't told yourself yet.'"
-            show screen outcome_panel("+3 AFFECTION, -20 PCR HATRED [[CODING INTERVIEW PERK — Maximum confidence]].")
+            show screen outcome_panel("+3 AFFECTION, -20 PCR HATRED [CODING INTERVIEW PERK — Maximum confidence].")
             pause 2.5
             hide screen outcome_panel
 
@@ -721,7 +721,7 @@ label martin_neutral_ending:
     python:
         grant_card("stoic_anchor", silent=True)
         stats.final_boss_buff = "STOIC_ANCHOR"
-    "[[CARD ACQUIRED]]: STOIC ANCHOR\n(+3 starting block per turn. Heal 3 HP after every colonel attack.)"
+    "[[CARD ACQUIRED]: STOIC ANCHOR\n(+3 starting block per turn. Heal 3 HP after every colonel attack.)"
 
     return
 
@@ -737,7 +737,7 @@ label martin_bad_ending:
     martin "'Good luck kiddo. You are going to need it.'"
 
     $ stats.final_boss_buff = "IMPOSTER_SYNDROME"
-    "[[STATUS ACQUIRED]]: IMPOSTER SYNDROME\n(Debuff: You start the boss fight with a DEBUFF.)"
+    "[[Imposter Syndrome — you start the boss fight with a debuff]"
 
     return
 
@@ -781,6 +781,9 @@ label martin_good_ending_selection:
                 grant_card("stoic_refactor", silent=True)
                 stats.final_boss_buff = "STOIC_REFACTOR"
 
-    "[[ACE IN THE HOLE ACQUIRED]]: [stats.final_boss_buff]"
+    python:
+        _ace_names = {"PARAGRAPH_4B": "Paragraph 4b", "GHOST_SECRET": "Ghost of the Past", "JOB_OFFER": "Job Offer", "STOIC_REFACTOR": "Stoic Refactor"}
+        _ace_label = _ace_names.get(stats.final_boss_buff, stats.final_boss_buff)
+    "[[Ace in the hole: [_ace_label]]"
 
     return

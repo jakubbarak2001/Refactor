@@ -294,7 +294,7 @@ label midnight_phase4:
             jb "'You called me to intimidate me. At 2AM.'"
             "The distinction is doing a lot of work."
             "But you named it. And that changes the power dynamic permanently."
-            show screen outcome_panel("-10 PCR HATRED (You named the manipulation. That's not nothing). [[MIDNIGHT_LEVERAGE ACQUIRED]]")
+            show screen outcome_panel("-10 PCR HATRED (You named the manipulation. That's not nothing). [Leverage on the Colonel — new option later in the call]")
             pause
             hide screen outcome_panel
 
@@ -324,7 +324,7 @@ label midnight_phase4:
             "A very long pause."
             colonel_voice "'...I see.'"
             colonel_voice "'Well. This is an interesting development.'"
-            show screen outcome_panel("-20 PCR HATRED (Mutual assured documentation). [[MIDNIGHT_LEVERAGE ACQUIRED]]")
+            show screen outcome_panel("-20 PCR HATRED (Mutual assured documentation). [Leverage on the Colonel — new option later in the call]")
             pause
             hide screen outcome_panel
 
@@ -436,7 +436,7 @@ label midnight_phase6:
             pause
             hide screen outcome_panel
 
-        "[[LEVERAGE]] File through legal counsel. [[+COMBAT ADVANTAGE]]" if _weakened:
+        "Use your leverage. File through legal counsel. (Stoic Anchor card)" if _weakened:
             python:
                 stats.increment_stats_pcr_hatred(-25)
                 grant_card("stoic_anchor", silent=True)
@@ -449,7 +449,7 @@ label midnight_phase6:
             "He hangs up."
             "Immediately."
             "That's as close to 'you win' as he'll ever say."
-            show screen outcome_panel("-25 PCR HATRED. [[MIDNIGHT LEVERAGE ACTIVATED]] [[CARD]] STOIC ANCHOR")
+            show screen outcome_panel("-25 PCR HATRED. [Stoic Anchor card unlocked]")
             pause 2.5
             hide screen outcome_panel
 

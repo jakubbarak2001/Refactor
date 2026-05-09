@@ -92,7 +92,7 @@ screen glitch_typing_screen():
             spacing 10
             xalign 0.5
 
-            text "[[COLONEL — runtime: 32 years — looping]]":
+            text "[[COLONEL — runtime: 32 years — looping]":
                 xalign 0.5
                 color "#ff4422"
                 size 16
@@ -160,7 +160,7 @@ screen glitch_typing_screen():
 
     ## ── Wrong-key flavour (only after at least one mistake) ───────────────
     if glitch_typing.attempts > 0 and not _solved:
-        text "[[The argument starts again from line 1. The loop only feeds the loop.]]":
+        text "[[The argument starts again from line 1. The loop only feeds the loop.]":
             xalign 0.5
             ypos 600
             color "#cc4422"

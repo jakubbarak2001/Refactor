@@ -185,7 +185,7 @@ init -1 python:
         """
         if took_card and card_id is not None:
             c = CARD_LIBRARY.get(card_id, {})
-            text = "[[CARD TAKEN]] " + c.get("name", card_id)
+            text = "[CARD TAKEN] " + c.get("name", card_id)
         else:
             text = stat_text
         renpy.show_screen("outcome_panel", outcome_text=text)

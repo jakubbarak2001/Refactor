@@ -184,7 +184,7 @@ init python:
                 ## Only the colonel's actual intent (source_kind='intent') can defeat.
                 if source_kind == "effect" and (self.player_hp - actual) <= 0:
                     actual = max(0, self.player_hp - 1)
-                    self.add_log("[[Floor]]: self-damage clipped — you survive at 1 HP.")
+                    self.add_log("[[Floor]: self-damage clipped — you survive at 1 HP.")
                 self.player_hp -= actual
                 self.last_damage_to_player = actual
                 self.add_log("JB takes {} damage.".format(actual))
@@ -326,9 +326,9 @@ init python:
             _soma = getattr(store, 'bb_soma', 0)
             if _soma >= 2:
                 bs.buffs["stoic_anchor_block"] = bs.buffs.get("stoic_anchor_block", 0) + (_soma // 2)
-                bs.add_log("[[SOMA x{}]]: +{} starting block per turn.".format(_soma, _soma // 2))
+                bs.add_log("[[SOMA x{}]: +{} starting block per turn.".format(_soma, _soma // 2))
             bs.buffs["presence_charges"] = 3
-            bs.add_log("[[PRESENCE x3]]: Block you don't have to play for. The room is smaller now. He has to plan around you.")
+            bs.add_log("[[PRESENCE x3]: Block you don't have to play for. The room is smaller now. He has to plan around you.")
         elif stats and stats.player_class == "dark_empath":
             bs.player_max_hp = 75
             bs.player_hp = 75
@@ -339,18 +339,18 @@ init python:
             _de_deep_profiles = sum(1 for n, c in getattr(store, 'de_profiles', {}).items() if c >= 2)
             if _de_deep_profiles > 0:
                 bs.peek_intents(1 + _de_deep_profiles)
-                bs.add_log("[[PROFILES x{}]]: peek depth {}.".format(_de_deep_profiles, 1 + _de_deep_profiles))
+                bs.add_log("[[PROFILES x{}]: peek depth {}.".format(_de_deep_profiles, 1 + _de_deep_profiles))
             bs.buffs["read_charges"] = 3
-            bs.add_log("[[READ x3]]: One free look at what he's about to do. He has tells. He's never had to hide them from you before.")
+            bs.add_log("[[READ x3]: One free look at what he's about to do. He has tells. He's never had to hide them from you before.")
         elif stats and stats.player_class == "biohacker":
             bs.player_max_hp = 80
             bs.player_hp = 80
             ## BH max-energy gate: dose-counter check (3+ total nootropic uses across all tiers).
             if sum(getattr(store, 'nootropic_uses', [0,0,0,0,0])) >= 3:
                 bs.max_energy = 4
-                bs.add_log("[[STACK]]: dose count >= 3. +1 max energy.")
+                bs.add_log("[[STACK]: dose count >= 3. +1 max energy.")
             bs.buffs["kick_charges"] = 3
-            bs.add_log("[[KICK x3]]: The compound kicking in. Each turn it's running, you draw one extra card. He's still finishing the sentence; you've already chosen.")
+            bs.add_log("[[KICK x3]: The compound kicking in. Each turn it's running, you draw one extra card. He's still finishing the sentence; you've already chosen.")
         else:
             ## No class set (shouldn't happen in normal play) — safe defaults.
             bs.player_max_hp = 80
@@ -398,9 +398,9 @@ init python:
         ## first damage tick, which is the long-standing 'insta-loss' bug.
         if bs.player_hp <= 0:
             bs.player_hp = max(1, bs.player_max_hp)
-            bs.add_log("[[Sanity]]: HP was non-positive at battle start; reset to {}.".format(bs.player_hp))
+            bs.add_log("[[Sanity]: HP was non-positive at battle start; reset to {}.".format(bs.player_hp))
 
-        bs.add_log("[[INIT]]: HP {}/{}  Enemy {}/{}  deck {}  hand 0".format(
+        bs.add_log("[[INIT]: HP {}/{}  Enemy {}/{}  deck {}  hand 0".format(
             bs.player_hp, bs.player_max_hp, bs.enemy_hp, bs.enemy_max_hp, len(bs.draw_pile)))
 
         battle_state = bs
@@ -449,7 +449,7 @@ init python:
         if bs.buffs.get("skip_next_turn"):
             ## Player loses this turn — go straight to enemy
             bs.buffs["skip_next_turn"] = False
-            bs.add_log("[[FLMod crash]]: you lose this turn.")
+            bs.add_log("[[FLMod crash]: you lose this turn.")
             battle_end_player_turn()
             return
 
@@ -461,13 +461,13 @@ init python:
             _pen = bs.buffs["max_energy_penalty_next_turn"]
             bs.energy = max(0, bs.energy - _pen)
             bs.buffs["max_energy_penalty_next_turn"] = 0
-            bs.add_log("[[FLMod ebb]]: -{} max energy this turn.".format(_pen))
+            bs.add_log("[[FLMod ebb]: -{} max energy this turn.".format(_pen))
 
         ## Stack-up crash — Biohacker pays for last turn's energy spike
         if bs.buffs.get("crash_next_turn"):
             bs.energy = max(0, bs.energy - 2)
             bs.buffs["crash_next_turn"] = False
-            bs.add_log("[[Stack crash]]: the spike wears off. -2 energy this turn.")
+            bs.add_log("[[Stack crash]: the spike wears off. -2 energy this turn.")
 
         ## Draw 5 cards
         bs.draw_cards(5)
@@ -575,7 +575,7 @@ init python:
             _bleed = bs.buffs.get("bleed_dmg", 0)
             if _bleed > 0:
                 bs.deal_damage("enemy", _bleed)
-                bs.add_log("[[Bleed]]: colonel takes {} dmg from open wound.".format(_bleed))
+                bs.add_log("[[Bleed]: colonel takes {} dmg from open wound.".format(_bleed))
             bs.buffs["bleed_turns"] -= 1
             if bs.buffs["bleed_turns"] <= 0:
                 bs.buffs["bleed_dmg"] = 0
@@ -587,7 +587,7 @@ init python:
             bs.skip_attack_count -= 1
             ic = bs.current_intent()
             if ic:
-                bs.add_log("[[Algorithm]]: skipped colonel's '{}'.".format(ic.get("name", "?")))
+                bs.add_log("[[Algorithm]: skipped colonel's '{}'.".format(ic.get("name", "?")))
             bs.intent_index += 1
             return
 
@@ -612,13 +612,13 @@ init python:
         ## Cancellation check
         if bs.cancel_next_attack:
             bs.cancel_next_attack = False
-            bs.add_log("[[Refactor]]: cancelled colonel's '{}'.".format(ic.get("name", "?")))
+            bs.add_log("[[Refactor]: cancelled colonel's '{}'.".format(ic.get("name", "?")))
             bs.intent_index += 1
             return
 
         ## Class immunity
         if stats and stats.player_class in ic.get("immunity", []):
-            bs.add_log("[[{}]]: '{}' bounces off you.".format(stats.player_class.upper(), ic.get("name", "?")))
+            bs.add_log("[[{}]: '{}' bounces off you.".format(stats.player_class.upper(), ic.get("name", "?")))
             bs.intent_index += 1
             return
 
@@ -627,7 +627,7 @@ init python:
         for cond, mod in ic.get("counter", {}).items():
             if _check_battle_condition(bs, cond):
                 if mod.get("negate"):
-                    bs.add_log("[[{}]]: '{}' is negated.".format(cond.upper(), ic.get("name", "?")))
+                    bs.add_log("[[{}]: '{}' is negated.".format(cond.upper(), ic.get("name", "?")))
                     if mod.get("damage_to_self"):
                         bs.deal_damage("enemy", mod["damage_to_self"])
                     bs.intent_index += 1
@@ -641,7 +641,7 @@ init python:
             bs.buffs["mirror_cooldown"] = 2
             base = ic.get("value", 0) * (ic.get("value2", 1) if ic.get("intent") == "compound" else 1)
             bs.deal_damage("enemy", base * 2)
-            bs.add_log("[[Mirror]]: '{}' bounced for {} dmg. (2-turn cooldown.)".format(ic.get("name", "?"), base * 2))
+            bs.add_log("[[Mirror]: '{}' bounced for {} dmg. (2-turn cooldown.)".format(ic.get("name", "?"), base * 2))
             bs.intent_index += 1
             return
 
@@ -650,7 +650,7 @@ init python:
             bs.buffs["reframe_next"] = False
             base = ic.get("value", 0)
             bs.gain_block("player", base)
-            bs.add_log("[[Reframe]]: '{}' reframed into +{} block.".format(ic.get("name", "?"), base))
+            bs.add_log("[[Reframe]: '{}' reframed into +{} block.".format(ic.get("name", "?"), base))
             bs.intent_index += 1
             return
 
@@ -658,7 +658,7 @@ init python:
         if bs.buffs.get("next_attack_reduction", 0) > 0:
             damage_reduction += bs.buffs["next_attack_reduction"]
             bs.buffs["next_attack_reduction"] = 0
-            bs.add_log("[[Frame Trap]]: attack softened.")
+            bs.add_log("[[Frame Trap]: attack softened.")
 
         ## Resolve intent by type
         intent_type = ic.get("intent", "attack")
@@ -701,15 +701,15 @@ init python:
             if bs.buffs.get("vladeks_active"):
                 _retaliate *= 2
             bs.deal_damage("enemy", _retaliate)
-            _suffix = " [[Vladek's Form: doubled]]" if bs.buffs.get("vladeks_active") else ""
-            bs.add_log("[[Iron Stance]]: retaliated for {} dmg (turn {}).{}".format(_retaliate, bs.turn, _suffix))
+            _suffix = " [Vladek's Form: doubled]" if bs.buffs.get("vladeks_active") else ""
+            bs.add_log("[[Iron Stance]: retaliated for {} dmg (turn {}).{}".format(_retaliate, bs.turn, _suffix))
 
         ## Iron Body single-shot retaliate (BB common) — fires once on next hit
         if bs.buffs.get("single_retaliate_dmg", 0) > 0 and bs.last_damage_to_player > 0:
             _sr = bs.buffs["single_retaliate_dmg"]
             bs.buffs["single_retaliate_dmg"] = 0
             bs.deal_damage("enemy", _sr)
-            bs.add_log("[[Iron Body]]: retaliated for {} dmg.".format(_sr))
+            bs.add_log("[[Iron Body]: retaliated for {} dmg.".format(_sr))
 
         bs.intent_index += 1
 

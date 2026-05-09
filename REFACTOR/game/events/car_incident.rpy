@@ -74,10 +74,10 @@ label car_incident:
         "Two paths. One has known cost, low variance. The other is a coin flip with a long tail. Run the EV."
 
     menu:
-        "ADMIT — Note on the windshield. Tell the supervisor. He files you as salvageable. (Pay small. He watches you closely from now on.)":
+        "Admit it. (-3,500 CZK, +8 Hatred, paternal Colonel)":
             jump car_incident_admit
 
-        "HIDE — Spit, scrub, shuffle the Octavia. Pretend it didn't happen. He files you as a lost cause. (Pay big. He stops expecting anything from you.)":
+        "Cover it up. (-7,000 CZK, +20 Hatred, hostile Colonel)":
             jump car_incident_hide
 
 

@@ -1189,7 +1189,7 @@ screen outcome_panel(outcome_text):
                 size 14
                 xalign 0.5
 
-            text "[outcome_text]":
+            text outcome_text substitute False:
                 color "#ffffff"
                 size 20
                 bold True
@@ -2643,6 +2643,12 @@ transform _exclaim_flash_delay2:
 ## Day Transition Screen
 ## Usage: call screen day_transition_screen(current_day)
 ## ---------------------------------------------------------------------------
+transform _day_card_anim:
+    alpha 0.0
+    linear 0.3 alpha 1.0
+    pause 1.6
+    linear 0.6 alpha 0.0
+
 screen day_transition_screen(day_num):
     modal True
     zorder 500
@@ -2653,6 +2659,7 @@ screen day_transition_screen(day_num):
         xalign 0.5
         yalign 0.45
         spacing 16
+        at _day_card_anim
 
         text "> INITIALIZING DAY [day_num] / 30":
             xalign 0.5
@@ -2668,7 +2675,7 @@ screen day_transition_screen(day_num):
             size 24
             font "fonts/RobotoMono-Regular.ttf"
 
-    timer 1.5 action Return()
+    timer 2.6 action Return()
 
 
 ################################################################################
@@ -2892,7 +2899,7 @@ screen choice(items):
 
     vbox:
         xalign 0.5
-        yalign 0.55
+        yalign 0.88
         spacing 14
 
         for i in items:

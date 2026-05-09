@@ -182,6 +182,14 @@ init python:
         """Apply the active difficulty's purchase multiplier to a base cost."""
         return int(base * diff_setting("purchase_mult", 1.0))
 
+    def add_soma(n):
+        """BB-only SOMA grant. Clamps to 0..10 and unlocks the cap achievement."""
+        if not stats or stats.player_class != "bodybuilder":
+            return
+        store.bb_soma = max(0, min(10, getattr(store, 'bb_soma', 0) + n))
+        if store.bb_soma >= 10:
+            unlock_achievement("maximum_stack")
+
     def get_key_event_days():
         """Return dict[day -> (label, color)] for calendar markers."""
         if stats is None:

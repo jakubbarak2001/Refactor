@@ -72,10 +72,10 @@ label opp_laptop_deal:
     "It's not a gaming rig. But it's a second machine you could code on at home without borrowing the station laptop."
 
     menu:
-        "[[OPPORTUNITY]] Buy the ThinkPad. (-[_lap_cost_str] CZK, +2 Coding/night for 5 days)":
+        "[[OPPORTUNITY] Buy the ThinkPad. (-[_lap_cost_str] CZK, +2 Coding/night for 5 days)":
             python:
                 if not stats.try_spend_money(_lap_cost):
-                    renpy.say(None, "[[INSUFFICIENT FUNDS]] You check your wallet. You can't swing {:,} right now.".format(_lap_cost))
+                    renpy.say(None, "[[INSUFFICIENT FUNDS] You check your wallet. You can't swing {:,} right now.".format(_lap_cost))
                     renpy.jump("opp_laptop_deal_pass")
                 store._laptop_buff_days = 5
 
@@ -83,7 +83,7 @@ label opp_laptop_deal:
             "'The 'E' key sticks sometimes,' he says. 'Just hit it harder.'"
             "You don't care. You have a machine now. Tonight, you code."
 
-            show screen outcome_panel("- {} CZK. [[LAPTOP BUFF]] +2 Coding/night for 5 days.".format(_lap_cost))
+            show screen outcome_panel("- {} CZK. [LAPTOP BUFF] +2 Coding/night for 5 days.".format(_lap_cost))
             pause
             hide screen outcome_panel
 
@@ -112,7 +112,7 @@ label opp_free_webinar:
     "It's free. It's tonight. But it'll take your whole evening."
 
     menu:
-        "[[OPPORTUNITY]] Attend the webinar. (+8 Coding)":
+        "[[OPPORTUNITY] Attend the webinar. (+8 Coding)":
             python:
                 stats.increment_stats_coding_skill(8)
 
@@ -145,7 +145,7 @@ label opp_overtime_slip:
     "He's already walking away. He assumes you'll say yes. Everyone always says yes."
 
     menu:
-        "[[OPPORTUNITY]] Take the overtime. (+5,000 CZK, +10 Hatred)":
+        "[[OPPORTUNITY] Take the overtime. (+5,000 CZK, +10 Hatred)":
             python:
                 stats.increment_stats_value_money(5000)
                 stats.increment_stats_pcr_hatred(10)
@@ -186,10 +186,10 @@ label opp_old_friend:
     "It's Tomáš. You grew up together. He has no idea what your job is doing to you, and that's exactly why this might help."
 
     menu:
-        "[[OPPORTUNITY]] Go for beers. (-[_beers_cost_str] CZK, -15 Hatred)":
+        "[[OPPORTUNITY] Go for beers. (-[_beers_cost_str] CZK, -15 Hatred)":
             python:
                 if not stats.try_spend_money(_beers_cost):
-                    renpy.say(None, "[[INSUFFICIENT FUNDS]] You'd love to, but you're counting coins for groceries. Not tonight.")
+                    renpy.say(None, "[[INSUFFICIENT FUNDS] You'd love to, but you're counting coins for groceries. Not tonight.")
                     renpy.jump("opp_old_friend_pass")
                 stats.increment_stats_pcr_hatred(-15)
 
@@ -232,10 +232,10 @@ label opp_garage_sale:
     "Someone else's notes are scribbled in the margins. Half of them are wrong. But you'll learn from the corrections."
 
     menu:
-        "[[OPPORTUNITY]] Buy the book. (-[_book_cost_str] CZK, +5 Coding)":
+        "[[OPPORTUNITY] Buy the book. (-[_book_cost_str] CZK, +5 Coding)":
             python:
                 if not stats.try_spend_money(_book_cost):
-                    renpy.say(None, "[[INSUFFICIENT FUNDS]] You don't have {:,} CZK to spare. You put the book back.".format(_book_cost))
+                    renpy.say(None, "[[INSUFFICIENT FUNDS] You don't have {:,} CZK to spare. You put the book back.".format(_book_cost))
                     renpy.jump("opp_garage_sale_pass")
                 stats.increment_stats_coding_skill(5)
 
@@ -271,7 +271,7 @@ label opp_the_snitch:
     "This is the kind of information that can be a shield or a grenade. Depending on when you use it."
 
     menu:
-        "[[OPPORTUNITY]] Listen. Store the information.":
+        "[[OPPORTUNITY] Listen. Store the information.":
             python:
                 grant_card("snitch_info", silent=True)
 
@@ -282,7 +282,7 @@ label opp_the_snitch:
             "He nods. He walks away. You pour your coffee."
             "The information sits in your head like a loaded gun in a drawer. You hope you never need it."
 
-            show screen outcome_panel("[[INFO STORED]] You know something about Lt. Kovář. [[CARD]] SNITCH INFO acquired.")
+            show screen outcome_panel("[INFO STORED] You know something about Lt. Kovář. [CARD] SNITCH INFO acquired.")
             pause
             hide screen outcome_panel
 
@@ -309,7 +309,7 @@ label opp_night_run:
     "You could lie here and marinate in it. Or you could run."
 
     menu:
-        "[[OPPORTUNITY]] Go for a run. (-8 Hatred now, +3 Hatred tomorrow)":
+        "[[OPPORTUNITY] Go for a run. (-8 Hatred now, +3 Hatred tomorrow)":
             python:
                 stats.increment_stats_pcr_hatred(-8)
                 store._night_run_penalty = True
@@ -347,7 +347,7 @@ label opp_freelance_ping:
     "3,000 CZK for a few hours of work. If you're good enough."
 
     menu:
-        "[[OPPORTUNITY]] Take the gig. (Requires Coding >= 40)":
+        "[[OPPORTUNITY] Take the gig. (Requires Coding >= 40)":
             python:
                 if stats.coding_skill >= 40:
                     stats.increment_stats_value_money(3000)

@@ -77,7 +77,7 @@ label bh_spend_red_light:
                     stats.increment_stats_pcr_hatred(8)
                     _outcome = "+8 PCR HATRED. The recovery deficit lands."
             if not _spent:
-                "[[INSUFFICIENT FUNDS]] You can't afford it. The cortisol option picks itself."
+                "[[INSUFFICIENT FUNDS] You can't afford it. The cortisol option picks itself."
             show screen outcome_panel(_outcome)
             pause
             hide screen outcome_panel
@@ -118,7 +118,7 @@ label bh_spend_bacopa:
                     stats.increment_stats_coding_skill(-3)
                     _outcome = "-3 CODING SKILL. Memory dips this week."
             if not _spent:
-                "[[INSUFFICIENT FUNDS]] Wallet says no. You'll feel it."
+                "[[INSUFFICIENT FUNDS] Wallet says no. You'll feel it."
             show screen outcome_panel(_outcome)
             pause
             hide screen outcome_panel
@@ -159,7 +159,7 @@ label bh_spend_new_paper:
                 else:
                     _outcome = "Bookmarked. The wallet has limits."
             if not _spent:
-                "[[INSUFFICIENT FUNDS]] You bookmark the paper. You'll come back to it. You won't."
+                "[[INSUFFICIENT FUNDS] You bookmark the paper. You'll come back to it. You won't."
             show screen outcome_panel(_outcome)
             pause
             hide screen outcome_panel
@@ -200,7 +200,7 @@ label bh_spend_hrv_battery:
                     stats.increment_stats_pcr_hatred(6)
                     _outcome = "+6 PCR HATRED. Sleeping blind is sleeping anxious."
             if not _spent:
-                "[[INSUFFICIENT FUNDS]] Can't afford the calibration. Anxiety spike."
+                "[[INSUFFICIENT FUNDS] Can't afford the calibration. Anxiety spike."
             show screen outcome_panel(_outcome)
             pause
             hide screen outcome_panel
@@ -242,7 +242,7 @@ label bh_spend_vendor_markup:
                     stats.increment_stats_pcr_hatred(3)
                     _outcome = "+3 PCR HATRED. Future-self pays the markup."
             if not _spent:
-                "[[INSUFFICIENT FUNDS]] He marks you down on the no-stockpile list. Cold."
+                "[[INSUFFICIENT FUNDS] He marks you down on the no-stockpile list. Cold."
             show screen outcome_panel(_outcome)
             pause
             hide screen outcome_panel

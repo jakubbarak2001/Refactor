@@ -34,7 +34,7 @@ label colonel_event:
         ## Apply pre-battle legacy debuff
         if stats.final_boss_buff == "IMPOSTER_SYNDROME":
             battle_state.player_hp = max(1, battle_state.player_hp - 10)
-            renpy.say(None, "[[DEBUFF]]: You feel like a fraud. -10 HP at battle start.")
+            renpy.say(None, "[[DEBUFF]: You feel like a fraud. -10 HP at battle start.")
 
         ## Biohacker compound state — same logic as before, applied to BattleState
         _bh_withdrawal = (stats.player_class == "biohacker" and nootropic_dependency and nootropic_last_tier == 0)
@@ -42,12 +42,12 @@ label colonel_event:
 
         if _bh_withdrawal:
             battle_state.player_hp = max(1, battle_state.player_hp - 15)
-            renpy.say(None, "[[WITHDRAWAL — BIOHACKER]]: Tremors. Shallow breath. Walking in already compromised. -15 HP.")
+            renpy.say(None, "[[WITHDRAWAL — BIOHACKER]: Tremors. Shallow breath. Walking in already compromised. -15 HP.")
         elif _bh_flmod:
             battle_state.player_max_hp += 15
             battle_state.player_hp += 15
             battle_state.max_energy += 1
-            renpy.say(None, "[[FLModafinil — BIOHACKER]]: Peak cognitive state. Dopamine locked. +15 HP, +1 max energy/turn (stacks with PROTOCOL).")
+            renpy.say(None, "[[FLModafinil — BIOHACKER]: Peak cognitive state. Dopamine locked. +15 HP, +1 max energy/turn (stacks with PROTOCOL).")
 
     ## --- Run the deck battle ---
     play music "audio/colonel_arrives.mp3" fadein 1.0
@@ -166,7 +166,7 @@ label colonel_glitch_phase:
 
     scene bg_police_office with glitch_transition
 
-    "[[SYSTEM]]: Colonel HP = 0."
+    "[[SYSTEM]: Colonel HP = 0."
     "He stumbles back. His coffee cup hits the floor. The sound echoes wrong — too long, like a sound effect on a broken loop."
     "He looks at you. His mouth opens. Closes."
 
@@ -174,13 +174,13 @@ label colonel_glitch_phase:
 
     scene bg_black with glitch_transition
 
-    "[[ERROR]]: NPC_STATE.integrity = CRITICAL"
-    "[[ERROR]]: Attempting rollback..."
+    "[[ERROR]: NPC_STATE.integrity = CRITICAL"
+    "[[ERROR]: Attempting rollback..."
 
     pause 0.8
 
-    "[[ERROR]]: Rollback FAILED."
-    "[[ERROR]]: Falling back to cached state — bureaucracy_protocol_v1.exe"
+    "[[ERROR]: Rollback FAILED."
+    "[[ERROR]: Falling back to cached state — bureaucracy_protocol_v1.exe"
 
     pause 0.8
 

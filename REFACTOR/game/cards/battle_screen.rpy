@@ -535,7 +535,7 @@ screen battle_screen():
     use class_color_frame(thickness=6)
 
     if bs is None:
-        text "[[BATTLE STATE NULL]]" xalign 0.5 yalign 0.5 color "#ff0000" size 32
+        text "[[BATTLE STATE NULL]" xalign 0.5 yalign 0.5 color "#ff0000" size 32
     else:
         ## ── Background portrait ────────────────────────────────────────────────
         ## colonel_hit_shake oscillates xoffset for ~0.35s after enemy takes

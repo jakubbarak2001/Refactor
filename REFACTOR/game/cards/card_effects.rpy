@@ -368,7 +368,7 @@ init python:
     @register_effect("override")
     def _eff_override(state, source, target):
         state.deal_damage(target, 40)
-        state.buff(source, "max_energy_penalty_next_turn", state.buffs.get("max_energy_penalty_next_turn", 0) + 2)
+        state.buff(source, "max_energy_penalty_next_turn", 2)
 
     ## ---------------------------------------------------------------------------
     ## Arc-reward effects
@@ -377,7 +377,7 @@ init python:
     @register_effect("vladeks_form")
     def _eff_vladeks_form(state, source, target):
         ## BB boss power: stacks with iron_stance + adds passive starting block
-        state.buff(source, "stoic_anchor_block", state.buffs.get("stoic_anchor_block", 0) + 2)
+        state.buff(source, "stoic_anchor_block", 2)
         state.buff(source, "vladeks_active", True)
 
     @register_effect("the_dossier")
@@ -386,7 +386,7 @@ init python:
         ic = state.current_intent()
         if ic and any(t in ic.get("tags", []) for t in ("emotional", "guilt")):
             state.cancel_next_attack_set()
-            state.add_log("[[The Dossier]]: 'emotional' attack disabled by leverage.")
+            state.add_log("[[The Dossier]: 'emotional' attack disabled by leverage.")
         state.deal_damage(target, 25)
 
     @register_effect("the_compound")
@@ -396,7 +396,7 @@ init python:
         _e = state.energy + 1
         state.deal_damage(target, _e * 10)
         state.deal_damage(source, 8)
-        state.add_log("[[The Compound]]: {}E spent → {} dmg, -8 HP.".format(_e, _e * 10))
+        state.add_log("[[The Compound]: {}E spent → {} dmg, -8 HP.".format(_e, _e * 10))
 
     @register_effect("iron_stance")
     def _eff_iron_stance(state, source, target):
