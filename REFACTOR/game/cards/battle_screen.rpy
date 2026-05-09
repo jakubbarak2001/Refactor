@@ -166,6 +166,29 @@ init python:
             trans.alpha = 1.0
         return 0.016
 
+    def _block_gain_pulse_fn(trans, st, at):
+        """Phase E juice — player block text pulses 1.0 -> 1.3 -> 1.0 over
+        0.4s after gain_block fires. Block is mechanically important but
+        was visually silent; this gives the moment a beat."""
+        bs = battle_state
+        if bs is None or getattr(bs, 'last_player_block_gain_time', -1.0) < 0:
+            trans.zoom = 1.0
+            return None
+        try:
+            age = renpy.get_game_runtime() - bs.last_player_block_gain_time
+        except Exception:
+            trans.zoom = 1.0
+            return None
+        if age >= 0.4:
+            trans.zoom = 1.0
+            return None
+        progress = age / 0.4
+        if progress < 0.35:
+            trans.zoom = 1.0 + 0.3 * (progress / 0.35)
+        else:
+            trans.zoom = 1.3 - 0.3 * ((progress - 0.35) / 0.65)
+        return 0.016
+
     def _battle_end_subtitle_fn(trans, st, at):
         """Phase D juice — subtitle reveal delayed 0.4s after the main
         VICTORY/DEFEAT text starts, fades in over 0.5s."""
@@ -222,6 +245,9 @@ transform battle_end_fanfare:
 
 transform battle_end_subtitle:
     function _battle_end_subtitle_fn
+
+transform block_gain_pulse:
+    function _block_gain_pulse_fn
 
 ## Phase B juice — card hover lift. Cards in hand scale up + lift slightly
 ## on mouse-hover, settle on idle. Smooth ease so the cursor's-on-this-card
@@ -788,10 +814,13 @@ screen battle_screen():
                         size 14
 
                 if bs.player_block > 0:
+                    ## Phase E — block_gain_pulse pumps zoom 1.0 -> 1.3 -> 1.0
+                    ## over 0.4s after gain_block fires. No-op when no recent gain.
                     text "■ BLOCK [bs.player_block]":
                         color "#88aaff"
                         size 16
                         bold True
+                        at block_gain_pulse
 
                 ## Active buffs — human-readable, internal-key gibberish hidden
                 python:

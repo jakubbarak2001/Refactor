@@ -90,6 +90,7 @@ init python:
             self.last_energy_spend_time = -1.0
             self.last_turn_start_time = -1.0
             self.battle_end_time = -1.0      ## set when bs.over flips to victory/defeat
+            self.last_player_block_gain_time = -1.0  ## block-text pulse on gain
 
         def __setstate__(self, state):
             """Restore from pickle. Backfill juice fields if missing so saves
@@ -112,6 +113,8 @@ init python:
                 self.last_turn_start_time = -1.0
             if not hasattr(self, 'battle_end_time'):
                 self.battle_end_time = -1.0
+            if not hasattr(self, 'last_player_block_gain_time'):
+                self.last_player_block_gain_time = -1.0
 
         ## ---------------- FX QUEUE (Phase A) ----------------
         def push_fx(self, event_type, **data):
@@ -205,8 +208,13 @@ init python:
                 self.player_block += amount
                 self.add_log("JB gains {} block.".format(amount))
                 ## Phase A juice — block-gain sfx
+                ## Phase E juice — timestamp drives block-text pulse on screen
                 if amount > 0:
                     _play_battle_sfx("block_clang")
+                    try:
+                        self.last_player_block_gain_time = renpy.get_game_runtime()
+                    except Exception:
+                        pass
 
         def heal(self, target, amount):
             if target == "enemy":
