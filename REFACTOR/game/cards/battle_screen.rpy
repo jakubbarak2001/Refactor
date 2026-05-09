@@ -100,40 +100,6 @@ init python:
             trans.zoom = 1.25 - 0.25 * ((progress - 0.4) / 0.6)
         return 0.016
 
-    def _turn_banner_fn(trans, st, at):
-        """Phase C juice — TURN N banner slides in from left, holds 0.7s,
-        slides out right. Total duration ~1.4s. Driven by bs.last_turn_start_time
-        which the engine sets at the top of battle_start_player_turn."""
-        bs = battle_state
-        if bs is None or getattr(bs, 'last_turn_start_time', -1.0) < 0:
-            trans.alpha = 0.0
-            trans.xoffset = -400
-            return None
-        try:
-            age = renpy.get_game_runtime() - bs.last_turn_start_time
-        except Exception:
-            trans.alpha = 0.0
-            return None
-        if age >= 1.4:
-            trans.alpha = 0.0
-            trans.xoffset = 400
-            return None
-        if age < 0.3:
-            ## Slide in from left + fade in
-            p = age / 0.3
-            trans.alpha = p
-            trans.xoffset = int((1.0 - p) * -400)
-        elif age < 1.0:
-            ## Hold center
-            trans.alpha = 1.0
-            trans.xoffset = 0
-        else:
-            ## Slide out right + fade
-            p = (age - 1.0) / 0.4
-            trans.alpha = 1.0 - p
-            trans.xoffset = int(p * 400)
-        return 0.016
-
     def _battle_end_fanfare_fn(trans, st, at):
         """Phase D juice — VICTORY/DEFEAT text scales from 0.3 -> 1.3 (bounce)
         -> 1.0 over 0.6s, fades in alpha 0 -> 1 over 0.4s. Driven by
@@ -215,6 +181,16 @@ transform colonel_hit_shake:
 transform player_frame_hit_shake:
     function _player_frame_shake_fn
 
+## TURN N banner — standard ATL (not function-driven). Re-triggers fresh
+## each turn via the `use ... id "turn_banner_<N>"` pattern in battle_screen.
+## Duration: 1.4s — slide in 0.3s, hold 0.7s, slide out 0.4s.
+transform turn_banner_atl:
+    alpha 0.0
+    xoffset -400
+    ease 0.3 alpha 1.0 xoffset 0
+    pause 0.7
+    ease 0.4 alpha 0.0 xoffset 400
+
 transform damage_popup_anim:
     yoffset 0
     alpha 1.0
@@ -237,9 +213,6 @@ transform damage_flash_enemy:
 transform energy_pulse:
     function _energy_pulse_fn
 
-transform turn_banner_anim:
-    function _turn_banner_fn
-
 transform battle_end_fanfare:
     function _battle_end_fanfare_fn
 
@@ -248,6 +221,28 @@ transform battle_end_subtitle:
 
 transform block_gain_pulse:
     function _block_gain_pulse_fn
+
+
+## Inner screen for the TURN banner. Wrapped via `use turn_banner_inner(...)
+## id "turn_banner_<N>"` from battle_screen — the keyed id forces Ren'Py to
+## treat each turn's mount as fresh, restarting the ATL animation cleanly.
+## Solves the "turn banner sometimes appears" timing bug from the function-
+## driven version (which depended on a global timestamp set in the engine
+## and read by the screen, with race-condition gaps when the screen mounted
+## after the timestamp was already stale).
+screen turn_banner_inner(turn_n):
+    frame:
+        xalign 0.5
+        ypos 240
+        padding (40, 16)
+        background Frame("#0a0a0aee", 4, 4)
+        at turn_banner_atl
+        text "TURN [turn_n]":
+            color "#ffaa00"
+            size 56
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+            outlines [(3, "#000000", 0, 0)]
 
 ## Phase B juice — card hover lift. Cards in hand scale up + lift slightly
 ## on mouse-hover, settle on idle. Smooth ease so the cursor's-on-this-card
@@ -542,76 +537,6 @@ screen battle_screen():
     if bs is None:
         text "[[BATTLE STATE NULL]]" xalign 0.5 yalign 0.5 color "#ff0000" size 32
     else:
-        ## ── Auto-end on victory or defeat (Phase D fanfare) ──────────────────
-        ## Background dim overlay + bouncing big text + delayed subtitle.
-        ## battle_end_fanfare scales 0.3 -> 1.3 (overshoot) -> 1.0 with alpha
-        ## fade-in; battle_end_subtitle reveals after 0.4s. Total dwell still
-        ## 2.5s before Return so player has time to read the line.
-        if bs.over == "victory":
-            ## Soft green tint dims the battle behind the splash.
-            add Solid("#001a00cc") xsize 1920 ysize 1080
-            frame:
-                xalign 0.5
-                yalign 0.5
-                padding (80, 50)
-                background Frame("#001a00ee", 6, 6)
-                vbox:
-                    spacing 14
-                    xalign 0.5
-                    text "VICTORY":
-                        color "#00ff41"
-                        size 96
-                        bold True
-                        xalign 0.5
-                        font "fonts/RobotoMono-Regular.ttf"
-                        outlines [(4, "#000000", 0, 0)]
-                        at battle_end_fanfare
-                    text "His face is empty. He has nothing left to say.":
-                        color "#88ff88"
-                        size 20
-                        italic True
-                        xalign 0.5
-                        at battle_end_subtitle
-                    text "HP {}/{}  ·  Round {}".format(bs.player_hp, bs.player_max_hp, bs.turn):
-                        color "#557755"
-                        size 14
-                        xalign 0.5
-                        font "fonts/RobotoMono-Regular.ttf"
-                        at battle_end_subtitle
-            timer 2.5 action Return("victory")
-
-        if bs.over == "defeat":
-            add Solid("#1a0000cc") xsize 1920 ysize 1080
-            frame:
-                xalign 0.5
-                yalign 0.5
-                padding (80, 50)
-                background Frame("#1a0000ee", 6, 6)
-                vbox:
-                    spacing 14
-                    xalign 0.5
-                    text "DEFEAT":
-                        color "#ff2222"
-                        size 96
-                        bold True
-                        xalign 0.5
-                        font "fonts/RobotoMono-Regular.ttf"
-                        outlines [(4, "#000000", 0, 0)]
-                        at battle_end_fanfare
-                    text "You sit back down. The room goes quiet.":
-                        color "#ff8888"
-                        size 20
-                        italic True
-                        xalign 0.5
-                        at battle_end_subtitle
-                    text "Round {}".format(bs.turn):
-                        color "#775555"
-                        size 14
-                        xalign 0.5
-                        font "fonts/RobotoMono-Regular.ttf"
-                        at battle_end_subtitle
-            timer 2.5 action Return("defeat")
-
         ## ── Background portrait ────────────────────────────────────────────────
         ## colonel_hit_shake oscillates xoffset for ~0.35s after enemy takes
         ## damage; otherwise it's a no-op (function returns None).
@@ -989,7 +914,6 @@ screen battle_screen():
                         background Solid(_border)
                         hover_background Solid(_border_hover)
                         sensitive _ok
-                        tooltip _effect_text
                         action [Function(battle_play_card, _cid), Function(renpy.restart_interaction)]
                         at card_hover_lift
 
@@ -1085,17 +1009,20 @@ screen battle_screen():
                                 yalign 0.5
                                 font "fonts/RobotoMono-Regular.ttf"
 
-                        ## Exhaust badge — bottom-right corner
+                        ## Exhaust badge — centered horizontally near the bottom
+                        ## of the card, below the effect/flavor text. Larger and
+                        ## brighter than the previous corner pip so it actually
+                        ## reads at-a-glance.
                         if _card.get("exhaust"):
                             frame:
-                                xpos 138
-                                ypos 254
-                                xsize 60
-                                ysize 18
-                                background Solid("#3a0000")
+                                xalign 0.5
+                                ypos 250
+                                xsize 110
+                                ysize 22
+                                background Solid("#5a0000")
                                 text "EXHAUST":
-                                    color "#ff6644"
-                                    size 9
+                                    color "#ff8866"
+                                    size 12
                                     bold True
                                     xalign 0.5
                                     yalign 0.5
@@ -1139,19 +1066,78 @@ screen battle_screen():
             add Solid("#00ff41") xsize 1920 ysize 1080 at damage_flash_enemy
 
         ## ── PHASE C TURN BANNER ───────────────────────────────────────────────
-        ## Slides in from left, holds, slides out right when bs.last_turn_start_time
-        ## is recent. Function-driven; out of window = invisible (alpha 0).
-        $ _turn_start = getattr(bs, 'last_turn_start_time', -1.0)
-        if _turn_start >= 0 and (_fx_now - _turn_start) < 1.5:
+        ## use ... id keyed on bs.turn so each turn is a fresh ATL mount.
+        ## Animation runs once on mount, settles invisible after 1.4s, persists
+        ## quietly until the next turn change re-keys the id.
+        if bs.turn > 0:
+            use turn_banner_inner(turn_n=bs.turn) id "turn_banner_{}".format(bs.turn)
+
+        ## ── Auto-end VICTORY / DEFEAT fanfare (Phase D) ──────────────────────
+        ## Rendered LAST in the screen so the dim overlay + splash card layer
+        ## on top of the colonel portrait, hand cards, and every other UI
+        ## element. Earlier versions placed this near the top → portrait
+        ## rendered after splash → covered the VICTORY text. Document order
+        ## IS z-order in Ren'Py screens; this block must stay at the bottom.
+        if bs.over == "victory":
+            add Solid("#001a00cc") xsize 1920 ysize 1080
             frame:
                 xalign 0.5
-                ypos 240
-                padding (40, 16)
-                background Frame("#0a0a0aee", 4, 4)
-                at turn_banner_anim
-                text "TURN [bs.turn]":
-                    color "#ffaa00"
-                    size 56
-                    bold True
-                    font "fonts/RobotoMono-Regular.ttf"
-                    outlines [(3, "#000000", 0, 0)]
+                yalign 0.5
+                padding (80, 50)
+                background Frame("#001a00ee", 6, 6)
+                vbox:
+                    spacing 14
+                    xalign 0.5
+                    text "VICTORY":
+                        color "#00ff41"
+                        size 96
+                        bold True
+                        xalign 0.5
+                        font "fonts/RobotoMono-Regular.ttf"
+                        outlines [(4, "#000000", 0, 0)]
+                        at battle_end_fanfare
+                    text "His face is empty. He has nothing left to say.":
+                        color "#88ff88"
+                        size 20
+                        italic True
+                        xalign 0.5
+                        at battle_end_subtitle
+                    text "HP {}/{}  ·  Round {}".format(bs.player_hp, bs.player_max_hp, bs.turn):
+                        color "#557755"
+                        size 14
+                        xalign 0.5
+                        font "fonts/RobotoMono-Regular.ttf"
+                        at battle_end_subtitle
+            timer 2.5 action Return("victory")
+
+        if bs.over == "defeat":
+            add Solid("#1a0000cc") xsize 1920 ysize 1080
+            frame:
+                xalign 0.5
+                yalign 0.5
+                padding (80, 50)
+                background Frame("#1a0000ee", 6, 6)
+                vbox:
+                    spacing 14
+                    xalign 0.5
+                    text "DEFEAT":
+                        color "#ff2222"
+                        size 96
+                        bold True
+                        xalign 0.5
+                        font "fonts/RobotoMono-Regular.ttf"
+                        outlines [(4, "#000000", 0, 0)]
+                        at battle_end_fanfare
+                    text "You sit back down. The room goes quiet.":
+                        color "#ff8888"
+                        size 20
+                        italic True
+                        xalign 0.5
+                        at battle_end_subtitle
+                    text "Round {}".format(bs.turn):
+                        color "#775555"
+                        size 14
+                        xalign 0.5
+                        font "fonts/RobotoMono-Regular.ttf"
+                        at battle_end_subtitle
+            timer 2.5 action Return("defeat")

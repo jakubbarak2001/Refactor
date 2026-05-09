@@ -119,7 +119,10 @@ label good_ending:
     scene bg_cafe with slow_dissolve
     show jb developer_happy at char_left with dissolve
 
-    "You take a deep breath."
+    ## The cinematic already showed JB walking out + the time-jump to
+    ## "after." Holding silent on the cafe scene lets the player register
+    ## the new outfit / new posture before the epilogue text starts.
+    pause 1.3
 
     "SYSTEM: BUILD SUCCESSFUL."
     "WELCOME TO PRODUCTION, JB."
