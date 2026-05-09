@@ -23,6 +23,107 @@
 ################################################################################
 
 ## ---------------------------------------------------------------------------
+## Phase A juice — visual effect transforms
+##
+## These are read by `screen battle_screen()` to render damage popups, the
+## colonel portrait shake on hits, and screen-edge flash overlays. The fx
+## are gated on `battle_state.fx_events` and `battle_state.last_*_hit_time`,
+## both populated by `cards/battle_engine.rpy`. If the engine never pushes
+## events, these transforms simply never fire.
+## ---------------------------------------------------------------------------
+
+init python:
+    import math as _juice_math
+
+    def _colonel_shake_fn(trans, st, at):
+        """Damped horizontal oscillation on the colonel portrait. Fires when
+        battle_state.last_enemy_hit_time is recent (<0.35s). Returns None to
+        stop the per-frame callback once the shake settles."""
+        bs = battle_state
+        if bs is None or getattr(bs, 'last_enemy_hit_time', -1.0) < 0:
+            trans.xoffset = 0
+            return None
+        try:
+            age = renpy.get_game_runtime() - bs.last_enemy_hit_time
+        except Exception:
+            trans.xoffset = 0
+            return None
+        if age >= 0.35:
+            trans.xoffset = 0
+            return None
+        ## Decay envelope: amplitude tapers to 0 over 0.35s
+        amp = 10.0 * (1.0 - age / 0.35)
+        ## Sin oscillation at ~35 rad/s = ~5.5 Hz — fast snappy shake
+        trans.xoffset = int(amp * _juice_math.sin(age * 35.0))
+        return 0.016  ## ~60 fps refresh
+
+    def _player_frame_shake_fn(trans, st, at):
+        """Smaller shake on the player status frame when the player takes
+        damage. Same pattern as colonel shake, lower amplitude."""
+        bs = battle_state
+        if bs is None or getattr(bs, 'last_player_hit_time', -1.0) < 0:
+            trans.xoffset = 0
+            return None
+        try:
+            age = renpy.get_game_runtime() - bs.last_player_hit_time
+        except Exception:
+            trans.xoffset = 0
+            return None
+        if age >= 0.30:
+            trans.xoffset = 0
+            return None
+        amp = 6.0 * (1.0 - age / 0.30)
+        trans.xoffset = int(amp * _juice_math.sin(age * 40.0))
+        return 0.016
+
+transform colonel_hit_shake:
+    function _colonel_shake_fn
+
+transform player_frame_hit_shake:
+    function _player_frame_shake_fn
+
+transform damage_popup_anim:
+    yoffset 0
+    alpha 1.0
+    parallel:
+        easeout 0.7 yoffset -70
+    parallel:
+        linear 0.45 alpha 1.0
+        linear 0.25 alpha 0.0
+
+transform damage_flash_player:
+    alpha 0.0
+    linear 0.05 alpha 0.5
+    linear 0.30 alpha 0.0
+
+transform damage_flash_enemy:
+    alpha 0.0
+    linear 0.05 alpha 0.3
+    linear 0.25 alpha 0.0
+
+
+## Inner screen for a single damage popup. Wrapped via `use ... id <tick>`
+## from battle_screen so each popup gets a STABLE identity across redraws —
+## otherwise Ren'Py respawns the displayable on every redraw and the ATL
+## animation restarts from frame 0, freezing the popup visually.
+screen _damage_popup_overlay(fx):
+    $ _amt = fx.get('amount', 0)
+    $ _is_player = fx.get('target') == 'player'
+    $ _color = "#ff4422" if _is_player else "#ffdd44"
+    $ _xpos = 200 if _is_player else 1000
+    $ _ypos = 540 if _is_player else 220
+    text "-[_amt]":
+        xpos _xpos
+        ypos _ypos
+        color _color
+        size 64
+        bold True
+        outlines [(3, "#000000", 0, 0)]
+        font "fonts/RobotoMono-Regular.ttf"
+        at damage_popup_anim
+
+
+## ---------------------------------------------------------------------------
 ## Battle Help — accessible via "?" button. One-screen reference.
 ## ---------------------------------------------------------------------------
 
@@ -330,10 +431,12 @@ screen battle_screen():
             timer 2.5 action Return("defeat")
 
         ## ── Background portrait ────────────────────────────────────────────────
+        ## colonel_hit_shake oscillates xoffset for ~0.35s after enemy takes
+        ## damage; otherwise it's a no-op (function returns None).
         if bs.enemy_hp > 0 and bs.enemy_hp <= bs.enemy_max_hp * 0.3:
-            add "colonel angry" xalign 0.5 yalign 0.18 zoom 0.65
+            add "colonel angry" xalign 0.5 yalign 0.18 zoom 0.65 at colonel_hit_shake
         else:
-            add "colonel normal" xalign 0.5 yalign 0.18 zoom 0.65
+            add "colonel normal" xalign 0.5 yalign 0.18 zoom 0.65 at colonel_hit_shake
 
         ## ── ENEMY HEADER ──────────────────────────────────────────────────────
         frame:
@@ -463,7 +566,9 @@ screen battle_screen():
                         size 12
 
         ## ── PLAYER STATUS (left side, below log) ──────────────────────────────
+        ## player_frame_hit_shake fires for ~0.30s after player takes damage.
         frame:
+            at player_frame_hit_shake
             xpos 20
             ypos 580
             xsize 360
@@ -679,3 +784,32 @@ screen battle_screen():
             color "#666666"
             size 13
             font "fonts/RobotoMono-Regular.ttf"
+
+        ## ── PHASE A JUICE OVERLAYS ────────────────────────────────────────────
+        ## Damage popups (`-N` floating text rising over the hit target) and
+        ## flash overlays (red on player hit, green on enemy hit). Both are
+        ## driven by the engine's fx_events queue and last_*_hit_time fields.
+        ## Rendering happens here at the end of the screen tree so popups/
+        ## flashes layer on TOP of all other UI.
+        $ _fx_now = renpy.get_game_runtime()
+
+        ## Per-event popups — delegate to the inner screen and pass `id` keyed
+        ## on the event's monotonic tick so Ren'Py treats each popup as a
+        ## stable displayable identity across redraws (ATL animation runs
+        ## once per event instead of restarting every redraw).
+        $ _fx_events_safe = getattr(bs, 'fx_events', [])
+        for _fx in _fx_events_safe:
+            if _fx.get('type') == 'damage' and (_fx_now - _fx.get('t', 0)) < 0.75:
+                use _damage_popup_overlay(fx=_fx) id _fx.get('tick', 0)
+
+        ## Player-hit flash — red wash over the whole screen, brief
+        $ _last_player_hit = getattr(bs, 'last_player_hit_time', -1.0)
+        $ _player_hit_age = (_fx_now - _last_player_hit) if _last_player_hit > 0 else 999.0
+        if _player_hit_age < 0.35:
+            add Solid("#ff2222") xfill True yfill True at damage_flash_player
+
+        ## Enemy-hit flash — subtle green wash
+        $ _last_enemy_hit = getattr(bs, 'last_enemy_hit_time', -1.0)
+        $ _enemy_hit_age = (_fx_now - _last_enemy_hit) if _last_enemy_hit > 0 else 999.0
+        if _enemy_hit_age < 0.30:
+            add Solid("#00ff41") xfill True yfill True at damage_flash_enemy

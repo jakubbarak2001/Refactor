@@ -25,6 +25,20 @@ init python:
 
     import random as _battle_rand
 
+    def _play_battle_sfx(name):
+        """Phase A juice — play a battle SFX from audio/sfx/<name>.ogg.
+
+        Silently skips if the file is missing so the engine works with or
+        without the SFX library installed. The user can drop real .ogg
+        files in at any time and they'll auto-wire.
+        """
+        path = "audio/sfx/{}.ogg".format(name)
+        if renpy.loadable(path):
+            try:
+                renpy.sound.play(path)
+            except Exception:
+                pass
+
     class BattleState(object):
         """Singleton-style state for the deck-based Colonel fight."""
 
@@ -64,6 +78,46 @@ init python:
             self.last_damage_to_player = 0
             self.last_damage_to_enemy = 0
 
+            ## Phase A juice — visual fx event queue + per-event timestamps
+            self.fx_events = []              ## list of dicts: {type, target, amount, t, tick}
+            self.anim_tick = 0               ## monotonic counter, +1 per fx event
+            self.last_card_type = None       ## 'Attack' | 'Skill' | 'Power'
+            self.last_enemy_hit_time = -1.0  ## game-runtime sec; -1 = never
+            self.last_player_hit_time = -1.0
+
+        def __setstate__(self, state):
+            """Restore from pickle. Backfill Phase A fields if missing so saves
+            taken DURING a battle on a pre-Phase-A build don't AttributeError
+            on the first screen redraw after resume."""
+            self.__dict__.update(state)
+            if not hasattr(self, 'fx_events'):
+                self.fx_events = []
+            if not hasattr(self, 'anim_tick'):
+                self.anim_tick = 0
+            if not hasattr(self, 'last_card_type'):
+                self.last_card_type = None
+            if not hasattr(self, 'last_enemy_hit_time'):
+                self.last_enemy_hit_time = -1.0
+            if not hasattr(self, 'last_player_hit_time'):
+                self.last_player_hit_time = -1.0
+
+        ## ---------------- FX QUEUE (Phase A) ----------------
+        def push_fx(self, event_type, **data):
+            """Push a visual fx event. Returns the event's timestamp."""
+            self.anim_tick += 1
+            try:
+                now = renpy.get_game_runtime()
+            except Exception:
+                now = 0.0
+            ## Bound memory — drop events older than 2s before appending
+            self.fx_events = [e for e in self.fx_events if (now - e.get('t', 0)) < 2.0]
+            ev = dict(data)
+            ev['type'] = event_type
+            ev['t'] = now
+            ev['tick'] = self.anim_tick
+            self.fx_events.append(ev)
+            return now
+
         ## ---------------- LOG ----------------
         def add_log(self, msg):
             self.log.append(msg)
@@ -96,6 +150,10 @@ init python:
                 if self.enemy_hp <= 0:
                     self.enemy_hp = 0
                     self.over = "victory"
+                ## Phase A juice — visual popup + portrait shake + sfx
+                if actual > 0:
+                    self.last_enemy_hit_time = self.push_fx("damage", target="enemy", amount=actual)
+                    _play_battle_sfx("hit_thud")
             elif target == "player":
                 ## Apply mental damage reduction if buff active
                 if self.buffs.get("mental_dr_50") and self._intent_has_tag("mental"):
@@ -114,6 +172,10 @@ init python:
                 if self.player_hp <= 0:
                     self.player_hp = 0
                     self.over = "defeat"
+                ## Phase A juice — visual popup + flash overlay + sfx
+                if actual > 0:
+                    self.last_player_hit_time = self.push_fx("damage", target="player", amount=actual)
+                    _play_battle_sfx("hit_thud")
 
         def gain_block(self, target, amount):
             if target == "enemy":
@@ -122,6 +184,9 @@ init python:
             else:
                 self.player_block += amount
                 self.add_log("JB gains {} block.".format(amount))
+                ## Phase A juice — block-gain sfx
+                if amount > 0:
+                    _play_battle_sfx("block_clang")
 
         def heal(self, target, amount):
             if target == "enemy":
@@ -401,6 +466,11 @@ init python:
         if isinstance(cost, int):
             bs.spend_energy(cost)
 
+        ## Phase A juice — play card-type sfx immediately on click,
+        ## before the effect resolves, so the audio feedback feels snappy.
+        bs.last_card_type = c.get("type", "Skill")
+        _play_battle_sfx("card_" + bs.last_card_type.lower())
+
         ## Resolve effect
         eff_id = c.get("effect")
         if eff_id and eff_id in card_effects:
@@ -435,6 +505,9 @@ init python:
         bs = battle_state
         if bs is None or bs.is_over():
             return
+
+        ## Phase A juice — end-turn sfx (commits the player's plan)
+        _play_battle_sfx("end_turn")
 
         ## Discard remaining hand
         bs.discard_hand()
