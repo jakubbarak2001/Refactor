@@ -123,6 +123,8 @@ label character_class_selection:
     "Before the grind begins — who are you, JB?"
     "Your class is permanent. Choose carefully."
 
+    scene bg_black with fade
+
     $ quick_menu = True
 
     call screen class_selection_screen

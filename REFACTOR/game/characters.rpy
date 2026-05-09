@@ -66,9 +66,11 @@ image jb neutral        = im.Scale("images/sprites/jb_neutral.png",         600,
 image jb worried        = im.Scale("images/sprites/jb_worried.png",          600, 900)
 image jb determined     = im.Scale("images/sprites/jb_determined.png",       600, 900)
 image jb bored          = im.Scale("images/sprites/jb_bored.png",            600, 900)
-## Source is 1024x1024 (1:1, unlike the other 2:3 JB sprites). Scaling to
-## 600x900 stretches the face vertically by 50% — keep the native aspect.
-image jb developer_happy = im.Scale("images/sprites/jb_developer_happy.png", 600, 600)
+image jb angry          = im.Scale("images/sprites/jb_angry.png",            600, 900)
+image jb smirk          = im.Scale("images/sprites/jb_smirk.png",            600, 900)
+image jb defeated       = im.Scale("images/sprites/jb_defeated.png",         600, 900)
+image jb broken         = im.Scale("images/sprites/jb_broken.png",           600, 900)
+image jb developer_happy = im.Scale("images/sprites/jb_developer_happy.png", 600, 900)
 
 ## Class portraits — pre-scaled to fit the 500x750 portrait frame on the
 ## right panel of the class selection screen. Same aspect (~0.667) as the
