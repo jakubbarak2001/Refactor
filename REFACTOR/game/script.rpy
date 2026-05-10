@@ -424,11 +424,12 @@ label activity_gym:
 
             "[_gym_text]"
 
-            ## Close the say-window before the python block opens
-            ## card_offer_screen + outcome_panel — leaving it open trips
-            ## ui.interact's transient-layer check at the next pause.
-            window hide
-
+            ## Compute the outcome text in python, then show the screen at
+            ## script level. Calling `renpy.show_screen` from inside the
+            ## same python block as `offer_card` (which itself calls
+            ## `renpy.call_screen`) leaves the transient layer's Many<Fixed>
+            ## open and the next `pause` trips ui.interact's stack check.
+            ## Splitting the show out fixes the crash deterministically.
             python:
                 ## SOMA always lands for BB — gym session is "I trained the body."
                 ## Hatred relief still gates on PASS (TAKE traded the relief for a card).
@@ -439,10 +440,12 @@ label activity_gym:
                 _soma_suffix = "  ·  +1 SOMA" if stats.player_class == "bodybuilder" else ""
                 if _took_gym:
                     _c = CARD_LIBRARY.get(_gym_card, {})
-                    renpy.show_screen("outcome_panel", outcome_text="[CARD TAKEN] " + _c.get("name", _gym_card) + _soma_suffix)
+                    _gym_outcome_final = "[CARD TAKEN] " + _c.get("name", _gym_card) + _soma_suffix
                 else:
-                    renpy.show_screen("outcome_panel", outcome_text=_gym_outcome + _soma_suffix)
+                    _gym_outcome_final = _gym_outcome + _soma_suffix
 
+            window hide
+            show screen outcome_panel(_gym_outcome_final)
             pause
             hide screen outcome_panel
 
@@ -621,8 +624,10 @@ label bouncer_night_club:
         if not _took_bouncer:
             stats.increment_stats_value_money(_pending_money)
             stats.increment_stats_pcr_hatred(_pending_hatred)
-        show_outcome_panel(_took_bouncer, _bouncer_card, _boutcome)
+        _bouncer_panel_text = show_outcome_panel(_took_bouncer, _bouncer_card, _boutcome)
 
+    window hide
+    show screen outcome_panel(_bouncer_panel_text)
     pause
     hide screen outcome_panel
     python:
@@ -689,8 +694,10 @@ label bouncer_strip_bar:
                 stats.increment_stats_pcr_hatred(_pending_hatred)
             if _pending_coding:
                 stats.increment_stats_coding_skill(_pending_coding)
-        show_outcome_panel(_took_strip, _strip_card, _boutcome)
+        _strip_panel_text = show_outcome_panel(_took_strip, _strip_card, _boutcome)
 
+    window hide
+    show screen outcome_panel(_strip_panel_text)
     pause
     hide screen outcome_panel
     python:
@@ -833,8 +840,10 @@ label coding_fiverr:
         _took_fiverr = offer_card(_fiverr_card, "CODING COACH", pass_stats_text=_foutcome)
         if not _took_fiverr:
             stats.increment_stats_coding_skill(_fiverr_gain)
-        show_outcome_panel(_took_fiverr, _fiverr_card, _foutcome)
+        _fiverr_panel_text = show_outcome_panel(_took_fiverr, _fiverr_card, _foutcome)
 
+    window hide
+    show screen outcome_panel(_fiverr_panel_text)
     pause
     hide screen outcome_panel
     python:
@@ -869,8 +878,10 @@ label coding_bootcamp:
                 _took_bc = offer_card("production_push", "BOOTCAMP", pass_stats_text=_bc_outcome)
                 if not _took_bc:
                     stats.increment_stats_coding_skill(25)
-                show_outcome_panel(_took_bc, "production_push", _bc_outcome)
+                _bc_panel_text = show_outcome_panel(_took_bc, "production_push", _bc_outcome)
 
+            window hide
+            show screen outcome_panel(_bc_panel_text)
             pause
             hide screen outcome_panel
             python:
@@ -910,8 +921,10 @@ label coding_bootcamp_de:
                 _took_bc = offer_card("production_push", "BOOTCAMP", pass_stats_text=_bc_outcome)
                 if not _took_bc:
                     stats.increment_stats_coding_skill(25)
-                show_outcome_panel(_took_bc, "production_push", _bc_outcome)
+                _bc_panel_text = show_outcome_panel(_took_bc, "production_push", _bc_outcome)
 
+            window hide
+            show screen outcome_panel(_bc_panel_text)
             pause
             hide screen outcome_panel
             python:
@@ -1324,8 +1337,10 @@ label cold_read_regular:
             stats.increment_stats_pcr_hatred(_cr_pending_hatred)
             if _cr_pending_coding:
                 stats.increment_stats_coding_skill(_cr_pending_coding)
-        show_outcome_panel(_took_cr, _cr_card, _cr_outcome)
+        _cr_panel_text = show_outcome_panel(_took_cr, _cr_card, _cr_outcome)
 
+    window hide
+    show screen outcome_panel(_cr_panel_text)
     pause
     hide screen outcome_panel
 

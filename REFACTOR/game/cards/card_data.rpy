@@ -213,17 +213,13 @@ init -1 python:
             text = "[CARD TAKEN] " + c.get("name", card_id)
         else:
             text = stat_text
-        ## Close the lingering say-window from the prior narrator dialogue
-        ## before showing the outcome screen. Without this, the transient
-        ## layer keeps an unclosed Many<Fixed> from the dialogue and the
-        ## next `pause` after this helper trips ui.interact's stack check
-        ## ("ui.interact called with non-empty widget/layer stack"). Repro:
-        ## bouncer / strip-bar / coding-coach / bootcamp / cold-read.
-        try:
-            renpy.scene(layer="transient")
-        except Exception:
-            pass
-        renpy.show_screen("outcome_panel", outcome_text=text)
+        ## Return the text. Caller is responsible for `show screen
+        ## outcome_panel(text)` at SCRIPT level (preceded by `window hide`).
+        ## We used to call `renpy.show_screen` here from python, but doing
+        ## that inside the same python block as `offer_card` (which calls
+        ## `renpy.call_screen`) leaves the transient layer's Many<Fixed>
+        ## open and the next `pause` trips ui.interact's stack check.
+        return text
 
 
     def init_player_deck():
