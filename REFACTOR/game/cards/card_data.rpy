@@ -138,57 +138,67 @@ init -1 python:
                 pass
         return True
 
-    def offer_card(card_id, source_label="", pass_stats_text=""):
-        """Show the card-offer screen. Player picks TAKE or PASS.
+    def can_offer_card(card_id):
+        """Returns the card dict if offerable, None if filtered out.
 
-        Returns True if taken, False if passed or filtered by class-lock.
-        Use this in activities/events that grant a card the player should consent to.
-
-        pass_stats_text: human-readable forfeit telegraph rendered under the
-        TAKE/PASS buttons (e.g. "+10 CODING SKILL"). Lets the player see what
-        they're giving up by taking the card. Empty string hides the telegraph.
+        Pure-python predicate — no UI calls. Use BEFORE invoking the
+        modal card-offer screen at script level.
         """
         if player_deck is None or card_id not in CARD_LIBRARY:
-            return False
+            return None
         c = CARD_LIBRARY[card_id]
         if c.get("class_lock") and stats is not None and c["class_lock"] != stats.player_class:
-            return False
+            return None
+        return c
 
+
+    def commit_card(card_id, took):
+        """Caller invokes after the script-level `call screen card_offer_screen`
+        returns. Adds card to deck if `took`. Returns `took` so callers can
+        chain it: `$ _x = commit_card("foo", _return == "take")`.
+        """
+        if took and player_deck is not None and card_id in CARD_LIBRARY:
+            player_deck.add(card_id)
+        return bool(took)
+
+
+    def offer_card(card_id, source_label="", pass_stats_text=""):
+        """DEPRECATED for new activity callsites — use `can_offer_card` +
+        script-level `call screen card_offer_screen(...)` + `commit_card`
+        instead. Kept as a compatibility shim for event-file callsites
+        (random_events / class_arcs / martin_meeting) that haven't been
+        migrated yet.
+
+        Calling `renpy.call_screen` from inside a python block leaves the
+        transient layer's Many<Fixed> open under certain conditions
+        (specifically: when followed by `window hide` + `show screen X` +
+        `pause`). The next `pause` then crashes with "ui.interact called
+        with non-empty widget/layer stack". Activities that hit that
+        pattern MUST use the script-level path.
+        """
+        c = can_offer_card(card_id)
+        if c is None:
+            return False
         try:
             result = renpy.call_screen("card_offer_screen", card=c, source_label=source_label, pass_stats_text=pass_stats_text)
         except Exception:
-            ## Fallback if screen not yet defined or call fails — auto-grant
             result = "take"
-
-        if result == "take":
-            player_deck.add(card_id)
-            return True
-        return False
+        return commit_card(card_id, result == "take")
 
 
     def offer_card_solo(card_id, source_label=""):
-        """Show the solo card-offer screen (TAKE/PASS, no stat alternative).
-
-        For arc-reward cards where the player either takes the card or walks
-        away with nothing — Vladek's Form, Martin's Paragraph 4b, etc. The
-        screen renders a centered card preview with TAKE/PASS underneath.
-        Returns True if taken, False if passed or filtered.
+        """DEPRECATED — same caveat as `offer_card`. Use `can_offer_card` +
+        `call screen card_solo_offer_screen(...)` + `commit_card` at
+        script level instead.
         """
-        if player_deck is None or card_id not in CARD_LIBRARY:
+        c = can_offer_card(card_id)
+        if c is None:
             return False
-        c = CARD_LIBRARY[card_id]
-        if c.get("class_lock") and stats is not None and c["class_lock"] != stats.player_class:
-            return False
-
         try:
             result = renpy.call_screen("card_solo_offer_screen", card=c, source_label=source_label)
         except Exception:
             result = "take"
-
-        if result == "take":
-            player_deck.add(card_id)
-            return True
-        return False
+        return commit_card(card_id, result == "take")
 
 
     def show_outcome_panel(took_card, card_id, stat_text):

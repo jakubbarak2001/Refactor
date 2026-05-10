@@ -424,17 +424,22 @@ label activity_gym:
 
             "[_gym_text]"
 
-            ## Compute the outcome text in python, then show the screen at
-            ## script level. Calling `renpy.show_screen` from inside the
-            ## same python block as `offer_card` (which itself calls
-            ## `renpy.call_screen`) leaves the transient layer's Many<Fixed>
-            ## open and the next `pause` trips ui.interact's stack check.
-            ## Splitting the show out fixes the crash deterministically.
+            ## SOMA always lands for BB — gym session is "I trained the body."
+            $ add_soma(1)
+            ## Compute card-offer eligibility in python (no UI), THEN do the
+            ## modal at script level via `call screen`. Avoids the transient-
+            ## layer leak that came from `renpy.call_screen` inside python.
+            $ _gym_card_data = can_offer_card(_gym_card)
+
+            if _gym_card_data is not None:
+                window hide
+                call screen card_offer_screen(card=_gym_card_data, source_label="GYM", pass_stats_text=_gym_outcome)
+                $ _took_gym = commit_card(_gym_card, _return == "take")
+            else:
+                $ _took_gym = False
+
             python:
-                ## SOMA always lands for BB — gym session is "I trained the body."
                 ## Hatred relief still gates on PASS (TAKE traded the relief for a card).
-                add_soma(1)
-                _took_gym = offer_card(_gym_card, "GYM", pass_stats_text=_gym_outcome)
                 if not _took_gym:
                     stats.increment_stats_pcr_hatred(-_total_red)
                 _soma_suffix = "  ·  +1 SOMA" if stats.player_class == "bodybuilder" else ""
@@ -616,11 +621,16 @@ label bouncer_night_club:
 
     "[_btext]"
 
+    $ _bouncer_card_data = can_offer_card(_bouncer_card) if _bouncer_card else None
+
+    if _bouncer_card_data is not None:
+        window hide
+        call screen card_offer_screen(card=_bouncer_card_data, source_label="BOUNCER", pass_stats_text=_boutcome)
+        $ _took_bouncer = commit_card(_bouncer_card, _return == "take")
+    else:
+        $ _took_bouncer = False
+
     python:
-        if _bouncer_card:
-            _took_bouncer = offer_card(_bouncer_card, "BOUNCER", pass_stats_text=_boutcome)
-        else:
-            _took_bouncer = False  ## no card — stats apply
         if not _took_bouncer:
             stats.increment_stats_value_money(_pending_money)
             stats.increment_stats_pcr_hatred(_pending_hatred)
@@ -682,11 +692,16 @@ label bouncer_strip_bar:
 
     "[_btext]"
 
+    $ _strip_card_data = can_offer_card(_strip_card) if _strip_card else None
+
+    if _strip_card_data is not None:
+        window hide
+        call screen card_offer_screen(card=_strip_card_data, source_label="STRIP-BAR", pass_stats_text=_boutcome)
+        $ _took_strip = commit_card(_strip_card, _return == "take")
+    else:
+        $ _took_strip = False
+
     python:
-        if _strip_card:
-            _took_strip = offer_card(_strip_card, "STRIP-BAR", pass_stats_text=_boutcome)
-        else:
-            _took_strip = False
         if not _took_strip:
             if _pending_money:
                 stats.increment_stats_value_money(_pending_money)
@@ -836,8 +851,16 @@ label coding_fiverr:
 
     "[_ftext]"
 
+    $ _fiverr_card_data = can_offer_card(_fiverr_card)
+
+    if _fiverr_card_data is not None:
+        window hide
+        call screen card_offer_screen(card=_fiverr_card_data, source_label="CODING COACH", pass_stats_text=_foutcome)
+        $ _took_fiverr = commit_card(_fiverr_card, _return == "take")
+    else:
+        $ _took_fiverr = False
+
     python:
-        _took_fiverr = offer_card(_fiverr_card, "CODING COACH", pass_stats_text=_foutcome)
         if not _took_fiverr:
             stats.increment_stats_coding_skill(_fiverr_gain)
         _fiverr_panel_text = show_outcome_panel(_took_fiverr, _fiverr_card, _foutcome)
@@ -875,7 +898,16 @@ label coding_bootcamp:
                 ## trade is the BONUS choice on top — a substantive rare card OR
                 ## +25 coding skill pumped immediately into the run.
                 _bc_outcome = "- {:,} CZK, [BOOTCAMP BUFF ACTIVATED] +5 Coding/night, +25 CODING".format(_bc_cost)
-                _took_bc = offer_card("production_push", "BOOTCAMP", pass_stats_text=_bc_outcome)
+                _bc_card_data = can_offer_card("production_push")
+
+            if _bc_card_data is not None:
+                window hide
+                call screen card_offer_screen(card=_bc_card_data, source_label="BOOTCAMP", pass_stats_text=_bc_outcome)
+                $ _took_bc = commit_card("production_push", _return == "take")
+            else:
+                $ _took_bc = False
+
+            python:
                 if not _took_bc:
                     stats.increment_stats_coding_skill(25)
                 _bc_panel_text = show_outcome_panel(_took_bc, "production_push", _bc_outcome)
@@ -918,7 +950,16 @@ label coding_bootcamp_de:
 
             python:
                 _bc_outcome = "- {:,} CZK [DARK EMPATH DISCOUNT], [BOOTCAMP BUFF ACTIVATED] +5 Coding/night, +25 CODING".format(_bc_cost)
-                _took_bc = offer_card("production_push", "BOOTCAMP", pass_stats_text=_bc_outcome)
+                _bc_card_data = can_offer_card("production_push")
+
+            if _bc_card_data is not None:
+                window hide
+                call screen card_offer_screen(card=_bc_card_data, source_label="BOOTCAMP", pass_stats_text=_bc_outcome)
+                $ _took_bc = commit_card("production_push", _return == "take")
+            else:
+                $ _took_bc = False
+
+            python:
                 if not _took_bc:
                     stats.increment_stats_coding_skill(25)
                 _bc_panel_text = show_outcome_panel(_took_bc, "production_push", _bc_outcome)
@@ -1331,8 +1372,16 @@ label cold_read_regular:
 
     "[_cr_text]"
 
+    $ _cr_card_data = can_offer_card(_cr_card)
+
+    if _cr_card_data is not None:
+        window hide
+        call screen card_offer_screen(card=_cr_card_data, source_label="COLD READ", pass_stats_text=_cr_outcome)
+        $ _took_cr = commit_card(_cr_card, _return == "take")
+    else:
+        $ _took_cr = False
+
     python:
-        _took_cr = offer_card(_cr_card, "COLD READ", pass_stats_text=_cr_outcome)
         if not _took_cr:
             stats.increment_stats_pcr_hatred(_cr_pending_hatred)
             if _cr_pending_coding:

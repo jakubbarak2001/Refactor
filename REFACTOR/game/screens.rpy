@@ -3095,34 +3095,34 @@ style frame:
 
 screen say(who, what):
 
-    ## Hide the say-window while a menu (choice screen) is up. Keeps the
-    ## bottom screen band free for the menu options instead of bleeding
-    ## the previous dialogue's textbox over the lower buttons.
-    if not renpy.get_screen("choice"):
-        window:
-            id "window"
-            background Frame("#0d0d1aee", 8, 8)
+    ## Canonical Ren'Py say screen — `window id="window"` and
+    ## `text what id="what"` ALWAYS present at the same screen-root
+    ## location. The previous `if not renpy.get_screen("choice"):`
+    ## conditional wrapping changed the widget tree shape based on
+    ## runtime state, which appeared to corrupt Ren'Py's transient-
+    ## layer bookkeeping under modal call_screen interactions (gym →
+    ## card-offer → pause crash with "ui.interact called with non-
+    ## empty widget/layer stack").
+    ##
+    ## The conditional was originally added to hide the say-window
+    ## while a menu's choice screen was up. With this revert, the
+    ## dialogue window will visually overlap menu choices unless an
+    ## explicit `window hide` runs before each `menu:` statement.
+    ## That trade-off is acceptable to recover crash-free play.
+    window:
+        id "window"
+        background Frame("#0d0d1aee", 8, 8)
 
-            vbox:
-                spacing 8
+        vbox:
+            spacing 8
 
-                if who is not None:
-                    window:
-                        id "namebox"
-                        style "namebox"
-                        text who id "who"
+            if who is not None:
+                window:
+                    id "namebox"
+                    style "namebox"
+                    text who id "who"
 
-                text what id "what"
-
-    ## NOTE: `add SideImage() xalign 0.0 yalign 1.0` was removed as the
-    ## first step of debugging the recurring "ui.interact called with
-    ## non-empty widget/layer stack" crash on the gym → card-offer →
-    ## pause flow. None of our characters currently define a side
-    ## image (characters.rpy: jb / colonel / martin / narrator are all
-    ## bare `Character(...)` calls), so SideImage() always returned
-    ## Null() — the visual loss is zero. If side images are added to
-    ## characters later, restore the line AND verify the crash didn't
-    ## return.
+            text what id "what"
 
 
 ## Make the namebox available for styling through the Character object.
