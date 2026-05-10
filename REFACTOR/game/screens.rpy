@@ -1407,6 +1407,10 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
         _co_name    = card.get("name", "?")
         _co_type    = card.get("type", "")
         _co_rarity  = card.get("rarity", "")
+        ## Pre-compute stat-line list at screen scope so the conditional
+        ## vbox below doesn't need an inline `python:` block (which would
+        ## imbalance Ren'Py's screen widget stack on render).
+        _stat_lines = [s.strip() for s in pass_stats_text.split(",") if s.strip()] if pass_stats_text else []
         _co_cost    = card.get("cost", 0)
         _co_flavor  = card.get("flavor", "")
         _co_color_label = card.get("color", "")
@@ -1602,14 +1606,9 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
 
                 null height 6
 
-                if pass_stats_text:
-                    ## Split the comma-joined reward string into one line per
-                    ## delta so the stats are scannable instead of mashed into
-                    ## one paragraph (playtest screenshot showed wrapped text
-                    ## like "- 35,000 CZK, [BOOTCAMP BUFF ACTIVATED] +5
-                    ## Coding/night, +25 CODING" was unreadable).
-                    python:
-                        _stat_lines = [s.strip() for s in pass_stats_text.split(",") if s.strip()]
+                if _stat_lines:
+                    ## One line per delta — scannable instead of one wrapped
+                    ## paragraph. (Splitting precomputed at screen scope.)
                     vbox:
                         spacing 6
                         xalign 0.5
