@@ -490,6 +490,7 @@ label activity_gym_heavy:
         stats.increment_stats_pcr_hatred(-30)
         _heavy_outcome = "- {:,} CZK, -30 PCR HATRED, +1 SOMA".format(_heavy_cost)
 
+    window hide
     show screen outcome_panel(_heavy_outcome)
     pause
     hide screen outcome_panel
@@ -526,6 +527,7 @@ label activity_recovery:
         stats.increment_stats_pcr_hatred(-30)
         _recovery_outcome = "- {:,} CZK, -30 PCR HATRED".format(_recovery_cost)
 
+    window hide
     show screen outcome_panel(_recovery_outcome)
     pause
     hide screen outcome_panel
@@ -782,6 +784,7 @@ label coding_work_for_money:
             activity_selected = True
 
     "You bill out a day's work. [_tier_name] — [_tier_info['label']]."
+    window hide
     show screen outcome_panel("+ {} CZK".format(_earned))
     pause
     hide screen outcome_panel
@@ -958,6 +961,7 @@ label activity_night_shift:
             "The city is different after midnight — quieter, stranger, more honest."
             "You check your watch every hour."
             "[_ns_bonus]"
+            window hide
             show screen outcome_panel("+3,000 CZK, +15 PCR HATRED.{}".format(_ns_bonus))
             pause
             hide screen outcome_panel
@@ -1016,8 +1020,6 @@ label do_end_day:
             store.gym_streak = 0
         store.gym_day = False
 
-    "Beginning DAY [day_cycle.current_day]..."
-
     python:
         # Check loss conditions after passives
         if stats.pcr_hatred >= 100:
@@ -1052,6 +1054,7 @@ label salary_day:
             _sal_text = "Your bank just sent you a notification — it's salary day.\nIt has become obvious to everyone that you hate this job. The higher-ups decided to 'motivate' you with a monetary punishment."
 
     "SALARY DAY — [_sal_text]"
+    window hide
     show screen outcome_panel("+ {} CZK".format(_sal))
     pause
     hide screen outcome_panel
@@ -1187,6 +1190,7 @@ label _apply_nootropic_tier:
             _outcome_str += "  [TOLERANCE — reduced effect]"
 
     "[_t['flavor']]"
+    window hide
     show screen outcome_panel(_outcome_str)
     pause
     hide screen outcome_panel
@@ -1354,6 +1358,7 @@ label cold_read_observe:
         stats.increment_stats_pcr_hatred(-20)
         _observe_outcome = "-20 PCR HATRED, +1 PROFILE [{}] (deep)".format(_target.get("name", "?"))
 
+    window hide
     show screen outcome_panel(_observe_outcome)
     pause
     hide screen outcome_panel
@@ -1397,6 +1402,7 @@ label crisis_event_bodybuilder:
             "You drive home. The rage is gone."
             "What's left underneath it is quieter. And more honest."
             "Your body was trying to tell you something. It's been trying for weeks."
+            window hide
             show screen outcome_panel("-2,000 CZK, -20 PCR HATRED [BODYBUILDER CRISIS: you faced it].")
             pause
             hide screen outcome_panel
@@ -1410,6 +1416,7 @@ label crisis_event_bodybuilder:
             "The anger has burned itself hollow."
             "Nothing is resolved. But nothing escalated either."
             "You exist in a grey zone between dangerous and fine."
+            window hide
             show screen outcome_panel("+5 PCR HATRED [BODYBUILDER CRISIS: unresolved].")
             pause
             hide screen outcome_panel
@@ -1448,6 +1455,7 @@ label crisis_event_dark_empath:
             "You are not broken. You are empty. There is a difference."
             "You spend 20 minutes doing nothing. Deliberately."
             "When you return to the report, you read it in 4 minutes. Everything is sharper."
+            window hide
             show screen outcome_panel("-15 PCR HATRED, +3 CODING [DARK EMPATH CRISIS: emptiness as clarity].")
             pause
             hide screen outcome_panel
@@ -1461,6 +1469,7 @@ label crisis_event_dark_empath:
             "The void persists underneath, but it's insulated now."
             "This is fine. This is sustainable. You've been here before."
             "You haven't."
+            window hide
             show screen outcome_panel("+3 PCR HATRED [DARK EMPATH CRISIS: functional but unresolved].")
             pause
             hide screen outcome_panel
@@ -1496,6 +1505,7 @@ label crisis_event_biohacker:
             "You wake up at 6 AM and your hands are steady."
             "Your baseline is restored. The system can be pushed again."
             "But now you know where the red line is."
+            window hide
             show screen outcome_panel("-25 PCR HATRED, -5 CODING (rest tax) [BIOHACKER CRISIS: hard reset successful].")
             pause
             hide screen outcome_panel
@@ -1514,6 +1524,7 @@ label crisis_event_biohacker:
                     _bh_outcome = "+12 PCR HATRED, -3 CODING [BIOHACKER CRISIS: cost without correction]."
                     _bh_text = "You log everything and keep pushing.\nAt 4 PM your vision goes grey at the edges.\nYou sit on the bathroom floor for 15 minutes.\nA colleague knocks on the door: 'JB, you okay in there?'\nThe data didn't save you this time. But it's still data."
             "[_bh_text]"
+            window hide
             show screen outcome_panel(_bh_outcome)
             pause
             hide screen outcome_panel

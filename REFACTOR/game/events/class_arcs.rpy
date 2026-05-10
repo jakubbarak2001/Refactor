@@ -39,6 +39,7 @@ label re_bb_trainer_intro:
                 stats.increment_stats_pcr_hatred(-10)
             "He nods. 'Tomorrow. 5 AM. Don't be late.'"
             "You haven't trained in front of someone who actually believes in you in three years."
+            window hide
             show screen outcome_panel("+1 SOMA, -10 PCR HATRED  ·  [Vladek's programme opened]")
             pause
             hide screen outcome_panel
@@ -48,6 +49,7 @@ label re_bb_trainer_intro:
                 store.bb_arc_stage = -1
             "He shrugs. 'Suit yourself. The body keeps score either way.'"
             "He doesn't make the offer twice."
+            window hide
             show screen outcome_panel("ARC CLOSED. Vladek won't ask again.")
             pause
             hide screen outcome_panel
@@ -76,6 +78,7 @@ label re_bb_competition_offer:
                 add_soma(2)
             "You wire the entry. Vladek answers in three minutes: 'Good. Now we work.'"
             "Three weeks of doubled volume. Your back hurts in places you didn't know existed."
+            window hide
             show screen outcome_panel("-{} CZK, +2 SOMA  ·  [Competition day approaching]".format(_bb_entry_cost))
             pause
             hide screen outcome_panel
@@ -84,6 +87,7 @@ label re_bb_competition_offer:
             python:
                 store.bb_arc_stage = -1
             "He doesn't argue. He doesn't call again."
+            window hide
             show screen outcome_panel("ARC CLOSED. Vladek won't ask twice.")
             pause
             hide screen outcome_panel
@@ -129,6 +133,7 @@ label re_bb_competition_day:
                     _bb_msg = "Top half but no podium. 2,000 CZK consolation. Vladek nods. 'Next year.'"
                     _bb_out = "+2,000 CZK, +15 PCR HATRED. (Honourable. Not enough.)"
             "[_bb_msg]"
+            window hide
             show screen outcome_panel(_bb_out)
             pause
             hide screen outcome_panel
@@ -145,6 +150,7 @@ label re_bb_competition_day:
                 store.bb_arc_stage = 3
             "You skip the deadlift ladder's top weight. Bottom-half finish. The body intact."
             "Vladek says nothing on the drive home. The silence is heavier than a barbell."
+            window hide
             show screen outcome_panel("+5,000 CZK, -5 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -180,6 +186,7 @@ label re_de_kovar_eyes:
             "Three withdrawals today. Same time pattern as last Tuesday. You file the rhythm."
             "He looks up. He sees you not-quite-watching. His drumming stops."
             "The room is quieter than it should be."
+            window hide
             show screen outcome_panel("+5 CODING SKILL, [Kovář profile +1]  ·  [Engagement opened]")
             pause
             hide screen outcome_panel
@@ -190,6 +197,7 @@ label re_de_kovar_eyes:
             "You go back to your screen."
             "Some patterns don't need confirming. Knowing isn't the same as having."
             "You won't notice him again. Even when he wants you to."
+            window hide
             show screen outcome_panel("ARC CLOSED.")
             pause
             hide screen outcome_panel
@@ -219,6 +227,7 @@ label re_de_kovar_warning:
             "He lays it out. He wants you to delete a flagged report. In exchange he buries the bouncer file forever."
             "You don't say yes. You don't say no. You let him talk."
             "His foot taps three times. He's nervous. He NEEDS this."
+            window hide
             show screen outcome_panel("-5 PCR HATRED, [Kovář profile +2]  ·  [Final stage incoming]")
             pause
             hide screen outcome_panel
@@ -229,6 +238,7 @@ label re_de_kovar_warning:
                 stats.increment_stats_pcr_hatred(15)
             "He blinks. He didn't expect that move. You leave him in the room."
             "Three days later you find his file on your desk. He never escalates it. He never speaks to you again."
+            window hide
             show screen outcome_panel("+15 PCR HATRED. (Arc closed. Kovář is no longer a vector.)")
             pause
             hide screen outcome_panel
@@ -258,6 +268,7 @@ label re_de_kovar_choice:
             "You delete it. Your hands don't shake. That's the part that scares you most."
             "The 25,000 CZK arrives the next day in an envelope on your driver's seat."
             "You don't sleep for three nights."
+            window hide
             show screen outcome_panel("+25,000 CZK, +20 PCR HATRED. [You're complicit now]")
             pause
             hide screen outcome_panel
@@ -272,6 +283,7 @@ label re_de_kovar_choice:
             "You email the link to two journalists and one anti-trafficking NGO."
             "Two weeks later Kovář is suspended pending criminal investigation."
             "You never see the news at the station. You don't need to."
+            window hide
             show screen outcome_panel("-15 PCR HATRED, +30 CODING. [KOVÁŘ EXPOSED]")
             pause
             hide screen outcome_panel
@@ -290,6 +302,7 @@ label re_de_kovar_choice:
             "'You don't take another kickback. Ever. Or this goes to the press in 24 hours.'"
             "His face goes white. He nods once. He gets in his car."
             "You have power now. Power has weight."
+            window hide
             show screen outcome_panel("-5 PCR HATRED, +10 CODING. [KOVÁŘ LEVERAGED — quiet ending]")
             pause
             hide screen outcome_panel
@@ -325,6 +338,7 @@ label re_bh_telegram_meet:
             "He slides a small envelope across. 'A starter sample. Real CRL-40,940. The kind your government cannot legally buy.'"
             "'Take it. We talk again when I am back in three weeks.'"
             "He leaves. He pays for both coffees in cash."
+            window hide
             show screen outcome_panel("+5 CODING. [Supplier line opened — sample on you]")
             pause
             hide screen outcome_panel
@@ -334,6 +348,7 @@ label re_bh_telegram_meet:
                 store.bh_arc_stage = -1
             "You delete the conversation. Then the app."
             "You go back to T4 peptides. They will have to be enough."
+            window hide
             show screen outcome_panel("ARC CLOSED. (You're not built for the gray market.)")
             pause
             hide screen outcome_panel
@@ -365,6 +380,7 @@ label re_bh_sketchy_lab:
             "'Log everything. HRV, sleep, mood. Send weekly.'"
             "You leave with a glass cylinder of unknown chemistry in your pocket."
             "Some doors only open once."
+            window hide
             show screen outcome_panel("+15 CODING, +10 PCR HATRED. [CRL-40,940 vial in your bag]")
             pause
             hide screen outcome_panel
@@ -379,6 +395,7 @@ label re_bh_sketchy_lab:
             "'This is the right answer.'"
             "Three hours of organic chemistry. The kind universities don't teach because the precursors are scheduled."
             "You leave with notes. Not compounds. Notes."
+            window hide
             show screen outcome_panel("+25 CODING. [Synthesis notes — no contraband on you]")
             pause
             hide screen outcome_panel
@@ -389,6 +406,7 @@ label re_bh_sketchy_lab:
                 stats.increment_stats_pcr_hatred(-5)
             "He doesn't argue. He doesn't follow. The door closes behind you."
             "You drive home with cold hands and clear eyes."
+            window hide
             show screen outcome_panel("-5 PCR HATRED. (You drew the line. Some lines hold.)")
             pause
             hide screen outcome_panel
@@ -421,6 +439,7 @@ label re_bh_test_subject:
             "Day 14: blood draw clean. He calls. 'You are responding well. Continue.'"
             "Day 21: you cannot remember what your baseline felt like."
             "Some optimisations are not reversible."
+            window hide
             show screen outcome_panel("+30 CODING, +25 PCR HATRED. [You're dependent — withdrawal in the fight]")
             pause
             hide screen outcome_panel
@@ -436,6 +455,7 @@ label re_bh_test_subject:
                 store._bh_refused_trial = True
             "He nods. 'Understood. The synthesis notes are yours regardless. Don't be a stranger.'"
             "You feel the weight of the decision lift, then settle. Different weight. Familiar shape."
+            window hide
             show screen outcome_panel("+10 CODING. (You bought your nervous system back.)")
             pause
             hide screen outcome_panel
@@ -456,6 +476,7 @@ label re_bh_test_subject:
                     _bh_msg = "He stares at you for ten seconds. Then he stands. 'You misunderstand who I am. Goodbye, JB.'"
                     _bh_out = "+15 PCR HATRED. (Arc closed. He doesn't reply again.)"
             "[_bh_msg]"
+            window hide
             show screen outcome_panel(_bh_out)
             pause
             hide screen outcome_panel

@@ -83,6 +83,7 @@ label opp_laptop_deal:
             "'The 'E' key sticks sometimes,' he says. 'Just hit it harder.'"
             "You don't care. You have a machine now. Tonight, you code."
 
+            window hide
             show screen outcome_panel("- {} CZK. [LAPTOP BUFF] +2 Coding/night for 5 days.".format(_lap_cost))
             pause
             hide screen outcome_panel
@@ -120,6 +121,7 @@ label opp_free_webinar:
             "The instructor types faster than you can think. But by the end, you have a working API that returns 'Hello World' in JSON."
             "It's not much. But you built it. With your hands. On purpose."
 
+            window hide
             show screen outcome_panel("+8 CODING SKILL. Your evening is gone but your brain is fuller.")
             pause
             hide screen outcome_panel
@@ -155,6 +157,7 @@ label opp_overtime_slip:
             "At the end he hands you the cash in an envelope. No receipt. No record."
             "This is how the system keeps you. One envelope at a time."
 
+            window hide
             show screen outcome_panel("+5,000 CZK, +10 PCR HATRED. Another day sold.")
             pause
             hide screen outcome_panel
@@ -199,6 +202,7 @@ label opp_old_friend:
             "You laugh. Actually laugh. The sound surprises you."
             "You pick up the tab. Worth every crown."
 
+            window hide
             show screen outcome_panel("- {} CZK, -15 PCR HATRED. You remembered what normal feels like.".format(_beers_cost))
             pause
             hide screen outcome_panel
@@ -242,6 +246,7 @@ label opp_garage_sale:
             "You read it during lunch. You read it during the afternoon briefing."
             "By the end of shift you've written a script that renames files in bulk. It's useless. It's beautiful."
 
+            window hide
             show screen outcome_panel("- {} CZK, +5 CODING SKILL. The margins taught you more than the text.".format(_book_cost))
             pause
             hide screen outcome_panel
@@ -282,6 +287,7 @@ label opp_the_snitch:
             "He nods. He walks away. You pour your coffee."
             "The information sits in your head like a loaded gun in a drawer. You hope you never need it."
 
+            window hide
             show screen outcome_panel("[INFO STORED] You know something about Lt. Kovář. [CARD] SNITCH INFO acquired.")
             pause
             hide screen outcome_panel
@@ -320,6 +326,7 @@ label opp_night_run:
             "By kilometer five, there's nothing left but the rhythm."
             "You come home soaked in sweat. You sleep for four hours straight. No dreams."
 
+            window hide
             show screen outcome_panel("-8 PCR HATRED. [WARNING] You'll feel the soreness tomorrow (+3 Hatred).")
             pause
             hide screen outcome_panel
@@ -363,6 +370,7 @@ label opp_freelance_ping:
                 "'Clean code,' he writes. 'I'll ping you again.'"
                 "3,000 CZK for two hours of work you actually enjoyed. This is what the other side looks like."
 
+                window hide
                 show screen outcome_panel("+3,000 CZK, +3 CODING SKILL. Your first freelance client.")
                 pause
                 hide screen outcome_panel
@@ -373,6 +381,7 @@ label opp_freelance_ping:
                 "An hour later: 'Sorry man, I found someone else. No hard feelings.'"
                 "There are hard feelings."
 
+                window hide
                 show screen outcome_panel("+5 PCR HATRED. You weren't ready. That stings more than the lost money.")
                 pause
                 hide screen outcome_panel

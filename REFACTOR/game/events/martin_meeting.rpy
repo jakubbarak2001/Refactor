@@ -93,6 +93,7 @@ label martin_phase1_preparation:
                     _p1outcome = "NO CHANGE (Insufficient funds)."
 
             "[_p1text]"
+            window hide
             show screen outcome_panel(_p1outcome)
             pause
             hide screen outcome_panel
@@ -109,6 +110,7 @@ label martin_phase1_preparation:
                     _p1outcome = "NO CHANGE (Insufficient funds)."
 
             "[_p1text]"
+            window hide
             show screen outcome_panel(_p1outcome)
             pause
             hide screen outcome_panel
@@ -117,6 +119,7 @@ label martin_phase1_preparation:
             python:
                 martin_affection -= 1
             "You go in the hoodie. Martin will notice."
+            window hide
             show screen outcome_panel("-1 AFFECTION.")
             pause
             hide screen outcome_panel
@@ -126,6 +129,7 @@ label martin_phase1_preparation:
                 martin_affection += 1
             "You hit the gym before lunch. Martin clocks the frame the second you walk in."
             martin "'JB... you look different. Good different.'"
+            window hide
             show screen outcome_panel("+1 AFFECTION [BODYBUILDER].")
             pause
             hide screen outcome_panel
@@ -134,6 +138,7 @@ label martin_phase1_preparation:
             python:
                 martin_affection += 1
             "Pattern-recognition sharp. Anxiety metabolized into clarity. He notices the focus."
+            window hide
             show screen outcome_panel("+1 AFFECTION [BIOHACKER].")
             pause
             hide screen outcome_panel
@@ -168,6 +173,7 @@ label martin_phase2_meeting:
             python:
                 stats.increment_stats_pcr_hatred(-50)
             "You dump it all. Printers, bodies, admin. Feels good to say it out loud."
+            window hide
             show screen outcome_panel("-50 HATRED.")
             pause
             hide screen outcome_panel
@@ -176,6 +182,7 @@ label martin_phase2_meeting:
             python:
                 stats.increment_stats_coding_skill(25)
             "You walk him through the automation script. Try to sound like a developer."
+            window hide
             show screen outcome_panel("+25 CODING.")
             pause
             hide screen outcome_panel
@@ -191,8 +198,10 @@ label martin_phase2_meeting:
             "He talks about freedom. Eight hours of sleep. Respect. He notices you actually listened."
             if _p2_de_bonus:
                 "You catch the things he's not saying. You ask those instead."
+                window hide
                 show screen outcome_panel("+1 AFFECTION  ·  +1 [DARK EMPATH].")
             else:
+                window hide
                 show screen outcome_panel("+1 AFFECTION.")
             pause
             hide screen outcome_panel
@@ -226,6 +235,7 @@ label martin_phase3_bomb:
             stats.increment_stats_pcr_hatred(15)
             _bomb_outcome = "FEAR: +15 HATRED (now it's real)."
 
+    window hide
     show screen outcome_panel(_bomb_outcome)
     pause
     hide screen outcome_panel
@@ -280,6 +290,7 @@ label martin_phase4_coding_check:
 
     "[_code_text]"
     jb "[_code_jb]"
+    window hide
     show screen outcome_panel(_code_outcome)
     pause
     hide screen outcome_panel
@@ -299,6 +310,7 @@ label martin_phase4_coding_check:
         martin "'I genuinely can't tell yet. But it's very you.'"
         python:
             martin_affection += 1
+        window hide
         show screen outcome_panel("+1 AFFECTION [BIOHACKER: T3+ compound protocol impresses Martin's analytical side].")
         pause
         hide screen outcome_panel
@@ -311,6 +323,7 @@ label martin_phase4_coding_check:
         "His expression softens. He leans forward slightly."
         python:
             martin_affection += 1
+        window hide
         show screen outcome_panel("+1 AFFECTION [DARK EMPATH: read Martin's real-time feedback and adapted].")
         pause
         hide screen outcome_panel
@@ -361,6 +374,7 @@ label martin_phase5_money_check:
 
     "[_mon_text]"
     martin "[_mon_martin]"
+    window hide
     show screen outcome_panel(_mon_outcome)
     pause
     hide screen outcome_panel
@@ -390,6 +404,7 @@ label martin_phase6_hatred_check:
                 martin_affection += 2
             jb "'I hate them so much it hurts. Every second in that uniform is torture.'"
             martin "'Good. Use that anger.'"
+            window hide
             show screen outcome_panel("+2 AFFECTION, +25 HATRED (fuel for the fire).")
             pause
             hide screen outcome_panel
@@ -400,6 +415,7 @@ label martin_phase6_hatred_check:
                 martin_affection += 1
             jb "'I hate the politics, the lies. I need out.'"
             martin "'That's the spirit.'"
+            window hide
             show screen outcome_panel("+1 AFFECTION, +10 HATRED.")
             pause
             hide screen outcome_panel
@@ -407,6 +423,7 @@ label martin_phase6_hatred_check:
         "Neutral. (no change)":
             jb "'It's business. We just aren't a good fit.'"
             martin "'Diplomatic. Boring.'"
+            window hide
             show screen outcome_panel("NEUTRAL.")
             pause
             hide screen outcome_panel
@@ -417,6 +434,7 @@ label martin_phase6_hatred_check:
                 martin_affection -= 1
             jb "'They gave me a chance. Maybe I'm just weak.'"
             martin "'Don't blame yourself for their toxicity.'"
+            window hide
             show screen outcome_panel("-1 AFFECTION, -25 HATRED.")
             pause
             hide screen outcome_panel
@@ -427,6 +445,7 @@ label martin_phase6_hatred_check:
                 martin_affection -= 2
             jb "'The job is stable. Hierarchy matters. The pension after 15 years is really good!'"
             martin "'...Stockholm Syndrome much? What happened to you?'"
+            window hide
             show screen outcome_panel("-2 AFFECTION, -50 HATRED.")
             pause
             hide screen outcome_panel
@@ -453,6 +472,7 @@ label martin_phase7_timing:
                 stats.colonel_day = 25
             jb "'Tomorrow. I'm not waiting.'"
             martin "'Strike while it's hot.'"
+            window hide
             show screen outcome_panel("+1 AFFECTION, FINAL BOSS DAY 25.")
             pause
             hide screen outcome_panel
@@ -462,6 +482,7 @@ label martin_phase7_timing:
                 stats.colonel_day = 30
             jb "'End of the month. I need to be ready.'"
             martin "'Smart. Save. Code. Prepare.'"
+            window hide
             show screen outcome_panel("FINAL BOSS DAY 30.")
             pause
             hide screen outcome_panel
@@ -509,6 +530,7 @@ label martin_phase_dark_question:
                 stats.increment_stats_pcr_hatred(-5)
             jb "'That I leave and discover I'm not smart enough. That the Colonel was right.'"
             martin "'Fear of failure means you actually want it.'"
+            window hide
             show screen outcome_panel("+1 AFFECTION, -5 HATRED.")
             pause
             hide screen outcome_panel
@@ -523,8 +545,10 @@ label martin_phase_dark_question:
             jb "'Without the badge I'm just some guy. Thirty-something. No degree.'"
             martin "'Bro. You just described me three years ago. The badge was never your identity. It was your cage.'"
             if _p65_de_bonus:
+                window hide
                 show screen outcome_panel("+2 AFFECTION  ·  +1 [DARK EMPATH], -10 HATRED.")
             else:
+                window hide
                 show screen outcome_panel("+2 AFFECTION, -10 HATRED.")
             pause
             hide screen outcome_panel
@@ -536,6 +560,7 @@ label martin_phase_dark_question:
             jb "'Nothing. Made my peace with it.'"
             martin "'Sure you have.'"
             "He doesn't believe you. Something pulls back behind his eyes."
+            window hide
             show screen outcome_panel("-2 AFFECTION, +10 HATRED.")
             pause
             hide screen outcome_panel
@@ -547,6 +572,7 @@ label martin_phase_dark_question:
             jb "'He'll ruin me. Make calls. Companies will Google me and find an official complaint.'"
             martin "'JB. He tried that with me. Let me tell you what happened to those calls.'"
             "He leans in. Two sentences. The fear drains out of you."
+            window hide
             show screen outcome_panel("+2 AFFECTION, -15 HATRED.")
             pause
             hide screen outcome_panel
@@ -575,6 +601,7 @@ label martin_phase_the_price:
                 martin_affection += 1
             jb "'The ones who matter will understand. The rest aren't the ones who matter.'"
             martin "'Good answer.'"
+            window hide
             show screen outcome_panel("+1 AFFECTION.")
             pause
             hide screen outcome_panel
@@ -585,6 +612,7 @@ label martin_phase_the_price:
                 stats.increment_stats_pcr_hatred(-5)
             jb "'It's going to hurt. Known some of these guys for years.'"
             martin "'Then do it anyway while it hurts. That's what courage looks like.'"
+            window hide
             show screen outcome_panel("+1 AFFECTION, -5 HATRED.")
             pause
             hide screen outcome_panel
@@ -595,6 +623,7 @@ label martin_phase_the_price:
                 stats.increment_stats_pcr_hatred(-20)
             jb "'A company's interested. I passed the technical screen.'"
             martin "'JB, you madman. You're already out — you just haven't told yourself yet.'"
+            window hide
             show screen outcome_panel("+2 AFFECTION, -20 HATRED.")
             pause
             hide screen outcome_panel

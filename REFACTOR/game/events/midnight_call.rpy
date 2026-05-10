@@ -117,6 +117,7 @@ label midnight_phase1:
             colonel_voice "'JB. I've been doing this for 32 years.'"
             colonel_voice "'Don't insult either of us.'"
             "You say nothing."
+            window hide
             show screen outcome_panel("+10 PCR HATRED (You denied it. He saw through it. Obviously).")
             pause
             hide screen outcome_panel
@@ -129,6 +130,7 @@ label midnight_phase1:
             "A long pause."
             colonel_voice "'Finally. Honest.'"
             colonel_voice "'See, I can work with {stshl=honest}, JB.'"
+            window hide
             show screen outcome_panel("-5 PCR HATRED (Dignity in admitting it).")
             pause
             hide screen outcome_panel
@@ -141,6 +143,7 @@ label midnight_phase1:
             "He doesn't push."
             "Five seconds. Ten seconds. Fifteen."
             colonel_voice "'I'll take that as a yes.'"
+            window hide
             show screen outcome_panel("+5 PCR HATRED (Silence is still an answer).")
             pause
             hide screen outcome_panel
@@ -177,6 +180,7 @@ label midnight_phase2:
             colonel_voice "'Deputy Chief of Department B. Starting in six months. Salary increase of 40%%. And I bury the resignation draft.'"
             colonel_voice "'Nobody ever knows this conversation happened.'"
             "You swallow."
+            window hide
             show screen outcome_panel("Colonel offers promotion. LISTEN FURTHER to understand the full price.")
             pause
             hide screen outcome_panel
@@ -192,6 +196,7 @@ label midnight_phase2:
             jb "'It's about who I want to be.'"
             "Long pause."
             colonel_voice "'...I see.'"
+            window hide
             show screen outcome_panel("-10 PCR HATRED (You held your line. That matters).")
             pause
             hide screen outcome_panel
@@ -230,6 +235,7 @@ label midnight_phase3:
             colonel_voice "'...that's fair.'"
             colonel_voice "'That is a fair thing to say.'"
             "You weren't expecting that."
+            window hide
             show screen outcome_panel("+15 PCR HATRED (The truth has a cost. Say it anyway).")
             pause
             hide screen outcome_panel
@@ -243,6 +249,7 @@ label midnight_phase3:
             "Another pause. Longer this time."
             colonel_voice "'That's... a generous answer.'"
             "He sounds, for exactly one second, genuinely touched."
+            window hide
             show screen outcome_panel("-15 PCR HATRED (Clarity without cruelty).")
             pause
             hide screen outcome_panel
@@ -259,6 +266,7 @@ label midnight_phase3:
             "He listens. He doesn't interrupt."
             "You feel heard for the first time in years."
             "It's the strangest thing."
+            window hide
             show screen outcome_panel("-5 PCR HATRED, +2 CODING SKILL (Articulating your thoughts is its own kind of skill).")
             pause
             hide screen outcome_panel
@@ -294,6 +302,7 @@ label midnight_phase4:
             jb "'You called me to intimidate me. At 2AM.'"
             "The distinction is doing a lot of work."
             "But you named it. And that changes the power dynamic permanently."
+            window hide
             show screen outcome_panel("-10 PCR HATRED (You named the manipulation. That's not nothing). [Leverage on the Colonel — new option later in the call]")
             pause
             hide screen outcome_panel
@@ -309,6 +318,7 @@ label midnight_phase4:
             "Nothing."
             colonel_voice "'...JB, are you still there?'"
             jb "'I'm here, Colonel. I'm just thinking.'"
+            window hide
             show screen outcome_panel("+5 PCR HATRED (Absorbing threats costs you. But denying reactions takes practice).")
             pause
             hide screen outcome_panel
@@ -324,6 +334,7 @@ label midnight_phase4:
             "A very long pause."
             colonel_voice "'...I see.'"
             colonel_voice "'Well. This is an interesting development.'"
+            window hide
             show screen outcome_panel("-20 PCR HATRED (Mutual assured documentation). [Leverage on the Colonel — new option later in the call]")
             pause
             hide screen outcome_panel
@@ -372,6 +383,7 @@ label midnight_phase5:
             "The line goes dead."
             "You stare at the phone."
             "Something shifted tonight. You can't explain it. But something shifted."
+            window hide
             show screen outcome_panel("-20 PCR HATRED (You saw him as a person. That costs something too).")
             pause
             hide screen outcome_panel
@@ -386,6 +398,7 @@ label midnight_phase5:
             "You have never heard him apologize before."
             "Not once. Not ever."
             "You aren't sure what to say."
+            window hide
             show screen outcome_panel("+5 PCR HATRED (But he apologized. Write that down. It won't happen again).")
             pause
             hide screen outcome_panel
@@ -415,6 +428,7 @@ label midnight_phase6:
             "You sit in the dark for a while."
             "You consider it. You already know the answer."
             "But agreeing to think cost you more than it was worth."
+            window hide
             show screen outcome_panel("+10 PCR HATRED (You gave ground you didn't need to give).")
             pause
             hide screen outcome_panel
@@ -432,6 +446,7 @@ label midnight_phase6:
             "You put the phone down."
             "It's 02:54 AM."
             "You won't sleep tonight. But you don't feel tired."
+            window hide
             show screen outcome_panel("-15 PCR HATRED (Said it out loud. To HIM. That is a different kind of clarity).")
             pause
             hide screen outcome_panel
@@ -449,6 +464,7 @@ label midnight_phase6:
             "He hangs up."
             "Immediately."
             "That's as close to 'you win' as he'll ever say."
+            window hide
             show screen outcome_panel("-25 PCR HATRED. [Stoic Anchor card unlocked]")
             pause 2.5
             hide screen outcome_panel
@@ -463,6 +479,7 @@ label midnight_phase6:
     python:
         stats.increment_stats_coding_skill(5)
 
+    window hide
     show screen outcome_panel("+5 CODING SKILL (Midnight clarity session).")
     pause
     hide screen outcome_panel

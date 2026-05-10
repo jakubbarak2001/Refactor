@@ -42,8 +42,10 @@ label re_israeli_developer:
             if stats.player_class == "biohacker":
                 "Then, quieter: 'I notice things. You optimise everything — including yourself.'"
                 "He slips you a Telegram handle. CRL-40,940 source. You pocket it."
+                window hide
                 show screen outcome_panel("+30 CODING  |  [CRL-40,940 SOURCE UNLOCKED]  [BIOHACKER]")
             else:
+                window hide
                 show screen outcome_panel("+30 CODING SKILL.")
             pause
             hide screen outcome_panel
@@ -52,6 +54,7 @@ label re_israeli_developer:
             $ stats.increment_stats_coding_skill(10)
             "He shrugs. Gives you sixty seconds on abstraction layers anyway."
             "You learn something. The fear chokes the rest."
+            window hide
             show screen outcome_panel("+10 CODING SKILL.")
             pause
             hide screen outcome_panel
@@ -81,6 +84,7 @@ label re_nightmare_wolf:
         "Shake it off. [[+5 Hatred]":
             $ stats.increment_stats_pcr_hatred(5)
             "You don't forget."
+            window hide
             show screen outcome_panel("+5 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -103,6 +107,7 @@ label re_nightmare_wolf:
                         _nw_msg = "You stare at the ceiling and the dream gets worse, not better."
                         _nw_out = "+10 PCR HATRED."
             "[_nw_msg]"
+            window hide
             show screen outcome_panel(_nw_out)
             pause
             hide screen outcome_panel
@@ -142,15 +147,18 @@ label re_civilian_small_talk:
                         _ct_amt = 5
             if _ct_amt < 0:
                 "She tells you about her son abroad. The dog is from a shelter. You leave the corner lighter."
+                window hide
                 show screen outcome_panel("{} PCR HATRED{}".format(_ct_amt, _ct_tag))
             else:
                 "You botch the rhythm of the conversation. She walks off. You feel worse than before."
+                window hide
                 show screen outcome_panel("+{} PCR HATRED (awkward).".format(_ct_amt))
             pause
             hide screen outcome_panel
 
         "Professional nod. [[no change]":
             "You move on. So does she."
+            window hide
             show screen outcome_panel("NO CHANGE.")
             pause
             hide screen outcome_panel
@@ -179,6 +187,7 @@ label re_admin_mistake:
                 stats.increment_stats_coding_skill(1)
             "Forty-five minutes of database forensics. You find the bug. You file a quiet correction."
             "Your name comes off the doc. Nobody else finds out."
+            window hide
             show screen outcome_panel("-5 PCR HATRED, +1 CODING SKILL.")
             pause
             hide screen outcome_panel
@@ -187,6 +196,7 @@ label re_admin_mistake:
             $ stats.increment_stats_pcr_hatred(10)
             "Internal Review opens an inquiry. Three colleagues are interviewed."
             "By Friday everyone knows you ratted. The atmosphere does not improve."
+            window hide
             show screen outcome_panel("+10 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -219,12 +229,14 @@ label re_overtime_offer:
                     _ot_hat = 15
                     _ot_msg = "Sixteen hours straight. By hour twelve you stop being a person and start being a function."
             "[_ot_msg]"
+            window hide
             show screen outcome_panel("+6,000 CZK, +{} PCR HATRED.".format(_ot_hat))
             pause
             hide screen outcome_panel
 
         "Pass. [[no change]":
             "He blinks. Nobody says no. He shrugs and walks off."
+            window hide
             show screen outcome_panel("NO CHANGE.")
             pause
             hide screen outcome_panel
@@ -253,6 +265,7 @@ label re_birthday_gift:
                 stats.increment_stats_pcr_hatred(15)
             "He squeezes your shoulder. 'You're a good man, JB.'"
             "You're not sure what 'good' means anymore."
+            window hide
             show screen outcome_panel("+5,000 CZK, +15 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -261,6 +274,7 @@ label re_birthday_gift:
             $ stats.increment_stats_pcr_hatred(-5)
             "He looks at you for a long moment. Then nods. 'Fair enough.'"
             "Your spine straightens slightly."
+            window hide
             show screen outcome_panel("-5 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -288,6 +302,7 @@ label re_corpse_in_care_home:
                 stats.increment_stats_pcr_hatred(15)
                 stats.increment_stats_coding_skill(1)
             "You document everything correctly. The paperwork is clean. You sleep poorly for three days."
+            window hide
             show screen outcome_panel("+15 PCR HATRED, +1 CODING SKILL (procedure muscle).")
             pause
             hide screen outcome_panel
@@ -302,6 +317,7 @@ label re_corpse_in_care_home:
                     _nt_extra = " [DARK EMPATH: read between the lines, +1 extra]"
             "She had a granddaughter. The handwriting is firm. She knew what she was doing."
             "You leave the room slower than you entered it."
+            window hide
             show screen outcome_panel("-10 PCR HATRED, +5 CODING SKILL{}.".format(_nt_extra))
             pause
             hide screen outcome_panel
@@ -336,6 +352,7 @@ label re_forgotten_usb:
                     _usb_msg = "A folder of badly-organized scripts and a corrupted Excel. You learn from the chaos."
                     _usb_out = "+10 CODING SKILL."
             "[_usb_msg]"
+            window hide
             show screen outcome_panel(_usb_out)
             pause
             hide screen outcome_panel
@@ -343,6 +360,7 @@ label re_forgotten_usb:
         "Turn it in. [[+5 Hatred]":
             $ stats.increment_stats_pcr_hatred(5)
             "Lieutenant Kovář takes it without making eye contact. You never see it again."
+            window hide
             show screen outcome_panel("+5 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -369,6 +387,7 @@ label re_turkish_fraud:
             $ stats.increment_stats_coding_skill(10)
             "An empty Airbnb. Three burner phones in a drawer. You run the IPs."
             "You find a fraud ring you can't dismantle alone — but you understand the topology now."
+            window hide
             show screen outcome_panel("+10 CODING SKILL (system mapping).")
             pause
             hide screen outcome_panel
@@ -376,6 +395,7 @@ label re_turkish_fraud:
         "Dismiss. [[+5 Hatred]":
             $ stats.increment_stats_pcr_hatred(5)
             "He leaves. He looks smaller than when he came in."
+            window hide
             show screen outcome_panel("+5 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -408,6 +428,7 @@ label re_printer_incident:
                     _pr_msg = "You break the front panel. The printer makes a sound it shouldn't. You owe IT 4,000 CZK."
                     _pr_out = "+15 PCR HATRED."
             "[_pr_msg]"
+            window hide
             show screen outcome_panel(_pr_out)
             pause
             hide screen outcome_panel
@@ -415,6 +436,7 @@ label re_printer_incident:
         "Debug it. [[+5 Coding]":
             $ stats.increment_stats_coding_skill(5)
             "You find the rolled paper. You release it. The printer respects you, briefly."
+            window hide
             show screen outcome_panel("+5 CODING SKILL.")
             pause
             hide screen outcome_panel
@@ -441,6 +463,7 @@ label re_citizen_czechoslovakia:
             $ stats.increment_stats_pcr_hatred(-10)
             "He talks for six minutes. Beer was 1.20 Kčs. The trams ran on time. His wife died in 2003."
             "You don't say much. He doesn't need you to."
+            window hide
             show screen outcome_panel("-10 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -448,6 +471,7 @@ label re_citizen_czechoslovakia:
         "Move him along. [[+10 Hatred]":
             $ stats.increment_stats_pcr_hatred(10)
             "He shuffles off. He doesn't look back."
+            window hide
             show screen outcome_panel("+10 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -480,6 +504,7 @@ label re_paperwork_overload:
                     _st_msg = "You dial in. The system breaks twice. Your back hurts. You finish at 3 AM."
                     _st_out = "+15 PCR HATRED."
             "[_st_msg]"
+            window hide
             show screen outcome_panel(_st_out)
             pause
             hide screen outcome_panel
@@ -489,6 +514,7 @@ label re_paperwork_overload:
                 stats.increment_stats_pcr_hatred(10)
                 stats.increment_stats_coding_skill(1)
             "You finish at 4 AM. You learn the schema by accident."
+            window hide
             show screen outcome_panel("+10 PCR HATRED, +1 CODING SKILL.")
             pause
             hide screen outcome_panel
@@ -514,6 +540,7 @@ label re_dispatch_blue_screen:
             $ stats.increment_stats_coding_skill(10)
             "You restart the service. You clear the lock file. You re-establish the database connection."
             "Dispatch is back online in eleven minutes. The unit chief looks at you for the first time in three years."
+            window hide
             show screen outcome_panel("+10 CODING SKILL.")
             pause
             hide screen outcome_panel
@@ -521,6 +548,7 @@ label re_dispatch_blue_screen:
         "Use the radio. [[-5 Hatred]":
             $ stats.increment_stats_pcr_hatred(-5)
             "Voice channel only, like the 90s. Things move slower. Nobody dies. You like it."
+            window hide
             show screen outcome_panel("-5 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -554,6 +582,7 @@ label re_tech_bro_speeding:
                     _tb_msg = "You bookmark him in your head. You'll Google the company later."
                     _tb_out = "+5 CODING SKILL (networking flag)."
             "[_tb_msg]"
+            window hide
             show screen outcome_panel(_tb_out)
             pause
             hide screen outcome_panel
@@ -561,6 +590,7 @@ label re_tech_bro_speeding:
         "Write the ticket. [[+1,500 CZK]":
             $ stats.increment_stats_value_money(1500)
             "He pays without arguing. He drives at exactly 130 km/h afterwards."
+            window hide
             show screen outcome_panel("+1,500 CZK.")
             pause
             hide screen outcome_panel
@@ -588,6 +618,7 @@ label re_the_informant:
             "You walk away with information that has weight."
             python:
                 offer_card("snitch_info", "INFORMANT")
+            window hide
             show screen outcome_panel("[SNITCH INFO offered]")
             pause
             hide screen outcome_panel
@@ -595,6 +626,7 @@ label re_the_informant:
         "Pass. [[+5 Hatred]":
             $ stats.increment_stats_pcr_hatred(5)
             "He nods. He walks away. Now you wonder."
+            window hide
             show screen outcome_panel("+5 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -620,6 +652,7 @@ label re_the_evaluation:
         "Be honest. [[-10 Hatred]":
             $ stats.increment_stats_pcr_hatred(-10)
             "She nods slowly. Doesn't write it down. Says: 'I'm not your enemy. I'll mark you fit. Take care of yourself.'"
+            window hide
             show screen outcome_panel("-10 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -628,6 +661,7 @@ label re_the_evaluation:
             $ stats.increment_stats_pcr_hatred(5)
             "You hear yourself say things the academy taught you to say. She marks you fit."
             "The lie taxes you on the drive home."
+            window hide
             show screen outcome_panel("+5 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -659,6 +693,7 @@ label re_suicide_call:
                     stats.increment_stats_coding_skill(5)
                     _sc_extra = " [DARK EMPATH: read his pauses, +5 extra Coding]"
             "Forty-seven minutes. He stays. By the time the ambulance gets there, he's sitting on the curb crying."
+            window hide
             show screen outcome_panel("-15 PCR HATRED, +5 CODING SKILL.{}".format(_sc_extra))
             pause
             hide screen outcome_panel
@@ -667,6 +702,7 @@ label re_suicide_call:
             $ stats.increment_stats_pcr_hatred(10)
             "You patch him to the suicide hotline. The call drops during the transfer."
             "You don't know what happened. The shift continues."
+            window hide
             show screen outcome_panel("+10 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -695,6 +731,7 @@ label re_retirement_party:
                 stats.increment_stats_pcr_hatred(-10)
             "He cries on you at 11 PM. Forty years of service. He says: 'Don't make my mistakes, kid.'"
             "You don't know which ones he means. All of them, probably."
+            window hide
             show screen outcome_panel("-1,500 CZK, -10 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -702,6 +739,7 @@ label re_retirement_party:
         "Skip it. [[+5 Hatred]":
             $ stats.increment_stats_pcr_hatred(5)
             "You see the photos on Monday. He looks happy. You look at your reflection."
+            window hide
             show screen outcome_panel("+5 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -755,6 +793,7 @@ label re_coding_interview:
                     _ci_out = "+5 CODING (you learned), +15 PCR HATRED."
 
             "[_ci_msg]"
+            window hide
             show screen outcome_panel(_ci_out)
             pause
             hide screen outcome_panel
@@ -765,6 +804,7 @@ label re_coding_interview:
                 stats.increment_stats_pcr_hatred(10)
             "They reply: 'Sure! Friday at 14:00.' Friday is your 12-hour shift."
             "You stare at the calendar. You reply: 'Perfect.'"
+            window hide
             show screen outcome_panel("+3 CODING, +10 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -797,6 +837,7 @@ label re_system_update:
                 stats.increment_stats_value_money(2500)
             "Three commands in a terminal. The screen turns green. Silence. Sergeant: 'JB. How did you—'"
             "You leave before he can take the bonus back."
+            window hide
             show screen outcome_panel("+15 CODING, -20 PCR HATRED, +2,500 CZK [BH: known fix]")
             pause
             hide screen outcome_panel
@@ -807,6 +848,7 @@ label re_system_update:
                 stats.increment_stats_coding_skill(5)
             "Hora: 'The v1.4.2 rollback re-enables the legacy ODBC connector. Run the old client on desktop four.'"
             "You do. It works. You give Hora the coffee meant for the sergeant."
+            window hide
             show screen outcome_panel("-10 PCR HATRED, +5 CODING [DE: extracted the workaround]")
             pause
             hide screen outcome_panel
@@ -826,6 +868,7 @@ label re_system_update:
                     _su_msg = "You make it worse. The migration re-runs and a 2019 arrest warrant gets reactivated. Someone in Brno is having a confusing afternoon."
                     _su_out = "+5 CODING (negative reinforcement), +20 PCR HATRED."
             "[_su_msg]"
+            window hide
             show screen outcome_panel(_su_out)
             pause
             hide screen outcome_panel
@@ -835,6 +878,7 @@ label re_system_update:
                 stats.increment_stats_pcr_hatred(10)
                 stats.increment_stats_coding_skill(2)
             "You spend patrol thinking about the error message. Better communication than most humans you know."
+            window hide
             show screen outcome_panel("+10 PCR HATRED, +2 CODING (ambient learning).")
             pause
             hide screen outcome_panel
@@ -897,6 +941,7 @@ label re_the_bribe:
             "You think about Martin, sitting in some café, free."
             "Nobody saw."
             "You get back in the car."
+            window hide
             show screen outcome_panel("+7,500 CZK, -15 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -922,6 +967,7 @@ label re_the_bribe:
             "Not to you. Not to your debt. Not to the Colonel's car. To them."
             "Your colleague is still on his phone."
             "You get back in the car and say nothing."
+            window hide
             show screen outcome_panel("+25 PCR HATRED. (The right call. The expensive one.)")
             pause
             hide screen outcome_panel
@@ -942,6 +988,7 @@ label re_the_bribe:
             "He drives away. No ticket. No bribe taken. No moral residue."
             "You have nothing on you and everything you need."
             "You file the card in your jacket. You'll look it up later."
+            window hide
             show screen outcome_panel("-10 PCR HATRED, +5 CODING SKILL [DARK EMPATH: read him clean, kept your hands clean].")
             pause
             hide screen outcome_panel
@@ -962,6 +1009,7 @@ label re_the_bribe:
             jb "'The fine is 2,400 CZK. Speeding plus failure to cooperate with an officer. Cash or card.'"
             "He pays immediately. He does not negotiate."
             "He gets back in his car and drives at exactly the speed limit for at least 200 metres."
+            window hide
             show screen outcome_panel("+2,400 CZK, -5 PCR HATRED [BODYBUILDER: presence commanded the room].")
             pause
             hide screen outcome_panel
@@ -980,6 +1028,7 @@ label re_the_bribe:
             "He doesn't escalate. He drives away."
             "You made 5,000 CZK and issued a valid citation."
             "The system is not efficient. You are."
+            window hide
             show screen outcome_panel("+5,000 CZK, +8 PCR HATRED [BIOHACKER: positive expected value, minor guilt tax].")
             pause
             hide screen outcome_panel
@@ -1001,6 +1050,7 @@ label re_the_bribe:
                     _br_outcome = "-3,000 CZK, +35 PCR HATRED (The plan had a flaw)."
 
             "[_br_text]"
+            window hide
             show screen outcome_panel(_br_outcome)
             pause
             hide screen outcome_panel
@@ -1054,6 +1104,7 @@ label re_corrupt_cop_2:
             "He texts you at midnight. One word: 'Thanks.'"
             "You don't respond. You delete the message. You can't delete the eleven minutes."
 
+            window hide
             show screen outcome_panel("+25 PCR HATRED. You are owned.")
             pause
             hide screen outcome_panel
@@ -1079,6 +1130,7 @@ label re_corrupt_cop_2:
                 "He hands you an envelope. You make the citation disappear that night."
                 "You are now a corrupt cop who negotiates rates. Somehow that feels worse than doing it for free."
 
+                window hide
                 show screen outcome_panel("+10,000 CZK, +15 PCR HATRED. You named your price. That makes it real.")
                 pause
                 hide screen outcome_panel
@@ -1090,6 +1142,7 @@ label re_corrupt_cop_2:
                 "You delete the citation. For free. At 2 AM. Alone at your desk."
                 "He didn't pay. He didn't need to. He has the recording and you have nothing."
 
+                window hide
                 show screen outcome_panel("+35 PCR HATRED. He called your bluff. You folded.")
                 pause
                 hide screen outcome_panel
@@ -1116,6 +1169,7 @@ label re_corrupt_cop_2:
             "25,000 CZK gone. The bribe returned. The fine paid. Your bank account gutted."
             "But the recording can't touch you anymore. And neither can he."
 
+            window hide
             show screen outcome_panel("-25,000 CZK (-7,500 returned, -17,500 fine), +50 PCR HATRED. The most expensive shower you've ever taken.")
             pause
             hide screen outcome_panel
@@ -1187,6 +1241,7 @@ label re_corrupt_cop_3:
         stats.increment_stats_pcr_hatred(30)
         store.corrupt_chain_3_completed = True
 
+    window hide
     show screen outcome_panel("+30 PCR HATRED. There is no going back from this.")
     pause
     hide screen outcome_panel

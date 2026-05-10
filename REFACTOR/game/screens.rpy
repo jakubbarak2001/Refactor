@@ -1518,21 +1518,6 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
                     xmaximum 360
                     text_align 0.5
 
-                ## Strategy hint — only show while the deck is small (i.e. the
-                ## player likely doesn't yet realize cards are how the colonel
-                ## fight gets won). Disappears after they've drafted enough.
-                python:
-                    _co_deck_size = len(player_deck.cards) if player_deck is not None else 0
-                if _co_deck_size < 14:
-                    null height 6
-                    text "Cards are how you fight the Colonel on Day 30.":
-                        color "#cccc88"
-                        size 12
-                        italic True
-                        xalign 0.5
-                        xmaximum 360
-                        text_align 0.5
-
                 if card.get("exhaust"):
                     null height 6
                     text "[[EXHAUST]":
@@ -1618,13 +1603,24 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
                 null height 6
 
                 if pass_stats_text:
-                    text "[pass_stats_text]":
-                        color "#ffcc66"
-                        size 18
-                        bold True
+                    ## Split the comma-joined reward string into one line per
+                    ## delta so the stats are scannable instead of mashed into
+                    ## one paragraph (playtest screenshot showed wrapped text
+                    ## like "- 35,000 CZK, [BOOTCAMP BUFF ACTIVATED] +5
+                    ## Coding/night, +25 CODING" was unreadable).
+                    python:
+                        _stat_lines = [s.strip() for s in pass_stats_text.split(",") if s.strip()]
+                    vbox:
+                        spacing 6
                         xalign 0.5
-                        xmaximum 360
-                        text_align 0.5
+                        for _sl in _stat_lines:
+                            text _sl:
+                                color "#ffcc66"
+                                size 18
+                                bold True
+                                xalign 0.5
+                                xmaximum 360
+                                text_align 0.5
                 else:
                     text "Keep the day's stat changes.":
                         color "#cccccc"
@@ -1632,16 +1628,6 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
                         xalign 0.5
                         xmaximum 360
                         text_align 0.5
-
-                null height 8
-
-                text "Stats keep you alive day-to-day.":
-                    color "#aaaaaa"
-                    size 13
-                    italic True
-                    xalign 0.5
-                    xmaximum 360
-                    text_align 0.5
 
     ## ── TAKE / TAKE buttons — same color, same weight. The DECISION is
     ## about content (card vs stats), not action. Asymmetric button colors

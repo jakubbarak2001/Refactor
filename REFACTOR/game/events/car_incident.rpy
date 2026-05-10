@@ -100,6 +100,7 @@ label car_incident_admit:
         stats.increment_stats_value_money(-3500)
         grant_card("took_the_heat", silent=True)
 
+    window hide
     show screen outcome_panel("-3,500 CZK, +8 HATRED, + card: TOOK THE HEAT (1E, exhaust — gain 10 block, draw 1).")
     pause
     hide screen outcome_panel

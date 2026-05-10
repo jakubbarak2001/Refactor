@@ -78,6 +78,7 @@ label bh_spend_red_light:
                     _outcome = "+8 PCR HATRED. The recovery deficit lands."
             if not _spent:
                 "[[INSUFFICIENT FUNDS] You can't afford it. The cortisol option picks itself."
+            window hide
             show screen outcome_panel(_outcome)
             pause
             hide screen outcome_panel
@@ -85,6 +86,7 @@ label bh_spend_red_light:
         "Skip. (+5 Hatred from disrupted recovery)":
             $ stats.increment_stats_pcr_hatred(5)
             "You sleep poorly. The data shows it. You log the regression and move on."
+            window hide
             show screen outcome_panel("+5 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -119,6 +121,7 @@ label bh_spend_bacopa:
                     _outcome = "-3 CODING SKILL. Memory dips this week."
             if not _spent:
                 "[[INSUFFICIENT FUNDS] Wallet says no. You'll feel it."
+            window hide
             show screen outcome_panel(_outcome)
             pause
             hide screen outcome_panel
@@ -126,6 +129,7 @@ label bh_spend_bacopa:
         "Skip. (-3 Coding from memory dip)":
             $ stats.increment_stats_coding_skill(-3)
             "You read the same paragraph three times. You log it. You move on."
+            window hide
             show screen outcome_panel("-3 CODING SKILL.")
             pause
             hide screen outcome_panel
@@ -160,6 +164,7 @@ label bh_spend_new_paper:
                     _outcome = "Bookmarked. The wallet has limits."
             if not _spent:
                 "[[INSUFFICIENT FUNDS] You bookmark the paper. You'll come back to it. You won't."
+            window hide
             show screen outcome_panel(_outcome)
             pause
             hide screen outcome_panel
@@ -167,6 +172,7 @@ label bh_spend_new_paper:
         "Skip.":
             "You close the tab. You will think about it for the next four nights."
             "Actually it's fine. Discipline is a stack input too."
+            window hide
             show screen outcome_panel("No change. (Discipline +0, FOMO undocumented.)")
             pause
             hide screen outcome_panel
@@ -201,6 +207,7 @@ label bh_spend_hrv_battery:
                     _outcome = "+6 PCR HATRED. Sleeping blind is sleeping anxious."
             if not _spent:
                 "[[INSUFFICIENT FUNDS] Can't afford the calibration. Anxiety spike."
+            window hide
             show screen outcome_panel(_outcome)
             pause
             hide screen outcome_panel
@@ -209,6 +216,7 @@ label bh_spend_hrv_battery:
             $ stats.increment_stats_pcr_hatred(4)
             "You sleep without the strap. You wake up at 03:14 wondering what the deep-sleep score is."
             "There's no number. The number is not the night. You repeat that to yourself."
+            window hide
             show screen outcome_panel("+4 PCR HATRED.")
             pause
             hide screen outcome_panel
@@ -243,6 +251,7 @@ label bh_spend_vendor_markup:
                     _outcome = "+3 PCR HATRED. Future-self pays the markup."
             if not _spent:
                 "[[INSUFFICIENT FUNDS] He marks you down on the no-stockpile list. Cold."
+            window hide
             show screen outcome_panel(_outcome)
             pause
             hide screen outcome_panel
@@ -251,6 +260,7 @@ label bh_spend_vendor_markup:
             $ stats.increment_stats_pcr_hatred(5)
             "You tell him you're cycling off. He says 'Sure' in the way that means 'see you next month.'"
             "Three nights later you reach for the bottle that isn't there. The hand remembers before the brain."
+            window hide
             show screen outcome_panel("+5 PCR HATRED. Tapering is also a stack input.")
             pause
             hide screen outcome_panel
