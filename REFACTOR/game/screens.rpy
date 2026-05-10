@@ -1351,24 +1351,21 @@ screen outcome_panel(outcome_text):
     layer "screens"
     zorder 200
 
-    vbox:
+    ## Single frame > vbox > text-children — the canonical pattern. Earlier
+    ## nested-frames-containing-text-directly + ATL-on-vbox combinations
+    ## tripped Ren'Py's screen layout into ui.interact stack-imbalance
+    ## crashes (seen on gym/coding card-offer flows). Visual stays flat
+    ## (no green border, no header) so it doesn't look like a choice menu.
+    frame:
         xalign 0.5
         yalign 0.86
-        spacing 6
-        at _outcome_slide_in
+        padding (28, 10)
+        background Frame("#0a0a0acc", 0, 0)
 
-        ## Thin top rule — visual signature of a readout, not a frame.
-        frame:
-            xsize 480
-            ysize 1
-            background Frame("#00ff4188", 0, 0)
-
-        ## Thin dark backdrop strip — readable on bright/painterly backgrounds
-        ## without becoming a frame (which the playtester read as a choice menu).
-        frame:
+        vbox:
+            spacing 4
             xalign 0.5
-            padding (24, 6)
-            background Frame("#0a0a0acc", 0, 0)
+
             text outcome_text substitute False:
                 color "#ffffff"
                 size 22
@@ -1376,11 +1373,11 @@ screen outcome_panel(outcome_text):
                 xalign 0.5
                 outlines [(2, "#000000aa", 0, 0)]
 
-        text "› continue":
-            color "#88aa88"
-            size 11
-            xalign 1.0
-            at _outcome_continue_pulse
+            text "› click to continue":
+                color "#88aa88"
+                size 11
+                italic True
+                xalign 0.5
 
 
 ## ---------------------------------------------------------------------------
