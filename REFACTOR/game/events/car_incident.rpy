@@ -1,8 +1,7 @@
 ################################################################################
 ## REFACTOR - Arc I: The Car Incident
-## Two paths: Admit / Hide. Both end with the Colonel arriving on Day 1.
-## Trade-off: Admit pays small but earns the Colonel's attention (paternal).
-##            Hide pays big and gets written off (hostile, lower oversight).
+## Single path: Admit. JB reports up the chain, Colonel arrives, mentor lecture.
+## (Hide path removed — see git history. May return as a redesigned tradeoff.)
 ## Sets colonel_attitude for downstream events.
 ################################################################################
 
@@ -12,25 +11,28 @@ label car_incident:
 
     play music "audio/enter_the_code_theme.mp3" fadein 1.0
 
+    scene bg_parking_lot
     call screen arc_title_card("I", "THE INCIDENT") with arc_fade
-    scene bg_parking_lot with arc_fade
     show jb neutral at char_left with dissolve
+    pause 1.0
 
     "It is 06:30 AM. The sun is technically rising, but in this part of Bohemia, it just looks like the sky is slowly bruising purple."
-    "You just parked your private car. You are already late for the overtime shift at the other station."
+    "You slept maybe two hours. Not by choice — your brain refused to clock out, and now it's punishing you for the disrespect."
+    "You parked your private car ten minutes ago. You are already late for the overtime shift at the other station."
 
     if stats.player_class == "bodybuilder":
-        "Your brain is running on 3 hours of sleep, a protein bar that tasted like chalk, and the dull ache of yesterday's deadlifts."
+        "Your brain is running on two hours of sleep, a protein bar that tasted like chalk, and the dull ache of yesterday's deadlifts."
     elif stats.player_class == "dark_empath":
-        "Your brain is running on 3 hours of sleep and the residue of a dream where you were reading the sergeant's face like a cheap paperback."
+        "Your brain is running on two hours of sleep and the residue of a dream where you were reading the sergeant's face like a cheap paperback."
     elif stats.player_class == "biohacker":
-        "Your brain is running on 3 hours of sleep, 200mg caffeine, 100mg L-theanine, and the precise regret of skipping the racetam stack."
+        "Your brain is running on two hours of sleep, 200mg caffeine, 100mg L-theanine, and the precise regret of skipping the racetam stack."
     else:
-        "Your brain is running on 3 hours of sleep and the leftover noise of yesterday."
+        "Your brain is running on two hours of sleep and the leftover noise of yesterday."
 
-    "You rush to the service vehicle — a battered Octavia that smells permanently of wet dog and criminals."
-    "You throw it into reverse, trusting your muscle memory more than your eyes."
-    "The back lane is always clear at 06:30."
+    "You drop into the service vehicle — a battered Octavia that smells permanently of wet dog and criminals."
+    "The back lane is always empty at this hour. Always. You've reversed out of this exact bay maybe four hundred times."
+    "You don't check the mirror. You don't check the camera. You {i}know{/i} the lane."
+    "You throw it into reverse and let muscle memory do the rest. Foot on the gas. Eyes half-closed against the morning."
     "You are a professional driver, {stshl=right?}"
 
     stop music fadeout 0.3
@@ -48,12 +50,38 @@ label car_incident:
 
     "You get out. You look."
 
-    "The Kodiaq is parked sideways across the back lane. Diagonal. Blocking the entire row of bays."
+    "The Kodiaq is parked sideways across the back lane. Diagonal. Front end jutting halfway into your reversing path. Like a dog that lost interest halfway through sitting down."
     "Nobody parks like that. Except the Commandant. Who parks where he wants."
-    "Your rear bumper is intimately kissing the side door of his brand new Kodiaq."
-    "The damage is barely there. A faint scuff. A shadow of paint transfer. You'd have to know it was there to find it."
+    "Your rear bumper found his front grille at maybe four kilometres an hour. The geometry was inevitable."
+    "The damage is barely there. A faint scuff on his bumper. A shadow of paint transfer on yours. You'd have to know it was there to find it."
 
-    ## Decision frame — both paths converge on the Colonel.
+    ## --- Flashback: this isn't the first time. JB has lived this script before. ---
+    "You stand there. You stare at the paint transfer."
+    "It's not the bumper that bothers you. It's the script."
+    "You've heard this script before."
+    "Six months ago. The expense reports."
+    "Three months ago. The radio incident."
+    "Last month. The thing with the keys."
+    "And every {i}single{/i} time —"
+
+    stop music fadeout 0.3
+    scene bg_black with fade
+    pause 0.4
+
+    $ renpy.movie_cutscene("video/colonel_car_incident.webm")
+
+    scene bg_parking_lot with fade
+    show jb worried at char_left
+    play music "audio/enter_the_code_theme.mp3" fadein 0.5
+
+    "You snap back to the parking lot."
+    "Your shirt is dry. Your ears are still ringing from a sound that technically ended six months ago."
+    "The Colonel has had a documented mental breakdown over a filing cabinet that closed too loudly. What you just remembered was him on a {i}good{/i} day."
+    "That was the small stuff. Misplaced keys. A radio left on during pursuit."
+    "{cps=8}{b}{color=#ffcc00}{size=+12}THIS IS HIS CAR.{/size}{/color}{/b}{/cps}"
+
+    "Above you, a window creaks open on the second floor. The Commandant's office."
+    "He doesn't lean out. He doesn't say anything. He just sips his coffee and watches — the way a man watches a slow-motion car crash he has already filed the paperwork for."
     "You stand between the cars. The parking lot is dead quiet. Shift change is in three minutes."
 
     if stats.player_class == "bodybuilder":
@@ -72,20 +100,17 @@ label car_incident:
     if stats.player_class == "bodybuilder":
         "It's a scratch. The math is simple. The damage isn't the damage — the damage is who has to know."
     elif stats.player_class == "dark_empath":
-        "The Commandant won't read this as damage. He'll read it as disrespect. That's the only variable."
+        "The Commandant won't read this as damage. He'll read it as disrespect. The only variable is who tells him."
     elif stats.player_class == "biohacker":
-        "Two paths. One has known cost, low variance. The other is a coin flip with a long tail. Run the EV."
+        "One play. Lowest variance. You'd rather be the source of the report than the subject of it."
 
-    menu:
-        "Admit it. (-3,500 CZK, +8 Hatred, paternal Colonel)":
-            jump car_incident_admit
+    "You'd rather be the one who tells them."
 
-        "Cover it up. (-7,000 CZK, +20 Hatred, hostile Colonel)":
-            jump car_incident_hide
+    jump car_incident_admit
 
 
 ## ---------------------------------------------------------------------------
-## PATH A: ADMIT — small cost, paternal Colonel (he's watching you now)
+## RESOLUTION — JB reports up the chain. Colonel arrives. Lecture, signature.
 ## ---------------------------------------------------------------------------
 
 label car_incident_admit:
@@ -107,17 +132,15 @@ label car_incident_admit:
     "'You're telling me this at 06:48 in the morning, JB. Before I've even had coffee.'"
     "'Great. Really stellar start to the day.'"
 
-    "He picks up the phone. He calls the Commandant. The Commandant calls the Colonel."
+    "He picks up the phone. The Commandant already called the Colonel — this is just paperwork now."
     "Nobody is shouting. That is somehow worse."
 
     "The Colonel is 45 minutes away. He gets in his car anyway."
 
-    ## Colonel arrives — video plays
+    ## Colonel arrives — quiet fade-through, no video here (already shown).
     stop music fadeout 1.5
     scene bg_black with fade
-
-    $ renpy.movie_cutscene("video/colonel_car_incident.webm")
-
+    pause 0.6
     play music "audio/you_failed_me_son.mp3" fadein 1.0
 
     scene bg_police_office with fade
@@ -157,8 +180,9 @@ label car_incident_admit:
         stats.colonel_attitude = "paternal"
         stats.increment_stats_pcr_hatred(8)
         stats.increment_stats_value_money(-3500)
+        grant_card("took_the_heat", silent=True)
 
-    show screen outcome_panel("-3,500 CZK (your half of the deductible), +8 PCR HATRED (he still drove 45 minutes to remind you who's watching).")
+    show screen outcome_panel("-3,500 CZK (your half of the deductible), +8 PCR HATRED, + card: TOOK THE HEAT (Skill, 1 cost, exhaust — gain 10 block, draw 1).")
     pause
     hide screen outcome_panel
 
@@ -168,132 +192,6 @@ label car_incident_admit:
         "You showed your hand on purpose. Now watch what they do with it."
     elif stats.player_class == "biohacker":
         "Lowest variance play. Floor is locked in. Now optimize from here."
-
-    jump car_incident_end
-
-
-## ---------------------------------------------------------------------------
-## PATH B: HIDE — big cost, hostile Colonel (he writes you off)
-## ---------------------------------------------------------------------------
-
-label car_incident_hide:
-
-    scene bg_parking_lot
-    show jb worried at char_left
-
-    "You crouch between the cars. Your knees crack like gunshots in the silence."
-    "You spit on your sleeve. This is your life now. A grown man spitting on government property at dawn."
-    "You scrub the white transfer paint in small circles. You reposition the Octavia six inches to the left to widen the gap. You kick gravel over the chips on the ground."
-
-    "You step back. The scratch is still there if you look closely. But the angle is ambiguous now. The gravel looks undisturbed."
-
-    "You walk inside like a man who has nothing to hide. Your face is a mask. Your armpits are a crime scene."
-    "The shift supervisor nods at you. 'Morning, JB.' He suspects nothing. Yet."
-
-    "You sit at your desk. You open a case file. You don't read a single word."
-    "Your eyes keep drifting to the window. To the parking lot. To the Kodiaq sitting there like evidence."
-
-    scene bg_police_interior
-    show jb neutral at char_left
-
-    "14:00. The Commandant's door opens."
-
-    stop music fadeout 0.1
-    play sound "audio/metal-gear-alert-sound-effect.mp3"
-    show screen alert_exclamation
-    pause 1.2
-    hide screen alert_exclamation
-
-    play music "audio/enter_the_code_theme.mp3" fadein 1.0
-
-    "He walks straight to your desk. He's holding a USB stick."
-    "'JB. My office. Now.'"
-
-    scene bg_police_office
-    show jb neutral at char_left
-
-    "He plugs the USB into his laptop and turns the screen toward you."
-    "Parking lot camera. 06:30 AM. High angle, wide shot."
-    "You watch yourself reverse into the Kodiaq. You watch yourself crouch, scrub, kick gravel, walk away."
-    "The footage is grainy, but it's enough."
-
-    "'Every Tuesday,' the Commandant says. 'I review the footage every Tuesday.'"
-    "'You forgot it was Tuesday, JB.'"
-
-    "He picks up the phone and dials the Colonel's direct line."
-    "You sit there and listen to him explain what you did."
-    "The Colonel's voice is audible from across the desk. He doesn't raise it. That's worse."
-
-    "The Colonel is 45 minutes away. He gets in his car anyway."
-
-    ## Colonel arrives — video plays
-    stop music fadeout 1.5
-    scene bg_black with fade
-
-    $ renpy.movie_cutscene("video/colonel_car_incident.webm")
-
-    play music "audio/you_failed_me_son.mp3" fadein 1.0
-
-    scene bg_police_office with fade
-    show colonel omniman think at colonel_think_pos
-
-    "He arrives at 15:30. He doesn't sign in at reception. Nobody asks him to."
-    "He takes the Commandant's chair. The Commandant stands in the corner of his own office."
-
-    show colonel angry at char_right with dissolve
-    show jb neutral at char_left with dissolve
-    pause 0.5
-
-    colonel "I watched the footage in the car, JB. On my phone. While driving. That's how seriously I take this."
-
-    "He lets that sit."
-
-    colonel "You hit the car. Fine. Accidents happen. But you {i}walked away{/i}."
-
-    jb "'It was a scratch, Colonel.'"
-
-    colonel "It was a {i}choice{/i}. And you chose wrong."
-
-    "He slides the repair bill across the desk. 7,000 CZK. Full repair plus a 'disciplinary processing fee.'"
-    "You've never heard of a disciplinary processing fee. You're fairly certain he just invented it."
-
-    colonel "Sign it."
-
-    show jb neutral at char_left
-
-    "You sign. There is no negotiation here. There never was."
-    "This man drove 45 minutes to charge you a made-up fee for a parking lot scratch. That tells you everything you need to know about where you work."
-
-    colonel "You can go."
-
-    "You stand. You walk to the door."
-
-    colonel "JB."
-
-    "You stop."
-
-    colonel "I'm not going to waste any more of my time on you."
-
-    "You don't turn around. You know what his face looks like."
-    "The face of a man who has just decided you are not worth saving."
-
-    python:
-        stats.colonel_attitude = "hostile"
-        stats.increment_stats_pcr_hatred(20)
-        stats.increment_stats_value_money(-7000)
-
-    show screen outcome_panel("-7,000 CZK (repair + invented fee), +20 PCR HATRED (the system working exactly as designed).")
-    pause
-    hide screen outcome_panel
-
-    if stats.player_class == "bodybuilder":
-        "Seven thousand for a scuff. You can rep that out in a week of overtime. The bruise to your pride won't fade that fast."
-    elif stats.player_class == "dark_empath":
-        "He didn't want the money. He wanted the signature. He got both. File it under 'never again.'"
-    elif stats.player_class == "biohacker":
-        "Worst-case branch realized. Variance was the cost of admission. Update the model and move."
-
-    "Somewhere in this building there are actual criminals. None of them got this much attention today."
 
     jump car_incident_end
 

@@ -135,20 +135,39 @@ label character_class_selection:
         init_player_deck()
 
     python:
+        _cls_accent  = class_accent_color(stats.player_class)
+        _hdr_open    = "{cps=12}{size=+14}{b}{color=" + _cls_accent + "}"
+        _hdr_mid     = "{/color}"
+        _hdr_close   = "{/b}{/size}{/cps}"
         if stats.player_class == "bodybuilder":
-            _class_msg = "BODYBUILDER selected.\nEvery rep is a rep closer to freedom.\n[-5 Coding Skill applied as starting passive]"
+            _flv = "Every rep is a rep closer to your freedom."
+            _hdr = _hdr_open + "BODYBUILDER" + _hdr_mid + " SELECTED." + _hdr_close
         elif stats.player_class == "dark_empath":
-            _class_msg = "DARK EMPATH selected.\nYou see through people. That is both your weapon and your curse.\n[-5 Police Hatred applied as starting passive]"
+            _flv = "You see through people. That is both your weapon and your curse."
+            _hdr = _hdr_open + "DARK EMPATH" + _hdr_mid + " SELECTED." + _hdr_close
         elif stats.player_class == "biohacker":
-            _class_msg = "BIOHACKER selected.\nYour body is a machine. Let's see how far you can push it.\n[+5 Coding Skill applied as starting passive]"
+            _flv = "Your body is a machine. Let's see how far you can push it."
+            _hdr = _hdr_open + "BIOHACKER" + _hdr_mid + " SELECTED." + _hdr_close
         else:
-            _class_msg = "Class selected."
+            _flv = ""
+            _hdr = "Class selected."
+        if _flv:
+            _flv_cps  = max(1, int(round(len(_flv) / 0.5)))
+            _class_msg = _hdr + "{w=0.5}\n{cps=" + str(_flv_cps) + "}{i}{color=#e0c060}" + _flv + "{/color}{/i}{/cps}"
+        else:
+            _class_msg = _hdr
+
+    ## Class-defining background under the "X selected" beat
+    if stats.player_class == "bodybuilder":
+        scene bg_bb_gym with Dissolve(0.6)
 
     "[_class_msg]"
 
+    stop sound fadeout 0.4
+
     ## --- Class intro vignette: 3 lines establishing JB's lifestyle for this class ---
     if stats.player_class == "bodybuilder":
-        scene bg_police_interior with Dissolve(0.6)
+        scene bg_jb_flat with Dissolve(0.6)
         "05:14 AM. The mirror in the bathroom doesn't lie."
         "You knock out fifty push-ups before the kettle boils. Black coffee. Two raw eggs. A sticky note on the fridge: 'PROGRESSIVE OVERLOAD.'"
         "You drive to the station. Your forearms ache the right way."
@@ -199,7 +218,7 @@ label day_start:
         else:
             renpy.music.play("audio/enter_the_code_theme.mp3", fadein=1.5)
 
-    scene bg_police_interior
+    scene bg_jb_flat
 
     ## Win condition check — coding skill >= 100 at day 30 handled in colonel event
     ## Lose conditions checked each day
@@ -227,22 +246,22 @@ label day_start:
         _noot_flavor = _noot_result[1] if _noot_result else ""
 
     if _noot_tag == "withdrawal":
-        scene bg_police_interior
+        scene bg_jb_flat
         "[[WITHDRAWAL]"
         "[_noot_flavor]"
 
     if _noot_tag == "dependency_triggered":
-        scene bg_police_interior
+        scene bg_jb_flat
         "[[DEPENDENCY TRIGGERED]"
         "[_noot_flavor]"
 
     if _noot_tag == "soft_dependency":
-        scene bg_police_interior
+        scene bg_jb_flat
         "[[TOLERANCE WARNING]"
         "[_noot_flavor]"
 
     if _noot_tag == "crash":
-        scene bg_police_interior
+        scene bg_jb_flat
         "[[AFTEREFFECTS]"
         "[_noot_flavor]"
 
@@ -305,7 +324,7 @@ label daily_menu:
     python:
         current_day = day_cycle.current_day
 
-    scene bg_police_interior
+    scene bg_jb_flat
 
     python:
         # Check loss conditions at start of each menu loop
@@ -348,7 +367,7 @@ label select_activity:
 
 label activity_gym:
 
-    scene bg_police_interior
+    scene bg_bb_gym
 
     python:
         ## Gym streak tracking
@@ -440,7 +459,7 @@ label activity_gym:
 
 label activity_gym_heavy:
 
-    scene bg_police_interior
+    scene bg_bb_gym
 
     python:
         _heavy_cost = adjusted_cost(800)
@@ -522,9 +541,7 @@ label activity_recovery:
 
 label activity_bouncer:
 
-    scene bg_police_interior
-
-    "You were offered to work as a bouncer in either a local night club or a strip bar.\n\nNight club: Generally safe, but some risk.\nStrip bar: VERY RISKY, but VERY HIGH reward."
+    scene bg_jb_flat
 
     python:
         _bouncer_options = [
@@ -680,12 +697,10 @@ label activity_coding:
 
     play music "audio/coding_in_snow_theme.mp3" fadein 1.5
 
-    scene bg_police_interior
+    scene bg_jb_flat
 
     python:
         _tier_name, _tier_info = get_coding_tier_info(stats.coding_skill)
-        _tier_display = "{} | SKILL: {} | BASE: {} CZK | HOURLY: {}".format(
-            _tier_name, _tier_info["range"], _tier_info["standard"], _tier_info["hourly"])
         _is_bh = (stats.player_class == "biohacker")
         _is_de = (stats.player_class == "dark_empath")
         _bc_done = bool(python_bootcamp)
@@ -704,15 +719,6 @@ label activity_coding:
                 "cost_text":      "FREE",
                 "effect_text":    "+ CZK (scales with tier)",
                 "flavor_text":    "Take what your skill's worth right now.",
-                "class_relevant": _is_bh,
-            },
-            {
-                "label_name":     "coding_practice_puzzle",
-                "title":          "PRACTICE PUZZLE",
-                "accent":         _bh_accent,
-                "cost_text":      "FREE",
-                "effect_text":    "+ Coding",
-                "flavor_text":    "Solve a function. Some stick.",
                 "class_relevant": _is_bh,
             },
             {
@@ -751,75 +757,12 @@ label activity_coding:
                 "lock_text":      "Already enrolled. The buff is live.",
             })
 
-    "You open the laptop. The apartment is quiet.\nThis is the only hour of the day that belongs entirely to you.\n\nCurrent tier: [_tier_display]"
-
     call screen activity_submenu(
         title       = "CODING — PICK A PATH",
         subtitle    = "The hour is yours. The keyboard does what you tell it to.",
         options     = _coding_options,
         back_label  = "select_activity",
     )
-
-
-label coding_practice_puzzle:
-
-    python:
-        ## Pick puzzle by current skill bracket; track played puzzles to avoid repeats this run.
-        if not hasattr(store, '_puzzles_solved'):
-            store._puzzles_solved = []
-        _pid = pick_puzzle_for_skill(stats.coding_skill, exclude=store._puzzles_solved)
-        if _pid is None:
-            renpy.say(None, "[[NOTHING NEW] You've solved every puzzle you can find tonight. Get back to work tomorrow.")
-            renpy.jump("activity_coding")
-        _retries = diff_setting("minigame_retries", 1)
-        puzzle_init(_pid, max_attempts=1 + _retries)
-
-    "You open the editor. A coding challenge is waiting in your inbox.\n[PUZZLES[_pid]['spec']]"
-
-    call screen coding_puzzle_screen
-
-    python:
-        _result = _return  # screen returned "pass" or "fail"
-        _p = PUZZLES.get(_pid, {})
-
-    if _result == "pass":
-        python:
-            _gain = _p.get("reward_coding", 10)
-            ## Always-apply progression — solving the puzzle counts regardless of card choice.
-            store._puzzles_solved.append(_pid)
-            ## Pick a Logic-color card to OFFER on pass
-            _logic_options = ["compile", "refactor", "algorithm"]
-            _puzzle_card = __import__('random').choice(_logic_options)
-            _outcome_str = "+{} CODING SKILL".format(_gain)
-
-        "[[TESTS PASSED] The compiler is silent. The function works."
-        "You feel something shift. The pattern clicked."
-
-        python:
-            _took_puzzle = offer_card(_puzzle_card, "PUZZLE REWARD", pass_stats_text=_outcome_str)
-            if not _took_puzzle:
-                stats.increment_stats_coding_skill(_gain)
-            show_outcome_panel(_took_puzzle, _puzzle_card, _outcome_str)
-
-        pause
-        hide screen outcome_panel
-
-        python:
-            activity_selected = True
-        jump end_day
-
-    else:
-        python:
-            stats.increment_stats_pcr_hatred(5)
-
-        "[[TESTS FAILED] The compiler is patient. The compiler is also unimpressed."
-        "You stare at the screen. You close the laptop. You open it again. Nothing has changed."
-        show screen outcome_panel("+5 PCR HATRED — frustration tax. The puzzle bested you tonight.")
-        pause
-        hide screen outcome_panel
-        python:
-            activity_selected = True
-        jump end_day
 
 
 label coding_work_for_money:
@@ -1121,7 +1064,7 @@ label salary_day:
 label activity_nootropics:
 
     play music "audio/coding_in_snow_theme.mp3" fadein 1.0
-    scene bg_police_interior
+    scene bg_bh_supplier
 
     python:
         _dep_warning = ""

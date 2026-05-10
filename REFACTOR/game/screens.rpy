@@ -573,7 +573,7 @@ screen activity_submenu(title, options, subtitle="", back_label="daily_menu"):
 
     vbox:
         xalign 0.5
-        yalign 0.04
+        ypos 88
         spacing 4
 
         text title:
@@ -2207,6 +2207,7 @@ screen difficulty_selection_screen():
 ## Class display data — order + portrait + flavor + trades. Mirrors DIFF_DATA.
 init python:
     CLASS_SELECT_ORDER = ["bodybuilder", "dark_empath", "biohacker"]
+    LOCKED_CLASSES = {"dark_empath", "biohacker"}
     CLASS_PORTRAITS = {
         "bodybuilder": "jb_bb_portrait",
         "dark_empath": "jb_de_portrait",
@@ -2221,6 +2222,11 @@ init python:
         "bodybuilder": "Hatred is fuel. Words bounce off muscle. — Trade-off: the coding curve is steep.",
         "dark_empath": "The Colonel is a function with predictable inputs. — Trade-off: one mistake costs more.",
         "biohacker":   "Stack the compounds. Read the data. Optimize the meat. — Trade-off: the crash hits hard.",
+    }
+    CLASS_HOVER_SFX = {
+        "bodybuilder": "audio/sfx/gym_plates.mp3",
+        "dark_empath": "audio/sfx/dark_empath_whispers.mp3",
+        "biohacker":   "audio/sfx/biohacker_lab.mp3",
     }
 
 
@@ -2270,6 +2276,7 @@ screen class_selection_screen():
     for _i, _cls_key in enumerate(CLASS_SELECT_ORDER):
         $ _cd = CLASS_DATA[_cls_key]
         $ _accent = _cd["color"]
+        $ _locked = _cls_key in LOCKED_CLASSES
         $ _y = 220 + _i * 88
 
         frame:
@@ -2281,26 +2288,28 @@ screen class_selection_screen():
 
             hbox:
                 yalign 0.5
-                ## Left accent bar — class color
+                ## Left accent bar — class color (dim when locked)
                 frame:
                     xsize 5
                     ysize 88
-                    background (_accent if _cls_hov == _i else "#1a0000")
+                    background ("#3a1a1a" if _locked else (_accent if _cls_hov == _i else "#1a0000"))
                 frame:
                     xsize 22
                     ysize 88
                     background "#00000000"
-                text ("▶  " if _cls_hov == _i else "   "):
-                    color _accent
+                text ("🔒 " if _locked else ("▶  " if _cls_hov == _i else "   ")):
+                    color ("#666666" if _locked else _accent)
                     size 28
                     yalign 0.5
                     font "fonts/RobotoMono-Regular.ttf"
+                $ _hover_sfx = CLASS_HOVER_SFX.get(_cls_key)
                 textbutton _cd["name"]:
-                    action [SetField(stats, "player_class", _cls_key), Return()]
-                    hovered SetScreenVariable("_cls_hov", _i)
-                    text_color (_accent if _cls_hov == _i else "#444444")
+                    action ([SetScreenVariable("_cls_hov", _i)] if _locked else [SetField(stats, "player_class", _cls_key), Return()])
+                    hovered ([SetScreenVariable("_cls_hov", _i), Play("sound", _hover_sfx)] if _hover_sfx else SetScreenVariable("_cls_hov", _i))
+                    text_color ("#555555" if _locked else (_accent if _cls_hov == _i else "#444444"))
                     text_size  (32 if _cls_hov == _i else 28)
                     text_bold  (_cls_hov == _i)
+                    text_italic _locked
                     text_font  "fonts/RobotoMono-Regular.ttf"
                     background "#00000000"
                     hover_background "#00000000"
@@ -2312,11 +2321,12 @@ screen class_selection_screen():
         _cur_key      = CLASS_SELECT_ORDER[_cls_hov]
         _cur_data     = CLASS_DATA[_cur_key]
         _cur_color    = _cur_data["color"]
-        _cur_tagline  = "\"" + _cur_data["tagline"] + "\""
-        _cur_flavor   = "\"" + CLASS_FLAVOR[_cur_key] + "\""
-        _cur_coding   = "Coding   {:+d}".format(_cur_data["coding_modifier"])
-        _cur_hatred   = "Hatred   {:+d}".format(_cur_data["hatred_modifier"])
-        _cur_perks    = list(_cur_data["perks"][:4])
+        _cur_locked   = _cur_key in LOCKED_CLASSES
+        _cur_tagline  = "\"???\"" if _cur_locked else "\"" + _cur_data["tagline"] + "\""
+        _cur_flavor   = "\"???\"" if _cur_locked else "\"" + CLASS_FLAVOR[_cur_key] + "\""
+        _cur_coding   = "Coding   ???" if _cur_locked else "Coding   {:+d}".format(_cur_data["coding_modifier"])
+        _cur_hatred   = "Hatred   ???" if _cur_locked else "Hatred   {:+d}".format(_cur_data["hatred_modifier"])
+        _cur_perks    = (["???", "???", "???", "???"] if _cur_locked else list(_cur_data["perks"][:4]))
 
     ## Tagline
     text _cur_tagline:
@@ -2387,11 +2397,11 @@ screen class_selection_screen():
         font "fonts/RobotoMono-Regular.ttf"
         xmaximum 620
 
-    ## Confirm hint
-    text "— CLICK OR PRESS ENTER TO COMMIT —":
+    ## Confirm hint — switches to a lock notice when hovering a locked class
+    text ("— LOCKED IN THIS VERSION · COMING SOON —" if _cur_locked else "— CLICK OR PRESS ENTER TO COMMIT —"):
         xpos 70
         ypos 1010
-        color "#551100"
+        color ("#3a1a1a" if _cur_locked else "#551100")
         size 16
         font "fonts/RobotoMono-Regular.ttf"
 
@@ -2403,7 +2413,7 @@ screen class_selection_screen():
         ypos 163
         xsize 504
         ysize 754
-        background _cur_color
+        background ("#3a1a1a" if _cur_locked else _cur_color)
     frame:
         xpos 1070
         ypos 165
@@ -2415,6 +2425,7 @@ screen class_selection_screen():
         xpos 1070
         ypos 165
         at _cls_portrait_anim
+        alpha (0.30 if _cur_locked else 1.0)
 
     ## Class name overlay — sits on the bottom 60px of the portrait
     frame:
@@ -2424,8 +2435,8 @@ screen class_selection_screen():
         ysize 60
         background Frame("#0a0a0aee", 0, 0)
 
-        text _cur_data["name"]:
-            color _cur_color
+        text (("🔒  " + _cur_data["name"]) if _cur_locked else _cur_data["name"]):
+            color ("#666666" if _cur_locked else _cur_color)
             size 28
             bold True
             xalign 0.5
@@ -2444,12 +2455,18 @@ screen class_selection_screen():
         spacing 4
 
         text "STARTING DECK":
-            color _cur_color
+            color ("#666666" if _cur_locked else _cur_color)
             size 12
             bold True
             font "fonts/RobotoMono-Regular.ttf"
 
-        if _starter_card:
+        if _cur_locked:
+            text "1× ???   —   ???":
+                color "#666666"
+                size 13
+                italic True
+                font "fonts/RobotoMono-Regular.ttf"
+        elif _starter_card:
             hbox:
                 spacing 6
                 text "1× {}".format(_starter_card.get("name", "?")):
@@ -2463,16 +2480,16 @@ screen class_selection_screen():
                     italic True
                     xmaximum 380
 
-        text "4× Strike   ·   4× Defend":
-            color "#aaaaaa"
+        text ("???" if _cur_locked else "4× Strike   ·   4× Defend"):
+            color ("#555555" if _cur_locked else "#aaaaaa")
             size 12
             font "fonts/RobotoMono-Regular.ttf"
 
-    ## Keyboard nav
+    ## Keyboard nav — ENTER only commits if the hovered class is unlocked
     key "K_UP"       action SetScreenVariable("_cls_hov", max(0, _cls_hov - 1))
     key "K_DOWN"     action SetScreenVariable("_cls_hov", min(2, _cls_hov + 1))
-    key "K_RETURN"   action [SetField(stats, "player_class", CLASS_SELECT_ORDER[_cls_hov]), Return()]
-    key "K_KP_ENTER" action [SetField(stats, "player_class", CLASS_SELECT_ORDER[_cls_hov]), Return()]
+    key "K_RETURN"   action ([NullAction()] if CLASS_SELECT_ORDER[_cls_hov] in LOCKED_CLASSES else [SetField(stats, "player_class", CLASS_SELECT_ORDER[_cls_hov]), Return()])
+    key "K_KP_ENTER" action ([NullAction()] if CLASS_SELECT_ORDER[_cls_hov] in LOCKED_CLASSES else [SetField(stats, "player_class", CLASS_SELECT_ORDER[_cls_hov]), Return()])
 
 
 ## Portrait fade-on-show transform (matches difficulty screen)
@@ -2877,8 +2894,8 @@ style window:
     xalign 0.5
     xfill True
     yalign gui.textbox_yalign
-    yminimum 100
-    ymaximum 420
+    yminimum gui.textbox_height
+    ymaximum 320
     bottom_margin 50
 
     background Frame("#0d0d1aee", 8, 8)

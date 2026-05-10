@@ -589,3 +589,20 @@ init python:
         exhaust    = True,
         flavor     = "Deal damage equal to current energy ×10. Lose 8 HP. The trial paid out.",
     )
+
+    ## ---------------------------------------------------------------------------
+    ## STORY-GRANT CARDS — granted by narrative choices, not activities.
+    ## Day 1 / Car Incident: Admit → "Took the Heat".
+    ## ---------------------------------------------------------------------------
+
+    register_card(
+        "took_the_heat",
+        name    = "Took the Heat",
+        type    = "Skill",
+        color   = "Police",
+        cost    = 1,
+        rarity  = "uncommon",
+        effect  = "chain_of_command",
+        exhaust = True,
+        flavor  = "Gain 10 block. Draw 1. You owned it. The next hit lands soft.",
+    )

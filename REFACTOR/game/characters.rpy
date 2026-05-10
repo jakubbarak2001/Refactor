@@ -36,6 +36,18 @@ image bg_black = "#000000"
 image bg_jb_bedroom      = im.Scale("images/backgrounds/jb_home.jpg", 1920, 1080)
 image bg_jb_bedroom_raid = im.Scale("images/backgrounds/jb_home_raid.jpg", 1920, 1080)
 
+## JB's flat — daily home base (morning + activity-hub scenes during the 30-day arc)
+image bg_jb_flat         = im.Scale("images/backgrounds/jb_flat_empty_decin.jpg", 1920, 1080)
+
+## BB-flavoured gym — used by activity_gym (universal) and activity_gym_heavy (BB-only)
+image bg_bb_gym          = im.Scale("images/backgrounds/bb_gym.jpg", 1920, 1080)
+
+## BH-flavoured grey-market supplier flat — used by activity_nootropics (BH-only)
+image bg_bh_supplier     = im.Scale("images/backgrounds/bh_supplier_flat.jpg", 1920, 1080)
+
+## DE-flavoured Czech pub — Kovář's hospoda, used by DE class arc + DE-flavoured social activities
+image bg_de_kovar_pub    = im.Scale("images/backgrounds/de_kovar_pub.jpg", 1920, 1080)
+
 ## Hallway — reuses interior until a dedicated asset is added
 image bg_police_hallway   = im.Scale("images/backgrounds/police_station_interior.jpg", 1920, 1080)
 
