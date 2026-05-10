@@ -66,142 +66,85 @@ init python:
         return False
 
 
+## Blinking caret transform — alternates the underscore alpha so it pulses
+## like a terminal cursor. Stripped from the static `_` after playtest report.
+transform _glitch_caret_blink:
+    alpha 1.0
+    linear 0.4 alpha 0.1
+    linear 0.4 alpha 1.0
+    repeat
+
+
 screen glitch_typing_screen():
     modal True
     zorder 600
 
     add "#000000"
 
-    ## Cycling colonel rant (advances on attempt count + a slow timer)
     python:
         _rant = GLITCH_RANT_LINES[glitch_typing.rant_index % len(GLITCH_RANT_LINES)]
         _solved = glitch_typing_validate()
 
-    ## Slow auto-advance of the rant so it feels alive even without typing
     timer 3.0 repeat True action Function(glitch_typing.advance_rant)
 
-    ## ── Glitched colonel rant (top half) ──────────────────────────────────
-    frame:
+    ## Looping colonel quote — sits low-alpha behind the prompt so the player
+    ## feels the loop without being distracted by it. (Was a full bordered
+    ## frame; the playtester said "too much going on".)
+    text _rant:
         xalign 0.5
-        ypos 80
-        xsize 1500
-        padding (28, 22)
-        background Frame("#1a0000cc", 6, 6)
+        ypos 140
+        color "#552222"
+        size 22
+        italic True
+        font "fonts/RobotoMono-Regular.ttf"
+        xmaximum 1440
+        text_align 0.5
 
-        vbox:
-            spacing 10
-            xalign 0.5
-
-            text "[[COLONEL — runtime: 32 years — looping]":
-                xalign 0.5
-                color "#ff4422"
-                size 16
-                bold True
-                font "fonts/RobotoMono-Regular.ttf"
-
-            text _rant:
-                xalign 0.5
-                color "#ffaaaa"
-                size 26
-                italic True
-                font "fonts/RobotoMono-Regular.ttf"
-                xmaximum 1440
-                text_align 0.5
-
-    ## ── Typing prompt (center) ────────────────────────────────────────────
-    frame:
+    ## ── ONE instruction line, the prompt, and a blinking cursor. Nothing else.
+    vbox:
         xalign 0.5
-        ypos 360
-        xsize 900
-        padding (32, 28)
-        background Frame("#0a0a0aee", 6, 6)
+        ypos 420
+        spacing 24
 
-        vbox:
-            spacing 14
+        text "Type sys.exit() to end this.":
             xalign 0.5
-
-            text "TYPE TO STEP OUT OF THE SCRIPT":
-                xalign 0.5
-                color "#00ff41"
-                size 18
-                bold True
-                font "fonts/RobotoMono-Regular.ttf"
-
-            text "Target: [GLITCH_TARGET!q]":
-                xalign 0.5
-                color "#666666"
-                size 16
-                font "fonts/RobotoMono-Regular.ttf"
-
-            null height 6
-
-            ## Display typed-so-far in big monospace, with a blinking caret.
-            ## The actual input widget below captures keystrokes.
-            text "> [glitch_typing.typed]_":
-                xalign 0.5
-                color "#00ff41"
-                size 44
-                bold True
-                font "fonts/RobotoMono-Regular.ttf"
-
-            null height 8
-
-            ## Keystroke capture. `allow` filters to characters in sys.exit()
-            ## so accidental keys do nothing — but typing the wrong target
-            ## character (e.g. 'e' before 'y') still resets via validate().
-            input:
-                xalign 0.5
-                default ""
-                value FieldInputValue(glitch_typing, "typed")
-                allow "sysexit()."
-                length 12
-                color "#00000000"            ## invisible — we render typed above
-                size 1
-
-    ## ── Wrong-key flavour (only after at least one mistake) ───────────────
-    if glitch_typing.attempts > 0 and not _solved:
-        text "[[The argument starts again from line 1. The loop only feeds the loop.]":
-            xalign 0.5
-            ypos 600
-            color "#cc4422"
-            size 16
-            italic True
+            color "#00ff41"
+            size 22
+            bold True
             font "fonts/RobotoMono-Regular.ttf"
 
-    ## ── Side narrative branches (preserve old menu options) ───────────────
-    hbox:
-        xalign 0.5
-        ypos 760
-        spacing 28
+        ## Prompt + typed + blinking cursor. Rendered as three side-by-side
+        ## texts so the cursor can have its own ATL transform without
+        ## affecting the typed characters.
+        hbox:
+            xalign 0.5
+            text "> ":
+                color "#00ff41"
+                size 56
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
+            text "[glitch_typing.typed]":
+                color "#00ff41"
+                size 56
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
+            text "_":
+                color "#00ff41"
+                size 56
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
+                at _glitch_caret_blink
 
-        textbutton "[[ ARGUE ]":
-            action Return("argue")
-            text_color "#cc2200"
-            text_hover_color "#ff4422"
-            text_size 16
-            text_font "fonts/RobotoMono-Regular.ttf"
-            background Frame("#1a0000aa", 4, 4)
-            hover_background Frame("#330000cc", 4, 4)
-            padding (20, 10)
+        ## Invisible input widget — captures keystrokes; restricted to the
+        ## sys.exit() character set so other keys do nothing.
+        input:
+            xalign 0.5
+            default ""
+            value FieldInputValue(glitch_typing, "typed")
+            allow "sysexit()."
+            length 12
+            color "#00000000"
+            size 1
 
-        textbutton "[[ OBSERVE ]":
-            action Return("observe")
-            text_color "#888888"
-            text_hover_color "#ffffff"
-            text_size 16
-            text_font "fonts/RobotoMono-Regular.ttf"
-            background Frame("#1a1a1aaa", 4, 4)
-            hover_background Frame("#333333cc", 4, 4)
-            padding (20, 10)
-
-    ## ── Status footer ─────────────────────────────────────────────────────
-    text "Loops weathered: [glitch_typing.attempts]    |    Type each character of sys.exit() in order. Wrong key restarts.":
-        xalign 0.5
-        ypos 880
-        color "#666666"
-        size 13
-        font "fonts/RobotoMono-Regular.ttf"
-
-    ## ── Auto-return when solved ───────────────────────────────────────────
     if _solved:
         timer 0.6 action Return("wake_up")

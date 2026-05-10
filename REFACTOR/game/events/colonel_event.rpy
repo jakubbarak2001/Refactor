@@ -107,13 +107,9 @@ label colonel_round_one:
 
     scene bg_police_hallway with glitch_transition
 
-    "It is early morning. You hand your superior the resignation."
-    "'I need to call the Colonel.'"
-    "Three hours later, the black Superb arrives. He sits inside for 5 minutes."
-    "Watching the building. Watching the parking lot. Watching nothing."
-    "You stand at the window."
-    "Your hands either steady themselves, or they don't."
-    "The deck you spent 24 days building will tell you which."
+    "You hand in the resignation. Three hours later the black Superb pulls into the lot."
+    "He sits in it for five minutes. Watching nothing."
+    "You stand at the window. Your deck is in your hand."
 
     return
 
@@ -127,26 +123,14 @@ label colonel_round_two:
     scene bg_police_office with glitch_transition
     show colonel normal at char_right
 
-    "He enters. The room goes silent. Your colleagues look down."
-    "He doesn't acknowledge them."
-    "He invites you upstairs."
-    "You follow."
+    "He invites you upstairs. You follow."
 
     if stats.player_class == "bodybuilder":
-        colonel "'You filled out.'"
-        colonel "'You take up more of the doorway than you used to. The chair too.'"
-        colonel "'Iron body. Iron will. {i}Limited vocabulary.{/i}'"
-        "He sets his coffee down on the far side of the desk. Clearing the space between you."
+        colonel "'You filled out. Iron body. Iron will. Limited vocabulary.'"
     elif stats.player_class == "dark_empath":
-        colonel "'You haven't blinked since you walked in.'"
-        colonel "'Most men in your position look at the floor. Or the certificates on the wall. Something safe.'"
-        colonel "'You're looking at me like you already know how this ends.'"
-        "He starts to glance toward the window — and stops himself. Leans back in the chair instead."
+        colonel "'You haven't blinked since you walked in. You already know how this ends.'"
     elif stats.player_class == "biohacker":
-        colonel "'Your pupils are wide. Breathing's shallow. There's a sheen on your forehead the room doesn't justify.'"
-        colonel "'Whatever you took, you took it about forty minutes ago. It's at the top of its curve right now.'"
-        colonel "'Cute. We used to drink before a thing like this.'"
-        "He fastens the top button he never fastens. Trimming a variable he can still control."
+        colonel "'Pupils wide. Breathing shallow. Whatever you took is peaking right now. Cute.'"
 
     return
 
@@ -212,41 +196,10 @@ label colonel_glitch_loop:
 
     call screen glitch_typing_screen
 
-    if _return == "wake_up":
-        jump colonel_glitch_wake_up
-
-    if _return == "observe":
-        "You say nothing."
-        "He continues his speech."
-        "He reaches the end of his monologue."
-        "He starts it again."
-        "On the third loop, you notice something."
-        "His tie has a stain on it. Small. Left side. You never noticed it before."
-        "He is mortal. He is small. He is a man in a room who is afraid of being forgotten."
-        "You almost feel sorry for him."
-        "Almost."
-        jump colonel_glitch_loop_exit
-
-    ## _return == "argue" (or anything else) — restart the loop
-    scene bg_police_office with glitch_transition
-    "You open your mouth. You say the words."
-    "He pours another coffee."
-    "His expression doesn't change."
-    "The argument is already starting again from line 1."
-    "{color=#ff2222}You are trapped in the argument forever.{/color}"
-    "(You realize something. Fighting the loop only feeds the loop. Type a way out.)"
-    jump colonel_glitch_loop
-
-
-label colonel_glitch_loop_exit:
-
-    "You stop fighting."
-    "You stop arguing."
-    "You look at him with absolute clarity."
-    jb "'...This isn't about me at all, is it.'"
-    "He doesn't respond. He never will."
-    "You turn around and walk toward the door."
-    jump colonel_victory_resolution
+    ## Post-Phase-5D the screen only ever returns "wake_up" — typing the
+    ## target string is the sole exit. ARGUE / OBSERVE buttons were stripped
+    ## per playtest report (too much UI on the wake-up screen).
+    jump colonel_glitch_wake_up
 
 
 label colonel_glitch_wake_up:

@@ -27,6 +27,9 @@ label martin_meeting:
 
     show screen mm_affection_panel
 
+    ## First-time affection tutorial — early-returns if already seen.
+    call tutorial_affection_first_seen from _call_tutorial_affection_first_seen
+
     ## DE bonuses are now earned inline (in P2 Listen branch + P4 read-Martin
     ## narration block) — no more unconditional auto-stack from the orchestrator.
 
@@ -73,12 +76,8 @@ label martin_phase1_preparation:
 
     scene bg_cafe
 
-    "You decided to call your friend Martin. It's been almost 9 months since you saw him last."
-    "He quit the force abruptly. Everyone said he was crazy. Now, rumors say he's doing great."
-    "You agreed to meet for lunch at a decent restaurant in the city center."
-    "You look at yourself in the mirror. You look like a mess. Bags under your eyes, pale skin, post-shift exhaustion vibrating in your hands."
-    "He always cared about image. High-end fashion, perfumes, good posture."
-    "You could stop by the mall and buy something sharp to show him you aren't completely dead inside yet."
+    "Martin quit the force nine months ago. Everyone said he was crazy. He's doing great."
+    "Lunch at a decent restaurant. He always cared about image. You don't, much."
 
     menu:
         "Splurge — designer fit. (-12,500 CZK, +1 AFFECTION)":
@@ -87,16 +86,13 @@ label martin_phase1_preparation:
                 if stats.try_spend_money(_polo_cost):
                     martin_affection += 1
                     mm_outfit = "polo"
-                    _p1text  = "You look at yourself in the mirror and question whether you actually work at Police or Prada."
-                    _p1text2 = "'Impressive. Very nice.'\n'Let's see Martin's style.'"
-                    _p1outcome = "- {:,} CZK, +1 AFFECTION (He will respect the effort).".format(_polo_cost)
+                    _p1text  = "Polo, watch, the works. You look like a civilian."
+                    _p1outcome = "- {:,} CZK, +1 AFFECTION.".format(_polo_cost)
                 else:
-                    _p1text  = "You check your card balance... declined. Embarrassing."
-                    _p1text2 = "You go in your old clothes anyway."
+                    _p1text  = "Card declined. You go in your old clothes."
                     _p1outcome = "NO CHANGE (Insufficient funds)."
 
             "[_p1text]"
-            "[_p1text2]"
             show screen outcome_panel(_p1outcome)
             pause
             hide screen outcome_panel
@@ -106,16 +102,13 @@ label martin_phase1_preparation:
                 _cut_cost = adjusted_cost(2500)
                 if stats.try_spend_money(_cut_cost):
                     mm_outfit = "collar"
-                    _p1text  = "The barber played his part really well, you also buy a new sharp shirt. You look in the mirror."
-                    _p1text2 = "For a second, you don't look like a tired cop. You look like a civilian."
-                    _p1outcome = "- {:,} CZK (You showed up. He'll see it but won't say anything.)".format(_cut_cost)
+                    _p1text  = "Fresh cut. New shirt. You look like you tried."
+                    _p1outcome = "- {:,} CZK.".format(_cut_cost)
                 else:
-                    _p1text  = "You check your card balance... declined. Embarrassing."
-                    _p1text2 = "You go in your old clothes anyway."
+                    _p1text  = "Card declined. You go in your old clothes."
                     _p1outcome = "NO CHANGE (Insufficient funds)."
 
             "[_p1text]"
-            "[_p1text2]"
             show screen outcome_panel(_p1outcome)
             pause
             hide screen outcome_panel
@@ -123,33 +116,25 @@ label martin_phase1_preparation:
         "Free. (-1 AFFECTION)":
             python:
                 martin_affection -= 1
-            "You splash some cold water on your face. This is who you are right now."
-            "If he's really your friend, he won't care about the hoodie."
-            "(Martin will care.)"
-            show screen outcome_panel("-1 AFFECTION (He notices the lack of effort).")
+            "You go in the hoodie. Martin will notice."
+            show screen outcome_panel("-1 AFFECTION.")
             pause
             hide screen outcome_panel
 
-        "[[BODYBUILDER] GYM FIRST — Show up at your physical best. Your presence says everything. (+1 Affection, free)" if stats.player_class == "bodybuilder" and getattr(store, 'gym_streak', 0) >= 5:
+        "{color=#ff6633}{b}[[BODYBUILDER]{/b}{/color} GYM FIRST — Walk in at your physical best. (+1 AFFECTION, free)" if stats.player_class == "bodybuilder" and getattr(store, 'gym_streak', 0) >= 5:
             python:
                 martin_affection += 1
-            "You hit the gym before the meeting."
-            "When you walk into the restaurant, Martin clocks it immediately."
-            "The posture. The frame. The calm that only comes from a body used to real physical stress."
+            "You hit the gym before lunch. Martin clocks the frame the second you walk in."
             martin "'JB... you look different. Good different.'"
-            "He says it with genuine respect. You didn't buy that. You built it."
-            show screen outcome_panel("+1 AFFECTION POINT [BODYBUILDER: physical transformation is visible].")
+            show screen outcome_panel("+1 AFFECTION [BODYBUILDER].")
             pause
             hide screen outcome_panel
 
-        "[[BIOHACKER] STACK UP — Take your cognitive supplement before the meeting. (+1 Affection, free)" if stats.player_class == "biohacker" and nootropic_tier_max >= 2:
+        "[[BIOHACKER] STACK UP — T[nootropic_tier_max] protocol an hour before. (+1 AFFECTION, free)" if stats.player_class == "biohacker" and nootropic_tier_max >= 2:
             python:
                 martin_affection += 1
-            "You take your stack an hour before the meeting. T[nootropic_tier_max] protocol."
-            "By the time you sit down, your pattern-recognition is sharp. Your anxiety is metabolized into clarity."
-            "You make eye contact without effort. You speak without filler words."
-            "Martin notices something different about your affect — a focused calm he can't quite name."
-            show screen outcome_panel("+1 AFFECTION POINT [BIOHACKER: optimized state for high-stakes social interaction].")
+            "Pattern-recognition sharp. Anxiety metabolized into clarity. He notices the focus."
+            show screen outcome_panel("+1 AFFECTION [BIOHACKER].")
             pause
             hide screen outcome_panel
     return
@@ -163,73 +148,50 @@ label martin_phase2_meeting:
 
     scene bg_cafe
 
-    "You arrive at the restaurant. You see him in the distance."
+    show martin normal at char_right with Dissolve(0.6)
+    show expression "jb " + mm_outfit as jb at char_left with Dissolve(0.6)
+    pause 0.4
 
-    window hide dissolve
-    pause 0.6
-    show martin normal at char_right with Dissolve(0.9)
-    pause 0.5
-
-    "It's a shock. He looks... different. Bigger. Buffed."
-    "His skin has color. He is smiling at the waitress."
-    "He looks like a totally different person compared to the wreck you remember from the service."
-
-    window hide dissolve
-    pause 0.6
-    show expression "jb " + mm_outfit as jb at char_left with Dissolve(0.9)
-    pause 0.5
+    "He looks bigger. Healthier. Smiling. Different person."
 
     if mm_outfit == "polo":
-        martin "'Damn, JB. Polo, the watch, all of it. You actually showed up.'"
-        martin "'Sit down. Let me look at you for a second.'"
+        martin "'Damn, JB. You actually showed up.'"
     elif mm_outfit == "collar":
-        martin "'Fresh cut. Sharp shirt. You made the effort.'"
-        martin "'Good. That's a start.'"
+        martin "'Fresh cut. You made the effort. Good start.'"
     else:
-        martin "'A hoodie. To lunch.'"
-        martin "'...Okay. Same old JB. Sit down.'"
+        martin "'A hoodie. To lunch. Okay. Sit down.'"
 
-    "You sit down. Your brain is running on cheap caffeine and 2 hours of sleep after a 24hr shift."
-    "He orders a steak. You order a coffee."
-    "Before the food arrives, you need to break the ice. What do you talk about?"
+    "He orders a steak. You order coffee. Break the ice — what do you talk about?"
 
     menu:
-        "Vent out. (-50 PCR HATRED)":
+        "Vent. Unload everything. (-50 HATRED)":
             python:
                 stats.increment_stats_pcr_hatred(-50)
-
-            "You unload everything. The broken printers, the bodies, the admin mistakes."
-            "It feels good to say it to someone who understands."
-            show screen outcome_panel("-50 PCR HATRED.")
+            "You dump it all. Printers, bodies, admin. Feels good to say it out loud."
+            show screen outcome_panel("-50 HATRED.")
             pause
             hide screen outcome_panel
 
-        "Brag. (+25 CODING SKILLS)":
+        "Brag. Show off the projects. (+25 CODING)":
             python:
                 stats.increment_stats_coding_skill(25)
-
-            "You start talking about your projects, classes, and the automation script you wrote."
-            "You try to sound professional, to show you are ready."
-            show screen outcome_panel("+25 CODING SKILL.")
+            "You walk him through the automation script. Try to sound like a developer."
+            show screen outcome_panel("+25 CODING.")
             pause
             hide screen outcome_panel
 
-        "Listen. (+1 AFFECTION)":
+        "Listen. Ask about his life. (+1 AFFECTION)":
             python:
                 martin_affection += 1
-                ## DE bonus is gated on actually having done cold reads —
-                ## class identity isn't enough; the player must have used it.
                 _p2_de_bonus = (stats.player_class == "dark_empath" and
                                 sum(getattr(store, 'de_profiles', {}).values()) >= 1)
                 if _p2_de_bonus:
                     martin_affection += 1
 
-            "You stay quiet. You ask him about his life."
-            "He talks about his freedom. About sleeping 8 hours a day. About respect."
-            "He appreciates that you actually listen."
+            "He talks about freedom. Eight hours of sleep. Respect. He notices you actually listened."
             if _p2_de_bonus:
-                "You catch the things he's not saying — what he wishes you'd ask. You ask those instead."
-                show screen outcome_panel("+1 AFFECTION  ·  +1 [DARK EMPATH: real listening, not waiting to talk].")
+                "You catch the things he's not saying. You ask those instead."
+                show screen outcome_panel("+1 AFFECTION  ·  +1 [DARK EMPATH].")
             else:
                 show screen outcome_panel("+1 AFFECTION.")
             pause
@@ -247,43 +209,27 @@ label martin_phase3_bomb:
     show martin serious at char_right
     show expression "jb " + mm_outfit as jb at char_left
 
-    "The food arrives. The smell of steak fills the air, but your stomach is tied in a knot."
-    "You put down your fork. It's time."
-    "'Bro you know...,' you start, your voice cracking slightly. 'It was really inspiring when you left.'"
-    "'I don't really know what to do next, I'm kind of lost, and...'"
+    "The food arrives. You put down your fork."
+    jb "'Martin, I... I don't really know what to do next, I'm—'"
 
-    "He puts his hand up. He stops you mid-sentence."
-    "He looks you dead in the eye. The restaurant noise fades away."
-
-    martin "'Stop lying to yourself, JB.'"
-    martin "'You know exactly what to do.'"
-    martin "'You are just too scared to admit it.'"
-
-    "Silence. Absolute silence."
+    martin "'Stop lying to yourself, JB. You know exactly what to do. You're just too scared to say it.'"
 
     play music "audio/martin_meeting_event_the_awakening.mp3" fadein 1.0
 
-    "The truth hits you like a physical blow."
-    "You look down at the table. You whisper it."
-
-    jb "'You are right...'"
-    jb "'I... I want to quit.'"
-
-    "As you say those words, the reality of your debt and the Colonel's face flash before your eyes."
+    jb "'You're right. I want to quit.'"
 
     python:
         if stats.pcr_hatred >= 60:
             stats.increment_stats_pcr_hatred(-15)
-            _bomb_outcome = "[RELIEF]: -15 PCR HATRED (It feels so good to say aloud what you already knew)."
+            _bomb_outcome = "RELIEF: -15 HATRED (saying it out loud helped)."
         else:
             stats.increment_stats_pcr_hatred(15)
-            _bomb_outcome = "[CRITICAL EFFECT]: +15 PCR HATRED (The Fear of leaving is now real)."
+            _bomb_outcome = "FEAR: +15 HATRED (now it's real)."
 
     show screen outcome_panel(_bomb_outcome)
     pause
     hide screen outcome_panel
 
-    "Your current hatred is: [stats.pcr_hatred]."
     return
 
 
@@ -438,58 +384,50 @@ label martin_phase6_hatred_check:
     "REALITY CHECK — Current PCR HATRED: [stats.pcr_hatred]/100"
 
     menu:
-        "Pure rage.":
+        "Pure rage. (+2 AFFECTION, +25 HATRED)":
             python:
                 stats.increment_stats_pcr_hatred(25)
-                martin_affection += 1
-
-            "Your eyes flash with anger. You practically spit the words out."
+                martin_affection += 2
             jb "'I hate them so much it hurts. Every second in that uniform is torture.'"
             martin "'Good. Use that anger.'"
-            show screen outcome_panel("+1 AFFECTION, +25 PCR HATRED (Fuel for the fire).")
+            show screen outcome_panel("+2 AFFECTION, +25 HATRED (fuel for the fire).")
             pause
             hide screen outcome_panel
 
-        "Hatred.":
+        "Hatred. (+1 AFFECTION, +10 HATRED)":
             python:
                 stats.increment_stats_pcr_hatred(10)
                 martin_affection += 1
-
-            jb "'I hate it. I hate the politics, the lies. I need out.'"
+            jb "'I hate the politics, the lies. I need out.'"
             martin "'That's the spirit.'"
-            show screen outcome_panel("+1 AFFECTION POINT, +10 PCR HATRED.")
+            show screen outcome_panel("+1 AFFECTION, +10 HATRED.")
             pause
             hide screen outcome_panel
 
-        "Neutral.":
+        "Neutral. (no change)":
             jb "'It's business. We just aren't a good fit.'"
-            martin "'Diplomatic answer. Boring, but safe.'"
+            martin "'Diplomatic. Boring.'"
             show screen outcome_panel("NEUTRAL.")
             pause
             hide screen outcome_panel
 
-        "Soft.":
+        "Soft. (-1 AFFECTION, -25 HATRED)":
             python:
                 stats.increment_stats_pcr_hatred(-25)
                 martin_affection -= 1
-
             jb "'They gave me a chance. Maybe I'm just weak.'"
-            martin "'Don't do that. Don't blame yourself for their toxicity.'"
-            show screen outcome_panel("-1 AFFECTION POINT, -25 PCR HATRED.")
+            martin "'Don't blame yourself for their toxicity.'"
+            show screen outcome_panel("-1 AFFECTION, -25 HATRED.")
             pause
             hide screen outcome_panel
 
-        "Coping.":
+        "Coping. Defend the job. (-2 AFFECTION, -50 HATRED)":
             python:
                 stats.increment_stats_pcr_hatred(-50)
-                martin_affection -= 1
-
-            "You start rambling."
-            jb "'I mean, the job is stable and hierarchy is important and also that pension after 15 years of service is really good!'"
-            "You sound like a brainwashed cadet in training."
-            "He just stares at you in utter disbelief. The cringe has filled the air completely."
-            martin "'Wow. Stockholm Syndrome much? What happened to you dude?'"
-            show screen outcome_panel("-1 AFFECTION, -50 PCR HATRED (Your mental gymnastics are just insane).")
+                martin_affection -= 2
+            jb "'The job is stable. Hierarchy matters. The pension after 15 years is really good!'"
+            martin "'...Stockholm Syndrome much? What happened to you?'"
+            show screen outcome_panel("-2 AFFECTION, -50 HATRED.")
             pause
             hide screen outcome_panel
     return
@@ -505,39 +443,26 @@ label martin_phase7_timing:
     show martin serious at char_right
     show expression "jb " + mm_outfit as jb at char_left
 
-    "Martin's expression darkens. The nostalgia is gone."
-    martin "'One last thing, JB. The Colonel.'"
-    martin "'I know you think he is just a bureaucrat. But don't underestimate him.'"
-    martin "'He is the one who hired you, remember? He personally admitted you to the academy.'"
-    martin "'He sees you as his project. His success story. His Good Soldier.'"
-    martin "'When you hand him that resignation... he won't see it as paperwork.'"
-    martin "'He will take it as a betrayal.'"
-
-    martin "'He will come at you with everything. Guilt, threats, regulations, maybe even empathy.'"
-    martin "'It won't be an easy fight. It might be the hardest thing you've ever done.'"
-    martin "'Are you ready to face him? Do you want to rip the band-aid off now?'"
-    martin "'Or do you need time to prepare your mind and your wallet?'"
+    martin "'Last thing. The Colonel hired you. He sees you as his project. He'll take resignation as betrayal.'"
+    martin "'Guilt, threats, regulations, empathy — he'll throw all of it. Want to rip it off now, or prepare?'"
 
     menu:
-        "Brave. (Colonel fight Day 25, +1 AFFECTION)":
+        "Brave. Tomorrow. (Day 25, +1 AFFECTION)":
             python:
                 martin_affection += 1
                 stats.colonel_day = 25
-
             jb "'Tomorrow. I'm not waiting.'"
-            martin "'Good. Strike while the iron is hot. Don't let the fear settle.'"
-            show screen outcome_panel("+1 AFFECTION, FINAL BOSS SET FOR DAY 25.")
+            martin "'Strike while it's hot.'"
+            show screen outcome_panel("+1 AFFECTION, FINAL BOSS DAY 25.")
             pause
             hide screen outcome_panel
 
-        "Reasonable. (Colonel fight Day 30)":
+        "Reasonable. End of the month. (Day 30)":
             python:
                 stats.colonel_day = 30
-
-            jb "'I need to be sure. I'll wait... I have to do it till the end of this month.'"
-            martin "'Smart. Don't rush into a war you aren't ready for.'"
-            martin "'Use the time wisely. Save money. Code. Prepare.'"
-            show screen outcome_panel("FINAL BOSS SET FOR DAY 30.")
+            jb "'End of the month. I need to be ready.'"
+            martin "'Smart. Save. Code. Prepare.'"
+            show screen outcome_panel("FINAL BOSS DAY 30.")
             pause
             hide screen outcome_panel
     return
@@ -575,80 +500,54 @@ label martin_phase_dark_question:
     show martin serious at char_right
     show expression "jb " + mm_outfit as jb at char_left
 
-    "The restaurant has thinned out. It's just you and Martin and two couples who aren't talking to each other."
-    "He refills your coffee without asking."
-    martin "'One more question. And I want the honest answer, not the rehearsed one.'"
-    martin "'What are you {i}actually{/i} afraid of?'"
-
-    "You pause."
+    martin "'One more question. Honest answer, not the rehearsed one. What are you {i}actually{/i} afraid of?'"
 
     menu:
-        "Afraid of failure.":
+        "Afraid of failure. (+1 AFFECTION, -5 HATRED)":
             python:
                 martin_affection += 1
                 stats.increment_stats_pcr_hatred(-5)
-
-            jb "'That I leave... and discover I'm not actually smart enough.'"
-            jb "'That the colonel was right.'"
-            "Martin is quiet for a moment."
-            martin "'That's the most honest thing you've said today.'"
-            martin "'Good. Fear of failure means you actually want it.'"
-            martin "'Nobody who doesn't care is afraid of failing.'"
-            show screen outcome_panel("+1 AFFECTION, -5 PCR HATRED (Honesty is the real armor).")
+            jb "'That I leave and discover I'm not smart enough. That the Colonel was right.'"
+            martin "'Fear of failure means you actually want it.'"
+            show screen outcome_panel("+1 AFFECTION, -5 HATRED.")
             pause
             hide screen outcome_panel
 
-        "Afraid of identity.":
+        "Afraid of identity. (+2 AFFECTION, -10 HATRED)":
             python:
                 martin_affection += 2
                 stats.increment_stats_pcr_hatred(-10)
                 _p65_de_bonus = (stats.player_class == "dark_empath")
                 if _p65_de_bonus:
                     martin_affection += 1
-
-            jb "'The badge is... the only thing some people respect about me.'"
-            jb "'Without it I'm just some guy. Thirty-something. No degree. Living in a rented flat.'"
-            "Martin stares at you for a long moment."
-            martin "'Bro. You just described me three years ago.'"
-            martin "'I am not nothing. And you are not nothing. You just haven't built your thing yet.'"
-            martin "'The badge was never your identity. It was your cage.'"
+            jb "'Without the badge I'm just some guy. Thirty-something. No degree.'"
+            martin "'Bro. You just described me three years ago. The badge was never your identity. It was your cage.'"
             if _p65_de_bonus:
-                show screen outcome_panel("+2 AFFECTION  ·  +1 [DARK EMPATH: you let him see the wound], -10 PCR HATRED.")
+                show screen outcome_panel("+2 AFFECTION  ·  +1 [DARK EMPATH], -10 HATRED.")
             else:
-                show screen outcome_panel("+2 AFFECTION, -10 PCR HATRED (Martin sees through you. In the good way).")
+                show screen outcome_panel("+2 AFFECTION, -10 HATRED.")
             pause
             hide screen outcome_panel
 
-        "Afraid of nothing.":
+        "Afraid of nothing. (-2 AFFECTION, +10 HATRED)":
             python:
                 martin_affection -= 2
                 stats.increment_stats_pcr_hatred(10)
-
-            jb "'Nothing. I've made my peace with it.'"
-            "Martin raises an eyebrow."
+            jb "'Nothing. Made my peace with it.'"
             martin "'Sure you have.'"
-            "He says it gently, but you both know he doesn't believe you."
-            "Lying to Martin is like lying to yourself. He was you, three years ago."
-            "Something pulls back behind his eyes — not gone, just guarded."
-            show screen outcome_panel("-2 AFFECTION, +10 PCR HATRED (You closed the door he was holding open).")
+            "He doesn't believe you. Something pulls back behind his eyes."
+            show screen outcome_panel("-2 AFFECTION, +10 HATRED.")
             pause
             hide screen outcome_panel
 
-        "Admit the real fear.":
+        "Admit the real fear. (+2 AFFECTION, -15 HATRED)":
             python:
                 martin_affection += 2
                 stats.increment_stats_pcr_hatred(-15)
-
-            jb "'He will ruin me. He has contacts. He will make calls. He will follow my career.'"
-            jb "'I'll be applying for dev jobs and they'll Google me and find an official complaint.'"
-            "Martin goes very still."
-            "Then he smiles. It doesn't reach his eyes."
-            martin "'JB. He tried that with me.'"
-            martin "'Let me tell you what happened to those calls.'"
-            "He leans in. He whispers two sentences."
-            "Your jaw drops."
-            "The fear drains out of you like water."
-            show screen outcome_panel("+2 AFFECTION, -15 PCR HATRED (Martin just neutralized your deepest fear).")
+            jb "'He'll ruin me. Make calls. Companies will Google me and find an official complaint.'"
+            martin "'JB. He tried that with me. Let me tell you what happened to those calls.'"
+            "He leans in. Two sentences. The fear drains out of you."
+            show screen outcome_panel("+2 AFFECTION, -15 HATRED.")
             pause
             hide screen outcome_panel
     return
@@ -664,58 +563,40 @@ label martin_phase_the_price:
     show martin default at char_right
     show expression "jb " + mm_outfit as jb at char_left
 
-    "Martin looks down at his steak for a moment. When he looks up, his expression has changed."
-    martin "'Before I help you — I need you to understand something.'"
-    martin "'Leaving costs. More than money. More than the Colonel.'"
-    martin "'It will cost you relationships. Some people will call you selfish.'"
-    martin "'Some of your colleagues — the ones you drink with — they will feel judged by your choice.'"
-    martin "'Because if you can leave, then so could they. And they chose not to.'"
-    martin "'That's uncomfortable for them. So they make it about you.'"
-
-    "He takes a sip of coffee."
-    martin "'Can you handle being called a traitor by people you respected?'"
+    martin "'One more thing. Leaving costs more than money. Some colleagues will call you a traitor — because if you can leave, so could they.'"
+    martin "'Can you handle being called that?'"
 
     python:
         _ci_done = getattr(store, 'coding_interview_passed', False)
 
     menu:
-        "Yes.":
+        "Yes. (+1 AFFECTION)":
             python:
                 martin_affection += 1
-
-            jb "'I've thought about this. The ones who matter will understand.'"
-            jb "'And if they don't... then they aren't the ones who matter.'"
-            martin "'Good answer. That's exactly the mindset.'"
-            show screen outcome_panel("+1 AFFECTION (The right mindset).")
+            jb "'The ones who matter will understand. The rest aren't the ones who matter.'"
+            martin "'Good answer.'"
+            show screen outcome_panel("+1 AFFECTION.")
             pause
             hide screen outcome_panel
 
-        "Not sure.":
+        "Not sure. (+1 AFFECTION, -5 HATRED)":
             python:
                 martin_affection += 1
                 stats.increment_stats_pcr_hatred(-5)
-
-            jb "'Honestly? It's going to hurt. I've known some of these guys for years.'"
-            "Martin nods. He respects the honesty more than the bravado."
-            martin "'Good. Then do it anyway while it hurts.'"
-            martin "'That's what actual courage looks like. Not fearlessness. Doing it scared.'"
-            show screen outcome_panel("+1 AFFECTION, -5 PCR HATRED (Courage confirmed).")
+            jb "'It's going to hurt. Known some of these guys for years.'"
+            martin "'Then do it anyway while it hurts. That's what courage looks like.'"
+            show screen outcome_panel("+1 AFFECTION, -5 HATRED.")
             pause
             hide screen outcome_panel
 
-        "[[CODING INTERVIEW PASSED] 'I have a job offer pending. I don't need their validation anymore.'" if _ci_done:
+        "[[CODING INTERVIEW PASSED] 'I have a job offer pending.' (+2 AFFECTION, -20 HATRED)" if _ci_done:
             python:
                 martin_affection += 2
                 stats.increment_stats_pcr_hatred(-20)
-
-            jb "'I already have a company interested in me. I passed the technical screen.'"
-            "Martin freezes."
-            martin "'...You already have an offer?'"
-            jb "'Working on it.'"
-            "Martin laughs. Genuinely laughs."
-            martin "'JB, you madman. You are already out. You just haven't told yourself yet.'"
-            show screen outcome_panel("+2 AFFECTION, -20 PCR HATRED (Coding interview clears him.)")
-            pause 2.5
+            jb "'A company's interested. I passed the technical screen.'"
+            martin "'JB, you madman. You're already out — you just haven't told yourself yet.'"
+            show screen outcome_panel("+2 AFFECTION, -20 HATRED.")
+            pause
             hide screen outcome_panel
     return
 
@@ -729,15 +610,13 @@ label martin_neutral_ending:
     show martin default at char_right
     show expression "jb " + mm_outfit as jb at char_left
 
-    "Your friend shakes your hand. His grip is firm."
-    martin "'It's going to be hell, JB. He will try to break you.'"
-    martin "'But if you get overwhelmed, just remember that I made it.'"
-    martin "'I'm waiting on the other side. Don't let him win.'"
+    "Firm handshake."
+    martin "'It's going to be hell. If you get overwhelmed, remember that I made it.'"
 
     python:
         grant_card("stoic_anchor", silent=True)
         stats.final_boss_buff = "STOIC_ANCHOR"
-    "[[CARD ACQUIRED]: STOIC ANCHOR\n(+3 starting block per turn. Heal 3 HP after every colonel attack.)"
+    "[[CARD]: STOIC ANCHOR — +3 starting block/turn. Heal 3 after each colonel attack."
 
     return
 
@@ -747,19 +626,14 @@ label martin_bad_ending:
     show martin serious at char_right
     show expression "jb " + mm_outfit as jb at char_left
 
-    "Martin looks at you with pity. He doesn't shake your hand."
-    martin "'JB, do you remember that one guy from high school, who always wanted to open a car tuning shop but never did anything about it?'"
-    martin "'Well... you kinda remind me of him now — big dreams, but no action at all.'"
-    martin "'If you go in there like this, he's going to eat you alive.'"
-
-    "He pauses at the door. He looks at you one more time — like a man weighing whether to throw a rope to someone he's not sure wants to climb."
-    martin "'Take this anyway. I don't have to. But you came to lunch, so...'"
-    martin "'It's a stoic anchor. Breathe through what he says. Don't believe the worst of it.'"
+    "He looks at you with pity. No handshake."
+    martin "'You remind me of that guy from high school who always wanted to open a tuning shop. Big dreams, no action.'"
+    martin "'Take this anyway. You came to lunch.'"
 
     python:
         grant_card("stoic_anchor", silent=True)
         stats.final_boss_buff = "STOIC_ANCHOR"
-    "[Stoic Anchor card unlocked — minimum gift, no warmth]"
+    "[[CARD]: STOIC ANCHOR — minimum gift."
 
     return
 
@@ -769,44 +643,27 @@ label martin_good_ending_selection:
     show martin smiling at char_right
     show expression "jb " + mm_outfit as jb at char_left
 
-    martin "'Wait, JB. I have a good feeling about this. You are actually ready.'"
-    martin "'I want to help you. I can't fight him for you, but I can give you an edge.'"
-    martin "'What do you need the most? Information? Security? Or a weapon?'"
+    martin "'JB, you're ready. I can't fight him for you, but I can give you an edge.'"
+    martin "'He'll lie about your training contract. There's a paragraph that nukes the lie. Quote it and watch him choke.'"
 
-    "CHOOSE YOUR FINAL BOSS ADVANTAGE:"
-
-    menu:
-        "The legal nuke. (40 dmg attack — auto-counters 'Training Debt'.)":
-            "Martin hands you a crumpled digital file printout."
-            martin "'He lies about the contract. Quote this paragraph. Watch him choke.'"
-            python:
-                grant_card("paragraph_4b", silent=True)
-                stats.final_boss_buff = "PARAGRAPH_4B"
-
-        "Ghost of the past. (Disables one colonel attack + 15 dmg.)":
-            "Martin leans in and whispers the Colonel's dirty secret."
-            "You smile. Suddenly, the Colonel doesn't look like a monster. He looks like a failure."
-            python:
-                grant_card("ghost_secret", silent=True)
-                stats.final_boss_buff = "GHOST_SECRET"
-
-        "Production ready shield. (+5 max HP, +1 starting block per turn.)":
-            "Martin makes a call. He hands you a napkin with a number on it."
-            martin "'That's your starting salary. He can't threaten a man who has options.'"
-            python:
-                grant_card("job_offer", silent=True)
-                stats.final_boss_buff = "JOB_OFFER"
-
-        "Stoic refactor. (Take 50%% damage from emotional attacks.)":
-            "Martin grabs your shoulders. He teaches you to breathe. To detach."
-            martin "'He is just broken code, JB. Don't get angry. Just debug him.'"
-            python:
-                grant_card("stoic_refactor", silent=True)
-                stats.final_boss_buff = "STOIC_REFACTOR"
-
+    ## TAKE / PASS via the shared solo offer screen (same UI Vladek uses for
+    ## Stage 3/3). On PASS the player still walks away with Stoic Anchor as
+    ## the consolation gift — Martin doesn't send him out empty-handed.
     python:
-        _ace_names = {"PARAGRAPH_4B": "Paragraph 4b", "GHOST_SECRET": "Ghost of the Past", "JOB_OFFER": "Job Offer", "STOIC_REFACTOR": "Stoic Refactor"}
-        _ace_label = _ace_names.get(stats.final_boss_buff, stats.final_boss_buff)
-    "[[Ace in the hole: [_ace_label]]"
+        _took_paragraph = offer_card_solo("paragraph_4b", "MARTIN — THE LEGAL NUKE")
+        if _took_paragraph:
+            stats.final_boss_buff = "PARAGRAPH_4B"
+            _ace_label = "Paragraph 4b"
+        else:
+            stats.final_boss_buff = "STOIC_ANCHOR"
+            grant_card("stoic_anchor", silent=True)
+            _ace_label = "Stoic Anchor"
+
+    if _took_paragraph:
+        "He slides the printout across the table. You fold it into your jacket."
+    else:
+        martin "'Stoic Anchor it is. Breathe through what he says.'"
+
+    "[[Ace: [_ace_label]]"
 
     return

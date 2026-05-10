@@ -926,7 +926,7 @@ label re_the_bribe:
             pause
             hide screen outcome_panel
 
-        "[[DARK EMPATH] READ HIM — Profile the driver before you decide." if stats.player_class == "dark_empath":
+        "[[DARK EMPATH] READ HIM — Profile him before you decide." if stats.player_class == "dark_empath":
             python:
                 stats.increment_stats_pcr_hatred(-10)
                 stats.increment_stats_coding_skill(5)
@@ -946,7 +946,7 @@ label re_the_bribe:
             pause
             hide screen outcome_panel
 
-        "[[BODYBUILDER] FLIP THE SCRIPT — Step out of the car. Change the power dynamic." if stats.player_class == "bodybuilder":
+        "{color=#ff6633}{b}[[BODYBUILDER]{/b}{/color} FLIP THE SCRIPT — Step out. Change the dynamic." if stats.player_class == "bodybuilder":
             python:
                 stats.increment_stats_value_money(2400)
                 stats.increment_stats_pcr_hatred(-5)
@@ -966,7 +966,7 @@ label re_the_bribe:
             pause
             hide screen outcome_panel
 
-        "[[BIOHACKER] CALCULATE — Run the expected value before touching anything." if stats.player_class == "biohacker":
+        "[[BIOHACKER] CALCULATE — Run the expected value first." if stats.player_class == "biohacker":
             python:
                 stats.increment_stats_value_money(5000)
                 stats.increment_stats_pcr_hatred(8)

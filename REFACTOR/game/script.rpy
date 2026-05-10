@@ -411,15 +411,15 @@ label activity_gym:
                 if _roll == 1:
                     _total_red = 25 + _bb_bonus + _streak_add
                     _gym_card = "personal_record"
-                    _gym_text = "Something clicks today.\nYou hit a new personal record and for about 90 minutes the Colonel doesn't exist, the station doesn't exist, the paperwork doesn't exist.\nThere is only the bar, the weight, and the fact that your body does exactly what you tell it to.\nYou drive home in silence but it's the good kind of silence."
+                    _gym_text = "Personal record. The bar tells the truth. The Colonel doesn't exist for 90 minutes."
                 elif _roll == 2:
                     _total_red = 15 + _bb_bonus + _streak_add
                     _gym_card = "iron_will"
-                    _gym_text = "Solid session. Nothing transcendent, but you showed up and that's most of it.\nBy the last set your head is quieter than it was this morning.\nYou eat a chicken breast in your car in the gym parking lot and feel no shame whatsoever."
+                    _gym_text = "Solid session. Head's quieter than this morning."
                 else:
                     _total_red = 10 + _bb_bonus + _streak_add
                     _gym_card = "quick_jab"
-                    _gym_text = "You go through the motions. Every rep feels like lifting a filing cabinet full of quarterly reports.\nYour trainer gives you a look that says he's seen more motivated people at DMVs.\nBut you finish. You paid the entry fee. You are slightly less likely to flip a desk today."
+                    _gym_text = "Heavy day. You finish anyway. Slightly less likely to flip a desk today."
                 _gym_outcome = "- {} CZK, -{} PCR HATRED{}{}".format(_gym_cost, _total_red, " [BODYBUILDER]" if _bb_bonus else "", " [STREAK x{}]".format(store.gym_streak) if _streak_add else "")
 
             "[_gym_text]"
@@ -725,11 +725,11 @@ label activity_coding:
             },
             {
                 "label_name":     "coding_fiverr",
-                "title":          "FIVERR LESSON",
+                "title":          "BUY A CODING COACH",
                 "accent":         _bh_accent,
                 "cost_text":      "{:,} CZK".format(adjusted_cost(2500)),
                 "effect_text":    "+ Coding",
-                "flavor_text":    "Someone in Mumbai who knows your stack.",
+                "flavor_text":    "Pay someone better to short-cut you up the curve.",
                 "class_relevant": _is_bh,
             },
         ]
@@ -781,7 +781,7 @@ label coding_work_for_money:
             stats.increment_stats_value_money(_earned)
             activity_selected = True
 
-    "[_tier_name] — [_tier_info['label']]\nYour current coding skill is [stats.coding_skill].\n\nCalculation: [_tier_info['standard']] + [stats.coding_skill] * [_tier_info['hourly']] = [_earned] CZK"
+    "You bill out a day's work. [_tier_name] — [_tier_info['label']]."
     show screen outcome_panel("+ {} CZK".format(_earned))
     pause
     hide screen outcome_panel
@@ -806,23 +806,23 @@ label coding_fiverr:
         if _roll <= 65:
             _fiverr_gain = 10
             _fiverr_card = "compile"
-            _ftext = "You jump on a call with a mid-level developer from Fiverr.\nHe's practical. He shows you how to structure your files and fixes bad habits."
-            _foutcome = "- {} CZK, +10 CODING SKILLS".format(_fiverr_cost)
+            _ftext = "Mid-level coach. Practical. Cleans up your file structure and bad habits."
+            _foutcome = "- {} CZK, +10 CODING SKILL.".format(_fiverr_cost)
         elif _roll <= 90:
             _fiverr_gain = 15
             _fiverr_card = "compile"
-            _ftext = "You luck out. Your tutor is sharp as hell.\nThey explain OOP in a way that finally clicks with your brain."
-            _foutcome = "- {} CZK, +15 CODING SKILLS".format(_fiverr_cost)
+            _ftext = "Sharp coach. OOP finally clicks."
+            _foutcome = "- {} CZK, +15 CODING SKILL.".format(_fiverr_cost)
         else:
             _fiverr_gain = 25
             _fiverr_card = "refactor"
-            _ftext = "You accidentally booked a beast. Senior dev, ten years in the field.\nCode review, patterns, mental models. This was a paradigm shift."
-            _foutcome = "- {} CZK, +25 CODING SKILLS{}".format(_fiverr_cost, " [BIOHACKER PERK]" if stats.player_class == "biohacker" else "")
+            _ftext = "Senior dev. Ten years in. Code review, patterns, mental models. Paradigm shift."
+            _foutcome = "- {} CZK, +25 CODING SKILL{}.".format(_fiverr_cost, " [BIOHACKER PERK]" if stats.player_class == "biohacker" else "")
 
     "[_ftext]"
 
     python:
-        _took_fiverr = offer_card(_fiverr_card, "FIVERR", pass_stats_text=_foutcome)
+        _took_fiverr = offer_card(_fiverr_card, "CODING COACH", pass_stats_text=_foutcome)
         if not _took_fiverr:
             stats.increment_stats_coding_skill(_fiverr_gain)
         show_outcome_panel(_took_fiverr, _fiverr_card, _foutcome)

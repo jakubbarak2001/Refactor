@@ -341,7 +341,7 @@ init python:
             "perks": [
                 "Starts with +5 Coding Skill (analytical edge from baseline).",
                 "Israeli Developer event always grants max coding reward.",
-                "Fiverr lessons always grant +25 Coding (top-tier tutor).",
+                "Coding coach always grants +25 Coding (top-tier tutor).",
                 "Colonel's Safety Net attack is auto-countered.",
             ],
             "passive": "Starts with +5 Coding Skill (analytical edge from baseline).",

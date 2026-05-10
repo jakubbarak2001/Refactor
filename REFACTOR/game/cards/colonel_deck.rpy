@@ -117,7 +117,10 @@ init python:
         dialogue = "'Have you forgotten the car accident, JB? I buried that for you.'",
         threat   = 2,
         counter  = {
-            "card_ghost_secret": {"damage_to_self": 25, "negate": True},
+            ## Repointed from card_ghost_secret (now unobtainable post-Phase 4
+            ## Martin trim) to card_took_the_heat (always granted on Day 1).
+            ## Owning the receipt for the OG car incident counters his guilt.
+            "card_took_the_heat": {"damage_to_self": 25, "negate": True},
         },
     )
 

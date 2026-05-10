@@ -9,6 +9,14 @@
 ## class identity reads through.
 ## ---------------------------------------------------------------------------
 
+## Slow alpha pulse for the hatred-critical warning chip (>= 90).
+transform _hatred_warn_pulse:
+    alpha 1.0
+    linear 0.6 alpha 0.55
+    linear 0.6 alpha 1.0
+    repeat
+
+
 screen class_color_frame(thickness=3, alpha_suffix=""):
     $ _ccf_color = class_accent_color() + alpha_suffix
     frame:
@@ -55,11 +63,11 @@ screen stats_bar():
                 _class_track = "  ·  STACK {}".format(_proto)
 
         if stats.coding_skill < 70 and stats.available_money < 25000:
-            _coding_tt = "Coding under 70 + savings under 25k = REUNION risk. The road back to the station gets short fast."
+            _coding_tt = "Low coding + low cash = forced back to the uniform. Build one or both fast."
         elif stats.coding_skill < 70:
-            _coding_tt = "Coding under 70 — if money also runs low, REUNION pulls you back to the uniform."
+            _coding_tt = "Coding is your way out. Higher = more cash from gigs and stronger endings."
         if stats.pcr_hatred >= 60:
-            _hatred_tt = "Hatred {}/100 — over 60 unlocks contempt mode on Cold Read.".format(stats.pcr_hatred)
+            _hatred_tt = "Stay below 100. High hatred = breakdown ending."
 
         _deck_count_bar = len(player_deck.cards) if player_deck is not None else 0
 
@@ -75,14 +83,24 @@ screen stats_bar():
             spacing 4
 
             hbox:
-                spacing 20
+                spacing 18
+                yalign 0.5
 
-                ## Class badge — colour-coded per class via class_accent_color()
+                ## Class color glyph — small filled circle in the class accent.
+                ## Pre-attention to "this is YOUR identity" before reading text.
+                frame:
+                    xsize 14
+                    ysize 14
+                    yalign 0.5
+                    background Frame(_class_color, 0, 0)
+
+                ## Class badge — name only; tracker (SOMA/PROFILES/STACK)
+                ## moves to the secondary line below for visual hierarchy.
                 if stats.player_class == "bodybuilder":
                     button:
                         action NullAction()
                         tooltip "Greek for body. Every rep is one more piece of you that takes up space in the room. The right amount means the Colonel still has to look at you across the desk."
-                        text "[[BODYBUILDER][_class_track]":
+                        text "[[BODYBUILDER]":
                             color _class_color
                             size 16
                             bold True
@@ -90,7 +108,7 @@ screen stats_bar():
                     button:
                         action NullAction()
                         tooltip "A working theory of someone, built from small things they don't know they're showing you. The deeper the profile, the more predictable they get. You used to do this for suspects. Now you do it for everyone."
-                        text "[[DARK EMPATH][_class_track]":
+                        text "[[DARK EMPATH]":
                             color _class_color
                             size 16
                             bold True
@@ -98,7 +116,7 @@ screen stats_bar():
                     button:
                         action NullAction()
                         tooltip "The clinical word for the stack — exact compound, exact dose, exact timing. Started with caffeine. The right one buys you a turn the others don't get."
-                        text "[[BIOHACKER][_class_track]":
+                        text "[[BIOHACKER]":
                             color _class_color
                             size 16
                             bold True
@@ -112,9 +130,32 @@ screen stats_bar():
                     color "#555555"
                     size 18
 
+                ## Money — loss condition at 0. Larger weight than coding/day.
                 text "Money: [stats.available_money] CZK":
                     color "#ffd700"
+                    size 20
+                    bold True
+
+                text "|":
+                    color "#555555"
                     size 18
+
+                ## Hatred — loss condition at 100. Same weight as money.
+                if _hatred_tt:
+                    button:
+                        action NullAction()
+                        tooltip _hatred_tt
+                        background "#00000000"
+                        padding (0, 0)
+                        text "Hatred: [stats.pcr_hatred]/100":
+                            color "#ff4444"
+                            size 20
+                            bold True
+                else:
+                    text "Hatred: [stats.pcr_hatred]/100":
+                        color "#ff4444"
+                        size 20
+                        bold True
 
                 text "|":
                     color "#555555"
@@ -128,29 +169,11 @@ screen stats_bar():
                         padding (0, 0)
                         text "Coding: [stats.coding_skill]":
                             color "#00ccff"
-                            size 18
+                            size 16
                 else:
                     text "Coding: [stats.coding_skill]":
                         color "#00ccff"
-                        size 18
-
-                text "|":
-                    color "#555555"
-                    size 18
-
-                if _hatred_tt:
-                    button:
-                        action NullAction()
-                        tooltip _hatred_tt
-                        background "#00000000"
-                        padding (0, 0)
-                        text "Hatred: [stats.pcr_hatred]/100":
-                            color "#ff4444"
-                            size 18
-                else:
-                    text "Hatred: [stats.pcr_hatred]/100":
-                        color "#ff4444"
-                        size 18
+                        size 16
 
                 text "|":
                     color "#555555"
@@ -158,7 +181,7 @@ screen stats_bar():
 
                 text "Day: [day_cycle.current_day]/30":
                     color "#aaaaaa"
-                    size 18
+                    size 16
 
                 text "|":
                     color "#555555"
@@ -174,17 +197,55 @@ screen stats_bar():
                     tooltip "Click to view your deck."
                     text_color "#00cc88"
                     text_hover_color "#ffffff"
-                    text_size 18
+                    text_size 16
                     text_bold True
                     background "#00000000"
                     hover_background "#00000000"
                     padding (0, 0)
+
+            ## Class progression tracker — secondary line, smaller text.
+            ## Only renders when the class has earned tracker progress.
+            if _class_track:
+                text _class_track.lstrip(" ·"):
+                    color _class_color
+                    size 12
+                    italic True
+                    yalign 0.5
 
             ## Class-color underline — sits below the row so it spans the row width.
             frame:
                 xfill True
                 ysize 2
                 background Frame(_class_color, 0, 0)
+
+            ## Hatred warning chip — visible from 60+, color ramps with severity.
+            ## Replaces the tooltip-only warning that no playtester ever hovered.
+            ## Pulses at 90+ to make the impending loss-condition unmissable.
+            if stats.pcr_hatred >= 60:
+                python:
+                    if stats.pcr_hatred >= 90:
+                        _hw_color = "#ff2222"
+                        _hw_bg    = "#400000ee"
+                        _hw_label = "⚠ HATRED CRITICAL — collapse at 100"
+                    elif stats.pcr_hatred >= 75:
+                        _hw_color = "#ff8833"
+                        _hw_bg    = "#3a1a00ee"
+                        _hw_label = "⚠ HATRED HIGH — collapse at 100"
+                    else:
+                        _hw_color = "#ffcc44"
+                        _hw_bg    = "#2a1f00ee"
+                        _hw_label = "⚠ HATRED RISING — collapse at 100"
+                frame:
+                    xalign 0.0
+                    padding (10, 4)
+                    background Frame(_hw_bg, 4, 4)
+                    if stats.pcr_hatred >= 90:
+                        at _hatred_warn_pulse
+                    text _hw_label:
+                        color _hw_color
+                        size 13
+                        bold True
+                        font "fonts/RobotoMono-Regular.ttf"
 
     $ _stats_tt = GetTooltip()
     if _stats_tt:
@@ -457,11 +518,67 @@ screen deck_viewer():
 
 
 ## ---------------------------------------------------------------------------
-## Activity Tile — reusable button used in the activity selector grid.
-## Calls a label on click. Renders title + cost + effect + flavor.
+## Activity stat-chip palette. Costs always negative (-), gains always positive
+## (+), per-stat color so the eye doesn't have to parse +/- math. Used by the
+## activity tile helper below; pass chips=[("CZK", -400), ("Hatred", -10), ...]
+## via the `effect_chips` parameter.
 ## ---------------------------------------------------------------------------
 
-screen _activity_tile(label_name, title, accent, cost_text, effect_text, locked=False, lock_text="", class_relevant=False, flavor_text=""):
+init python:
+    _ACT_CHIP_COLORS = {
+        "CZK":     "#ffd700",
+        "Hatred":  "#ff4444",
+        "Coding":  "#00ccff",
+        "Muscle":  "#ff6633",
+        "Card":    "#00cc88",
+        "?":       "#888888",
+    }
+
+    def _act_chip_label(stat, delta):
+        """Format a chip label. delta=None renders as '?' (volatile / variable)."""
+        if delta is None:
+            return "? {}".format(stat)
+        sign = "+" if delta >= 0 else "-"
+        if stat == "CZK":
+            return "{}{:,} {}".format(sign, abs(delta), stat) if delta != 0 else "0 {}".format(stat)
+        if delta == 0:
+            return "0 {}".format(stat)
+        return "{}{} {}".format(sign, abs(delta), stat)
+
+
+screen _activity_chip_row(chips):
+    ## Render a horizontal row of colored stat-change chips. Each chip is a
+    ## small pill: color from the stat, label "+N STAT" or "-N STAT".
+    hbox:
+        spacing 4
+        xalign 0.5
+        for _stat, _delta in chips:
+            ## Volatile / random outcomes render in neutral grey via the "?"
+            ## palette entry — visually distinguishes "guaranteed +X" chips
+            ## from "depends on the day" chips at a glance.
+            $ _chip_color = _ACT_CHIP_COLORS.get("?" if _delta is None else _stat, "#cccccc")
+            frame:
+                padding (5, 2)
+                background Frame("#1a1a1aee", 3, 3)
+                text _act_chip_label(_stat, _delta):
+                    color _chip_color
+                    size 12
+                    bold True
+                    font "fonts/RobotoMono-Regular.ttf"
+
+
+## ---------------------------------------------------------------------------
+## Activity Tile — reusable button used in the activity selector grid.
+## Calls a label on click. Renders title + cost + effect + flavor.
+##
+## Two effect-display modes:
+##   1. effect_chips (preferred) — list of (stat, delta) tuples, rendered as
+##      colored chip row. Use for new tiles and migrated top-level tiles.
+##   2. effect_text (legacy) — freeform string with "Reward:" prefix. Kept
+##      for sub-menus that haven't migrated yet.
+## ---------------------------------------------------------------------------
+
+screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effect_chips=None, locked=False, lock_text="", class_relevant=False, flavor_text=""):
     ## Three-line schema (top -> bottom):
     ##   1. cost_text       - CZK number or FREE
     ##   2. effect_text     - "Reward: <delta>" line
@@ -521,7 +638,11 @@ screen _activity_tile(label_name, title, accent, cost_text, effect_text, locked=
                 xalign 0.5
                 font "fonts/RobotoMono-Regular.ttf"
 
-            if effect_text:
+            null height 2
+
+            if effect_chips:
+                use _activity_chip_row(chips=effect_chips)
+            elif effect_text:
                 text "Reward: [effect_text]":
                     color _at_text_color
                     size 13
@@ -548,7 +669,7 @@ screen _activity_tile(label_name, title, accent, cost_text, effect_text, locked=
 
 ## ---------------------------------------------------------------------------
 ## Activity Sub-Menu - generic card-grid screen for sub-choices inside an
-## activity (e.g. CODING's CODE FOR MONEY / PRACTICE / FIVERR / BOOTCAMP).
+## activity (e.g. CODING's CODE FOR MONEY / PRACTICE / COACH / BOOTCAMP).
 ## Mirrors the top-level activity_select_screen visual language so the
 ## hierarchy reads consistently.
 ##
@@ -681,7 +802,7 @@ screen activity_select_screen():
                 title          = "GYM",
                 accent         = class_accent_color("bodybuilder"),
                 cost_text      = "{:,} CZK".format(adjusted_cost(400)),
-                effect_text    = "- Hatred",
+                effect_chips   = [("Hatred", -10), ("Muscle", +1)],
                 flavor_text    = "An hour where the bar tells the truth.",
                 class_relevant = True,
             )
@@ -691,7 +812,7 @@ screen activity_select_screen():
                 title          = "COLD READ",
                 accent         = class_accent_color("dark_empath"),
                 cost_text      = "FREE",
-                effect_text    = "-20 Hatred",
+                effect_chips   = [("Hatred", -20)],
                 flavor_text    = "Regular for the card. Deep for the profile.",
                 class_relevant = True,
             )
@@ -701,7 +822,7 @@ screen activity_select_screen():
                 title          = "RECOVERY",
                 accent         = class_accent_color("biohacker"),
                 cost_text      = "{:,} CZK".format(adjusted_cost(500)),
-                effect_text    = "-30 Hatred",
+                effect_chips   = [("Hatred", -30)],
                 flavor_text    = "Red light. Sauna. Cold plunge. Data clean.",
                 class_relevant = True,
             )
@@ -712,7 +833,7 @@ screen activity_select_screen():
             title          = "BOUNCER",
             accent         = "#ffd700",
             cost_text      = "FREE",
-            effect_text    = "+ CZK, +/- Hatred",
+            effect_chips   = [("CZK", None), ("Hatred", None)],
             flavor_text    = "Nightclub safe. Strip bar volatile.",
             class_relevant = False,
         )
@@ -723,8 +844,8 @@ screen activity_select_screen():
             title          = "CODING",
             accent         = "#00ccff",
             cost_text      = "FREE",
-            effect_text    = "+ Coding",
-            flavor_text    = "Practice / Fiverr / Bootcamp / Puzzle.",
+            effect_chips   = [("Coding", None), ("CZK", None)],
+            flavor_text    = "Practice / Coach / Bootcamp / Puzzle.",
             class_relevant = False,
         )
 
@@ -734,7 +855,7 @@ screen activity_select_screen():
             title          = "NIGHT SHIFT",
             accent         = "#3388cc",
             cost_text      = "FREE",
-            effect_text    = "+3,000 CZK, +15 Hatred",
+            effect_chips   = [("CZK", +3000), ("Hatred", +15)],
             flavor_text    = "Trade time for money.",
             class_relevant = False,
         )
@@ -872,19 +993,6 @@ screen daily_hub_screen():
                     xalign 0.5
                     font "fonts/RobotoMono-Regular.ttf"
 
-        ## "Skip Today" — small, low-emphasis. Only visible when no activity chosen.
-        textbutton "skip today →":
-            xalign 0.5
-            yalign 0.86
-            action Jump("end_day")
-            text_color "#444444"
-            text_hover_color "#888888"
-            text_size 13
-            text_italic True
-            text_font "fonts/RobotoMono-Regular.ttf"
-            background "#00000000"
-            hover_background "#00000000"
-            padding (8, 4)
     else:
         ## Lock-in state — class-coloured, distinct from the pick-state.
         frame:
@@ -1221,41 +1329,58 @@ screen mm_affection_panel():
                 font "fonts/RobotoMono-Regular.ttf"
 
 
+## Outcome readout. Visually distinct from a choice menu — no boxed frame,
+## no header banner, slides up from the bottom edge so it's read as
+## "result of last action", not "make a decision now". Playtester read the
+## old framed-and-bordered panel as a choice prompt and waited for options.
+transform _outcome_slide_in:
+    yoffset 40
+    alpha 0.0
+    parallel:
+        easeout 0.4 yoffset 0
+    parallel:
+        linear 0.25 alpha 1.0
+
+transform _outcome_continue_pulse:
+    alpha 0.4
+    linear 0.7 alpha 0.85
+    linear 0.7 alpha 0.4
+    repeat
+
 screen outcome_panel(outcome_text):
     layer "screens"
     zorder 200
 
-    frame:
+    vbox:
         xalign 0.5
-        yalign 0.85
-        padding (20, 12)
-        background Frame("#001a00ee", 6, 6)
+        yalign 0.86
+        spacing 6
+        at _outcome_slide_in
 
-        vbox:
-            spacing 4
+        ## Thin top rule — visual signature of a readout, not a frame.
+        frame:
+            xsize 480
+            ysize 1
+            background Frame("#00ff4188", 0, 0)
+
+        ## Thin dark backdrop strip — readable on bright/painterly backgrounds
+        ## without becoming a frame (which the playtester read as a choice menu).
+        frame:
             xalign 0.5
-
-            text "OUTCOME":
-                color "#00ff41"
-                size 16
-                bold True
-                xalign 0.5
-
-            text "───────────────────────":
-                color "#005500"
-                size 14
-                xalign 0.5
-
+            padding (24, 6)
+            background Frame("#0a0a0acc", 0, 0)
             text outcome_text substitute False:
                 color "#ffffff"
-                size 20
+                size 22
                 bold True
                 xalign 0.5
+                outlines [(2, "#000000aa", 0, 0)]
 
-            text "▶ click to continue":
-                color "#ffffff"
-                size 13
-                xalign 0.5
+        text "› continue":
+            color "#88aa88"
+            size 11
+            xalign 1.0
+            at _outcome_continue_pulse
 
 
 ## ---------------------------------------------------------------------------
@@ -1393,6 +1518,21 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
                     xmaximum 360
                     text_align 0.5
 
+                ## Strategy hint — only show while the deck is small (i.e. the
+                ## player likely doesn't yet realize cards are how the colonel
+                ## fight gets won). Disappears after they've drafted enough.
+                python:
+                    _co_deck_size = len(player_deck.cards) if player_deck is not None else 0
+                if _co_deck_size < 14:
+                    null height 6
+                    text "Cards are how you fight the Colonel on Day 30.":
+                        color "#cccc88"
+                        size 12
+                        italic True
+                        xalign 0.5
+                        xmaximum 360
+                        text_align 0.5
+
                 if card.get("exhaust"):
                     null height 6
                     text "[[EXHAUST]":
@@ -1409,18 +1549,19 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
                         italic True
                         xalign 0.5
 
-        ## ─────────────── DIVIDER: "OR" between the two paths ───────────────
-        vbox:
+        ## ─────────────── Thin vertical rule between the two paths ───────────────
+        frame:
             yalign 0.5
-            spacing 6
-            text "OR":
-                color "#666666"
-                size 22
-                bold True
-                xalign 0.5
-                font "fonts/RobotoMono-Regular.ttf"
+            xsize 1
+            ysize 460
+            background Frame("#2a2a2a", 0, 0)
 
         ## ─────────────── RIGHT: PASS / stat reward preview ───────────────
+        ## Stat side now uses the player's class accent color so it reads as
+        ## equally serious as the card side. Strategy hints under each side
+        ## tell the player WHY each path matters.
+        $ _co_class_accent = class_accent_color()
+
         frame:
             xsize 420
             ysize 540
@@ -1431,24 +1572,23 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
                 spacing 12
                 xalign 0.5
 
-                ## Top accent bar (muted neutral, NOT the card color)
                 frame:
                     xalign 0.5
                     xsize 360
                     ysize 5
-                    background Frame("#888888", 0, 0)
+                    background Frame(_co_class_accent, 0, 0)
 
                 null height 6
 
-                ## Stat icon — generic "ledger" glyph in a circle
+                ## Stat icon — class-color circle, "+" glyph (gain)
                 frame:
                     xsize 56
                     ysize 56
-                    background Frame("#888888", 4, 4)
+                    background Frame(_co_class_accent, 4, 4)
                     xalign 0.5
-                    text "Σ":
+                    text "+":
                         color "#000000"
-                        size 32
+                        size 36
                         bold True
                         xalign 0.5
                         yalign 0.5
@@ -1462,8 +1602,8 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
                     xalign 0.5
                     font "fonts/RobotoMono-Regular.ttf"
 
-                text "Skill · Money · Hatred":
-                    color "#888888"
+                text "Money · Coding · Hatred":
+                    color _co_class_accent
                     size 13
                     xalign 0.5
                     font "fonts/RobotoMono-Regular.ttf"
@@ -1495,51 +1635,238 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
 
                 null height 8
 
-                text "Walk away. The deck stays as it is.":
-                    color "#888888"
+                text "Stats keep you alive day-to-day.":
+                    color "#aaaaaa"
                     size 13
                     italic True
                     xalign 0.5
                     xmaximum 360
                     text_align 0.5
 
-    ## ── TAKE / PASS buttons, each directly under its frame ──
+    ## ── TAKE / TAKE buttons — same color, same weight. The DECISION is
+    ## about content (card vs stats), not action. Asymmetric button colors
+    ## made stats look like the "safe / default" choice and players ignored
+    ## cards. Both buttons are now identical white-on-dark; the panels above
+    ## carry the visual differentiation.
     hbox:
         xalign 0.5
         yalign 0.93
         spacing 50
 
-        ## TAKE — under the card frame
         textbutton "[[ TAKE THE CARD ]":
             xsize 420
             xalign 0.5
             action Return("take")
-            text_color _co_color
-            text_hover_color "#ffffff"
+            text_color "#ffffff"
+            text_hover_color _co_color
             text_size 24
             text_bold True
             text_font "fonts/RobotoMono-Regular.ttf"
             text_xalign 0.5
-            background Frame("#0d1d0dee", 4, 4)
-            hover_background Frame("#1a3a1aee", 4, 4)
+            background Frame("#1a1a1aee", 4, 4)
+            hover_background Frame("#2a2a2aee", 4, 4)
             padding (20, 14)
 
-        ## OR-spacer to match the divider above
-        null width 22
+        null width 1
 
-        ## PASS — under the stat-reward frame
-        textbutton "[[ PASS — KEEP STATS ]":
+        textbutton "[[ TAKE THE STATS ]":
             xsize 420
             xalign 0.5
             action Return("pass")
-            text_color "#ffcc66"
+            text_color "#ffffff"
+            text_hover_color _co_class_accent
+            text_size 24
+            text_bold True
+            text_font "fonts/RobotoMono-Regular.ttf"
+            text_xalign 0.5
+            background Frame("#1a1a1aee", 4, 4)
+            hover_background Frame("#2a2a2aee", 4, 4)
+            padding (20, 14)
+
+    text "T = card   ·   P = stats   ·   ESC = stats":
+        xalign 0.5
+        yalign 0.985
+        color "#444444"
+        size 12
+        font "fonts/RobotoMono-Regular.ttf"
+
+    ## Keyboard shortcuts
+    key "K_t" action Return("take")
+    key "K_RETURN" action Return("take")
+    key "K_KP_ENTER" action Return("take")
+    key "K_p" action Return("pass")
+    key "K_ESCAPE" action Return("pass")
+
+
+## ---------------------------------------------------------------------------
+## Card Solo Offer — TAKE / PASS prompt for arc-reward cards where there is
+## no stat alternative (Vladek 3/3, Martin's legal nuke). Card preview
+## centered; TAKE / PASS buttons underneath. Same visual language as
+## card_offer_screen so the player learns one pattern.
+## ---------------------------------------------------------------------------
+
+screen card_solo_offer_screen(card, source_label=""):
+    modal True
+    zorder 700
+
+    add "#0a0a0aee"
+
+    python:
+        ## Local palette — `card_offer_screen`'s _CO_COLORS is scope-local
+        ## to that screen's python block, so it's not visible here. Inlined
+        ## to keep both screens self-contained until/unless we hoist the
+        ## palette to a module-level constant.
+        _csolo_palette = {
+            "Physical": "#ff6633", "Mental": "#9944cc", "Money": "#ffd700",
+            "Logic": "#00ccff", "Police": "#3388cc", "Special": "#00cc88",
+        }
+        _co_color = _csolo_palette.get(card.get("color", "Special"), "#888888")
+        _co_name    = card.get("name", "?")
+        _co_type    = card.get("type", "")
+        _co_rarity  = card.get("rarity", "")
+        _co_cost    = card.get("cost", 0)
+        _co_flavor  = card.get("flavor", "")
+        _co_color_label = card.get("color", "")
+        _co_effect  = EFFECT_DESCRIPTIONS.get(card.get("effect"), "")
+
+    use class_color_frame(thickness=3, alpha_suffix="aa")
+
+    vbox:
+        xalign 0.5
+        yalign 0.06
+        spacing 6
+
+        text "OFFER":
+            xalign 0.5
+            color "#ffffff"
+            size 28
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+
+        if source_label:
+            text "From: [source_label]":
+                xalign 0.5
+                color "#666666"
+                size 14
+                font "fonts/RobotoMono-Regular.ttf"
+
+    ## Card preview — centered, same internal layout as card_offer_screen.
+    frame:
+        xalign 0.5
+        yalign 0.46
+        xsize 460
+        ysize 560
+        background Frame("#0d0d0dee", 4, 4)
+        padding (24, 20)
+
+        vbox:
+            spacing 12
+            xalign 0.5
+
+            frame:
+                xalign 0.5
+                xsize 400
+                ysize 5
+                background Frame(_co_color, 0, 0)
+
+            null height 6
+
+            frame:
+                xsize 60
+                ysize 60
+                background Frame(_co_color, 4, 4)
+                xalign 0.5
+                text "[_co_cost]":
+                    color "#000000"
+                    size 34
+                    bold True
+                    xalign 0.5
+                    yalign 0.5
+
+            null height 2
+
+            text _co_name:
+                color "#ffffff"
+                size 32
+                bold True
+                xalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
+
+            text "{} · {} · {}".format(_co_type, _co_rarity.upper(), _co_color_label):
+                color _co_color
+                size 13
+                xalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
+
+            null height 10
+
+            text "─────────────────────────":
+                color "#222222"
+                size 12
+                xalign 0.5
+
+            null height 6
+
+            if _co_effect:
+                text _co_effect:
+                    color "#ffffff"
+                    size 17
+                    bold True
+                    xalign 0.5
+                    xmaximum 400
+                    text_align 0.5
+                    line_spacing 3
+                null height 8
+
+            text _co_flavor:
+                color "#888888"
+                size 13
+                italic True
+                xalign 0.5
+                xmaximum 400
+                text_align 0.5
+
+            if card.get("exhaust"):
+                null height 6
+                text "[[EXHAUST]":
+                    color "#cc4444"
+                    size 13
+                    bold True
+                    xalign 0.5
+
+    ## TAKE / PASS — same visual weight; the choice is "do I want this card"
+    ## not "card vs stats". No stat panel.
+    hbox:
+        xalign 0.5
+        yalign 0.93
+        spacing 30
+
+        textbutton "[[ TAKE ]":
+            xsize 200
+            xalign 0.5
+            action Return("take")
+            text_color "#ffffff"
+            text_hover_color _co_color
+            text_size 24
+            text_bold True
+            text_font "fonts/RobotoMono-Regular.ttf"
+            text_xalign 0.5
+            background Frame("#1a1a1aee", 4, 4)
+            hover_background Frame("#2a2a2aee", 4, 4)
+            padding (20, 14)
+
+        textbutton "[[ PASS ]":
+            xsize 200
+            xalign 0.5
+            action Return("pass")
+            text_color "#888888"
             text_hover_color "#ffffff"
             text_size 24
             text_bold True
             text_font "fonts/RobotoMono-Regular.ttf"
             text_xalign 0.5
             background Frame("#1a1a1aee", 4, 4)
-            hover_background Frame("#3a2a0dee", 4, 4)
+            hover_background Frame("#2a2a2aee", 4, 4)
             padding (20, 14)
 
     text "T = TAKE   ·   P = PASS   ·   ESC = PASS":
@@ -1549,7 +1876,6 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
         size 12
         font "fonts/RobotoMono-Regular.ttf"
 
-    ## Keyboard shortcuts
     key "K_t" action Return("take")
     key "K_RETURN" action Return("take")
     key "K_KP_ENTER" action Return("take")
@@ -2011,118 +2337,52 @@ screen difficulty_selection_screen():
             bold True
             font "fonts/RobotoMono-Regular.ttf"
 
+        text "30 days. One life. No reloads.":
+            color "#888888"
+            size 16
+            font "fonts/RobotoMono-Regular.ttf"
+
         text "Choose your suffering. This cannot be undone.":
             color "#444444"
             size 19
             font "fonts/RobotoMono-Regular.ttf"
 
     ## ── Difficulty list (left) ──────────────────────────────────────────────
+    ## Whole-row click target — playtest hit on the ▶ glyph (passive marker)
+    ## three times with no response. The `button` wraps the entire 718x76
+    ## strip so anywhere in the row commits the choice.
+    for _i, _diff in enumerate(DIFF_DATA):
+        button:
+            xpos 0
+            ypos (220 + _i * 76)
+            xsize 718
+            ysize 76
+            background ("#cc220033" if _hov == _i else "#00000000")
+            hover_background "#cc220033"
+            action [SetField(store, "_chosen_difficulty", _diff["key"]), Return()]
+            hovered SetScreenVariable("_hov", _i)
 
-    ## Level 1 — CAN I GOOGLE IT?
-    frame:
-        xpos 0
-        ypos 220
-        xsize 718
-        ysize 76
-        background ("#cc220018" if _hov == 0 else "#00000000")
-
-        hbox:
-            yalign 0.5
-            ## Left accent bar
-            frame:
-                xsize 5
-                ysize 76
-                background ("#cc2200" if _hov == 0 else "#1a0000")
-            frame:
-                xsize 22
-                ysize 76
-                background "#00000000"
-            text ("▶  " if _hov == 0 else "   "):
-                color "#cc2200"
-                size 28
+            hbox:
                 yalign 0.5
-                font "fonts/RobotoMono-Regular.ttf"
-            textbutton "JUST LEARN TO CODE BRO":
-                action [SetField(store, "_chosen_difficulty", "easy"), Return()]
-                hovered SetScreenVariable("_hov", 0)
-                text_color ("#ffffff" if _hov == 0 else "#555555")
-                text_size  (32 if _hov == 0 else 28)
-                text_bold  (_hov == 0)
-                text_font  "fonts/RobotoMono-Regular.ttf"
-                background "#00000000"
-                hover_background "#00000000"
-                yalign 0.5
-                padding (0, 18, 0, 18)
-
-    ## Level 2 — DON'T REJECT MY PR
-    frame:
-        xpos 0
-        ypos 296
-        xsize 718
-        ysize 76
-        background ("#cc220018" if _hov == 1 else "#00000000")
-
-        hbox:
-            yalign 0.5
-            frame:
-                xsize 5
-                ysize 76
-                background ("#cc2200" if _hov == 1 else "#1a0000")
-            frame:
-                xsize 22
-                ysize 76
-                background "#00000000"
-            text ("▶  " if _hov == 1 else "   "):
-                color "#cc2200"
-                size 28
-                yalign 0.5
-                font "fonts/RobotoMono-Regular.ttf"
-            textbutton "TECHNICAL DEBT":
-                action [SetField(store, "_chosen_difficulty", "hard"), Return()]
-                hovered SetScreenVariable("_hov", 1)
-                text_color ("#ffffff" if _hov == 1 else "#555555")
-                text_size  (32 if _hov == 1 else 28)
-                text_bold  (_hov == 1)
-                text_font  "fonts/RobotoMono-Regular.ttf"
-                background "#00000000"
-                hover_background "#00000000"
-                yalign 0.5
-                padding (0, 18, 0, 18)
-
-    ## Level 3 — MASS LAYOFFS!
-    frame:
-        xpos 0
-        ypos 372
-        xsize 718
-        ysize 76
-        background ("#cc220018" if _hov == 2 else "#00000000")
-
-        hbox:
-            yalign 0.5
-            frame:
-                xsize 5
-                ysize 76
-                background ("#cc2200" if _hov == 2 else "#1a0000")
-            frame:
-                xsize 22
-                ysize 76
-                background "#00000000"
-            text ("▶  " if _hov == 2 else "   "):
-                color "#cc2200"
-                size 28
-                yalign 0.5
-                font "fonts/RobotoMono-Regular.ttf"
-            textbutton "THANK YOU FOR YOUR APPLICATION":
-                action [SetField(store, "_chosen_difficulty", "insane"), Return()]
-                hovered SetScreenVariable("_hov", 2)
-                text_color ("#ffffff" if _hov == 2 else "#555555")
-                text_size  (32 if _hov == 2 else 28)
-                text_bold  (_hov == 2)
-                text_font  "fonts/RobotoMono-Regular.ttf"
-                background "#00000000"
-                hover_background "#00000000"
-                yalign 0.5
-                padding (0, 18, 0, 18)
+                frame:
+                    xsize 5
+                    ysize 76
+                    background ("#cc2200" if _hov == _i else "#1a0000")
+                frame:
+                    xsize 22
+                    ysize 76
+                    background "#00000000"
+                text ("▶  " if _hov == _i else "   "):
+                    color "#cc2200"
+                    size 28
+                    yalign 0.5
+                    font "fonts/RobotoMono-Regular.ttf"
+                text _diff["name"]:
+                    color ("#ffffff" if _hov == _i else "#555555")
+                    size  (32 if _hov == _i else 28)
+                    bold  (_hov == _i)
+                    font  "fonts/RobotoMono-Regular.ttf"
+                    yalign 0.5
 
     ## ── Stats block (bottom-left) ───────────────────────────────────────────
 
@@ -2199,7 +2459,7 @@ screen difficulty_selection_screen():
 
     ## ── Keyboard navigation ─────────────────────────────────────────────────
     key "K_UP"       action SetScreenVariable("_hov", max(0, _hov - 1))
-    key "K_DOWN"     action SetScreenVariable("_hov", min(2, _hov + 1))
+    key "K_DOWN"     action SetScreenVariable("_hov", min(len(DIFF_DATA) - 1, _hov + 1))
     key "K_RETURN"   action [SetField(store, "_chosen_difficulty", DIFF_DATA[_hov]["key"]), Return()]
     key "K_KP_ENTER" action [SetField(store, "_chosen_difficulty", DIFF_DATA[_hov]["key"]), Return()]
 
@@ -2272,23 +2532,26 @@ screen class_selection_screen():
             size 19
             font "fonts/RobotoMono-Regular.ttf"
 
-    ## Class list (left)
+    ## Class list (left) — whole-row click target.
     for _i, _cls_key in enumerate(CLASS_SELECT_ORDER):
         $ _cd = CLASS_DATA[_cls_key]
         $ _accent = _cd["color"]
         $ _locked = _cls_key in LOCKED_CLASSES
         $ _y = 220 + _i * 88
+        $ _hover_sfx = CLASS_HOVER_SFX.get(_cls_key)
 
-        frame:
+        button:
             xpos 0
             ypos _y
             xsize 718
             ysize 88
-            background ("#1a000018" if _cls_hov == _i else "#00000000")
+            background ("#1a000033" if _cls_hov == _i else "#00000000")
+            hover_background "#1a000033"
+            action (NullAction() if _locked else [SetField(stats, "player_class", _cls_key), Return()])
+            hovered ([SetScreenVariable("_cls_hov", _i), Play("sound", _hover_sfx)] if _hover_sfx else SetScreenVariable("_cls_hov", _i))
 
             hbox:
                 yalign 0.5
-                ## Left accent bar — class color (dim when locked)
                 frame:
                     xsize 5
                     ysize 88
@@ -2302,19 +2565,18 @@ screen class_selection_screen():
                     size 28
                     yalign 0.5
                     font "fonts/RobotoMono-Regular.ttf"
-                $ _hover_sfx = CLASS_HOVER_SFX.get(_cls_key)
-                textbutton _cd["name"]:
-                    action ([SetScreenVariable("_cls_hov", _i)] if _locked else [SetField(stats, "player_class", _cls_key), Return()])
-                    hovered ([SetScreenVariable("_cls_hov", _i), Play("sound", _hover_sfx)] if _hover_sfx else SetScreenVariable("_cls_hov", _i))
-                    text_color ("#555555" if _locked else (_accent if _cls_hov == _i else "#444444"))
-                    text_size  (32 if _cls_hov == _i else 28)
-                    text_bold  (_cls_hov == _i)
-                    text_italic _locked
-                    text_font  "fonts/RobotoMono-Regular.ttf"
-                    background "#00000000"
-                    hover_background "#00000000"
+                text _cd["name"]:
+                    color ("#555555" if _locked else (_accent if _cls_hov == _i else "#444444"))
+                    size  (32 if _cls_hov == _i else 28)
+                    bold  (_cls_hov == _i)
+                    italic _locked
+                    font  "fonts/RobotoMono-Regular.ttf"
                     yalign 0.5
-                    padding (0, 22, 0, 22)
+
+            ## Locked rows shouldn't commit on click — Return() is gated by the
+            ## ternary above, but explicitly nulling the action also makes the
+            ## intent unambiguous to a reader. (Hover focus still updates via
+            ## `hovered`, so the right-side details panel reacts correctly.)
 
     ## --- Hovered class details (bottom-left) ---
     python:
@@ -3174,13 +3436,6 @@ screen main_menu():
 
             text "[config.version]":
                 style "main_menu_version"
-
-    text "30 days. One life. No reloads.":
-        xalign 0.5
-        yalign 0.62
-        color "#cc2200"
-        size 28
-        font "fonts/RobotoMono-Regular.ttf"
 
     ## --- DEV: skip straight to the colonel deck-fight ---
     textbutton "[[DEV] SKIP TO COLONEL FIGHT":

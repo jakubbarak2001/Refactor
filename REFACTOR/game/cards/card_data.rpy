@@ -166,6 +166,31 @@ init -1 python:
         return False
 
 
+    def offer_card_solo(card_id, source_label=""):
+        """Show the solo card-offer screen (TAKE/PASS, no stat alternative).
+
+        For arc-reward cards where the player either takes the card or walks
+        away with nothing — Vladek's Form, Martin's Paragraph 4b, etc. The
+        screen renders a centered card preview with TAKE/PASS underneath.
+        Returns True if taken, False if passed or filtered.
+        """
+        if player_deck is None or card_id not in CARD_LIBRARY:
+            return False
+        c = CARD_LIBRARY[card_id]
+        if c.get("class_lock") and stats is not None and c["class_lock"] != stats.player_class:
+            return False
+
+        try:
+            result = renpy.call_screen("card_solo_offer_screen", card=c, source_label=source_label)
+        except Exception:
+            result = "take"
+
+        if result == "take":
+            player_deck.add(card_id)
+            return True
+        return False
+
+
     def show_outcome_panel(took_card, card_id, stat_text):
         """Phase 1 outcome panel renderer.
 

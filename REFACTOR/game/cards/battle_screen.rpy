@@ -191,6 +191,15 @@ transform turn_banner_atl:
     pause 0.7
     ease 0.4 alpha 0.0 xoffset 400
 
+## End-turn warn pulse — slow alpha breathing on the END TURN button when
+## the player still has unspent energy. Visual nag, not a hard block.
+transform _energy_warn_pulse:
+    alpha 1.0
+    linear 0.7 alpha 0.55
+    linear 0.7 alpha 1.0
+    repeat
+
+
 transform damage_popup_anim:
     yoffset 0
     alpha 1.0
@@ -259,21 +268,34 @@ transform card_hover_lift:
 ## from battle_screen so each popup gets a STABLE identity across redraws —
 ## otherwise Ren'Py respawns the displayable on every redraw and the ATL
 ## animation restarts from frame 0, freezing the popup visually.
+##
+## Phase 1A — anchored to actual HP frames (was floating at arbitrary 200/540
+## & 1000/220 — invisible to playtester). Enemy popup sits directly under the
+## colonel HP header, player popup sits directly above the player HP frame.
 screen _damage_popup_overlay(fx):
     $ _amt = fx.get('amount', 0)
     $ _is_player = fx.get('target') == 'player'
     $ _color = "#ff4422" if _is_player else "#ffdd44"
-    $ _xpos = 200 if _is_player else 1000
-    $ _ypos = 540 if _is_player else 220
-    text "-[_amt]":
-        xpos _xpos
-        ypos _ypos
-        color _color
-        size 64
-        bold True
-        outlines [(3, "#000000", 0, 0)]
-        font "fonts/RobotoMono-Regular.ttf"
-        at damage_popup_anim
+    if _is_player:
+        text "-[_amt]":
+            xpos 180
+            ypos 540
+            color _color
+            size 96
+            bold True
+            outlines [(4, "#000000", 0, 0)]
+            font "fonts/RobotoMono-Regular.ttf"
+            at damage_popup_anim
+    else:
+        text "-[_amt]":
+            xalign 0.5
+            ypos 110
+            color _color
+            size 96
+            bold True
+            outlines [(4, "#000000", 0, 0)]
+            font "fonts/RobotoMono-Regular.ttf"
+            at damage_popup_anim
 
 
 ## ---------------------------------------------------------------------------
@@ -679,34 +701,12 @@ screen battle_screen():
                                             size _intent_size
                                             bold _is_current
 
-        ## ── BATTLE LOG (left side) ────────────────────────────────────────────
-        frame:
-            xpos 20
-            ypos 200
-            xsize 360
-            ysize 360
-            background Frame("#0d0d0dcc", 4, 4)
-            padding (12, 10)
+        ## ── BATTLE LOG removed per playtest report. Damage popups, intent
+        ## icons, and the active-buff row carry the feedback channels. The
+        ## log was screen-noise that the playtester didn't read.
+        ## (Engine still appends to bs.log so debug_battle traces survive.)
 
-            vbox:
-                spacing 4
-
-                text "BATTLE LOG":
-                    color "#cc2200"
-                    size 14
-                    bold True
-                    font "fonts/RobotoMono-Regular.ttf"
-
-                text "─────────────────":
-                    color "#222222"
-                    size 12
-
-                for _msg in bs.log[-10:]:
-                    text "[_msg]":
-                        color "#aaaaaa"
-                        size 12
-
-        ## ── PLAYER STATUS (left side, below log) ──────────────────────────────
+        ## ── PLAYER STATUS (left side) ──────────────────────────────────────
         ## player_frame_hit_shake fires for ~0.30s after player takes damage.
         frame:
             at player_frame_hit_shake
@@ -786,10 +786,14 @@ screen battle_screen():
                             _active_buffs.append("{} x{}".format(_label, _v))
                         else:
                             _active_buffs.append(_label)
+                ## BUFFS row — bigger / bolder per playtest. Player said
+                ## buff cards "disappeared" — they were actually applied to
+                ## this row but the size-11 grey text was invisible.
                 if _active_buffs:
                     text "BUFFS: {}".format(", ".join(_active_buffs)):
                         color "#ffdd44"
-                        size 11
+                        size 14
+                        bold True
                         xmaximum 340
 
         ## ── ENERGY (right side) ───────────────────────────────────────────────
@@ -820,19 +824,30 @@ screen battle_screen():
                     xalign 0.5
                     at energy_pulse
 
-        ## ── END TURN BUTTON ───────────────────────────────────────────────────
-        textbutton "[[ END TURN ]":
+        ## ── END TURN BUTTON — pulses yellow when energy is unspent so the
+        ## playtester stops ending the turn with cards still playable.
+        python:
+            _et_has_energy = bs.energy > 0
+            _et_label = "[[ END TURN — {} ENERGY LEFT ]".format(bs.energy) if _et_has_energy else "[[ END TURN ]"
+            _et_color  = "#ffaa00" if _et_has_energy else "#cc2200"
+            _et_hover  = "#ffdd55" if _et_has_energy else "#ff4422"
+            _et_bg     = Frame("#1a1500ee", 4, 4) if _et_has_energy else Frame("#1a0000ee", 4, 4)
+            _et_hover_bg = Frame("#3a3000ee", 4, 4) if _et_has_energy else Frame("#330000ee", 4, 4)
+
+        textbutton _et_label:
             xpos 1700
             ypos 700
             action [Function(battle_end_player_turn), Function(renpy.restart_interaction)]
-            text_color "#cc2200"
-            text_hover_color "#ff4422"
-            text_size 24
+            text_color _et_color
+            text_hover_color _et_hover
+            text_size 22
             text_bold True
             text_font "fonts/RobotoMono-Regular.ttf"
-            background Frame("#1a0000ee", 4, 4)
-            hover_background Frame("#330000ee", 4, 4)
-            padding (24, 14)
+            background _et_bg
+            hover_background _et_hover_bg
+            padding (22, 14)
+            if _et_has_energy:
+                at _energy_warn_pulse
 
         ## ── DRAW / DISCARD piles ──────────────────────────────────────────────
         python:
@@ -899,12 +914,19 @@ screen battle_screen():
 
                 for _cid in bs.hand:
                     $ _card = CARD_LIBRARY.get(_cid, {})
-                    $ _color = _CARD_COLORS.get(_card.get("color", "Special"), "#888888")
+                    $ _ctype = _card.get("type", "Skill")
+                    ## Border + type-strip color now driven by card TYPE
+                    ## (Attack=red, Skill=blue, Power=purple). The card "color"
+                    ## taxonomy (Physical/Mental/Money/...) reads as random
+                    ## class-tinting to playtesters — orange for BB cards
+                    ## confused the player about ownership. Type-based is
+                    ## unambiguous: red = it hits, blue = it defends/cycles,
+                    ## purple = it's a passive power.
+                    $ _color = {"Attack": "#cc4422", "Skill": "#3388cc", "Power": "#aa44cc"}.get(_ctype, "#888888")
                     $ _ok, _reason = bs.hand_playable(_cid)
                     $ _border = _color if _ok else "#3a1010"
                     $ _border_hover = "#ffffff" if _ok else _border
                     $ _effect_text = EFFECT_DESCRIPTIONS.get(_card.get("effect"), _card.get("flavor", ""))
-                    $ _ctype = _card.get("type", "Skill")
                     ## Geometric glyphs in BMP (well-supported across fonts) — visual hierarchy for type
                     $ _type_glyph = {"Attack": "▲", "Skill": "■", "Power": "★"}.get(_ctype, "●")
 

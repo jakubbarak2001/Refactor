@@ -27,9 +27,9 @@ label re_bb_trainer_intro:
     "[[Vladek — Stage 1]"
     "THE TRAINER"
 
-    "Vladek finishes spotting your last set. Wipes his forehead. Looks at you for a long second."
-    "'JB. Listen. I've been watching you. You have the frame, the discipline. You are wasting it on uniformed bullshit.'"
-    "'I run a private programme. Olympic prep. Three months. I'd take you on. No money up front.'"
+    "Vladek wipes his forehead after your last set. Looks at you a long second."
+    "'JB. I've been watching you. You have the frame, the discipline. You're wasting it on uniformed bullshit.'"
+    "'I run a private programme. I'd take you on. Free of charge.'"
 
     menu:
         "Take the offer. [[+1 SOMA, -10 Hatred, arc continues]":
@@ -136,7 +136,7 @@ label re_bb_competition_day:
             python:
                 if getattr(store, '_bb_arc_won', False):
                     unlock_achievement("vladeks_pupil")
-                    offer_card("vladeks_form", "ARC: COMPETITION WON")
+                    offer_card_solo("vladeks_form", "VLADEK 3/3 — COMPETITION WON")
 
         "Play it safe. [[guaranteed +5,000 CZK, no SOMA]":
             python:
