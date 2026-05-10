@@ -1475,14 +1475,14 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
 
                 null height 2
 
-                text _co_name:
+                text _co_name substitute False:
                     color "#ffffff"
                     size 30
                     bold True
                     xalign 0.5
                     font "fonts/RobotoMono-Regular.ttf"
 
-                text "{} · {} · {}".format(_co_type, _co_rarity.upper(), _co_color_label):
+                text "{} · {} · {}".format(_co_type, _co_rarity.upper(), _co_color_label) substitute False:
                     color _co_color
                     size 13
                     xalign 0.5
@@ -1500,7 +1500,7 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
                 ## EFFECT — what the card actually does. Mechanics first, vibes second.
                 $ _co_effect = EFFECT_DESCRIPTIONS.get(card.get("effect"), "")
                 if _co_effect:
-                    text _co_effect:
+                    text _co_effect substitute False:
                         color "#ffffff"
                         size 16
                         bold True
@@ -1511,7 +1511,7 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
 
                     null height 8
 
-                text _co_flavor:
+                text _co_flavor substitute False:
                     color "#888888"
                     size 13
                     italic True
@@ -1606,11 +1606,19 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
                 if _stat_lines:
                     ## One line per delta — scannable instead of one wrapped
                     ## paragraph. (Splitting precomputed at screen scope.)
+                    ## `substitute False` is critical — _sl can contain
+                    ## literal "[BODYBUILDER]" / "[STREAK x3]" tags from
+                    ## activity outcome strings; without this, Ren'Py tries
+                    ## to interpolate them as variables and NameError-crashes
+                    ## the screen render mid-tree (which leaves transient-
+                    ## layer Many<Fixed> open and trips the next pause's
+                    ## ui.interact stack check). Same applies to _co_name /
+                    ## _co_flavor / _co_effect above.
                     vbox:
                         spacing 6
                         xalign 0.5
                         for _sl in _stat_lines:
-                            text _sl:
+                            text _sl substitute False:
                                 color "#ffcc66"
                                 size 18
                                 bold True
@@ -1767,14 +1775,14 @@ screen card_solo_offer_screen(card, source_label=""):
 
             null height 2
 
-            text _co_name:
+            text _co_name substitute False:
                 color "#ffffff"
                 size 32
                 bold True
                 xalign 0.5
                 font "fonts/RobotoMono-Regular.ttf"
 
-            text "{} · {} · {}".format(_co_type, _co_rarity.upper(), _co_color_label):
+            text "{} · {} · {}".format(_co_type, _co_rarity.upper(), _co_color_label) substitute False:
                 color _co_color
                 size 13
                 xalign 0.5
@@ -1790,7 +1798,7 @@ screen card_solo_offer_screen(card, source_label=""):
             null height 6
 
             if _co_effect:
-                text _co_effect:
+                text _co_effect substitute False:
                     color "#ffffff"
                     size 17
                     bold True
@@ -1800,7 +1808,7 @@ screen card_solo_offer_screen(card, source_label=""):
                     line_spacing 3
                 null height 8
 
-            text _co_flavor:
+            text _co_flavor substitute False:
                 color "#888888"
                 size 13
                 italic True
