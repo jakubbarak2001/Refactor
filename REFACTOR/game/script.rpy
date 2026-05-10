@@ -424,6 +424,11 @@ label activity_gym:
 
             "[_gym_text]"
 
+            ## Close the say-window before the python block opens
+            ## card_offer_screen + outcome_panel — leaving it open trips
+            ## ui.interact's transient-layer check at the next pause.
+            window hide
+
             python:
                 ## SOMA always lands for BB — gym session is "I trained the body."
                 ## Hatred relief still gates on PASS (TAKE traded the relief for a card).
