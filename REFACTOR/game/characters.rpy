@@ -48,6 +48,9 @@ image bg_bh_supplier     = im.Scale("images/backgrounds/bh_supplier_flat.jpg", 1
 ## DE-flavoured Czech pub — Kovář's hospoda, used by DE class arc + DE-flavoured social activities
 image bg_de_kovar_pub    = im.Scale("images/backgrounds/de_kovar_pub.jpg", 1920, 1080)
 
+## Havana Club — provincial Czech nightclub exterior (used by activity_bouncer → bouncer_night_club)
+image bg_havana_club     = im.Scale("images/backgrounds/havana_club_night.jpg", 1920, 1080)
+
 ## Hallway — reuses interior until a dedicated asset is added
 image bg_police_hallway   = im.Scale("images/backgrounds/police_station_interior.jpg", 1920, 1080)
 

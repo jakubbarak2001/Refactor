@@ -575,6 +575,8 @@ label activity_bouncer:
 
 label bouncer_night_club:
 
+    scene bg_havana_club
+
     python:
         _roll = __import__('random').randint(1, 100)
         _bb_cash = 1500 if stats.player_class == "bodybuilder" else 0
