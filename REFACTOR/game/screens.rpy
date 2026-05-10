@@ -3114,11 +3114,15 @@ screen say(who, what):
 
                 text what id "what"
 
-
-    ## If there's a side image, display it above the text. Do not display on the
-    ## phone variant - there's no room.
-    if not renpy.variant("small"):
-        add SideImage() xalign 0.0 yalign 1.0
+    ## NOTE: `add SideImage() xalign 0.0 yalign 1.0` was removed as the
+    ## first step of debugging the recurring "ui.interact called with
+    ## non-empty widget/layer stack" crash on the gym → card-offer →
+    ## pause flow. None of our characters currently define a side
+    ## image (characters.rpy: jb / colonel / martin / narrator are all
+    ## bare `Character(...)` calls), so SideImage() always returned
+    ## Null() — the visual loss is zero. If side images are added to
+    ## characters later, restore the line AND verify the crash didn't
+    ## return.
 
 
 ## Make the namebox available for styling through the Character object.
