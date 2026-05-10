@@ -1,0 +1,29 @@
+Painterly semi-realistic 16:9 illustration, no letterbox bars. Cramped private bedroom-converted-into-a-grey-market-pharmacy on an upper floor of a Czech panelák in Děčín, late evening. Blackout curtains drawn over a single window, almost no daylight — the room is lit by a SINGLE WARM brass desk lamp casting a tight amber pool of light, the COLD BLUE GLOW of a laptop screen, and a FAINT RED WASH from a small red-light therapy panel mounted above the desk. Three light sources, deep navy shadows in the corners. Cracked cream plaster walls, peeling paint patches, scuffed laminate floor — same provincial-Czech grit as the rest of the game.
+
+CENTER OF FRAME — the operation: a single IKEA-style desk pushed against the wall, converted into a precision pharmacology bench. On its surface, meticulously organized:
+- a digital MILLIGRAM SCALE with a small glass weighing dish (display showing a green number)
+- a row of UNMARKED AMBER DROPPER BOTTLES, each hand-labeled in black Sharpie: "ANIRACETAM", "PHENYLPIRACETAM", "SEMAX", "SELANK", "FLMOD", "NOOPEPT"
+- a wooden RACK OF SEALED PEPTIDE VIALS with grey rubber stoppers, the liquid inside faintly amber
+- SYRINGES still in their sealed plastic blister packs, fanned out
+- ALCOHOL SWAB sachets in a small steel kidney bowl
+- a small bench-top centrifuge, off
+- a glass jar of pre-portioned gelatin CAPSULES
+- a half-drunk coffee mug with a teaspoon stuck to the rim coated in white nootropic powder
+- a freshly-extinguished cigarette in a heavy glass ashtray, faint smoke curling
+- a HAND-WRITTEN dose schedule on a notepad, with crossed-out lines
+
+A LAPTOP open on the desk, tilted slightly toward the viewer. The screen clearly shows a TELEGRAM chat window with CYRILLIC RUSSIAN text scrolling in dark mode, plus a second tab visible: a TOR BROWSER session. Cold blue light spilling onto the desk surface and the user's hands (the user is NOT in frame).
+
+LEFT WALL above the desk — a CORKBOARD pinned with various papers and notes. CRITICAL: do NOT render legible text on any of the pinned notes. They should read as ILLEGIBLE scribbles, abstract handwritten squiggles, faint pencil marks, and paint texture suggesting writing without spelling out any words. The pinned items are: a few sheets of paper covered in indecipherable handwritten lines, a printed periodic-table poster (the only legible element — colored squares in a recognizable grid), a small anatomical diagram of organs (no labels visible), and a few yellow sticky notes with abstract scribble marks. NO ENGLISH WORDS. NO CZECH WORDS. NO READABLE TEXT ANYWHERE on the cork board.
+
+RIGHT WALL — a small wall-mounted RED-LIGHT THERAPY PANEL (rectangular array of red LEDs, currently ON), casting a faint red wash over that side of the room.
+
+BEHIND THE DESK: a high-backed empty office chair, slightly pushed back as if just vacated. The supplier has stepped out of frame. His presence is heavy but he is NOT visible.
+
+BACKGROUND: an unmade single bed against the far wall (rumpled grey sheets), a cheap kitchenette nook with an electric kettle and a glass jar holding more capsules, blackout curtains over the window with the faintest sliver of overcast Děčín street-light leaking through.
+
+NO PEOPLE in frame. No window view. The room is interior-only, pressurized, a closed box.
+
+Palette: deep navy and dark grey shadows dominating, single amber lamp accent, cold blue laptop glow, faint red side-wash. Dramatic chiaroscuro lighting compared to the rest of the game's overcast-daylight scenes — but the BRUSHWORK and TEXTURE STYLE remain identical: soft painterly strokes, semi-realistic, lived-in. Same artist as cafe.jpg, police_parking_lot.jpg, police_station_interior.jpg in the REFACTOR Czech-cop indie game. NOT photorealistic, NOT anime, NOT 3D render.
+
+Camera angle: medium-wide interior view at desk-height, the desk takes the lower-center two-thirds of the frame, the laptop screen visible, the cork board climbing the wall behind, the empty office chair just visible behind the desk. Fills frame edge-to-edge, no black bars, no vignette.

@@ -1,0 +1,11 @@
+Painterly semi-realistic 16:9 illustration, no letterbox bars. Czech district police captain's office (the Colonel's) in a worn post-Soviet provincial station — peeling cream plaster walls, wood wainscoting, cracked off-white tile floor, overcast daylight through tall window competing with a warm brass desk lamp.
+
+The room belongs to THE COLONEL — a stocky middle-aged Czech man with slicked-back dark brown hair greying at the temples, a distinctive van Dyke beard (full moustache joined to a chin goatee, no sideburns), wearing the dark navy Czech police dress uniform with three-star colonel epaulettes shown in the attached portrait reference. He is NOT in the room himself. The room is currently empty — but his face appears in the photographs and the framed portrait on the walls (see below).
+
+Heavy dark-wood captain's desk centered, slightly angled, cluttered with manila case files, beige-bezel CRT monitor, rotary phone, overflowing ashtray, coffee mug, brass desk lamp casting warm pool of light. High-backed leather chair behind it, EMPTY. Two simple wooden visitor chairs facing the desk.
+
+Back wall: bronze "STÁTNÍ POLICIE" crest with Czech lion mounted on a dark navy panel, flanked by a vertical Czech tricolor flag on a pole. Side wall cork board with pinned commendation certificates, yellowed newspaper clippings, and several framed photographs prominently featuring THE COLONEL (the same goateed dark-haired uniformed man from the portrait reference) — one of him shaking hands with politicians, one of him in dress uniform receiving a medal, one of him with a hunting rifle beside a dead boar. Above the cork board, a framed formal portrait of the Colonel in dress uniform. Glass-front gun cabinet on the right with a service rifle and pistols.
+
+Window on the side shows grey overcast sky, bare birch trees, and a glimpse of a Škoda Policie car in a wet parking lot — visual continuity with the parking-lot exterior reference.
+
+Muted palette: desaturated greys, dusty cream, faded navy, warm wood, single warm lamp accent. Style match: soft painterly brushwork, semi-realistic, lived-in — same artist as cafe.jpg, police_parking_lot.jpg, police_station_interior.jpg in the REFACTOR Czech-cop indie game. The Colonel's face on the photos must clearly match the portrait reference. Fills frame edge-to-edge, no black bars, no vignette.

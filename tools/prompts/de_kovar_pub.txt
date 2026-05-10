@@ -1,0 +1,21 @@
+Painterly semi-realistic 16:9 illustration, no letterbox bars. Interior of a traditional small-town Czech corner pub (hospoda) — Kovář's regular spot — early evening. Wood-paneled walls darkened by decades of cigarette smoke into a deep nicotine yellow-brown patina, low pressed-tin ceiling with smoke-stained edges, mismatched dark wooden tables and chairs scuffed from years of use, worn cracked tile floor with a faint dusting of sawdust.
+
+Lighting: warm yellow-amber from a single milk-glass pendant lamp hanging low over Kovář's corner booth, plus dimmer lamps over the bar at the back, plus the cool blue flicker of a small CRT television mounted high in the corner showing a muted Czech football match. Smoky haze visible in the lamplight beams. Deep warm brown shadows in the corners.
+
+CENTER-LEFT — Kovář's corner booth: a heavy dark-wood table against a wood-paneled wall, a worn red-checkered tablecloth, a glass mug half-full of Plzeň lager (visible foam ring on the inside of the glass), an overflowing glass ashtray with several spent cigarettes, a worn deck of MARIÁŠ playing cards stacked face-down beside the ashtray, a closed leather-bound notebook with a pencil tucked into the spine. The booth is EMPTY — Kovář has stepped away (to the bar). His coat is folded on the bench seat. This is clearly his territory.
+
+BACK OF FRAME — the bar: a long dark-wood bar counter with a polished BRASS BEER TAP, a circular Pilsner Urquell back-bar MIRROR (no readable text on the mirror — just the suggestion of a brand crest), shelves of liquor bottles in shadow behind, a hand-written CHALKBOARD MENU on the wall (NO LEGIBLE TEXT — just abstract chalk strokes suggesting a list). Three regulars in silhouette at the bar with their BACKS TO THE CAMERA: a bald older man in a faded track jacket, a working-class man in stained dark overalls, and the bartender behind the counter slowly wiping a glass with a white towel. They are anonymous, peripheral.
+
+LEFT WALL — old framed enamel BEER SIGNS in vintage style (Krušovice red, Budvar blue, Plzeň gold — render as colored shapes/logos with NO readable text, just brand-color suggestion), a faded blue-and-red SOKOL pennant pinned beside them, a mounted set of small deer antlers high above.
+
+RIGHT CORNER — a black cast-iron WOOD-BURNING STOVE with a small fire visible through its glass door, a stack of split logs beside it, a battered tin coal scuttle. Above the stove, a small bracketed CRT TV showing a green football pitch (muted, glow only).
+
+NO CHARACTERS in the foreground. NO RECOGNIZABLE FACES. The regulars at the bar are silhouettes only.
+
+CRITICAL — text rendering: do NOT render any legible English or Czech words on the chalkboard, beer signs, mirrors, or labels. They should read as abstract painted strokes / colored shapes that SUGGEST text without spelling anything. The pub atmosphere must come from objects and lighting, not signage.
+
+Color palette: warm amber and nicotine yellow from the pendant lamp dominating the foreground, deep wood-brown shadows, dark green and red accents from the beer signs, single cold blue glint from the TV, faint orange firelight from the stove. Smoky cigarette haze tinting the upper third of the frame slightly hazy. Same muted overall palette and painterly weathering as cafe.jpg, police_parking_lot.jpg, police_station_interior.jpg in the REFACTOR Czech-cop indie game.
+
+Style match: soft painterly brushwork, semi-realistic, lived-in and decades-old — same artist as the existing REFACTOR backgrounds. NOT photorealistic, NOT anime, NOT 3D render, NOT bright/clean.
+
+Camera angle: medium-wide interior view from a few tables back, slightly elevated, looking diagonally toward Kovář's corner booth in the center-left foreground with the bar visible behind it on the right. Both the booth and the bar visible in a single composition. Fills frame edge-to-edge, no black bars, no vignette.

@@ -1,0 +1,19 @@
+Painterly semi-realistic 16:9 illustration, no letterbox bars. Exterior of "HAVANA CLUB" — a squat single-story Czech provincial nightclub building on a side street in a small Bohemian town (matching the attached bouncer.jpg reference photo for layout, building shape, and surroundings). LATE EVENING / NIGHT scene — overcast Czech sky has darkened to deep navy-grey with a faint orange sodium-vapor glow on the horizon, no stars visible.
+
+The building: low single-story squat structure with flat roof, painted in two-tone matte grey concrete (lighter grey on the front facade, darker grey on the side wing). Modest recessed entrance bay with double glass doors set under a small flat overhang. Above the doorway: a horizontal "HAVANA CLUB" signboard with stylized text and a small Pilsner-style emblem (rendered as colored shape with NO LEGIBLE TEXT — just suggestion of branding). The signboard is lit from below by a pair of small dim spotlights. To one side of the door: a single wall-mounted security camera. A mounted neon-style sign says "OPEN" in cool blue (no readable text — just the colored glow shape).
+
+LIGHTING: warm yellow-amber pool of light spilling out from the doorway onto the tarmac, dimmer cool-blue accent from the OPEN sign, single overhead street-lamp casting a tight cone on the parking lot, faint warm windows from the residential panelák visible in the distance. Otherwise the building face is in deep blue-grey shadow. Three-light scene with strong chiaroscuro.
+
+PARKING LOT (foreground): empty tarmac with painted parking lines, slightly wet from earlier rain (faint reflections of the sign and door light). A single dark sedan parked near the wall, mostly in shadow. A blue Pilsner Urquell branded outdoor parasol folded and chained to a bollard near the door (rendered as colored shape, no readable text). A small "P" parking sign on a pole. Worn red brick paver sidewalk along the edge.
+
+BACKGROUND: behind the club, the silhouette of a tall pink-cream Czech residential panelák apartment block with scattered warm yellow window lights glowing — same building style as the reference photo. Beyond and to the right, the dark mass of a forested Bohemian hillside merging into night. A single street-lamp on the road on the right side casting amber light.
+
+NO PEOPLE in frame. NO BOUNCER. No silhouettes. Empty street, empty parking lot. The club is open but the camera catches it between arrivals — a quiet held moment.
+
+NO LEGIBLE TEXT anywhere — all signs (HAVANA CLUB, OPEN, parking sign, Pilsner Urquell parasol) should read as abstract painted strokes / colored shapes that suggest signage without spelling words. NO Czech words, NO English words.
+
+Color palette: deep navy and blue-grey night dominating, warm yellow-amber spill from the doorway as the focal accent, cool electric-blue glow from the OPEN sign, single warm sodium street-light, faint cream window-glows from the panelák. Wet tarmac reflecting all three accent colors faintly. Same painterly weathering and provincial-Czech grit as cafe.jpg, police_parking_lot.jpg, police_station_interior.jpg, bh_supplier_flat.jpg in the REFACTOR Czech-cop indie game.
+
+Style match: soft painterly brushwork, semi-realistic, slightly diffused edges, lived-in. Same artist as the existing REFACTOR backgrounds. NOT photorealistic, NOT anime, NOT 3D render, NOT bright/clean.
+
+Camera angle: slightly elevated three-quarter view from across the parking lot, the entrance bay center-left of frame, the side wing extending right, panelák visible in upper-background, hillside dark on the right. Wide enough to show the whole approach. Fills frame edge-to-edge, no black bars, no vignette.

@@ -1,0 +1,15 @@
+Regenerate the character from the attached jb_neutral.png reference EXACTLY — same face, same slicked-back short dark hair, same light stubble, same brown eyes, same defined jaw, same skin tone (warm-neutral, NO green cast), same neutral expression, same black tactical plate carrier vest, same rectangular black "POLICIE" patch on left chest plate, same yellow shield "POLICIE" patch on right shoulder, same black t-shirt under the vest, same painterly rendering style, same pure white background, same tight upper-body framing. Do NOT change the character. Do NOT change the outfit. Do NOT add or remove patches. Do NOT change the palette.
+
+THE ONLY CHANGE: the arms are now FOLDED/CROSSED in front of the chest, like the attached jb_smirk_clipped_rev_1.png reference. Both forearms cross horizontally over the lower chest plate (right forearm in front, left forearm behind, or vice-versa — natural crossed-arms pose). Hands tucked under opposite biceps. The crossed arms are FULLY VISIBLE in the frame — not cropped out at the bottom.
+
+FRAMING: extend the crop just enough downward to fit the crossed forearms in frame. The image should crop at approximately the bottom of the crossed arms / lower chest plate — NOT all the way down to the belt or lower MOLLE pouches. Same proportions as jb_smirk_clipped_rev_1.png reference.
+
+EVERYTHING ELSE: identical to the jb_neutral.png reference. Same character, same outfit, same painterly style, same patches in same positions, same neutral expression. Only the arms change — from hanging out-of-frame to crossed in-frame.
+
+ABSOLUTE RULES:
+- Do not change the face, hair, or skin tone.
+- Do not invent new patches or remove existing ones.
+- Do not change to a different vest model.
+- Keep the neutral expression — do not make him smirk just because the arms are crossed.
+- Pure white background.
+- Tight upper-body crop ending at the bottom of the crossed forearms.

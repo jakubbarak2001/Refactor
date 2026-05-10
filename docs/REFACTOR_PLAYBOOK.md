@@ -283,3 +283,98 @@ To remind yourself to invoke the judge after every Edit/Write to .rpy files, add
 ```
 
 Note: this only prints a reminder. Auto-spawning the judge from a hook needs the headless Claude CLI and is more setup than it's worth at this stage.
+
+---
+
+## Planned: Dynamic JB Flat (Hybrid GOTY approach)
+
+JB's flat is a *home location* whose appearance reflects in-game progression. It's not a static BG — it's a layered Ren'Py screen that mutates as stats change, turning the room itself into a tactile progress meter.
+
+### Design — what changes, driven by what
+
+| Element | Driver | States |
+|---|---|---|
+| **Calendar day number** (Text overlay) | `day_cycle.current_day` | continuous (1–30) |
+| **Calendar X-marks** (PNG loop) | days elapsed | one X per past day, looped over `range(1, current_day)` |
+| **Dartboard darts** (PNG loop) | `stats.pcr_hatred` | one dart per +10 hatred, capped at ~20, positions seeded by `renpy.random.Random(42)` for save-stable randomness |
+| **Monitor setup** | `stats.coding_skill` | none → laptop only → laptop + monitor → dual monitor (4 tiers at 0/25/50/75) |
+| **Book stack** | `stats.coding_skill` | none → small → tall → toppling (same tiers) |
+| **Class shrine** | class arc completion flags | BB: dumbbells corner / DE: profile pinboard / BH: nootropic shelf |
+
+Everything else (kitchenette, bare walls, peeling paint, view of Labe + Děčín castle, uniform jacket on chair) is baked into the static base BG.
+
+### Architecture
+
+- **`jb_flat_empty_decin.jpg`** — single base BG: empty room, blank calendar grid, fresh empty Colonel-face dartboard, only the police uniform jacket on the chair (the cop life he can't escape).
+- **`REFACTOR/game/images/jb_flat/`** — folder of transparent PNG overlays per dynamic prop (`monitor.png`, `monitor_dual.png`, `books_low.png`, `books_high.png`, `dart.png`, `x_mark.png`, `dumbbells.png`, etc.).
+- **`screen jb_flat_screen()`** — composes base + conditional overlays + dynamic Text. Wrap as `image bg_jb_flat = Screen("jb_flat_screen")` so existing `scene bg_jb_flat` calls keep working.
+
+### Implementation sketch
+
+```renpy
+init python:
+    def dart_positions(hatred):
+        rng = renpy.random.Random(42)
+        slots = [(rng.randint(-60, 60), rng.randint(-40, 40)) for _ in range(20)]
+        return slots[:min(hatred // 10, 20)]
+
+screen jb_flat_screen():
+    add "images/backgrounds/jb_flat_empty_decin.jpg"
+
+    # Calendar — blank grid is in the base BG; we overlay marks + day number
+    for d in range(1, day_cycle.current_day):
+        add "images/jb_flat/x_mark.png" pos calendar_cell(d)
+    text "[day_cycle.current_day]" size 32 color "#cc0000" pos (130, 145)
+
+    # Dartboard — base + dynamic darts
+    if stats.pcr_hatred > 0:
+        for dx, dy in dart_positions(stats.pcr_hatred):
+            add "images/jb_flat/dart.png" pos (1100 + dx, 200 + dy)
+
+    # Monitors — coding-skill tiers
+    if stats.coding_skill >= 25:
+        add "images/jb_flat/laptop.png" pos (820, 380)
+    if stats.coding_skill >= 50:
+        add "images/jb_flat/monitor.png" pos (820, 320)
+    if stats.coding_skill >= 75:
+        add "images/jb_flat/monitor_dual.png" pos (1050, 320)
+
+    # Book stack
+    if stats.coding_skill >= 20:
+        add "images/jb_flat/books_low.png" pos (700, 460)
+    if stats.coding_skill >= 60:
+        add "images/jb_flat/books_high.png" pos (700, 420)
+
+    # Class shrine — appears at class arc completion
+    if stats.player_class == "bodybuilder" and store.bb_arc_complete:
+        add "images/jb_flat/dumbbells.png" pos (250, 600)
+    elif stats.player_class == "dark_empath" and store.de_arc_complete:
+        add "images/jb_flat/profile_board.png" pos (200, 200)
+    elif stats.player_class == "biohacker" and store.bh_arc_complete:
+        add "images/jb_flat/nootropic_shelf.png" pos (200, 200)
+
+image bg_jb_flat = Screen("jb_flat_screen")
+```
+
+### Asset workflow
+
+1. Regenerate `jb_flat_empty_decin.jpg` with explicit barebones prompt (bare mattress, empty desk, blank calendar, empty dartboard, single uniform jacket on chair, view of Labe + Děčín castle through window).
+2. For each dynamic prop, generate via `tools/gen_bg.py --ref jb_flat_empty_decin.jpg "isolated [prop] in matching painterly style on neutral grey background"`, then key out background in Krita → save to `REFACTOR/game/images/jb_flat/<prop>.png`.
+3. Position-tune each overlay's `pos (x, y)` against the base BG until they sit naturally on the desk/wall/floor.
+
+### Ship strategy
+
+Land it in slices, each independently mergeable:
+1. **Slice 1:** `jb_flat_empty_decin.jpg` + screen scaffold + dynamic calendar (day number + X marks). Smallest possible useful version.
+2. **Slice 2:** Dartboard + dart overlays driven by `pcr_hatred`.
+3. **Slice 3:** Monitor + book progression on `coding_skill`.
+4. **Slice 4:** Class shrine on arc completion.
+
+Each slice is one evening's work. Don't try to ship all of it in one PR.
+
+### Foot-guns to watch
+
+- `Screen()` displayables don't transition with `with dissolve` cleanly — if the flat is shown alongside character sprites, the screen redraws instantly while sprites dissolve. If this looks janky, fall back to `LiveComposite` for the static layers and a separate small screen for just the dynamic Text.
+- Position constants will need re-tuning if the base BG is regenerated with different framing — keep `pos` values in one place at the top of the screen file, not scattered.
+- Dart RNG seed is `42` to keep dart placements stable across save/load. Don't reseed it dynamically.
+- Hatred-to-dart-count formula (`hatred // 10`) needs balancing once the flat is shippable — too many darts at the cap and the Colonel face becomes unreadable.

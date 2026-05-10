@@ -1,0 +1,7 @@
+Painterly semi-realistic 16:9 illustration, no letterbox bars. Cramped Czech studio apartment (garzonka) on an upper floor of a panelák in Děčín, late-afternoon overcast light through a single large window. View through window: the Labe river curving below, sandstone cliffs and the silhouette of Děčín castle on its rock, rusting rail bridge, grey provincial townscape.
+
+One room doing everything. IKEA-style desk against the window loaded with two mismatched monitors showing code editors, mechanical keyboard, sticker-covered laptop, energy drink cans, a labeled pill organizer of nootropics, and a stack of programming books (one visibly "Clean Code"-style spine). Wall above desk: a paper wall calendar with days X-ed out in red marker, a few days remaining circled.
+
+Unmade single bed against opposite wall, Czech police uniform jacket slung over a chair, service belt on a hook. Cheap kitchenette nook with electric kettle, instant coffee, dumbbells on the floor beside it. Crooked poster of a tech logo or hacker manifesto. Worn laminate floor, mismatched lamps.
+
+Muted palette: cool grey river light, warm monitor glow, dusty cream walls. Style match: soft painterly brushwork, semi-realistic, lived-in — same artist as cafe.jpg, police_parking_lot.jpg, police_station_interior.jpg in the REFACTOR Czech-cop indie game. Fills frame edge-to-edge, no black bars, no vignette.
