@@ -62,7 +62,7 @@ init python:
         "job_offer":               "Power: +5 max HP. +1 starting block per turn.",
         "stoic_refactor":          "Power: take 50% damage from emotional/mental colonel attacks.",
         "stoic_anchor":            "Power: +3 starting block per turn. Heal 3 HP after each colonel attack.",
-        "quick_jab":               "Deal 4 damage. Draw 1 card.",
+        "quick_jab":               "Deal 7 damage.",
         "loan_sharks":             "Pay 5,000 CZK to deal 30 damage. (No funds = no damage.) Exhausts.",
         "chain_of_command":        "Gain 10 block. Draw 1 card.",
         "vigil":                   "Gain 4 block now. +4 starting block next turn.",
@@ -275,8 +275,7 @@ init python:
 
     @register_effect("quick_jab")
     def _eff_quick_jab(state, source, target):
-        state.deal_damage(target, 4)
-        state.draw_cards(1)
+        state.deal_damage(target, 7)
 
     @register_effect("loan_sharks")
     def _eff_loan_sharks(state, source, target):

@@ -338,10 +338,10 @@ init python:
         name   = "Quick Jab",
         type   = "Attack",
         color  = "Physical",
-        cost   = 0,
+        cost   = 1,
         rarity = "common",
         effect = "quick_jab",
-        flavor = "Deal 4 and draw 1. Free pressure.",
+        flavor = "Deal 7. No setup. No follow-through.",
     )
 
     register_card(

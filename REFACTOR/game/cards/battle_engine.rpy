@@ -21,6 +21,11 @@
 ## battle screen can read it and the card-effect functions can mutate it.
 ################################################################################
 
+## Phase 1A diagnostic — toggle in console (`persistent.debug_battle = True`)
+## to see [[DBG]: branch=...] traces and [[WARN]: 0-dmg attack] alerts in the
+## battle log. Default off — never ships true.
+default persistent.debug_battle = False
+
 init python:
 
     import random as _battle_rand
@@ -570,6 +575,28 @@ init python:
         bs.last_damage_to_player = 0
         bs.last_damage_to_enemy = 0
 
+        ## Phase 1A diagnostic — track which branch handled this intent so the
+        ## end-of-function safety-net knows whether a 0-damage attack is bug or
+        ## expected (algorithm/refactor/mirror/immunity all legitimately 0).
+        ## Toggle persistent.debug_battle in console to see the raw trace.
+        ##
+        ## Capture pre-resolve block so the safety-net can distinguish "no
+        ## damage taken because the player had no defense" (true bug signal)
+        ## from "no damage taken because the player's block exactly absorbed
+        ## the hit" (legitimate gameplay, must NOT warn).
+        _debug = bool(getattr(persistent, 'debug_battle', False))
+        _intent_was_attack = False
+        _pre_resolve_block = bs.player_block
+        if _debug:
+            _ic_dbg = bs.current_intent()
+            bs.add_log("[[DBG]: enter resolve — intent={} skip={} cancel={} mirror={} block={}".format(
+                (_ic_dbg or {}).get("id", "none"),
+                bs.skip_attack_count,
+                bs.cancel_next_attack,
+                bool(bs.buffs.get("mirror_next")),
+                _pre_resolve_block,
+            ))
+
         ## Brawl bleed — applied at the START of each colonel intent if active
         if bs.buffs.get("bleed_turns", 0) > 0:
             _bleed = bs.buffs.get("bleed_dmg", 0)
@@ -589,6 +616,8 @@ init python:
             if ic:
                 bs.add_log("[[Algorithm]: skipped colonel's '{}'.".format(ic.get("name", "?")))
             bs.intent_index += 1
+            if _debug:
+                bs.add_log("[[DBG]: branch=algorithm_skip")
             return
 
         ic = bs.current_intent()
@@ -614,12 +643,16 @@ init python:
             bs.cancel_next_attack = False
             bs.add_log("[[Refactor]: cancelled colonel's '{}'.".format(ic.get("name", "?")))
             bs.intent_index += 1
+            if _debug:
+                bs.add_log("[[DBG]: branch=refactor_cancel")
             return
 
         ## Class immunity
         if stats and stats.player_class in ic.get("immunity", []):
             bs.add_log("[[{}]: '{}' bounces off you.".format(stats.player_class.upper(), ic.get("name", "?")))
             bs.intent_index += 1
+            if _debug:
+                bs.add_log("[[DBG]: branch=class_immunity")
             return
 
         ## Conditional counters (player-side buffs and stat thresholds)
@@ -643,6 +676,8 @@ init python:
             bs.deal_damage("enemy", base * 2)
             bs.add_log("[[Mirror]: '{}' bounced for {} dmg. (2-turn cooldown.)".format(ic.get("name", "?"), base * 2))
             bs.intent_index += 1
+            if _debug:
+                bs.add_log("[[DBG]: branch=mirror_bounce")
             return
 
         ## Reframe buff — convert next attack into block
@@ -652,6 +687,8 @@ init python:
             bs.gain_block("player", base)
             bs.add_log("[[Reframe]: '{}' reframed into +{} block.".format(ic.get("name", "?"), base))
             bs.intent_index += 1
+            if _debug:
+                bs.add_log("[[DBG]: branch=reframe")
             return
 
         ## Frame Trap (DE) — additional one-shot damage reduction on the next attack
@@ -663,6 +700,7 @@ init python:
         ## Resolve intent by type
         intent_type = ic.get("intent", "attack")
         bs.last_intent_resolved = ic["id"]
+        _intent_was_attack = intent_type in ("attack", "compound")
 
         if intent_type == "attack":
             dmg = max(1 if ic.get("value", 0) > 0 else 0, ic.get("value", 0) - damage_reduction)
@@ -710,6 +748,16 @@ init python:
             bs.buffs["single_retaliate_dmg"] = 0
             bs.deal_damage("enemy", _sr)
             bs.add_log("[[Iron Body]: retaliated for {} dmg.".format(_sr))
+
+        ## Phase 1A safety-net — self-report if an attack intent landed but
+        ## did 0 damage despite no early-return branch firing AND the player
+        ## had no block at intent-resolve time. This is the "colonel never
+        ## attacks" symptom from the playtest. Gating on `_pre_resolve_block
+        ## == 0` (captured at function entry) eliminates the false-positive
+        ## of "block exactly absorbed the hit" — block-absorption is the
+        ## intended path, not a bug.
+        if _intent_was_attack and bs.last_damage_to_player == 0 and _pre_resolve_block == 0:
+            bs.add_log("[[WARN]: '{}' resolved 0 dmg with no player block — investigate.".format(ic.get("name", "?")))
 
         bs.intent_index += 1
 
