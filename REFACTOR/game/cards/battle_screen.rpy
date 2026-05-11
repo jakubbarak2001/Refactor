@@ -25,11 +25,11 @@
 ## ---------------------------------------------------------------------------
 ## Phase A juice — visual effect transforms
 ##
-## These are read by `screen battle_screen()` to render damage popups, the
-## colonel portrait shake on hits, and screen-edge flash overlays. The fx
-## are gated on `battle_state.fx_events` and `battle_state.last_*_hit_time`,
-## both populated by `cards/battle_engine.rpy`. If the engine never pushes
-## events, these transforms simply never fire.
+## These are read by `screen battle_screen()` to render the floating "-N"
+## damage popups, the colonel portrait shake on hits, and screen-edge flash
+## overlays. All are gated on `battle_state.last_*_hit_time` / `last_damage_*`
+## timestamps, set by `cards/battle_engine.rpy` the instant damage lands. If
+## no hit has happened recently the transforms simply fade to alpha 0.
 ## ---------------------------------------------------------------------------
 
 init python:
@@ -175,6 +175,44 @@ init python:
         trans.alpha = (age - 0.4) / 0.5
         return 0.016
 
+    def _dmg_popup_compute(trans, hit_time):
+        """Float a damage number up ~70px and fade it over 0.85s, driven by
+        a wall-clock hit timestamp. Returns 0.016 while animating (forces
+        ~60fps redraws), None when done. Recomputes from the timestamp every
+        frame, so it's immune to displayable-identity quirks — the old
+        fx_events + `use ... id` popup pipeline rendered maybe one hit in
+        five; this replaces it, built on the same pattern as the block-gain
+        pulse / portrait shake (which work reliably)."""
+        if hit_time < 0:
+            trans.alpha = 0.0
+            return None
+        try:
+            age = renpy.get_game_runtime() - hit_time
+        except Exception:
+            trans.alpha = 0.0
+            return None
+        if age < 0.0 or age >= 0.85:
+            trans.alpha = 0.0
+            trans.yoffset = -70
+            return None
+        trans.yoffset = int(-70.0 * (age / 0.85))
+        trans.alpha = 1.0 if age < 0.5 else max(0.0, 1.0 - (age - 0.5) / 0.35)
+        return 0.016
+
+    def _dmg_popup_enemy_fn(trans, st, at):
+        bs = battle_state
+        if bs is None:
+            trans.alpha = 0.0
+            return None
+        return _dmg_popup_compute(trans, getattr(bs, 'last_enemy_hit_time', -1.0))
+
+    def _dmg_popup_player_fn(trans, st, at):
+        bs = battle_state
+        if bs is None:
+            trans.alpha = 0.0
+            return None
+        return _dmg_popup_compute(trans, getattr(bs, 'last_player_hit_time', -1.0))
+
 transform colonel_hit_shake:
     function _colonel_shake_fn
 
@@ -200,15 +238,6 @@ transform _energy_warn_pulse:
     repeat
 
 
-transform damage_popup_anim:
-    yoffset 0
-    alpha 1.0
-    parallel:
-        easeout 0.7 yoffset -70
-    parallel:
-        linear 0.45 alpha 1.0
-        linear 0.25 alpha 0.0
-
 transform damage_flash_player:
     alpha 0.0
     linear 0.05 alpha 0.5
@@ -230,6 +259,12 @@ transform battle_end_subtitle:
 
 transform block_gain_pulse:
     function _block_gain_pulse_fn
+
+transform enemy_dmg_popup:
+    function _dmg_popup_enemy_fn
+
+transform player_dmg_popup:
+    function _dmg_popup_player_fn
 
 
 ## Inner screen for the TURN banner. Wrapped via `use turn_banner_inner(...)
@@ -262,40 +297,6 @@ transform card_hover_lift:
         ease 0.14 zoom 1.07 yoffset -18
     on idle:
         ease 0.14 zoom 1.0 yoffset 0
-
-
-## Inner screen for a single damage popup. Wrapped via `use ... id <tick>`
-## from battle_screen so each popup gets a STABLE identity across redraws —
-## otherwise Ren'Py respawns the displayable on every redraw and the ATL
-## animation restarts from frame 0, freezing the popup visually.
-##
-## Phase 1A — anchored to actual HP frames (was floating at arbitrary 200/540
-## & 1000/220 — invisible to playtester). Enemy popup sits directly under the
-## colonel HP header, player popup sits directly above the player HP frame.
-screen _damage_popup_overlay(fx):
-    $ _amt = fx.get('amount', 0)
-    $ _is_player = fx.get('target') == 'player'
-    $ _color = "#ff4422" if _is_player else "#ffdd44"
-    if _is_player:
-        text "-[_amt]":
-            xpos 180
-            ypos 540
-            color _color
-            size 96
-            bold True
-            outlines [(4, "#000000", 0, 0)]
-            font "fonts/RobotoMono-Regular.ttf"
-            at damage_popup_anim
-    else:
-        text "-[_amt]":
-            xalign 0.5
-            ypos 110
-            color _color
-            size 96
-            bold True
-            outlines [(4, "#000000", 0, 0)]
-            font "fonts/RobotoMono-Regular.ttf"
-            at damage_popup_anim
 
 
 ## ---------------------------------------------------------------------------
@@ -747,7 +748,9 @@ screen battle_screen():
                         bold True
                         at block_gain_pulse
 
-                ## Active buffs — human-readable, internal-key gibberish hidden
+                ## Active buffs — human-readable label + a hover tooltip that
+                ## says what each one actually does. Player could see the buffs
+                ## but had no idea what they meant; the tooltip closes that gap.
                 python:
                     _BUFF_LABELS = {
                         "starting_block_+1":   "+1 Starting Block",
@@ -777,24 +780,71 @@ screen battle_screen():
                         "enemy_attack_bonus":  "Pressure",
                         "player_draw_penalty": "Authority Display",
                     }
+                    _BUFF_TIPS = {
+                        "starting_block_+1":    "Gain +1 block at the start of every turn.",
+                        "stoic_anchor_block":   "Stoic Anchor: gain {v} extra block at the start of every turn.",
+                        "stoic_anchor_heal":    "Stoic Anchor: heal {v} HP each time the Colonel damages you.",
+                        "presence_charges":     "Presence (Bodybuilder): +3 free block at the start of each of your next {v} turn(s).",
+                        "read_charges":         "Read (Dark Empath): see one extra upcoming Colonel intent at the start of each of your next {v} turn(s).",
+                        "kick_charges":         "Kick (Biohacker): draw 1 extra card at the start of each of your next {v} turn(s).",
+                        "mental_dr_50":         "Stoic Refactor: the Colonel's MENTAL attacks deal half damage to you.",
+                        "iron_stance_active":   "Iron Stance: when the Colonel hits you, retaliate for damage that grows each round (4 on round 1, +2 per round after).",
+                        "vladeks_active":       "Vladek's Form: your Iron Stance retaliation is doubled.",
+                        "single_retaliate_dmg": "Iron Body: the next time the Colonel hits you, retaliate for {v} damage (one use).",
+                        "vigil_next_turn_block":"Vigil: gain +{v} block at the start of your next turn.",
+                        "insight_block":        "Insight: gain bonus block at the start of your turn.",
+                        "insight_turns_left":   "Insight: {v} more turn(s) of bonus block.",
+                        "block_next_turn":      "Procedural Defense: block ALL damage on your next turn.",
+                        "double_next_attack":   "Personal Record: your next Attack card hits twice.",
+                        "mirror_next":          "Mirror (armed): reflect the Colonel's next attack back at DOUBLE damage instead of taking it.",
+                        "mirror_cooldown":      "Mirror: recharging — {v} more turn(s) until it can be armed again.",
+                        "reframe_next":         "Reframe (armed): the Colonel's next attack becomes block for you instead of damage.",
+                        "next_attack_reduction":"Frame Trap: the Colonel's next attack is reduced by {v} damage.",
+                        "bleed_dmg":            "Bleed: the Colonel takes {v} damage at the start of each of his turns.",
+                        "bleed_turns":          "Bleed: {v} more turn(s) of bleed on the Colonel.",
+                        "crash_next_turn":      "Stack-Up Crash: you lose 2 energy next turn (the stim wearing off).",
+                        "max_energy_penalty_next_turn":"FLMod Ebb: {v} less max energy next turn.",
+                        "skip_next_turn":       "FLMod Crash: you lose your entire next turn.",
+                        "enemy_attack_bonus":   "Pressure: the Colonel's next attack deals +{v} extra damage to you.",
+                        "player_draw_penalty":  "Authority Display: you draw {v} fewer card(s) at the start of your next turn.",
+                    }
                     _active_buffs = []
                     for _k, _v in bs.buffs.items():
                         if not _v:
                             continue
                         _label = _BUFF_LABELS.get(_k, _k)
-                        if isinstance(_v, int) and _v > 1:
-                            _active_buffs.append("{} x{}".format(_label, _v))
-                        else:
-                            _active_buffs.append(_label)
-                ## BUFFS row — bigger / bolder per playtest. Player said
-                ## buff cards "disappeared" — they were actually applied to
-                ## this row but the size-11 grey text was invisible.
+                        if isinstance(_v, int) and not isinstance(_v, bool) and _v > 1:
+                            _label = "{} x{}".format(_label, _v)
+                        _tip = _BUFF_TIPS.get(_k, _label)
+                        if "{v}" in _tip:
+                            _vv = "" if isinstance(_v, bool) else _v
+                            try:
+                                _tip = _tip.format(v=_vv)
+                            except Exception:
+                                _tip = _tip.replace("{v}", str(_vv))
+                        _active_buffs.append((_label, _tip))
+                ## BUFFS — one hoverable chip per active buff. Hover any chip
+                ## to read what it does (tooltip renders just above the hand).
                 if _active_buffs:
-                    text "BUFFS: {}".format(", ".join(_active_buffs)):
-                        color "#ffdd44"
-                        size 14
+                    text "BUFFS — hover for details":
+                        color "#ffaa00"
+                        size 11
                         bold True
-                        xmaximum 340
+                    vbox:
+                        spacing 1
+                        for _bl, _bt in _active_buffs:
+                            textbutton "- [_bl]":
+                                action NullAction()
+                                tooltip _bt
+                                xmaximum 330
+                                text_color "#ffdd44"
+                                text_hover_color "#ffffff"
+                                text_size 13
+                                text_bold True
+                                text_font "fonts/RobotoMono-Regular.ttf"
+                                background None
+                                hover_background Frame("#332b00cc", 4, 4)
+                                padding (4, 1)
 
         ## ── ENERGY (right side) ───────────────────────────────────────────────
         frame:
@@ -882,21 +932,6 @@ screen battle_screen():
             hover_background Frame("#1a1a00cc", 4, 4)
             padding (12, 4)
             tooltip "How does this fight work?"
-
-        ## ── Active tooltip text (renders at bottom-center on hover) ─────────
-        $ _tt = GetTooltip()
-        if _tt:
-            frame:
-                xalign 0.5
-                ypos 770
-                padding (16, 8)
-                background Frame("#0d1018ee", 4, 4)
-                text "[_tt]":
-                    color "#ffffff"
-                    size 16
-                    xalign 0.5
-                    xmaximum 1200
-                    text_align 0.5
 
         ## ── HAND ──────────────────────────────────────────────────────────────
         ## Each card: 200×280 button. Color-coded border (4px) wrapping a dark
@@ -1058,32 +1093,65 @@ screen battle_screen():
             size 13
             font "fonts/RobotoMono-Regular.ttf"
 
+        ## ── Active tooltip text — buff chips / "?" button. Placed here (after
+        ## the hand in document order) so it layers on top; sits just above
+        ## the hand frame.
+        $ _tt = GetTooltip()
+        if _tt:
+            frame:
+                xalign 0.5
+                ypos 742
+                padding (16, 8)
+                background Frame("#0d1018ee", 4, 4)
+                text "[_tt]":
+                    color "#ffffff"
+                    size 16
+                    xalign 0.5
+                    xmaximum 1200
+                    text_align 0.5
+
         ## ── PHASE A JUICE OVERLAYS ────────────────────────────────────────────
-        ## Damage popups (`-N` floating text rising over the hit target) and
-        ## flash overlays (red on player hit, green on enemy hit). Both are
-        ## driven by the engine's fx_events queue and last_*_hit_time fields.
-        ## Rendering happens here at the end of the screen tree so popups/
-        ## flashes layer on TOP of all other UI.
+        ## Damage popups (`-N` floating over the hit target) + hit-flash washes,
+        ## all driven directly off bs.last_*_hit_time / bs.last_damage_to_* —
+        ## the same wall-clock-timestamp pattern as the block-gain pulse. The
+        ## old fx_events + `use ... id` popup pipeline was flaky (numbers showed
+        ## maybe one time in five); this renders them every frame for the full
+        ## animation. Placed at the end of the screen tree so it layers on top.
         $ _fx_now = renpy.get_game_runtime()
 
-        ## Per-event popups — delegate to the inner screen and pass `id` keyed
-        ## on the event's monotonic tick so Ren'Py treats each popup as a
-        ## stable displayable identity across redraws (ATL animation runs
-        ## once per event instead of restarting every redraw).
-        $ _fx_events_safe = getattr(bs, 'fx_events', [])
-        for _fx in _fx_events_safe:
-            if _fx.get('type') == 'damage' and (_fx_now - _fx.get('t', 0)) < 0.75:
-                use _damage_popup_overlay(fx=_fx) id _fx.get('tick', 0)
+        ## Damage dealt to the colonel — yellow "-N" rising off the portrait.
+        $ _eh = getattr(bs, 'last_enemy_hit_time', -1.0)
+        if _eh > 0 and (_fx_now - _eh) < 0.85 and getattr(bs, 'last_damage_to_enemy', 0) > 0:
+            text "-[bs.last_damage_to_enemy]":
+                xalign 0.5
+                ypos 195
+                color "#ffdd44"
+                size 88
+                bold True
+                outlines [(4, "#000000", 0, 0)]
+                font "fonts/RobotoMono-Regular.ttf"
+                at enemy_dmg_popup
+
+        ## Damage taken by JB — red "-N" rising near the player frame.
+        $ _ph = getattr(bs, 'last_player_hit_time', -1.0)
+        if _ph > 0 and (_fx_now - _ph) < 0.85 and getattr(bs, 'last_damage_to_player', 0) > 0:
+            text "-[bs.last_damage_to_player]":
+                xpos 130
+                ypos 500
+                color "#ff4422"
+                size 88
+                bold True
+                outlines [(4, "#000000", 0, 0)]
+                font "fonts/RobotoMono-Regular.ttf"
+                at player_dmg_popup
 
         ## Player-hit flash — red wash over the whole screen, brief
-        $ _last_player_hit = getattr(bs, 'last_player_hit_time', -1.0)
-        $ _player_hit_age = (_fx_now - _last_player_hit) if _last_player_hit > 0 else 999.0
+        $ _player_hit_age = (_fx_now - _ph) if _ph > 0 else 999.0
         if _player_hit_age < 0.35:
             add Solid("#ff2222") xsize 1920 ysize 1080 at damage_flash_player
 
         ## Enemy-hit flash — subtle green wash
-        $ _last_enemy_hit = getattr(bs, 'last_enemy_hit_time', -1.0)
-        $ _enemy_hit_age = (_fx_now - _last_enemy_hit) if _last_enemy_hit > 0 else 999.0
+        $ _enemy_hit_age = (_fx_now - _eh) if _eh > 0 else 999.0
         if _enemy_hit_age < 0.30:
             add Solid("#00ff41") xsize 1920 ysize 1080 at damage_flash_enemy
 

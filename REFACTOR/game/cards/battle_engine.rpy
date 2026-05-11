@@ -83,9 +83,8 @@ init python:
             self.last_damage_to_player = 0
             self.last_damage_to_enemy = 0
 
-            ## Phase A juice — visual fx event queue + per-event timestamps
-            self.fx_events = []              ## list of dicts: {type, target, amount, t, tick}
-            self.anim_tick = 0               ## monotonic counter, +1 per fx event
+            ## Phase A juice — per-hit timestamps drive the floating "-N"
+            ## damage popups + hit-flash overlays in battle_screen.
             self.last_card_type = None       ## 'Attack' | 'Skill' | 'Power'
             self.last_enemy_hit_time = -1.0  ## game-runtime sec; -1 = never
             self.last_player_hit_time = -1.0
@@ -102,12 +101,12 @@ init python:
             taken DURING a battle on an older build don't AttributeError
             on the first screen redraw after resume."""
             self.__dict__.update(state)
-            if not hasattr(self, 'fx_events'):
-                self.fx_events = []
-            if not hasattr(self, 'anim_tick'):
-                self.anim_tick = 0
             if not hasattr(self, 'last_card_type'):
                 self.last_card_type = None
+            if not hasattr(self, 'last_damage_to_enemy'):
+                self.last_damage_to_enemy = 0
+            if not hasattr(self, 'last_damage_to_player'):
+                self.last_damage_to_player = 0
             if not hasattr(self, 'last_enemy_hit_time'):
                 self.last_enemy_hit_time = -1.0
             if not hasattr(self, 'last_player_hit_time'):
@@ -121,22 +120,14 @@ init python:
             if not hasattr(self, 'last_player_block_gain_time'):
                 self.last_player_block_gain_time = -1.0
 
-        ## ---------------- FX QUEUE (Phase A) ----------------
-        def push_fx(self, event_type, **data):
-            """Push a visual fx event. Returns the event's timestamp."""
-            self.anim_tick += 1
+        ## ---------------- TIME ----------------
+        def _now(self):
+            """Current game-runtime seconds (excludes paused time), or 0.0 if
+            the runtime isn't available. Used to stamp hit/animation events."""
             try:
-                now = renpy.get_game_runtime()
+                return renpy.get_game_runtime()
             except Exception:
-                now = 0.0
-            ## Bound memory — drop events older than 2s before appending
-            self.fx_events = [e for e in self.fx_events if (now - e.get('t', 0)) < 2.0]
-            ev = dict(data)
-            ev['type'] = event_type
-            ev['t'] = now
-            ev['tick'] = self.anim_tick
-            self.fx_events.append(ev)
-            return now
+                return 0.0
 
         ## ---------------- LOG ----------------
         def add_log(self, msg):
@@ -170,13 +161,10 @@ init python:
                 if self.enemy_hp <= 0:
                     self.enemy_hp = 0
                     self.over = "victory"
-                    try:
-                        self.battle_end_time = renpy.get_game_runtime()
-                    except Exception:
-                        pass
-                ## Phase A juice — visual popup + portrait shake + sfx
+                    self.battle_end_time = self._now()
+                ## Phase A juice — floating "-N" popup + portrait shake + sfx
                 if actual > 0:
-                    self.last_enemy_hit_time = self.push_fx("damage", target="enemy", amount=actual)
+                    self.last_enemy_hit_time = self._now()
                     _play_battle_sfx("hit_thud")
             elif target == "player":
                 ## Apply mental damage reduction if buff active
@@ -196,13 +184,10 @@ init python:
                 if self.player_hp <= 0:
                     self.player_hp = 0
                     self.over = "defeat"
-                    try:
-                        self.battle_end_time = renpy.get_game_runtime()
-                    except Exception:
-                        pass
-                ## Phase A juice — visual popup + flash overlay + sfx
+                    self.battle_end_time = self._now()
+                ## Phase A juice — floating "-N" popup + flash overlay + sfx
                 if actual > 0:
-                    self.last_player_hit_time = self.push_fx("damage", target="player", amount=actual)
+                    self.last_player_hit_time = self._now()
                     _play_battle_sfx("hit_thud")
 
         def gain_block(self, target, amount):
