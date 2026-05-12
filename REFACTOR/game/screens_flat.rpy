@@ -81,6 +81,60 @@ init python:
         size = max(4, int(round(CAL_X_SIZE * FLAT_X_SCALE.get(img, 1.0))))
         return img, CAL_X_ROT + rng.randint(-4, 4), size
 
+    # ---- Colonel mugshot escalation: pcr_hatred -> decals over the dartboard photo ----
+    # Highest threshold <= hatred wins; below the first one = clean photo. Each tier is a
+    # list of decals (image + box + rotation) and fully REPLACES the previous tier — it's a
+    # state, not a stack. The bazooka tier is the punchline: the photo's just gone.
+    # Re-tune placements with:  show screen colonel_marks   (drag corners, [ / ] rotate).
+    import math
+
+    _C_DART  = "images/jb_flat/colonel_dart1.png"
+    _C_KNIFE = "images/jb_flat/colonel_knife.png"
+    _C_BULL  = "images/jb_flat/colonel_bullets3.png"
+    _C_BAZ   = "images/jb_flat/colonel_bazooka.png"
+
+    COLONEL_THRESHOLDS = [20, 35, 50, 75, 90]
+    # threshold -> [ (image, left, top, width, height, rotate_deg), ... ]
+    # (left,top,w,h) is the box the decal is centred in; rotation pivots about that centre.
+    # The 3-dart tier just reuses the single dart at three angles.
+    COLONEL_DECALS = {
+        20: [(_C_DART, 584, 294, 49, 18, -8)],
+        35: [(_C_DART, 584, 294, 49, 18, -8),
+             (_C_DART, 624, 364, 49, 18,   3),
+             (_C_DART, 611, 406, 49, 18, -22)],
+        50: [(_C_KNIFE, 621, 345, 100, 70, 0)],
+        75: [(_C_BULL, 573, 321, 84, 98, 0)],
+        90: [(_C_BAZ, 241, 64, 482, 516, 0)],
+    }
+    # fallback colours used if a PNG is missing (so it never crashes)
+    COLONEL_PLACEHOLDER = {_C_DART: "#ffcc00", _C_KNIFE: "#cccccc", _C_BULL: "#888888", _C_BAZ: "#3a2a1a"}
+    COLONEL_DECAL_DEFAULT = (495, 280, 120, 140, 0)
+
+    def _colonel_active_tier():
+        st_ = getattr(store, "stats", None)
+        h = getattr(st_, "pcr_hatred", 0) if st_ is not None else 0
+        chosen = None
+        for thr in COLONEL_THRESHOLDS:
+            if h >= thr:
+                chosen = thr
+        return chosen
+
+    def _colonel_decal_d(img):
+        if renpy.loadable(img):
+            return img
+        return Solid(COLONEL_PLACEHOLDER.get(img, "#ff00ff"))
+
+    def _colonel_place(decal):
+        # decal = (img, l, t, w, h, rot). Returns (pos, displayable), keeping the decal centred
+        # on the (l,t,w,h) box regardless of rotation (Ren'Py pads rotated renders, so compensate).
+        img, l, t, w, h = decal[0], decal[1], decal[2], decal[3], decal[4]
+        rot = decal[5] if len(decal) > 5 else 0
+        r = math.radians(rot)
+        c, s = abs(math.cos(r)), abs(math.sin(r))
+        bw, bh = w * c + h * s, w * s + h * c
+        pos = (int(round(l + (w - bw) / 2.0)), int(round(t + (h - bh) / 2.0)))
+        return pos, Transform(_colonel_decal_d(img), size=(w, h), rotate=rot)
+
     def _jb_flat_displayable(st, at):
         parts = [
             (1920, 1080),
@@ -92,6 +146,13 @@ init python:
             cx, cy = calendar_cell(d)
             parts.append((cx - size // 2, cy - size // 2))
             parts.append(Transform(img, size=(size, size), rotate=rot))
+
+        tier = _colonel_active_tier()
+        if tier is not None:
+            for decal in COLONEL_DECALS.get(tier, []):
+                pos, d = _colonel_place(decal)
+                parts.append(pos)
+                parts.append(d)
         return Composite(*parts), 1.0
 
     # ---------------- click-to-place tuner (dev only) ----------------
@@ -153,3 +214,119 @@ screen cal_place():
 
     key "K_BACKSPACE" action Function(_cal_place_undo)
     key "K_ESCAPE"    action [Function(_cal_place_save), Hide("cal_place")]
+
+
+# ---------------- Colonel decal placement tuner (dev only) ----------------
+# show screen colonel_marks  -> walks every decal across all hatred tiers, one at a time:
+#   click TOP-LEFT corner, then BOTTOM-RIGHT corner of where this decal sits over the photo;
+#   [ / ] = rotate (Shift = x5);  Backspace = reset this decal to file value;
+#   Enter = next decal;  Left arrow = previous decal;  Esc = save & quit.
+# Writes game/colonel_overlay.txt -> paste the COLONEL_DECALS block over the one above.
+init python:
+    colonel_decals_tmp = {thr: [list(d) for d in lst] for thr, lst in COLONEL_DECALS.items()}
+    colonel_flat = [(thr, i) for thr in COLONEL_THRESHOLDS for i in range(len(COLONEL_DECALS[thr]))]
+    colonel_mark_idx = 0
+    colonel_mark_step = 0     # 0 = need top-left click, 1 = need bottom-right click
+
+    def _cm_cur():
+        thr, i = colonel_flat[colonel_mark_idx]
+        d = colonel_decals_tmp[thr][i]
+        while len(d) < 6:
+            d.append(0)
+        return thr, i, d
+
+    def _cm_click():
+        global colonel_mark_step
+        thr, i, d = _cm_cur()
+        x, y = renpy.get_mouse_pos()
+        x, y = int(x), int(y)
+        if colonel_mark_step == 0:
+            d[1], d[2], d[3], d[4] = x, y, 0, 0
+            colonel_mark_step = 1
+            renpy.restart_interaction()
+        else:
+            l, t = d[1], d[2]
+            d[1], d[2], d[3], d[4] = min(l, x), min(t, y), abs(x - l), abs(y - t)
+            colonel_mark_step = 0
+            _cm_next()
+
+    def _cm_rotate(delta):
+        thr, i, d = _cm_cur()
+        d[5] = (d[5] + delta) % 360
+        renpy.restart_interaction()
+
+    def _cm_reset():
+        global colonel_mark_step
+        thr, i, d = _cm_cur()
+        d[:] = list(COLONEL_DECALS[thr][i])
+        while len(d) < 6:
+            d.append(0)
+        colonel_mark_step = 0
+        renpy.restart_interaction()
+
+    def _cm_next():
+        global colonel_mark_idx, colonel_mark_step
+        colonel_mark_step = 0
+        if colonel_mark_idx >= len(colonel_flat) - 1:
+            _cm_save()
+            renpy.hide_screen("colonel_marks")
+            return
+        colonel_mark_idx += 1
+        renpy.restart_interaction()
+
+    def _cm_prev():
+        global colonel_mark_idx, colonel_mark_step
+        colonel_mark_step = 0
+        if colonel_mark_idx > 0:
+            colonel_mark_idx -= 1
+        renpy.restart_interaction()
+
+    def _cm_save():
+        import os
+        names = {_C_DART: "_C_DART", _C_KNIFE: "_C_KNIFE", _C_BULL: "_C_BULL", _C_BAZ: "_C_BAZ"}
+        path = os.path.join(config.gamedir, "colonel_overlay.txt")
+        with open(path, "w") as f:
+            f.write("    COLONEL_DECALS = {\n")
+            for thr in COLONEL_THRESHOLDS:
+                rows = []
+                for d in colonel_decals_tmp[thr]:
+                    while len(d) < 6:
+                        d.append(0)
+                    rows.append("(%s, %d, %d, %d, %d, %d)" % (names.get(d[0], repr(d[0])), d[1], d[2], d[3], d[4], d[5]))
+                f.write("        %d: [%s],\n" % (thr, ", ".join(rows)))
+            f.write("    }\n")
+        renpy.notify("Uloženo -> game/colonel_overlay.txt")
+
+screen colonel_marks():
+    zorder 100
+    modal True
+
+    button:
+        xfill True yfill True
+        background None
+        action Function(_cm_click)
+
+    $ _thr, _di, _d = _cm_cur()
+    for _dd in colonel_decals_tmp[_thr]:
+        if len(_dd) >= 5 and _dd[3] > 0 and _dd[4] > 0:
+            $ _pos, _disp = _colonel_place(_dd)
+            add Transform(_disp, alpha=(0.95 if _dd is _d else 0.4)) xpos _pos[0] ypos _pos[1]
+    if colonel_mark_step == 1:
+        add Solid("#ff00ff", xysize=(10, 10)) xpos (_d[1] - 5) ypos (_d[2] - 5)
+
+    $ _step_txt = "klikni LEVÝ HORNÍ roh" if colonel_mark_step == 0 else "klikni PRAVÝ DOLNÍ roh"
+    frame:
+        align (0.5, 0.0)
+        padding (18, 12)
+        background "#000000cc"
+        text "Decal  [[[colonel_mark_idx]+1 / [len(colonel_flat)]]   ·   hatred ≥ [_thr]   ·   rot=[_d[5]]   —   [_step_txt]\n[_d[0]]    [ ] otoč (Shift x5) · Backspace reset · Enter další · ← zpět · Esc uložit a konec" size 22 color "#ffffff"
+
+    key "K_LEFTBRACKET"        action Function(_cm_rotate, -1)
+    key "K_RIGHTBRACKET"       action Function(_cm_rotate, 1)
+    key "shift_K_LEFTBRACKET"  action Function(_cm_rotate, -5)
+    key "shift_K_RIGHTBRACKET" action Function(_cm_rotate, 5)
+    key "K_BACKSPACE" action Function(_cm_reset)
+    key "K_RETURN"    action Function(_cm_next)
+    key "K_KP_ENTER"  action Function(_cm_next)
+    key "K_LEFT"      action Function(_cm_prev)
+    key "K_ESCAPE"    action [Function(_cm_save), Hide("colonel_marks")]
