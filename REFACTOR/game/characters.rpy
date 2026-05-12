@@ -36,8 +36,8 @@ image bg_black = "#000000"
 image bg_jb_bedroom      = im.Scale("images/backgrounds/jb_home.jpg", 1920, 1080)
 image bg_jb_bedroom_raid = im.Scale("images/backgrounds/jb_home_raid.jpg", 1920, 1080)
 
-## JB's flat — daily home base (morning + activity-hub scenes during the 30-day arc)
-image bg_jb_flat         = im.Scale("images/backgrounds/jb_flat_empty_decin.jpg", 1920, 1080)
+## JB's flat — daily home base. Defined as a dynamic Screen in screens_flat.rpy
+## (composes the base BG + progression-driven overlays). Keep using `scene bg_jb_flat`.
 
 ## BB-flavoured gym — used by activity_gym (universal) and activity_gym_heavy (BB-only)
 image bg_bb_gym          = im.Scale("images/backgrounds/bb_gym.jpg", 1920, 1080)

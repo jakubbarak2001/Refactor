@@ -1274,58 +1274,75 @@ screen phone_screen():
 
 ## ---------------------------------------------------------------------------
 ## Martin Meeting affection panel — top-left floating, only shown during MM.
-## Threshold ≥ 7 unlocks the boss-card pick. Class accent for the live count,
-## subtle gold once the threshold is cleared.
+## Threshold ≥ 7 unlocks the boss-card pick. Martin's signature magenta accent
+## (matches the affection tutorial popup); switches to gold once the threshold
+## is cleared.
 ## ---------------------------------------------------------------------------
 
 screen mm_affection_panel():
     zorder 90
 
     python:
-        _mm_aff    = getattr(store, 'martin_affection', 0)
-        _mm_max    = 10
-        _mm_goal   = 7
-        _mm_color  = "#ffd24a" if _mm_aff >= _mm_goal else (class_accent_color() if stats else "#c8c8d8")
-        _mm_label  = "GIFT UNLOCKED" if _mm_aff >= _mm_goal else "AFFECTION"
-        _mm_filled = max(0, min(_mm_max, _mm_aff))
-        _mm_pips   = ("●" * _mm_filled) + ("○" * (_mm_max - _mm_filled))
+        _mm_aff      = getattr(store, 'martin_affection', 0)
+        _mm_max      = 10
+        _mm_goal     = 7
+        _mm_unlocked = _mm_aff >= _mm_goal
+        _mm_accent   = "#cc88cc"
+        _mm_color    = "#ffd24a" if _mm_unlocked else _mm_accent
+        _mm_label    = "GIFT UNLOCKED" if _mm_unlocked else "AFFECTION"
+        _mm_filled   = max(0, min(_mm_max, _mm_aff))
+        _mm_pips     = ("●" * _mm_filled) + ("○" * (_mm_max - _mm_filled))
 
     frame:
         xpos 30
-        ypos 80
-        padding (16, 10)
-        background Frame("#0a0a0aee", 4, 4)
+        ypos 96
+        padding (18, 14)
+        background Frame("#0d0d0df2", 0, 0)
 
         vbox:
-            spacing 4
-
-            text "MARTIN":
-                color "#666666"
-                size 11
-                bold True
-                font "fonts/RobotoMono-Regular.ttf"
+            spacing 7
 
             hbox:
                 spacing 8
-                text _mm_label:
-                    color _mm_color
-                    size 16
+                text "✦":
+                    color _mm_accent
+                    size 13
+                    font "fonts/RobotoMono-Regular.ttf"
+                text "MARTIN":
+                    color _mm_accent
+                    size 13
                     bold True
                     font "fonts/RobotoMono-Regular.ttf"
-                text "[_mm_aff]/[_mm_max]":
-                    color "#c8c8d8"
-                    size 16
+
+            frame:
+                xfill True
+                ysize 2
+                background Frame(_mm_color, 0, 0)
+
+            null height 1
+
+            hbox:
+                spacing 10
+                text _mm_label:
+                    color _mm_color
+                    size 19
+                    bold True
+                    outlines [(1, "#000000cc", 0, 0)]
+                    font "fonts/RobotoMono-Regular.ttf"
+                text "[_mm_aff]{color=#888888}/[_mm_max]{/color}":
+                    color "#ffffff"
+                    size 19
                     bold True
                     font "fonts/RobotoMono-Regular.ttf"
 
             text _mm_pips:
                 color _mm_color
-                size 14
+                size 16
                 font "fonts/RobotoMono-Regular.ttf"
 
-            text "Goal: [_mm_goal] for boss card":
-                color "#666666"
-                size 10
+            text ("✓ Boss card unlocked" if _mm_unlocked else "Reach [_mm_goal] to unlock the boss card"):
+                color ("#ffd24a" if _mm_unlocked else "#9a9a9a")
+                size 11
                 font "fonts/RobotoMono-Regular.ttf"
 
 
