@@ -891,6 +891,21 @@ screen activity_select_screen():
 ## "Skip Today" link, only visible when no activity has been chosen.
 ## ---------------------------------------------------------------------------
 
+## WHEY-tub hover flourish: arrow darts in from the left and keeps nudging;
+## "GYM" fades in just behind it.
+transform _whey_arrow_in:
+    xoffset -26 alpha 0.0
+    easeout 0.16 xoffset 0 alpha 1.0
+    block:
+        easein 0.45 xoffset 5
+        easeout 0.45 xoffset 0
+        repeat
+
+transform _whey_gym_in:
+    alpha 0.0 xoffset -6
+    pause 0.10
+    easeout 0.20 alpha 1.0 xoffset 0
+
 screen daily_hub_screen():
     modal True
     zorder 50
@@ -953,6 +968,40 @@ screen daily_hub_screen():
                     color "#888888"
                     size 12
                     italic True
+                    font "fonts/RobotoMono-Regular.ttf"
+
+    ## ── BB only: the WHEY tub on the counter is a clickable shortcut to the gym ──
+    default whey_hover = False
+    if not activity_selected and stats and stats.player_class == "bodybuilder":
+        button:
+            xpos 1525
+            ypos 424
+            xysize (122, 172)
+            background None
+            hover_background "#ffae5530"
+            action Jump("activity_gym")
+            hovered SetScreenVariable("whey_hover", True)
+            unhovered SetScreenVariable("whey_hover", False)
+        if whey_hover:
+            hbox:
+                xpos 1586
+                xanchor 0.5
+                ypos 600
+                spacing 5
+                text "→":
+                    at _whey_arrow_in
+                    yoffset -2
+                    size 19
+                    bold True
+                    color "#ffae55"
+                    outlines [(2, "#000000cc", 0, 0)]
+                    font "fonts/RobotoMono-Regular.ttf"
+                text "GYM":
+                    at _whey_gym_in
+                    size 17
+                    bold True
+                    color "#ffae55"
+                    outlines [(2, "#000000cc", 0, 0)]
                     font "fonts/RobotoMono-Regular.ttf"
 
     ## ── Center stage — the dominant action ──────────────────────────────────
@@ -1296,23 +1345,18 @@ screen mm_affection_panel():
     frame:
         xpos 30
         ypos 96
+        xsize 300
         padding (18, 14)
         background Frame("#0d0d0df2", 0, 0)
 
         vbox:
             spacing 7
 
-            hbox:
-                spacing 8
-                text "✦":
-                    color _mm_accent
-                    size 13
-                    font "fonts/RobotoMono-Regular.ttf"
-                text "MARTIN":
-                    color _mm_accent
-                    size 13
-                    bold True
-                    font "fonts/RobotoMono-Regular.ttf"
+            text "MARTIN":
+                color _mm_accent
+                size 13
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
 
             frame:
                 xfill True

@@ -88,27 +88,43 @@ init python:
     # Re-tune placements with:  show screen colonel_marks   (drag corners, [ / ] rotate).
     import math
 
-    _C_DART  = "images/jb_flat/colonel_dart1.png"
-    _C_KNIFE = "images/jb_flat/colonel_knife.png"
-    _C_BULL  = "images/jb_flat/colonel_bullets3.png"
-    _C_BAZ   = "images/jb_flat/colonel_bazooka.png"
+    _C_DART   = "images/jb_flat/colonel_dart1.png"
+    _C_KNIFE  = "images/jb_flat/colonel_knife.png"
+    _C_DEFACE = "images/jb_flat/colonel_deface.png"   # red-marker vandalism + ZRÁDCE over the photo
+    _C_WALL   = "images/jb_flat/colonel_wall.png"     # "ALL COPS ARE BEAUTIFUL (:" etc. on the wall
+    _C_SCHIZO = "images/jb_flat/colonel_schizo.png"   # manic "POLICIE POLICIE" cop-doodle scrawl, wall between calendar & photo
+    _C_BAZ    = "images/jb_flat/colonel_bazooka.png"
 
-    COLONEL_THRESHOLDS = [20, 35, 50, 75, 90]
+    COLONEL_THRESHOLDS = [20, 35, 50, 70, 82, 90]
     # threshold -> [ (image, left, top, width, height, rotate_deg), ... ]
     # (left,top,w,h) is the box the decal is centred in; rotation pivots about that centre.
-    # The 3-dart tier just reuses the single dart at three angles.
+    # A tier fully REPLACES the previous one. Escalation: 1 dart -> 3 darts -> knife ->
+    # photo defaced w/ marker -> graffiti spills onto the wall -> bazooka hole.
     COLONEL_DECALS = {
         20: [(_C_DART, 584, 294, 49, 18, -8)],
         35: [(_C_DART, 584, 294, 49, 18, -8),
              (_C_DART, 624, 364, 49, 18,   3),
              (_C_DART, 611, 406, 49, 18, -22)],
         50: [(_C_KNIFE, 621, 345, 100, 70, 0)],
-        75: [(_C_BULL, 573, 321, 84, 98, 0)],
-        90: [(_C_BAZ, 241, 64, 482, 516, 0)],
+        70: [(_C_DEFACE, 595, 341, 67, 41, 0)],
+        82: [(_C_DEFACE, 595, 341, 67, 41, 0),
+             (_C_WALL, 125, 10, 380, 200, 17),
+             (_C_SCHIZO, 355, 255, 180, 100, 5)],
+        90: [(_C_WALL, 125, 10, 380, 200, 17),
+             (_C_SCHIZO, 355, 255, 180, 100, 5),
+             (_C_BAZ, 241, 64, 482, 516, 0)],
     }
     # fallback colours used if a PNG is missing (so it never crashes)
-    COLONEL_PLACEHOLDER = {_C_DART: "#ffcc00", _C_KNIFE: "#cccccc", _C_BULL: "#888888", _C_BAZ: "#3a2a1a"}
+    COLONEL_PLACEHOLDER = {_C_DART: "#ffcc00", _C_KNIFE: "#cccccc", _C_DEFACE: "#cc2222", _C_WALL: "#202020", _C_SCHIZO: "#303030", _C_BAZ: "#3a2a1a"}
     COLONEL_DECAL_DEFAULT = (495, 280, 120, 140, 0)
+
+    # static props composited onto the flat: (image, left, top, width, height, rotate_deg, class_or_None).
+    # class_or_None: if set, the prop only shows when stats.player_class == that string.
+    _P_WHEY = "images/jb_flat/whey.png"
+    JB_PROPS = [
+        (_P_WHEY, 1500, 440, 95, 144, 0, "bodybuilder"),
+    ]
+    COLONEL_PLACEHOLDER[_P_WHEY] = "#e8e0d0"
 
     def _colonel_active_tier():
         st_ = getattr(store, "stats", None)
@@ -146,6 +162,15 @@ init python:
             cx, cy = calendar_cell(d)
             parts.append((cx - size // 2, cy - size // 2))
             parts.append(Transform(img, size=(size, size), rotate=rot))
+
+        _cls = getattr(getattr(store, "stats", None), "player_class", None)
+        for prop in JB_PROPS:
+            need = prop[6] if len(prop) > 6 else None
+            if need is not None and need != _cls:
+                continue
+            pos, d = _colonel_place(prop)
+            parts.append(pos)
+            parts.append(d)
 
         tier = _colonel_active_tier()
         if tier is not None:

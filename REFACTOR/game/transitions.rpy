@@ -24,3 +24,7 @@ define glitch_transition = MultipleTransition([
 
 ## Arc title card transition — fade in from black
 define arc_fade = Dissolve(0.8)
+
+## Plain black filler scene + a gentle fade-up-from-black (used after arc title cards)
+image black = Solid("#000000")
+define fade_from_black = Dissolve(0.8)

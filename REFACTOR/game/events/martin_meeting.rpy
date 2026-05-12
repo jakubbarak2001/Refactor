@@ -22,7 +22,8 @@ label martin_meeting:
     play music "audio/martin_meeting_event_the_arrival.mp3" fadein 1.0
 
     call screen arc_title_card("II", "THE AWAKENING") with arc_fade
-    scene bg_cafe with compile_flash
+    scene black
+    scene bg_cafe with fade_from_black
     "DAY 24 — 11:30 AM"
 
     show screen mm_affection_panel
