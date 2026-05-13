@@ -33,6 +33,7 @@ init -1 python:
             "id":            enemy_id,
             "display_name":  enemy_id.title(),
             "sprite_id":     enemy_id,
+            "bg_id":         None,
             "log_name":      enemy_id.title(),
             "tier":          "easy",
             "max_hp":        None,
@@ -137,7 +138,7 @@ init -1 python:
 
     register_enemy(
         "nguyen",
-        display_name = "Pan Nguyen",
+        display_name = "Mr. Nguyen",
         sprite_id    = "nguyen",
         log_name     = "Nguyen",
         tier         = "medium",
@@ -167,17 +168,19 @@ init -1 python:
     )
 
     register_enemy(
-        "pastyrak",
-        display_name = "Shepherd's Wall",
-        sprite_id    = "pastyrak",
-        log_name     = "Shepherd's Wall",
+        "lawyer",
+        display_name = "Mgr. Procházka",
+        sprite_id    = "lawyer",
+        bg_id        = "courtroom",
+        log_name     = "Counsel",
         tier         = "medium",
         max_hp       = 145,
-        deck_template = ["boulder", "rumble", "quake", "fortify", "aftershock", "roar"],
-        wrinkle      = "armor_crack",
+        deck_template = ["objection", "cross_examine", "paragraph_5_2", "procedural_shield", "build_argument", "intimidate"],
+        wrinkle      = "paragraph_cite",
+        wrinkle_data = {"cadence": 3, "bonus_dmg": 6},
         detour_lines = [
-            "A rockfall closes the via ferrata behind you. The ascent took three hours; the descent takes the rest of the day.",
-            "Mountain rescue writes the report. Your knee never quite forgives.",
+            "The judge nods at his closing. Your statement gets read back to you in his voice, two octaves lower. You sign whatever's slid across the bench.",
+            "He shakes your lieutenant's hand on the way out. The case is dismissed before the door closes.",
         ],
     )
 

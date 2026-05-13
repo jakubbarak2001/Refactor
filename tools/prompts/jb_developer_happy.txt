@@ -1,0 +1,9 @@
+Same painterly portrait as the attached reference image. Same man, same face shape, same short dark hair, same clean-shaven jaw, same body framing, same painterly semi-realistic style, same transparent / pure-white background, same upper-body vertical crop. Same outfit — the black soft-shell Patagonia-style vest zipped over a plain dark t-shirt, same small chest patch — unchanged.
+
+Return the exact same character with the following changes only:
+
+- Pose: relaxed standing portrait. Both arms down and relaxed. The right hand resting loosely at his side, the left hand tucked casually into the vest pocket or thumb hooked into the front waistband — natural, easy, off-duty. No phone, no objects in hand.
+- Expression: a warm, content half-smile, eyes calm and lightly amused, looking forward at the viewer. The look of someone who has finally landed somewhere good and knows it. Same eyes, same brows.
+- Head: facing forward, slight relaxed tilt of a few degrees, not turned to the side.
+
+Everything else byte-for-byte identical to the reference — same vest, same shirt underneath, same hairline, same skin tone, same painterly brushwork, same transparent background, same proportions. He is just standing relaxed at his stand-up, no phone, content.

@@ -406,53 +406,53 @@ init python:
     )
 
     register_enemy_card(
-        "boulder",
-        name     = "Boulder Drop",
+        "paragraph_5_2",
+        name     = "Paragraf 5(2)",
         intent   = "attack",
         value    = 22,
-        dialogue = "A chunk of sandstone the size of a fridge comes loose.",
+        dialogue = "He pushes the glasses up the bridge of his nose. The lenses catch the light. 'Paragraf 5, odstavec 2. Pane policisto, that one you should know by heart.'",
         threat   = 3,
     )
     register_enemy_card(
-        "rumble",
-        name     = "Rumble",
+        "cross_examine",
+        name     = "Cross-Examination",
         intent   = "compound",
         value    = 5,
         value2   = 4,
-        dialogue = "The whole face shifts. Pebbles. Then larger.",
+        dialogue = "'Where exactly. When exactly. With whom. Repeat the answer.' Four questions, no pauses.",
         threat   = 3,
     )
     register_enemy_card(
-        "quake",
-        name       = "Quake",
+        "intimidate",
+        name       = "Look Over the Rim",
         intent     = "debuff",
         value      = 1,
         debuff_key = "max_energy_penalty_next_turn",
-        dialogue   = "The ground hums under your boots. Your hand goes uncertain.",
+        dialogue   = "He drops his chin and looks at you over the top of his glasses. The room shrinks by a foot.",
         threat     = 2,
     )
     register_enemy_card(
-        "fortify",
-        name     = "Fortify",
+        "procedural_shield",
+        name     = "Procedural Shield",
         intent   = "block",
         value    = 20,
-        dialogue = "Stone settles. The face becomes wall again.",
+        dialogue = "He flips the case folder shut and rests his palm on the cover. 'Bez důkazu žádné obvinění.'",
         threat   = 1,
     )
     register_enemy_card(
-        "aftershock",
-        name     = "Aftershock",
+        "objection",
+        name     = "Námitka",
         intent   = "attack",
-        value    = 9,
-        dialogue = "Small stone hits your shoulder. Then your back. Then your neck.",
-        threat   = 1,
+        value    = 13,
+        dialogue = "'Námitka!' The word lands like a rubber stamp on your forehead.",
+        threat   = 2,
     )
     register_enemy_card(
-        "roar",
-        name     = "Roar",
+        "build_argument",
+        name     = "Build the Argument",
         intent   = "buff",
         value    = 6,
-        dialogue = "The wall hums at a frequency you can feel in your teeth.",
+        dialogue = "He stacks three precedent cards on the desk in a row. The next strike will land sharper.",
         threat   = 2,
     )
 

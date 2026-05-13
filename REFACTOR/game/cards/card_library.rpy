@@ -63,7 +63,7 @@ init python:
         rarity     = "uncommon",
         effect     = "read_him",
         class_lock = "dark_empath",
-        flavor     = "Peek next 3 intents and draw 1. Knowing what's coming buys time.",
+        flavor     = "Peek the next 3 enemy intents. Draw 1. Knowing what's coming buys time.",
     )
 
     register_card(
@@ -125,7 +125,7 @@ init python:
         rarity  = "uncommon",
         effect  = "reframe",
         exhaust = True,
-        flavor  = "Convert the colonel's next attack into block for you.",
+        flavor  = "Convert the enemy's next attack into block for you.",
     )
 
     ## BOUNCER
@@ -161,7 +161,7 @@ init python:
         rarity  = "uncommon",
         effect  = "refactor",
         exhaust = True,
-        flavor  = "Cancel the colonel's next attack.",
+        flavor  = "Cancel the enemy's next attack.",
     )
     register_card(
         "compile",
@@ -200,12 +200,13 @@ init python:
     register_card(
         "procedural_defense",
         name    = "Procedural Defense",
-        type    = "Power",
+        type    = "Skill",
         color   = "Police",
         cost    = 2,
         rarity  = "uncommon",
         effect  = "procedural_defense",
-        flavor  = "Block all damage from one full colonel turn.",
+        exhaust = True,
+        flavor  = "Block all damage from his next attack turn. Exhausts.",
     )
 
     ## NOOTROPICS — Biohacker
@@ -244,7 +245,7 @@ init python:
         effect     = "mirror",
         class_lock = "dark_empath",
         exhaust    = False,
-        flavor     = "Return the colonel's next attack at double damage. (2-turn cooldown.)",
+        flavor     = "Return the enemy's next attack at double damage. (2-turn cooldown.)",
     )
 
     ## ---------------------------------------------------------------------------
@@ -260,7 +261,7 @@ init python:
         rarity  = "rare",
         effect  = "algorithm",
         exhaust = True,
-        flavor  = "Skip the colonel's next 2 attacks.",
+        flavor  = "Skip the enemy's next 2 attacks.",
     )
     register_card(
         "snitch_info",
@@ -271,7 +272,7 @@ init python:
         rarity  = "uncommon",
         effect  = "snitch_info",
         exhaust = True,
-        flavor  = "Reveal his deck. Three turns of foreknowledge.",
+        flavor  = "Reveal the enemy's full deck. Foreknowledge to spend.",
     )
 
     ## MARTIN'S GIFTS — Phase 1.8 will replace final_boss_buff with these
@@ -295,7 +296,7 @@ init python:
         rarity  = "boss",
         effect  = "ghost_secret",
         exhaust = True,
-        flavor  = "Instant-disable one colonel attack. He buried his own resignation 10 years ago.",
+        flavor  = "Cancel one incoming attack. Deal 15. Leverage works on anyone with something to hide.",
     )
     register_card(
         "job_offer",
@@ -315,7 +316,7 @@ init python:
         cost    = 1,
         rarity  = "boss",
         effect  = "stoic_refactor",
-        flavor  = "Take 50% damage from emotional (Mental-typed) colonel attacks.",
+        flavor  = "Power: take 50%% damage from Mental-typed attacks.",
     )
 
     register_card(
@@ -326,7 +327,7 @@ init python:
         cost    = 1,
         rarity  = "uncommon",
         effect  = "stoic_anchor",
-        flavor  = "Start each turn with +3 block. Heal 3 HP after every colonel attack.",
+        flavor  = "Power: +3 starting block per turn. Heal 3 HP after each enemy attack.",
     )
 
     ## ---------------------------------------------------------------------------
@@ -444,7 +445,7 @@ init python:
         rarity     = "common",
         effect     = "iron_body",
         class_lock = "bodybuilder",
-        flavor     = "Gain 6 block. Retaliate 4 dmg the next time the colonel hits you.",
+        flavor     = "Gain 6 block. Retaliate 4 dmg the next time you're hit.",
     )
 
     register_card(
@@ -494,7 +495,7 @@ init python:
         rarity     = "uncommon",
         effect     = "frame_trap",
         class_lock = "dark_empath",
-        flavor     = "Reduce the colonel's next attack by 8 (minimum 1). Set the trap before he speaks.",
+        flavor     = "Reduce the enemy's next attack by 8 (minimum 1). Set the trap before they speak.",
     )
 
     register_card(
@@ -562,7 +563,7 @@ init python:
         effect     = "the_dossier",
         class_lock = "dark_empath",
         exhaust    = True,
-        flavor     = "Disable one colonel attack tagged 'emotional' or 'guilt'. Deal 25 damage. He knows you have it.",
+        flavor     = "Cancel one incoming attack. Deal 25. They know you have it.",
     )
 
     register_card(
@@ -851,4 +852,54 @@ init python:
         exhaust       = True,
         pool_excluded = True,
         flavor        = "Status. Take 3. Eyes go first.",
+    )
+
+    ## ---------------------------------------------------------------------------
+    ## COMBAT REWARDS — rare-tier cards designed to drop from ladder fights.
+    ## Heavier mechanics than activity-granted commons/uncommons; the ladder
+    ## is the path to power. Tier weights in pick_battle_rewards bias toward
+    ## these (Hard fights drop rare 70% of the time).
+    ## ---------------------------------------------------------------------------
+
+    register_card(
+        "killing_blow",
+        name    = "Killing Blow",
+        type    = "Attack",
+        color   = "Physical",
+        cost    = 2,
+        rarity  = "rare",
+        effect  = "killing_blow",
+        flavor  = "Deal 14. If they're below half HP: deal 14 more. Finish what you started.",
+    )
+    register_card(
+        "tactical_read",
+        name    = "Tactical Read",
+        type    = "Skill",
+        color   = "Logic",
+        cost    = 0,
+        rarity  = "rare",
+        effect  = "tactical_read",
+        exhaust = True,
+        flavor  = "Peek 5 intents. Gain 1 energy. Free, exhausts.",
+    )
+    register_card(
+        "iron_drill",
+        name    = "Iron Drill",
+        type    = "Skill",
+        color   = "Physical",
+        cost    = 2,
+        rarity  = "rare",
+        effect  = "iron_drill",
+        flavor  = "Gain 12 block + 4 block per Skill in hand (cap +12). Reps compound.",
+    )
+    register_card(
+        "last_stand",
+        name    = "Last Stand",
+        type    = "Attack",
+        color   = "Physical",
+        cost    = 2,
+        rarity  = "rare",
+        effect  = "last_stand",
+        exhaust = True,
+        flavor  = "Deal 16. If you're under half HP, draw 2. Exhausts.",
     )

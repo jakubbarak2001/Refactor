@@ -623,7 +623,11 @@ screen battle_screen():
             else:
                 _bg_state = "normal"
             _bg_state_path  = "images/backgrounds/{}_office_{}.jpg".format(_sprite_id, _bg_state)
-            _bg_static_path = "images/backgrounds/bg_{}.jpg".format(_sprite_id)
+            ## bg_id override: enemies whose battle bg lives under a different
+            ## filename than the sprite (e.g. lawyer → bg_courtroom.jpg) declare
+            ## bg_id in ENEMY_LIBRARY. Defaults to sprite_id when unset.
+            _bg_id = (ENEMY_LIBRARY.get(bs.enemy_id, {}) or {}).get("bg_id") or _sprite_id
+            _bg_static_path = "images/backgrounds/bg_{}.jpg".format(_bg_id)
             if _sprite_id == "colonel":
                 _bg_is_colonel = True
                 if renpy.loadable(_bg_state_path):
@@ -667,9 +671,13 @@ screen battle_screen():
             _sprite_tag = "{} {}".format(_sprite_base, _state)
             if not renpy.has_image(_sprite_tag, exact=True):
                 _sprite_tag = "{} neutral".format(_sprite_base)
+            ## Garda sprite sits 80px lower than the rest of the roster —
+            ## the source art has more empty head-room above the figure, so
+            ## the standard ypos floats him too high on screen.
+            _sprite_ypos = 880 if _sprite_base == "garda" else 800
         ## Sprite is bottom-anchored so the (often torso-cropped) lower edge
         ## tucks behind the card hand instead of floating mid-screen.
-        add _sprite_tag xalign 0.5 ypos 800 yanchor 1.0 zoom 0.69 at colonel_hit_shake
+        add _sprite_tag xalign 0.5 ypos _sprite_ypos yanchor 1.0 zoom 0.69 at colonel_hit_shake
 
         ## ── ENEMY HEADER ──────────────────────────────────────────────────────
         ## Shakes alongside the enemy portrait on hits so impact reads as

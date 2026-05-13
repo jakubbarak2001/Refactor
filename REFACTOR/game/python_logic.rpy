@@ -275,10 +275,16 @@ init python:
         ## new run gets a fresh pool of 10 enemies.
         store.battle_ladder_pool = None
         store._ladder_skip_tomorrow = False
-        ## "I Don't Need IT" achievement tracker — flipped True on entry to
-        ## any coding daily-activity label (coding_work_for_money / coding_fiverr
-        ## / coding_bootcamp / coding_bootcamp_de). Checked at top of good_ending.
-        store._did_coding_activity_ever = False
+        ## Persistent run HP — carries across ladder battles + into the Colonel.
+        ## None = first battle hasn't fired yet (battle_init will lazy-init to
+        ## the class max). After each victory, battle_finish writes the
+        ## post-fight HP here. forced_detour subtracts on defeat. End-of-day
+        ## nightly cycle slowly regens. Healing activities (gym) bump it up.
+        store.run_hp = None
+        store.run_hp_max = None
+        ## Permanent max-HP bonus accrued from gym sessions (+5 per regular gym).
+        ## Added on top of class baseline in battle_init. Resets on new run.
+        store.gym_max_hp_bonus = 0
 
         ## --- Class progression state ---
         ## BB: SOMA stack (each gym session +1, max 10). 5+ unlocks Iron Body buff in fight.
@@ -367,7 +373,7 @@ init python:
         "maximum_stack":    {"category": "Collection", "name": "Maximum Stack",           "desc": "Reach SOMA 10/10. The body is the answer.",                      "hint": "Bodybuilder only — go to the gym 10 times."},
         "compound_knowledge":{"category":"Collection", "name": "Compound Knowledge",       "desc": "Learn synthesis instead of taking the vial.",                    "hint": "Biohacker only — pick the lesson over the contraband."},
         "wake_up_call":     {"category": "Secret",     "name": "Wake Up Call",            "desc": "Type sys.exit() during the colonel's loop. Step out of the script.","hint": "???"},
-        "i_dont_need_it":   {"category": "Secret",     "name": "I Don't Need IT",         "desc": "Reach the escape ending without doing any coding daily activity.",  "hint": "Find another way out of the uniform."},
+        "i_dont_need_it":   {"category": "Secret",     "name": "I Don't Need IT",         "desc": "Reach the escape ending without signing the bootcamp contract.",    "hint": "Find another way out of the uniform."},
     }
 
     def unlock_achievement(key):
@@ -619,3 +625,62 @@ init python:
             ),
         },
     ]
+
+
+## ---------------------------------------------------------------------------
+## Daily music pool — randomized rotation
+## ---------------------------------------------------------------------------
+## Defeats repetition fatigue from a single workhorse track. Tracks in the pool
+## should share a sonic lane (all A-minor, Mr-Robot/Cyberpunk/HL2 register) so
+## any sequence cohabits.
+##
+## Behaviour: idempotent. If a pool track is ALREADY on the music channel, the
+## call is a no-op — daily-menu to daily-menu transitions don't reshuffle. Only
+## fires a fresh pick when the currently-playing track is non-pool (after
+## combat, after an event with its own music, at game start). That's the
+## "track changes after combat, not every day" behaviour.
+##
+## Missing files are silently skipped. If the entire pool is missing, falls
+## back to `audio/coding_in_snow_theme.mp3` so the game keeps working while
+## new tracks are being added.
+## ---------------------------------------------------------------------------
+
+init python:
+
+    import random as _daily_music_rand
+
+    ## Add/remove filenames here as new tracks land. Each track lives in the
+    ## Mr-Robot / Cyberpunk / HL2 industrial-noir lane (A minor) so any
+    ## sequence cohabits cleanly when the pool randomises.
+    DAILY_LOOP_POOL = [
+        "audio/rust_triage.wav",
+        "audio/circuit_mercy_pulse.wav",
+        "audio/subfloor_metrics.wav",
+        "audio/debug_heartbeats.wav",
+    ]
+
+    DAILY_LOOP_FALLBACK = "audio/coding_in_snow_theme.mp3"
+
+    def play_daily_music(fadein=1.5):
+        """Resume daily-loop music with rotation. See module docstring above."""
+        pool = [t for t in DAILY_LOOP_POOL if renpy.loadable(t)]
+
+        ## No pool tracks on disk — fall back to the single workhorse.
+        if not pool:
+            if renpy.loadable(DAILY_LOOP_FALLBACK):
+                if renpy.music.get_playing(channel="music") != DAILY_LOOP_FALLBACK:
+                    renpy.music.play(DAILY_LOOP_FALLBACK, fadein=fadein, channel="music")
+            return
+
+        ## A pool track is already playing — leave it alone.
+        currently = renpy.music.get_playing(channel="music")
+        if currently in pool:
+            return
+
+        ## Pick a fresh pool track, avoiding the last one if pool has >1 entry.
+        last = getattr(store, '_last_daily_track', None)
+        choices = [t for t in pool if t != last] or pool
+        chosen = _daily_music_rand.choice(choices)
+
+        renpy.music.play(chosen, fadein=fadein, channel="music")
+        store._last_daily_track = chosen

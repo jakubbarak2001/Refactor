@@ -71,6 +71,25 @@ screen stats_bar():
 
         _deck_count_bar = len(player_deck.cards) if player_deck is not None else 0
 
+        ## Persistent run HP — carries across ladder battles + into the Colonel.
+        ## None before the first battle; show class-max in that case.
+        _run_hp_show = getattr(store, 'run_hp', None)
+        _run_hp_max_show = getattr(store, 'run_hp_max', None)
+        if _run_hp_show is None or _run_hp_max_show is None:
+            ## Pre-first-battle default — class max from python_logic.
+            _run_hp_max_show = 115 if (stats and stats.player_class == "bodybuilder") else (75 if (stats and stats.player_class == "dark_empath") else 80)
+            _run_hp_show = _run_hp_max_show
+        _hp_ratio = (_run_hp_show / float(_run_hp_max_show)) if _run_hp_max_show > 0 else 1.0
+        if _hp_ratio >= 0.75:
+            _hp_color = "#88ff88"
+        elif _hp_ratio >= 0.5:
+            _hp_color = "#ffdd44"
+        elif _hp_ratio >= 0.25:
+            _hp_color = "#ff8844"
+        else:
+            _hp_color = "#ff4444"
+        _hp_tt = "Your body. Carries between fights. +5/night, +8 gym, +15 heavy gym. Hospital after a loss costs HP. 0 HP mid-fight = forced detour."
+
     frame:
         xalign 0.0
         yalign 0.0
@@ -154,6 +173,21 @@ screen stats_bar():
                 else:
                     text "Hatred: [stats.pcr_hatred]/100":
                         color "#ff4444"
+                        size 20
+                        bold True
+
+                text "|":
+                    color "#555555"
+                    size 18
+
+                ## HP — persists across battles; recovers via gym + nightly.
+                button:
+                    action NullAction()
+                    tooltip _hp_tt
+                    background "#00000000"
+                    padding (0, 0)
+                    text "HP: [_run_hp_show]/[_run_hp_max_show]":
+                        color _hp_color
                         size 20
                         bold True
 
@@ -2415,10 +2449,12 @@ screen ending_screen(ending_label, ending_title, ending_flavor, ending_type, sco
 
             null height 50
 
-            ## Return button
+            ## Return button — Return() (not MainMenu()) so the calling
+            ## ending label keeps control. good_ending uses this to play the
+            ## post-credit scene between the score card and the restart.
             textbutton "[[ RETURN TO MAIN MENU ]":
                 xalign 0.5
-                action MainMenu()
+                action Return()
                 text_color _ec
                 text_size 18
                 text_bold True
@@ -3615,42 +3651,165 @@ style navigation_button_text:
 
 screen main_menu():
 
-    ## This ensures that any other menu screen is replaced.
+    ## Replaces any other menu screen when shown.
     tag menu
 
+    ## Full-bleed looping video stays the hero — chrome sits on top.
     add gui.main_menu_background
 
-    ## This empty frame darkens the main menu.
+    ## Institutional case-file strips top and bottom.
+    use main_menu_top_bar
+    use main_menu_bottom_bar
+
+    ## Vertical rust-red accent bar — case-file tab spine anchoring title + nav.
+    ## Runs from title top (y=272) to just above the bottom status strip (y=1008).
+    add Solid("#cc2200"):
+        xpos 72
+        ypos 310
+        xsize 4
+        ysize 566
+        at mm_fade_in
+
+    ## Title wordmark — pinned at y=272 to preserve the original placement.
+    text "REFACTOR":
+        style "mm_title"
+        xpos 90
+        ypos 272
+        at mm_fade_in
+
+    ## Navigation column — case-file commands.
+    use main_menu_navigation
+
+    ## Dev-only quick-jump to the Colonel deck-fight. Hidden in ship builds.
+    ## ypos 50 keeps it clear of the 36-px top status strip.
+    if config.developer:
+        textbutton "[[DEV] SKIP TO COLONEL FIGHT":
+            xalign 0.98
+            ypos 50
+            action Start("dev_skip_to_colonel")
+            text_color "#444444"
+            text_hover_color "#ffcc00"
+            text_size 13
+            text_font "fonts/RobotoMono-Regular.ttf"
+            background "#00000000"
+            hover_background Frame("#1a1a00aa", 3, 3)
+            padding (10, 6)
+
+
+screen main_menu_top_bar():
     frame:
-        style "main_menu_frame"
+        xfill True
+        ysize 36
+        ypos 0
+        background Solid("#0a0a0acc")
+        padding (0, 0)
+        has fixed
 
-    ## The use statement includes another screen inside this one. The actual
-    ## contents of the main menu are in the navigation screen.
-    use navigation
+        text "REFACTOR  //  case-file-jb":
+            style "mm_status"
+            xpos 28
+            yalign 0.5
 
-    if gui.show_name:
+        text "v[config.version]  //  northern bohemia":
+            style "mm_status"
+            xalign 1.0
+            xoffset -28
+            yalign 0.5
 
-        vbox:
-            style "main_menu_vbox"
 
-            text "[config.name!t]":
-                style "main_menu_title"
+screen main_menu_bottom_bar():
+    frame:
+        xfill True
+        ysize 36
+        yalign 1.0
+        background Solid("#0a0a0acc")
+        padding (0, 0)
+        has fixed
 
-            text "[config.version]":
-                style "main_menu_version"
+        text "STATE POLICE  //  INTERNAL USE ONLY":
+            style "mm_status"
+            xpos 28
+            yalign 0.5
 
-    ## --- DEV: skip straight to the colonel deck-fight ---
-    textbutton "[[DEV] SKIP TO COLONEL FIGHT":
-        xalign 0.98
-        yalign 0.02
-        action Start("dev_skip_to_colonel")
-        text_color "#444444"
-        text_hover_color "#ffcc00"
-        text_size 13
-        text_font "fonts/RobotoMono-Regular.ttf"
-        background "#00000000"
-        hover_background Frame("#1a1a00aa", 3, 3)
-        padding (10, 6)
+        text "[[esc] exit   [[enter] go":
+            style "mm_status"
+            xalign 1.0
+            xoffset -28
+            yalign 0.5
+
+
+screen main_menu_navigation():
+    ## Per-button hover sound — Play action fires reliably on every focus-enter,
+    ## unlike style-level `hover_sound` which can be swallowed by mouse-hover paths.
+    $ _mm_hover_sfx = Play("sound", "audio/sfx/ui_hover.wav")
+
+    vbox:
+        xpos 90
+        ypos 470
+        yanchor 0.0
+        spacing 8
+        at mm_fade_in
+
+        textbutton _("►  new investigation") style "mm_button" action Start("mm_start_fade") hovered _mm_hover_sfx
+
+        if renpy.newest_slot() is not None:
+            textbutton _("►  continue") style "mm_button" action FileLoad(renpy.newest_slot()) hovered _mm_hover_sfx
+
+        textbutton _("►  case archive") style "mm_button" action ShowMenu("load") hovered _mm_hover_sfx
+
+        if stats is not None:
+            textbutton _("►  trophies") style "mm_button" action [Hide("phone_screen"), ShowMenu("trophies_menu")] hovered _mm_hover_sfx
+
+        textbutton _("►  preferences") style "mm_button" action ShowMenu("preferences") hovered _mm_hover_sfx
+
+        textbutton _("►  about") style "mm_button" action ShowMenu("about") hovered _mm_hover_sfx
+
+        if renpy.variant("pc"):
+            textbutton _("►  exit") style "mm_button" action Quit(confirm=False) hovered _mm_hover_sfx
+
+
+transform mm_fade_in:
+    alpha 0.0
+    ease 0.6 alpha 1.0
+
+
+## Polish entry point: brief freeze, music fadeout, fade-to-black, then hand off
+## to the regular `start` label (which begins on bg_black + fades in its own music).
+label mm_start_fade:
+    pause 0.2
+    stop music fadeout 1.0
+    scene bg_black with Dissolve(0.6)
+    pause 0.4
+    jump start
+
+
+style mm_title is gui_text:
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#e8e8e8"
+    size 120
+    kerning 4
+    outlines [(3, "#000000cc", 0, 0)]
+
+style mm_status is gui_text:
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#667788"
+    size 16
+    outlines [(1, "#000000aa", 0, 0)]
+
+style mm_button is button:
+    background None
+    hover_background Frame("#1a0000dd", 8, 4)
+    padding (12, 6)
+    xsize 560
+    activate_sound "audio/sfx/ui_click.mp3"
+
+style mm_button_text is button_text:
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#c0d0e0"
+    hover_color "#ff4422"
+    insensitive_color "#334455"
+    size 34
+    outlines [(2, "#000000cc", 0, 0)]
 
 
 style main_menu_frame is empty
@@ -3662,8 +3821,6 @@ style main_menu_version is main_menu_text
 style main_menu_frame:
     xsize 420
     yfill True
-
-    background "gui/overlay/main_menu.png"
 
 style main_menu_vbox:
     xalign 1.0
@@ -4497,9 +4654,9 @@ screen skip_indicator():
 
             text _("Skipping")
 
-            text "▸" at delayed_blink(0.0, 1.0) style "skip_triangle"
-            text "▸" at delayed_blink(0.2, 1.0) style "skip_triangle"
-            text "▸" at delayed_blink(0.4, 1.0) style "skip_triangle"
+            text "►" at delayed_blink(0.0, 1.0) style "skip_triangle"
+            text "►" at delayed_blink(0.2, 1.0) style "skip_triangle"
+            text "►" at delayed_blink(0.4, 1.0) style "skip_triangle"
 
 
 ## This transform is used to blink the arrows one after another.

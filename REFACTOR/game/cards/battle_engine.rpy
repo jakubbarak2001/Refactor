@@ -412,10 +412,11 @@ init python:
         bs.enemy_sprite_id = _enemy.get("sprite_id", "colonel")
         bs.enemy_log_name = _enemy.get("log_name", "Colonel")
 
-        ## Player HP by class
+        ## Player HP by class (+ permanent gym-session bonus folded in)
+        _gym_b = getattr(store, 'gym_max_hp_bonus', 0)
         if stats and stats.player_class == "bodybuilder":
-            bs.player_max_hp = 115
-            bs.player_hp = 115
+            bs.player_max_hp = 115 + _gym_b
+            bs.player_hp = 115 + _gym_b
             ## SOMA bonus: +1 starting block per turn for every 3 SOMA stacks
             ## (was every 2 — nerfed so ladder fights actually test the player).
             _soma = getattr(store, 'bb_soma', 0)
@@ -427,8 +428,8 @@ init python:
             bs.buffs["presence_charges"] = 1
             bs.add_log("[[PRESENCE x1]: One free +3 block on your opening turn. After that the room shrinks again.")
         elif stats and stats.player_class == "dark_empath":
-            bs.player_max_hp = 75
-            bs.player_hp = 75
+            bs.player_max_hp = 75 + _gym_b
+            bs.player_hp = 75 + _gym_b
             ## READ baseline: peek 2 intents at fight start; PROFILES adds further depth.
             bs.peek_intents(2)
             ## PROFILES bonus: +1 intent peek per profile read 2+ times.
@@ -440,8 +441,8 @@ init python:
             bs.buffs["read_charges"] = 3
             bs.add_log("[[READ x3]: One free look at what he's about to do. He has tells. He's never had to hide them from you before.")
         elif stats and stats.player_class == "biohacker":
-            bs.player_max_hp = 80
-            bs.player_hp = 80
+            bs.player_max_hp = 80 + _gym_b
+            bs.player_hp = 80 + _gym_b
             ## BH max-energy gate: dose-counter check (3+ total nootropic uses across all tiers).
             if sum(getattr(store, 'nootropic_uses', [0,0,0,0,0])) >= 3:
                 bs.max_energy = 4
@@ -884,6 +885,16 @@ init python:
         bs.last_intent_resolved = ic["id"]
         _intent_was_attack = intent_type in ("attack", "compound")
 
+        ## --- Lawyer paragraph_cite: on every Nth turn, his next attack/compound
+        ## intent gets +bonus_dmg damage AND caps max_energy_penalty_next_turn at 1.
+        ## Cap (vs +=1) prevents intimidate+cite stacking into a 2-energy lockout.
+        _paragraph_fires = False
+        if bs.enemy_id == "lawyer" and intent_type in ("attack", "compound"):
+            _wd = ENEMY_LIBRARY.get("lawyer", {}).get("wrinkle_data", {})
+            _cad = _wd.get("cadence", 3)
+            if bs.turn > 0 and bs.turn % _cad == 0:
+                _paragraph_fires = True
+
         if intent_type == "attack":
             dmg = max(1 if ic.get("value", 0) > 0 else 0, ic.get("value", 0) - damage_reduction)
             ## --- Sprejeri tag stack spend: +tags dmg on attack when stack >= 3 ---
@@ -896,20 +907,26 @@ init python:
             ## --- Garda formation strength: +3 dmg while above 50% HP ---
             if bs.enemy_id == "garda" and bs.enemy_hp > bs.enemy_max_hp // 2:
                 dmg += 3
+            if _paragraph_fires:
+                _bonus = ENEMY_LIBRARY.get("lawyer", {}).get("wrinkle_data", {}).get("bonus_dmg", 6)
+                dmg += _bonus
+                bs.buffs["max_energy_penalty_next_turn"] = max(bs.buffs.get("max_energy_penalty_next_turn", 0), 1)
+                bs.add_log("[[Paragraf cite]: +{} dmg, your next turn loses 1 energy.".format(_bonus))
             bs.deal_damage("player", dmg, source_kind="intent")
         elif intent_type == "compound":
             hits = ic.get("value2", 1)
             per_hit = max(1 if ic.get("value", 0) > 0 else 0, ic.get("value", 0) - (damage_reduction // max(1, hits)))
+            if _paragraph_fires:
+                _bonus = ENEMY_LIBRARY.get("lawyer", {}).get("wrinkle_data", {}).get("bonus_dmg", 6)
+                per_hit += max(1, _bonus // max(1, hits))
+                bs.buffs["max_energy_penalty_next_turn"] = max(bs.buffs.get("max_energy_penalty_next_turn", 0), 1)
+                bs.add_log("[[Paragraf cite]: +{} dmg per hit, your next turn loses 1 energy.".format(max(1, _bonus // max(1, hits))))
             for _i in range(hits):
                 if bs.is_over():
                     break
                 bs.deal_damage("player", per_hit, source_kind="intent")
         elif intent_type == "block":
-            ## --- Pastyrak armor-crack: below 50% HP, block intents no-op ---
-            if bs.enemy_id == "pastyrak" and bs.enemy_hp <= bs.enemy_max_hp // 2:
-                bs.add_log("[[Armor cracked]: stone won't hold. No block this turn.")
-            else:
-                bs.gain_block("enemy", ic.get("value", 0))
+            bs.gain_block("enemy", ic.get("value", 0))
         elif intent_type == "buff":
             ## Cold Stare — add to a self-attack-bonus stack
             bs.buffs["enemy_attack_bonus"] = bs.buffs.get("enemy_attack_bonus", 0) + ic.get("value", 0)

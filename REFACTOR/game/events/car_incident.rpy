@@ -10,7 +10,7 @@ label car_incident:
 
     $ renpy.movie_cutscene("video/car_incident_intro.webm")
 
-    play music "audio/enter_the_code_theme.mp3" fadein 1.0
+    play music "audio/coding_in_snow_theme.mp3" fadein 1.0
 
     scene bg_parking_lot
     call screen arc_title_card("I", "THE INCIDENT") with arc_fade
@@ -26,7 +26,7 @@ label car_incident:
 
     "..."
 
-    play music "audio/enter_the_code_theme.mp3" fadein 0.5
+    play music "audio/coding_in_snow_theme.mp3" fadein 0.5
 
     "A polite crunch. You look in the mirror. You see grey."
     "You get out. A Kodiaq is parked diagonal across the back lane. Your bumper found his front grille at maybe four kph."
@@ -45,7 +45,7 @@ label car_incident:
 
     scene bg_parking_lot with fade
     show jb worried at char_left
-    play music "audio/enter_the_code_theme.mp3" fadein 0.5
+    play music "audio/coding_in_snow_theme.mp3" fadein 0.5
 
     "{cps=8}{b}{color=#ffcc00}{size=+12}AND THIS IS HIS CAR.{/size}{/color}{/b}{/cps}"
     "Cameras. Gossip. The Commandant's morning walk-around. He'll know by lunch."

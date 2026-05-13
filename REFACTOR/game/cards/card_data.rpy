@@ -163,9 +163,13 @@ init -1 python:
 
 
     _LADDER_REWARD_WEIGHTS = {
-        "easy":   {"common": 0.80, "uncommon": 0.20, "rare": 0.00},
-        "medium": {"common": 0.50, "uncommon": 0.40, "rare": 0.10},
-        "hard":   {"common": 0.30, "uncommon": 0.50, "rare": 0.20},
+        ## Battle rewards skew RARE so winning fights progressively powers
+        ## the deck — beating monsters should feel materially stronger than
+        ## the cards activities hand out. Activity grants are mostly commons
+        ## / uncommons by design; ladder is where the rare power-ups live.
+        "easy":   {"common": 0.50, "uncommon": 0.40, "rare": 0.10},
+        "medium": {"common": 0.20, "uncommon": 0.40, "rare": 0.40},
+        "hard":   {"common": 0.00, "uncommon": 0.30, "rare": 0.70},
     }
 
 

@@ -1,0 +1,8 @@
+Same painterly portrait as the attached reference image. Same man, same face shape, same short dark hair, same stubble pattern, same body framing, same painterly semi-realistic style, same transparent / pure-white background, same upper-body vertical crop. Return the exact same character with the following changes only:
+
+- Outfit swapped to a crisp white linen short-sleeve camp-collar shirt, top two buttons unbuttoned, casually open. Faint creases on the shirt where it has been worn in a warm climate. The fabric reads as expensive linen — soft drape, subtle texture.
+- A slim braided light-tan leather bracelet on the right wrist, beside a sleek matte-steel automatic watch with a soft brown leather strap (replaces the previous watch).
+- Skin tone shifted to a soft sun-warm bronze — like he has been somewhere sunny for a few weeks. A faint warm undertone across the cheekbones and bridge of the nose.
+- Expression shifted to a slow knowing half-smile, relaxed, eyes calm, the look of someone who has the rest of the day already won. Same eyes, same brows.
+
+Everything else byte-for-byte identical to the reference — same hairline, same jaw, same posture, same hands, same transparent background. Quiet-luxury Mediterranean morning energy. Painterly, soft, expensive.

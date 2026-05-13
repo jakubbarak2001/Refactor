@@ -27,19 +27,31 @@ label forced_detour(enemy_id, tier):
         "You lost. The case files itself."
 
     python:
+        ## Hospital sticks the player with a run-HP cost that carries forward
+        ## into the next fight. Tier-scaled. Floor at 10 HP — keeps the run
+        ## technically winnable but punishing. HP is the new persistent
+        ## penalty since the old skip-tomorrow slot is gone (the player still
+        ## has to fight the next slot — just worse off).
+        _run_hp_max = getattr(store, 'run_hp_max', 115) or 115
+        _cur_hp = getattr(store, 'run_hp', _run_hp_max) or _run_hp_max
         if tier == "easy":
             stats.increment_stats_value_money(-5000)
             stats.increment_stats_pcr_hatred(5)
-            store._ladder_skip_tomorrow = True
-            _detour_summary = "- 5,000 CZK   + 5 hatred   (next slot quiet)"
+            _hp_loss = 10
         elif tier == "medium":
             stats.increment_stats_value_money(-10000)
             stats.increment_stats_pcr_hatred(8)
-            _detour_summary = "- 10,000 CZK   + 8 hatred"
+            _hp_loss = 15
         else:
             stats.increment_stats_value_money(-15000)
             stats.increment_stats_pcr_hatred(10)
-            _detour_summary = "- 15,000 CZK   + 10 hatred"
+            _hp_loss = 20
+        store.run_hp = max(10, _cur_hp - _hp_loss)
+        _detour_summary = "- {:,} CZK   + {} hatred   - {} HP (hospital)".format(
+            5000 if tier == "easy" else (10000 if tier == "medium" else 15000),
+            5 if tier == "easy" else (8 if tier == "medium" else 10),
+            _hp_loss,
+        )
 
     hide screen detour_header
     show screen outcome_panel(_detour_summary)

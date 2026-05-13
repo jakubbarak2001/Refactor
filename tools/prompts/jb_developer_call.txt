@@ -1,0 +1,6 @@
+Same painterly portrait as the attached reference image. Same man, same face shape, same short dark hair, same clean-shaven jaw, same body framing, same painterly semi-realistic style, same transparent / pure-white background, same upper-body vertical crop. Return the exact same character — same outfit (the black soft-shell Patagonia-style vest zipped over a plain dark t-shirt, the small blue chest patch unchanged) — with the following change only:
+
+- Pose changed: he is now holding a slim modern smartphone up to his RIGHT ear (the right side of his face from the viewer's perspective), held casually between thumb and fingers of his right hand, the phone clearly readable as a phone (slim, dark, glass-fronted). The right elbow is raised, forearm vertical along the side of his head. His left hand is relaxed at his hip or out of frame.
+- Expression: a small relaxed half-smile, eyes calm and slightly amused, the look of someone listening to a friend on the line. Head turned just a few degrees toward the phone but eyes still oriented forward.
+
+Everything else byte-for-byte identical to the reference — same vest, same shirt underneath, same hairline, same skin tone, same painterly style, same transparent background. He is just on a phone call now.

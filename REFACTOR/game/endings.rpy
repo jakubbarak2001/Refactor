@@ -83,16 +83,16 @@ label homeless_ending:
 label good_ending:
 
     python:
-        ## "I Don't Need IT" — escape ending reached without ever picking
-        ## a coding daily activity (coding_work_for_money / coding_fiverr /
-        ## coding_bootcamp / coding_bootcamp_de). Random events that grant
-        ## coding skill don't flip the flag — only daily-menu picks do.
-        if not getattr(store, '_did_coding_activity_ever', False):
+        ## "I Don't Need IT" — escape ending reached without signing the
+        ## bootcamp contract (python_bootcamp flag, set only by coding_bootcamp /
+        ## coding_bootcamp_de). Free work / fiverr / random-event coding skill
+        ## doesn't disqualify — only signing for the bootcamp does.
+        if not python_bootcamp:
             unlock_achievement("i_dont_need_it")
 
-    play music "audio/road_to_freedom.mp3" fadein 1.0
     scene bg_police_office
     show colonel shaken at char_right
+    show jb smirk at char_left
 
     "You start to chuckle."
     "The chuckle turns into a laugh."
@@ -127,6 +127,8 @@ label good_ending:
     "You simply push it open."
 
     $ renpy.movie_cutscene("video/jb_good_ending.webm")
+
+    play music "audio/road_to_freedom.wav" fadein 2.0
 
     scene bg_cafe with slow_dissolve
     show jb developer_happy at char_left with dissolve
@@ -199,6 +201,8 @@ label good_ending:
         coding=stats.coding_skill,
         diff_name=_diff_name
     )
+
+    call post_credits_singapore
 
     $ renpy.full_restart()
 

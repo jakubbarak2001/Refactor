@@ -40,46 +40,46 @@ init python:
         "deal_damage_6":           "Deal 6 damage.",
         "gain_block_5":            "Gain 5 block.",
         "heavy_set":               "Deal 4 + (Hatred / 10) damage. Scales with how much you hate this job.",
-        "read_him":                "Peek the next 3 colonel intents. Draw 1 card.",
+        "read_him":                "Peek the next 3 enemy intents. Draw 1 card.",
         "stack_up":                "Gain +2 energy this turn. Crash next turn (-2 energy).",
         "gain_block_12":           "Gain 12 block.",
         "deal_damage_double_next": "Your next attack this turn fires twice.",
         "boundary":                "Deal 4 damage. Heal 4 HP.",
-        "reframe":                 "Convert the colonel's next attack into block for you. Exhausts.",
+        "reframe":                 "Convert the enemy's next attack into block for you. Exhausts.",
         "side_income":             "Deal damage equal to (Money / 10,000), rounded down.",
         "vip_treatment":           "Deal 30 damage. Lose 10 HP. Exhausts.",
-        "refactor":                "Cancel the colonel's next attack. Exhausts.",
+        "refactor":                "Cancel the enemy's next attack. Exhausts.",
         "compile":                 "Draw 2 cards.",
         "gain_block_15":           "Gain 15 block.",
-        "procedural_defense":      "Block all damage from the colonel's next turn.",
+        "procedural_defense":      "Block all damage from the enemy's next attack turn.",
         "racetam_burst":           "Gain +1 energy. Draw 1 card.",
         "flmodafinil_spike":       "Deal 28 damage. 50%: -1 max energy next turn. Exhausts.",
-        "mirror":                  "The colonel's next attack hits HIM at 2x damage. 2-turn cooldown.",
-        "algorithm":               "Skip the colonel's next 2 attacks. Exhausts.",
-        "snitch_info":             "Reveal the colonel's full deck for the rest of the fight. Exhausts.",
+        "mirror":                  "The enemy's next attack hits THEM at 2x damage. 2-turn cooldown.",
+        "algorithm":               "Skip the enemy's next 2 attacks. Exhausts.",
+        "snitch_info":             "Reveal the enemy's full deck for the rest of the fight. Exhausts.",
         "paragraph_4b":            "Deal 40 damage. Auto-counters 'Training Debt'. Exhausts.",
-        "ghost_secret":            "Cancel the colonel's next attack. Deal 15 damage. Exhausts.",
+        "ghost_secret":            "Cancel the enemy's next attack. Deal 15 damage. Exhausts.",
         "job_offer":               "Power: +5 max HP. +1 starting block per turn.",
-        "stoic_refactor":          "Power: take 50% damage from emotional/mental colonel attacks.",
-        "stoic_anchor":            "Power: +3 starting block per turn. Heal 3 HP after each colonel attack.",
+        "stoic_refactor":          "Power: take 50% damage from Mental-typed attacks.",
+        "stoic_anchor":            "Power: +3 starting block per turn. Heal 3 HP after each enemy attack.",
         "quick_jab":               "Deal 7 damage.",
         "loan_sharks":             "Pay 5,000 CZK to deal 30 damage. (No funds = no damage.) Exhausts.",
         "chain_of_command":        "Gain 10 block. Draw 1 card.",
         "vigil":                   "Gain 4 block now. +4 starting block next turn.",
-        "iron_stance":             "Power: +20 block. Retaliate (4 + 2x turn) damage when colonel hits.",
+        "iron_stance":             "Power: +20 block. Retaliate (4 + 2x turn) damage when you're hit.",
         "spotter":                 "Gain 6 block. Draw 1 card.",
-        "brawl":                   "Deal 10 damage. Apply 3-turn bleed (3 dmg/turn) to the colonel.",
+        "brawl":                   "Deal 10 damage. Apply 3-turn bleed (3 dmg/turn) to the enemy.",
         "empaths_insight":         "Power: peek 5 intents. +1 starting block for the first 3 turns.",
-        "iron_body":               "Gain 6 block. Retaliate 4 damage on the next colonel hit.",
+        "iron_body":               "Gain 6 block. Retaliate 4 damage on the next hit.",
         "pump":                    "Gain +2 energy this turn. +5 Hatred.",
         "strongman":               "Gain 25 block. Draw 2. Exhausts.",
         "tell":                    "Peek 1 intent. Gain 3 block. Free.",
-        "frame_trap":              "Reduce the colonel's next attack by 8 (min 1).",
+        "frame_trap":              "Reduce the enemy's next attack by 8 (min 1).",
         "charm":                   "Heal 8 HP. Gain 3 block.",
         "hrv_spike":               "Gain +2 energy. Lose 5 HP.",
         "cognitive_stack":         "Draw 3 cards. Exhausts.",
         "override":                "Deal 40 damage. -2 max energy next turn. Exhausts.",
-        "the_dossier":             "Disable one 'emotional' or 'guilt' colonel attack. Deal 25 damage. Exhausts.",
+        "the_dossier":             "Cancel one incoming attack. Deal 25 damage. Exhausts.",
         "the_compound":            "Deal (current energy × 10) damage. Lose 8 HP. Exhausts.",
         ## Battle ladder basic pool — Body / Tech / Authority
         "gut_punch":               "Deal 8 damage.",
@@ -106,6 +106,11 @@ init python:
         "status_counterfeit":      "Status. Deal 4. Take 8. Exhausts.",
         "status_fumes":            "Status. Take 2. Exhausts.",
         "status_tear_gas":         "Status. Take 3. Exhausts.",
+        ## Combat-reward rares (ladder-fight drops)
+        "killing_blow":            "Deal 14. If enemy is below half HP: deal 14 more.",
+        "tactical_read":           "Peek 5 intents. Gain 1 energy. Exhausts.",
+        "iron_drill":              "Gain 12 block + 4 per Skill in hand (capped at +12).",
+        "last_stand":              "Deal 16. If you're below half HP, draw 2. Exhausts.",
     }
 
     ## ---------------------------------------------------------------------------
@@ -568,3 +573,45 @@ init python:
     @register_effect("status_tear_gas")
     def _eff_status_tear_gas(state, source, target):
         state.deal_damage(source, 3)
+
+    ## ---------------------------------------------------------------------------
+    ## Combat-reward rares — ladder-fight drops, heavier mechanics than the
+    ## activity-granted common/uncommon pool. Weights in pick_battle_rewards
+    ## bias toward these (Hard fights 70% rare).
+    ## ---------------------------------------------------------------------------
+
+    @register_effect("killing_blow")
+    def _eff_killing_blow(state, source, target):
+        state.deal_damage(target, 14)
+        ## Execution bonus: if the enemy is now (or was already) below half HP,
+        ## deal a second 14-damage hit. Triggers off CURRENT enemy_hp post-first-
+        ## hit so the threshold check feels right ("I knocked them low → finish").
+        if state.enemy_max_hp > 0 and state.enemy_hp > 0 and state.enemy_hp * 2 < state.enemy_max_hp:
+            state.deal_damage(target, 14)
+            state.add_log("[[Killing Blow]: execution — second hit lands.")
+
+    @register_effect("tactical_read")
+    def _eff_tactical_read(state, source, target):
+        state.peek_intents(5)
+        state.gain_energy(1)
+
+    @register_effect("iron_drill")
+    def _eff_iron_drill(state, source, target):
+        ## Base 12 block + 4 per OTHER Skill in hand, capped at +12 (max 24 block).
+        ## Excludes self so solo iron_drill = 12 block, not 16.
+        _skills = sum(
+            1 for cid in state.hand
+            if cid != "iron_drill" and CARD_LIBRARY.get(cid, {}).get("type") == "Skill"
+        )
+        _bonus = min(12, 4 * _skills)
+        state.gain_block(source, 12 + _bonus)
+        state.add_log("[[Iron Drill]: 12 + {} (per skill) = {} block.".format(_bonus, 12 + _bonus))
+
+    @register_effect("last_stand")
+    def _eff_last_stand(state, source, target):
+        state.deal_damage(target, 16)
+        ## Desperation draw: if HP is below half, the back-against-wall reward
+        ## fires. Threshold check uses player_max_hp so it scales per class.
+        if state.player_max_hp > 0 and state.player_hp * 2 < state.player_max_hp:
+            state.draw_cards(2)
+            state.add_log("[[Last Stand]: low HP — draw 2.")

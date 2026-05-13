@@ -90,6 +90,7 @@ image jb smirk          = im.Scale("images/sprites/jb_smirk.png",            600
 image jb defeated       = im.Scale("images/sprites/jb_defeated.png",         600, 900)
 image jb broken         = im.Scale("images/sprites/jb_broken.png",           600, 900)
 image jb developer_happy = im.Scale("images/sprites/jb_developer_happy.png", 600, 900)
+image jb developer_call  = im.Scale("images/sprites/jb_developer_call.png",  600, 900)
 
 ## Martin Meeting outfit sprites — wardrobe set by Phase 1 choice
 image jb polo           = im.Scale("images/sprites/jb_polo.png",             600, 900)
@@ -122,6 +123,7 @@ image martin normal  = im.Scale("images/sprites/npcs/martin_normal.png", 600, 90
 image martin default = im.Scale("images/sprites/npcs/martin_normal.png", 600, 900)
 image martin smiling = im.Scale("images/sprites/npcs/martin_normal.png", 600, 900)
 image martin serious = im.Scale("images/sprites/npcs/martin_normal.png", 600, 900)
+image martin como    = im.Scale("images/sprites/npcs/martin_como.png",    600, 900)
 
 ## Inspector sprites (GIBS — Happy Nation ending)
 image inspector neutral = im.Scale("images/sprites/npcs/inspector_neutral.png", 600, 900)
@@ -135,7 +137,7 @@ image spis neutral          = im.Scale("images/sprites/enemies/spis_neutral.png"
 ## Medium tier
 image nguyen neutral        = im.Scale("images/sprites/enemies/nguyen_neutral.png",        600, 900)
 image varic neutral         = im.Scale("images/sprites/enemies/varic_neutral.png",         600, 900)
-image pastyrak neutral      = im.Scale("images/sprites/enemies/pastyrak_neutral.png",      600, 900)
+image lawyer neutral        = im.Scale("images/sprites/enemies/lawyer_neutral.png",        600, 900)
 image dispatcher neutral    = im.Scale("images/sprites/enemies/dispatcher_neutral.png",    600, 900)
 ## Hard tier
 image inspekce neutral      = im.Scale("images/sprites/enemies/inspekce_neutral.png",      600, 900)

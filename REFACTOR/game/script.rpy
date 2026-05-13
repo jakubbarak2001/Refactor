@@ -10,7 +10,7 @@
 label start:
 
     scene bg_black
-    play music "audio/enter_the_code_theme.mp3" fadein 2.0
+    $ play_daily_music(fadein=2.0)
 
     ## Difficulty selection
     call difficulty_selection from _call_difficulty_selection
@@ -110,7 +110,7 @@ label dev_ladder_test:
             ("spis",       "easy"),
             ("nguyen",     "medium"),
             ("varic",      "medium"),
-            ("pastyrak",   "medium"),
+            ("lawyer",     "medium"),
             ("dispatcher", "medium"),
             ("inspekce",   "hard"),
             ("garda",      "hard"),
@@ -264,14 +264,13 @@ label day_start:
     python:
         current_day = day_cycle.current_day
 
-    ## Dynamic music routing — tension increases with hatred
+    ## Dynamic music routing — tension increases with hatred. Daily-loop
+    ## branch uses the rotating pool (see play_daily_music in python_logic.rpy).
     python:
         if stats.pcr_hatred >= 75:
             renpy.music.play("audio/tension_theme.mp3", fadein=1.5)
-        elif stats.pcr_hatred >= 40:
-            renpy.music.play("audio/enter_the_code_theme.mp3", fadein=1.5)
         else:
-            renpy.music.play("audio/enter_the_code_theme.mp3", fadein=1.5)
+            play_daily_music(fadein=1.5)
 
     scene bg_jb_flat
 
@@ -480,6 +479,20 @@ label activity_gym:
 
             ## SOMA always lands for BB — gym session is "I trained the body."
             $ add_soma(1)
+            ## Persistent +5 max HP per session + 10 HP heal. Max bonus accrues
+            ## across the run and is folded into battle_init via gym_max_hp_bonus.
+            python:
+                _gym_heal = 10
+                _gym_max_bump = 5
+                store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + _gym_max_bump
+                _rh = getattr(store, 'run_hp', None)
+                _rhm = getattr(store, 'run_hp_max', None)
+                if _rhm is not None:
+                    store.run_hp_max = _rhm + _gym_max_bump
+                    _rhm = store.run_hp_max
+                if _rh is not None and _rhm is not None:
+                    store.run_hp = min(_rhm, _rh + _gym_heal)
+                    _gym_outcome = _gym_outcome + ", +{} MAX HP, +{} HP".format(_gym_max_bump, _gym_heal)
             ## Compute card-offer eligibility in python (no UI), THEN do the
             ## modal at script level via `call screen`. Avoids the transient-
             ## layer leak that came from `renpy.call_screen` inside python.
@@ -555,7 +568,13 @@ label activity_gym_heavy:
                 grant_card("iron_stance", silent=True)
         ## Pure relief — no card offer here. The trade is "deeper relief instead of card lottery."
         stats.increment_stats_pcr_hatred(-30)
-        _heavy_outcome = "- {:,} CZK, -30 PCR HATRED, +1 SOMA".format(_heavy_cost)
+        ## Persistent-HP heal: heavy session is the bigger valve. +15 HP.
+        _heavy_heal = 15
+        _rh = getattr(store, 'run_hp', None)
+        _rhm = getattr(store, 'run_hp_max', None)
+        if _rh is not None and _rhm is not None:
+            store.run_hp = min(_rhm, _rh + _heavy_heal)
+        _heavy_outcome = "- {:,} CZK, -30 PCR HATRED, +1 SOMA, +{} HP".format(_heavy_cost, _heavy_heal)
 
     window hide
     show screen outcome_panel(_heavy_outcome)
@@ -780,8 +799,6 @@ label bouncer_strip_bar:
 
 label activity_coding:
 
-    play music "audio/coding_in_snow_theme.mp3" fadein 1.5
-
     scene bg_jb_flat
 
     python:
@@ -852,7 +869,6 @@ label activity_coding:
 
 label coding_work_for_money:
 
-    $ store._did_coding_activity_ever = True
     python:
         _tier_name, _tier_info = get_coding_tier_info(stats.coding_skill)
         if _tier_name == "TIER 1":
@@ -875,7 +891,6 @@ label coding_work_for_money:
 
 label coding_fiverr:
 
-    $ store._did_coding_activity_ever = True
     python:
         _fiverr_cost = adjusted_cost(2500)
         if not stats.try_spend_money(_fiverr_cost):
@@ -932,7 +947,6 @@ label coding_fiverr:
 
 label coding_bootcamp:
 
-    $ store._did_coding_activity_ever = True
     python:
         _bc_cost = adjusted_cost(35000)
         _bc_cost_str = "{:,}".format(_bc_cost)
@@ -975,7 +989,6 @@ label coding_bootcamp:
 
 label coding_bootcamp_de:
 
-    $ store._did_coding_activity_ever = True
     python:
         _bc_cost = adjusted_cost(28000)
         _bc_cost_str = "{:,}".format(_bc_cost)
@@ -1099,9 +1112,9 @@ label end_day:
 
 label do_end_day:
 
-    stop music fadeout 1.0
-
-    ## Night cycle
+    ## Night cycle — music keeps playing across the day transition for
+    ## continuity. play_daily_music in the next daily_menu sees a pool track
+    ## already on the channel and no-ops, so the same loop continues.
     "END OF DAY [day_cycle.current_day]"
 
     python:
@@ -1110,6 +1123,15 @@ label do_end_day:
         stats.increment_stats_pcr_hatred(_nightly_base)
         if python_bootcamp:
             stats.increment_stats_coding_skill(5) # bootcamp buff
+
+        # Persistent-HP nightly regen — +5 HP every night, capped at max.
+        # Keeps the run from death-spiraling: ladder fights chip the body,
+        # sleep claws a sliver back. Healing-card plays and gym sessions
+        # are the bigger valves.
+        _run_hp = getattr(store, 'run_hp', None)
+        _run_hp_max = getattr(store, 'run_hp_max', None)
+        if _run_hp is not None and _run_hp_max is not None and _run_hp < _run_hp_max:
+            store.run_hp = min(_run_hp_max, _run_hp + 5)
 
         # Advance day
         day_cycle.next_day()
@@ -1138,8 +1160,6 @@ label salary_day:
     ## Autosave: start of Day 14 (salary day)
     $ renpy.save("auto-day14-salary", "Day 14 — Salary Day")
 
-    play music "audio/enter_the_code_theme.mp3" fadein 1.0
-
     scene bg_police_interior
 
     python:
@@ -1167,7 +1187,6 @@ label salary_day:
 
 label activity_nootropics:
 
-    play music "audio/coding_in_snow_theme.mp3" fadein 1.0
     scene bg_bh_supplier
 
     python:
@@ -1677,7 +1696,7 @@ label random_event_check:
             if stats.pcr_hatred >= 75:
                 renpy.music.play("audio/tension_theme.mp3", fadein=1.5)
             else:
-                renpy.music.play("audio/enter_the_code_theme.mp3", fadein=1.5)
+                play_daily_music(fadein=1.5)
             _re_nightly = int(round(5 * diff_setting("nightly_hatred_mult", 1.0)))
             stats.increment_stats_pcr_hatred(_re_nightly)
             if python_bootcamp:
@@ -1694,7 +1713,7 @@ label random_event_check:
             if stats.pcr_hatred >= 75:
                 renpy.music.play("audio/tension_theme.mp3", fadein=1.5)
             else:
-                renpy.music.play("audio/enter_the_code_theme.mp3", fadein=1.5)
+                play_daily_music(fadein=1.5)
             _re_nightly = int(round(5 * diff_setting("nightly_hatred_mult", 1.0)))
             stats.increment_stats_pcr_hatred(_re_nightly)
             if python_bootcamp:
@@ -1714,7 +1733,7 @@ label random_event_check:
             if stats.pcr_hatred >= 75:
                 renpy.music.play("audio/tension_theme.mp3", fadein=1.5)
             else:
-                renpy.music.play("audio/enter_the_code_theme.mp3", fadein=1.5)
+                play_daily_music(fadein=1.5)
             _re_nightly = int(round(5 * diff_setting("nightly_hatred_mult", 1.0)))
             stats.increment_stats_pcr_hatred(_re_nightly)
             if python_bootcamp:

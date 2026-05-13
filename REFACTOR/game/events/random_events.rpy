@@ -15,6 +15,7 @@ label re_israeli_developer:
 
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     "TEL AVIV PROFESSOR"
 
@@ -68,6 +69,7 @@ label re_nightmare_wolf:
 
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     $ store._nightmare_wolf_triggered = True
 
@@ -119,6 +121,7 @@ label re_civilian_small_talk:
 
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     "THE COMPLIMENT"
 
@@ -170,6 +173,7 @@ label re_admin_mistake:
 
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     "THE PAPERWORK"
 
@@ -208,6 +212,7 @@ label re_overtime_offer:
 
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     "THE OVERTIME"
 
@@ -248,6 +253,7 @@ label re_birthday_gift:
 
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     "THE GIFT"
 
@@ -286,6 +292,7 @@ label re_corpse_in_care_home:
 
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     "THE NOTE"
 
@@ -329,6 +336,7 @@ label re_forgotten_usb:
 
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     "THE USB"
 
@@ -372,6 +380,7 @@ label re_turkish_fraud:
 
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     "THE CALL"
 
@@ -407,6 +416,7 @@ label re_printer_incident:
 
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     "THE PRINTER"
 
@@ -448,6 +458,7 @@ label re_citizen_czechoslovakia:
 
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     "THE OLD MAN"
 
@@ -483,6 +494,7 @@ label re_paperwork_overload:
 
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     "THE STACK"
 
@@ -526,6 +538,7 @@ label re_dispatch_blue_screen:
 
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     "THE OUTAGE"
 
@@ -560,6 +573,7 @@ label re_tech_bro_speeding:
 
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     "THE TESLA"
 
@@ -602,6 +616,7 @@ label re_the_informant:
 
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     "THE WHISPER"
 
@@ -638,6 +653,7 @@ label re_the_evaluation:
 
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     "THE EVAL"
 
@@ -673,6 +689,7 @@ label re_suicide_call:
 
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     "THE CALL"
 
@@ -714,6 +731,7 @@ label re_retirement_party:
 
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     "THE PARTY"
 
@@ -751,6 +769,7 @@ label re_coding_interview:
 
     scene bg_random_event
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     "THE INTERVIEW"
 
@@ -816,6 +835,7 @@ label re_system_update:
 
     scene bg_police_interior
     play sound "audio/police_siren.mp3"
+    play music "audio/random_event_bed.wav" fadein 1.5
 
     "THE UPDATE"
 

@@ -1,0 +1,8 @@
+Same painterly portrait as the attached reference image. Same man, same face shape, same short dark hair, same stubble pattern, same body framing, same painterly semi-realistic style, same transparent / pure-white background, same upper-body vertical crop. Return the exact same character with the following changes only:
+
+- Outfit swapped to a soft cream-coloured fine-knit polo shirt in lightweight cashmere or merino, top button open. The collar sits softly, the fabric has a subtle painterly texture that reads as expensive knitwear — not synthetic, not heavy. A small subtle tonal-stitched chest detail (no logo, no readable text).
+- A sleek understated steel sport watch with a navy fabric strap on the right wrist (replaces the previous watch).
+- Skin tone shifted to a gentle sun-warm light bronze — a few weeks of Mediterranean sun. Faint warm flush across the cheekbones.
+- Expression shifted to a small confident half-smile, eyes calm and slightly amused, head tilted a few degrees as if mid-listen on a phone call. Same eyes, same brows.
+
+Everything else byte-for-byte identical to the reference — same hairline, same jaw, same posture, same hands, same transparent background. Quiet-luxury exit-vet energy, soft warm morning light. Painterly.
