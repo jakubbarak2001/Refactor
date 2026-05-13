@@ -104,12 +104,8 @@ image jb_bh_portrait = im.Scale("images/sprites/jb_biohacker.jpg",   500, 750)
 image colonel normal        = im.Scale("images/sprites/colonel_normal.png",        600, 900)
 image colonel angry         = im.Scale("images/sprites/colonel_angry.png",         600, 900)
 image colonel disappointed  = im.Scale("images/sprites/colonel_dissapointed.png",  600, 900)
-image colonel omniman think = im.Scale("images/sprites/colonel_omniman_think.png", 600, 900)
-
-transform colonel_think_pos:
-    zoom 1.1
-    xalign 0.5
-    yalign 1.0
+image colonel smug          = im.Scale("images/sprites/colonel_smug.png",          600, 900)
+image colonel shaken        = im.Scale("images/sprites/colonel_shaken.png",        600, 900)
 
 ## Difficulty selection portrait images — portrait orientation ~420x630
 image diff_easy   = im.Scale("images/pictures/easy_difficulty_pic.png",   420, 630)

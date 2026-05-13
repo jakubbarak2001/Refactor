@@ -72,7 +72,6 @@ label car_incident_admit:
     play music "audio/you_failed_me_son.mp3" fadein 1.0
 
     scene bg_police_office with fade
-    show colonel omniman think at colonel_think_pos
 
     "Three hours later the Colonel is sitting in the Commandant's chair. The Commandant is standing in the corner of his own office."
 
