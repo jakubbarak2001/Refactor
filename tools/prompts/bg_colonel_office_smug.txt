@@ -1,11 +1,37 @@
-Painterly semi-realistic 16:9 illustration in the muted REFACTOR northern-Bohemian palette — match the soft brushwork, slightly desaturated tone, and lived-in feel of the attached reference backgrounds. NOT photorealistic, NOT anime, NOT 3D render. NO CHARACTERS anywhere in frame. NO LEGIBLE TEXT — paperwork, name plates, framed certificates render as abstract painted strokes only. Fills frame edge-to-edge, no black bars, no vignette.
+Reproduce the EXACT same room as the attached pristine reference image. Same composition, same camera angle, same painterly semi-realistic style, muted northern-Bohemian palette, soft brushwork. Every object in its reference position. NO CHARACTERS. NO LEGIBLE TEXT — newspaper clippings, bulletin board, certificates, notebook contents stay as the same abstract painted strokes they are in the reference. 16:9 fills frame edge-to-edge.
 
-The Colonel's office at the height of his power — same room as the attached pristine reference but recomposed as a cathedral of authority. Late-afternoon golden hour. Thick slanted beams of warm amber light cut through the half-lowered venetian blinds like prison bars, striping the heavy dark-stained oak desk and the polished parquet floor in alternating gold and shadow. Visible dust motes suspended motionless in the light. The room has the stillness of a temple.
+EVERY element from the pristine reference must be present, in the same place, exactly as it appears in the reference. Do not change the room's geometry, the camera angle, the white square-tile floor with grout lines, the dark wood-panelled wainscoting, the cream-and-peeling upper walls (preserve every existing water-damage patch — do not "clean up" the walls; they are weathered, that's correct), the layout. Specifically preserve:
+- The same fluorescent ceiling light tube at the top of the frame.
+- The same west-facing sash window on the left with the two parked Czech police Škoda cars outside, the line of birch trees in the background, cold grey northern-Bohemian daylight, snow on the window sill.
+- The same dark blue rectangular fabric backdrop panel mounted on the back wall directly behind the desk, with the gold State Police lion-rampant shield ("STÁTNÍ POLICIE") centered on it.
+- The same Czech flag (red / white / blue-hoist-triangle) on its gold-finialed brass pole, positioned between the window and the shield.
+- The same heavy dark-stained wooden desk centered in frame with EVERY desktop object in its reference position: the brass-stemmed desk lamp with the beige cone shade lit warm yellow, the stack of manila folders next to it, the open notebook / ledger with abstract handwritten lines, the white coffee mug, the small ashtray with a cigarette butt, the black rotary telephone right of centre, the old beige CRT computer monitor on the right side, the grey computer keyboard in front of the monitor.
+- The same high-backed brown leather office chair behind the desk.
+- The same two plain wooden chairs (cushioned seats, plain straight backs) facing the desk from this side.
+- The same right-wall arrangement: the framed portrait of the Colonel (middle-aged officer in gold-epauletted blue dress uniform) high on the wall, the bulletin board / corkboard below it with the yellow-framed certificate top-left, the small cluster of color photos and abstract newspaper clippings ("DENÍK" abstract masthead), the hunting photos pinned at the bottom.
+- The same far-right glass-fronted weapons display case with the AK-47 rifle and the two handguns above it.
+- The same camera angle: centred medium-wide, eye level with the desk surface, mildly oppressive symmetry.
 
-The desk is centered, monolithic, gleaming with a recent polish. On it: a green-shaded brass banker's lamp lit even though the sun is bright (the filament burns a too-saturated orange, almost ceremonial), a squared stack of three thick manila case folders aligned with parade-ground precision, a black leather blotter without a mark on it, a brass nameplate set dead-center (abstract gilt characters, no readable text), a fountain pen laid perpendicular across a single sheet of paperwork. The wing-back leather chair behind the desk is turned slightly, its back to the camera, as if the occupant has just stood up — a faint indentation in the cushion still warm. The chair commands the room.
+This is the FIRST stage — the Colonel at peak authority, the room as a stage set designed to dominate whoever sits across from the desk. NO damage. NO cracks (beyond the existing wall weathering already in the reference, which is base state — preserve it as-is). NO destruction.
 
-Behind the chair: the State Police shield mounted at the exact dead-center of the wall, oversized for the room, the gilt lion-rampant catching a single beam of light so it appears almost lit from within. Framed certificates and citations cover the wall in a perfectly aligned grid — every frame the same size, every spacing identical, every one tilted at the same imperceptible angle to catch the light. The Czech flag stands tall in the corner on a brass pole, the tricolor crisp, no wrinkle. The wood-panelled wainscoting glows. Heavy crimson velvet curtains framing the window are drawn back with brass tassels.
+Add ONLY the following subtle cinematic intensification on top of the otherwise-pristine reference. Each one is a small lift, not a redesign — the room should still look like the reference, just at peak presence:
 
-The atmosphere: oppressive symmetry. The room is too well-ordered to be accidental — it is a stage set, designed to make whoever stands in front of the desk feel small. The geometry is subtly off — the ceiling is taller than physics allows, the walls a fraction further away than the floor plan should permit, so the desk feels distant and elevated. The lamp's glow seems to flow outward and bathe the whole room in unjudgement-light. A single grandfather clock in one corner, abstract face, hands at five-to-the-hour.
+1. A single slanted hero-beam of cold-grey daylight enters through the left window and falls diagonally across the desk surface, painting one stripe of brighter cold light across the dark wood — as if the afternoon sun outside has angled just so to spotlight the centre of the desk. The beam continues onto the white tile floor in front of the desk.
 
-Camera angle: low, slightly tilted up toward the desk — the player's POV is that of a defendant. Mildly oppressive symmetry, cinematic, theological in its composure. Painterly, lived-in, the warmth of authority that has never been challenged. Cold underneath the gold.
+2. Visible dust motes suspended motionless in that window-beam, painted as small soft white dots catching the light. They do not drift — they are still, ceremonial.
+
+3. The gold State Police shield on the blue panel catches a stray glint of warm light from the desk lamp — a small painterly highlight on the gilt lion-rampant, making it appear almost lit from within. Subtle, no exaggeration.
+
+4. The Colonel's framed portrait on the right wall is lit slightly more strongly than its surroundings — as if a small picture-light has come on above the frame, the gold epaulets in the painted portrait reflecting the warm pool. The portrait reads as the most important object on its wall.
+
+5. The Czech flag stands at perfect attention — the tricolor fabric in a clean drape with no ripple, no movement. Stillness is its weapon.
+
+6. The brass desk lamp's beige shade glows a half-stop warmer than in the reference, casting a slightly more pronounced warm-yellow pool on the desk's left side. The pool catches the manila folders, the coffee mug, and the open notebook in soft warmth.
+
+7. A faint vertical column of cold daylight from the window touches the very edge of the high-backed office chair's leather, hinting at its emptiness — the chair waiting to be occupied.
+
+8. The white tile floor reflects the window light very subtly along its grout lines, painting a faint cold sheen down the centre of the room.
+
+The atmosphere: oppressive symmetry. The room is too well-ordered to be accidental — it is a stage set, designed to make whoever stands in front of the desk feel small. But UNCHANGED from the reference's composition, palette, weathering, and lived-in feel. Slight cinematic lift, not a redesign.
+
+Do NOT change the wall texture, the floor pattern, the existing peeling paint, the bulletin board layout, the portrait, the weapons case, the chairs, the window view, the ceiling light, the camera angle, or the desk geometry. EVERYTHING ELSE must match the reference image as exactly as possible. Painterly, lived-in, the warmth of authority that has never been challenged. Cold underneath the gold.

@@ -1,15 +1,26 @@
-Painterly semi-realistic 16:9 illustration in the muted REFACTOR northern-Bohemian palette — match the soft brushwork, slightly desaturated tone, and lived-in feel of the attached reference backgrounds. NOT photorealistic, NOT anime, NOT 3D render. NO CHARACTERS anywhere in frame. NO LEGIBLE TEXT — paperwork, name plates, framed certificates render as abstract painted strokes only. Fills frame edge-to-edge, no black bars, no vignette.
+Reproduce the attached reference image EXACTLY 1:1. Match every single element, position, angle, scale, color, and brushstroke. Painterly semi-realistic style, muted northern-Bohemian palette, soft brushwork — identical to the reference. NO CHARACTERS. NO LEGIBLE TEXT (existing newspaper clippings, certificates, bulletin board, and notebook contents render as abstract painted strokes only, exactly as they do in the reference). 16:9 fills frame edge-to-edge.
 
-The Colonel's office — same room and same camera framing as the attached smug-state reference — but the cathedral has begun to register pressure from somewhere outside its frame. The golden hour beams from the window have cooled to a sickly amber, edges fraying. The warmth has gone out of the room. The grandfather clock has stopped — both hands frozen at the exact same minute.
+EVERY element from the reference must be present, in the same place:
+- The same fluorescent ceiling light tube at the very top of the frame.
+- The same west-facing sash window on the left, white-framed, with the two parked Czech police cars (Škoda with blue/white livery) visible outside, the line of birch trees in the background, cold grey northern-Bohemian daylight, snow dusting the window sill.
+- The same dark wood-panelled wainscoting along the lower third of all visible walls (warm brown stained, vertical board-and-batten).
+- The same cream / peach upper walls with the existing water-damage stains and peeling paint patches — preserve every patch and brown discoloration mark exactly as in the reference, do not "clean up" the walls.
+- The same dark blue rectangular fabric panel mounted on the back wall directly behind the desk, with the gold State Police lion-rampant shield ("STÁTNÍ POLICIE") centered on it.
+- The same Czech flag (red / white / blue-hoist-triangle) on a gold-finialed brass pole, leaning slightly, positioned between the window and the shield.
+- The same heavy dark-stained wooden desk centered in frame, with EVERY desktop object in its reference position: the brass-stemmed desk lamp with the small beige/cream cone shade lit warm yellow on the left side, the small stack of manila folders / paperwork next to it, the open notebook/ledger with abstract handwritten lines, the white coffee mug, the small ashtray with a cigarette butt, the black rotary telephone right of center, the old beige CRT computer monitor on the right side of the desk, the grey computer keyboard in front of the monitor.
+- The same high-backed brown leather office chair behind the desk.
+- The same two plain wooden chairs (cushioned seats, plain straight backs) facing the desk from this side.
+- The same right-wall arrangement: the framed portrait of the Colonel (middle-aged officer in gold-epauletted blue dress uniform) high on the wall, the bulletin board / corkboard below it with the yellow-framed certificate top-left, the small cluster of color photos and newspaper clippings ("DENÍK" abstract masthead), the hunting photos pinned at the bottom.
+- The same far-right-wall weapons display: glass-fronted dark wooden case mounted on the wall containing the AK-47 rifle and the two handguns above it.
+- The same white square-tile floor with grout lines, slightly worn and stained.
+- The same camera angle: centred medium-wide, eye level with the desk surface, mildly oppressive symmetry.
+- The same lighting: cold grey daylight from the window on the left, warm pool from the desk lamp, cold fluorescent overhead — match the reference's existing balance.
 
-The desk is mostly in its commanded position, but something is wrong with the surface: one corner of the leather blotter has lifted half an inch off the wood as if held by a static charge, and three sheets of paperwork have slipped from the squared stack and now hang in the air a hand's-breadth above the desk, suspended, edges curled, painted in deliberate violation of gravity. The fountain pen rolls in slow motion across the desk, mid-roll, captured mid-frame. The brass nameplate has rotated five degrees clockwise on its own. The banker's lamp's bulb has begun to flicker — captured at the dim half of its strobe, casting a longer-than-expected shadow behind the desk.
+ONLY ADD the following first-stage decay on top of the reference, nothing else:
+1. A SINGLE fresh hairline crack across the cream upper wall directly above the State Police shield, spider-webbing maybe thirty centimetres horizontally, finer than the existing wall damage so it reads as new.
+2. A thin trickle of plaster dust falling vertically from that crack in a painted streak, catching the cold window-light.
+3. One single sheet of paper from the desk stack lifted half a hand's breadth above the desk surface, suspended mid-air as if frozen in an updraft.
+4. The Czech flag fabric beginning to ripple subtly in a wind that should not exist — one slight wave through the tricolor.
+5. The brass desk-lamp's yellow glow a touch brighter and warmer than in the reference, as if the bulb is straining slightly.
 
-Wall damage: a single hairline crack now runs across the cream-painted ceiling above the desk, spider-webbing maybe a metre across, with the first thin trickle of plaster dust falling from it in a painted vertical line, catching what light remains. One framed certificate on the back wall hangs visibly crooked, glass cracked diagonally. The neat grid of citations is no longer in perfect alignment — three of them are askew by varying degrees, the symmetry quietly broken.
-
-The Czech flag in the corner is no longer perfectly still — the fabric has begun to ripple in a wind that does not exist in the room. The crimson curtains framing the window are also moving subtly, billowing inward as if the air pressure outside is dropping. The State Police shield behind the chair is no longer perfectly centered — it has slipped a couple of centimetres to the left. The shield's gilt lion catches the dying amber light strangely, the gold tinted slightly green.
-
-The wing-back leather chair is unoccupied and slightly turned. The wood-panelled wainscoting along the right wall has a faint vertical hairline split running floor-to-ceiling, barely visible. The polished parquet floor is still intact but a fine layer of plaster dust has begun to settle on it, painted as a thin grey haze near the corners. The grandfather clock case has a single crack running down its glass front.
-
-Atmosphere: the room has not been damaged. The room has been READ. Someone or something has begun to apply pressure to the architecture of authority itself. Mostly intact, deeply uneasy. The dust motes that hung suspended in the smug version are now beginning to drift downward in slow currents.
-
-Camera angle: identical to the smug reference — low, slightly tilted up toward the desk, defendant's POV. The oppressive symmetry of authority is starting to wobble. Painterly, cold, dread building behind the warmth-going-out-of-gold light.
+Do NOT change the wall texture, the floor pattern, the existing peeling paint, the layout of the bulletin board, the portrait, the weapons case, the chairs, the window view, the ceiling light, the camera angle, or the desk geometry. EVERYTHING ELSE must be byte-for-byte identical to the reference image.
