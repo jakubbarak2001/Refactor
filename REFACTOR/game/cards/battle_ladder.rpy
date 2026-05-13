@@ -82,9 +82,9 @@ label battle_with(enemy_id, tier):
     if tier == "medium":
         play music "audio/system_knows_better.mp3" fadein 0.8
     elif tier == "hard":
-        play music "audio/kryty_spis.mp3" fadein 0.8
+        play music "audio/evidence_locker_pulse.wav" fadein 0.8
     else:
-        play music "audio/panelak_loop.mp3" fadein 0.8
+        play music "audio/panelak_nocni_smycka.wav" fadein 0.8
     $ renpy.save("auto-ladder", "Ladder — {}".format(enemy_id))
 
     python:

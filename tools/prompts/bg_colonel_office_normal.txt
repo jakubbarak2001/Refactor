@@ -1,26 +1,19 @@
-Reproduce the attached reference image EXACTLY 1:1. Match every single element, position, angle, scale, color, and brushstroke. Painterly semi-realistic style, muted northern-Bohemian palette, soft brushwork — identical to the reference. NO CHARACTERS. NO LEGIBLE TEXT (existing newspaper clippings, certificates, bulletin board, and notebook contents render as abstract painted strokes only, exactly as they do in the reference). 16:9 fills frame edge-to-edge.
+Reproduce the attached pristine reference image EXACTLY 1:1 with ONE addition: this is the FIRST STAGE of damage. Same painterly semi-realistic style, same composition, same camera angle, same lighting balance, same colour palette. Every element from the reference must be present in its reference position: same fluorescent ceiling tube, same exposed metal ceiling ducting, same brutalist concrete walls with their vertical board-form lines and existing weathering, same west-facing rectangular window with the black metal frame, same panelák tower blocks and bare birch trees visible through the glass under the heavy overcast grey sky, same dark blue State Police backdrop panel with the gold "STÁTNÍ POLICIE" shield centred behind the desk, same Czech flag on its brass pole between the window and the shield, same heavy dark-stained oak desk with all its contents (brass-stemmed beige-shaded desk lamp lit warm yellow, stack of manila folders, open notebook, white coffee mug, glass ashtray, beige CRT monitor with grey keyboard, black rotary telephone, brass nameplate), same high-backed brown leather office chair behind the desk, same two plain wooden chairs with dark green cushioned seats facing the desk, same framed Colonel portrait on the right wall (short military buzz cut, clean-shaven sharp angular jaw, severe dark eyebrows, dark navy uniform, polished walnut frame), same corkboard with abstract certificates and photographs and newspaper clippings, same tall glass-fronted display case with the AK-47 and two handguns on the far-right wall, same wood-panelled wainscoting along the lower walls, same polished grey concrete floor with its centre seam. NO CHARACTERS. NO LEGIBLE TEXT.
 
-EVERY element from the reference must be present, in the same place:
-- The same fluorescent ceiling light tube at the very top of the frame.
-- The same west-facing sash window on the left, white-framed, with the two parked Czech police cars (Škoda with blue/white livery) visible outside, the line of birch trees in the background, cold grey northern-Bohemian daylight, snow dusting the window sill.
-- The same dark wood-panelled wainscoting along the lower third of all visible walls (warm brown stained, vertical board-and-batten).
-- The same cream / peach upper walls with the existing water-damage stains and peeling paint patches — preserve every patch and brown discoloration mark exactly as in the reference, do not "clean up" the walls.
-- The same dark blue rectangular fabric panel mounted on the back wall directly behind the desk, with the gold State Police lion-rampant shield ("STÁTNÍ POLICIE") centered on it.
-- The same Czech flag (red / white / blue-hoist-triangle) on a gold-finialed brass pole, leaning slightly, positioned between the window and the shield.
-- The same heavy dark-stained wooden desk centered in frame, with EVERY desktop object in its reference position: the brass-stemmed desk lamp with the small beige/cream cone shade lit warm yellow on the left side, the small stack of manila folders / paperwork next to it, the open notebook/ledger with abstract handwritten lines, the white coffee mug, the small ashtray with a cigarette butt, the black rotary telephone right of center, the old beige CRT computer monitor on the right side of the desk, the grey computer keyboard in front of the monitor.
-- The same high-backed brown leather office chair behind the desk.
-- The same two plain wooden chairs (cushioned seats, plain straight backs) facing the desk from this side.
-- The same right-wall arrangement: the framed portrait of the Colonel (middle-aged officer in gold-epauletted blue dress uniform) high on the wall, the bulletin board / corkboard below it with the yellow-framed certificate top-left, the small cluster of color photos and newspaper clippings ("DENÍK" abstract masthead), the hunting photos pinned at the bottom.
-- The same far-right-wall weapons display: glass-fronted dark wooden case mounted on the wall containing the AK-47 rifle and the two handguns above it.
-- The same white square-tile floor with grout lines, slightly worn and stained.
-- The same camera angle: centred medium-wide, eye level with the desk surface, mildly oppressive symmetry.
-- The same lighting: cold grey daylight from the window on the left, warm pool from the desk lamp, cold fluorescent overhead — match the reference's existing balance.
+ADD ON TOP OF THE REFERENCE — first-stage damage, the room is starting to register an unseen pressure but is still mostly intact:
 
-ONLY ADD the following first-stage decay on top of the reference, nothing else:
-1. A SINGLE fresh hairline crack across the cream upper wall directly above the State Police shield, spider-webbing maybe thirty centimetres horizontally, finer than the existing wall damage so it reads as new.
-2. A thin trickle of plaster dust falling vertically from that crack in a painted streak, catching the cold window-light.
-3. One single sheet of paper from the desk stack lifted half a hand's breadth above the desk surface, suspended mid-air as if frozen in an updraft.
-4. The Czech flag fabric beginning to ripple subtly in a wind that should not exist — one slight wave through the tricolor.
-5. The brass desk-lamp's yellow glow a touch brighter and warmer than in the reference, as if the bulb is straining slightly.
+1. A single fresh hairline crack running diagonally across the concrete back wall above the State Police shield, spider-webbing maybe 30-40cm. The crack is fine and clean — newer than the reference's existing wall weathering. A thin trickle of concrete dust falling vertically from the crack in a painted streak, catching the cold fluorescent light.
 
-Do NOT change the wall texture, the floor pattern, the existing peeling paint, the layout of the bulletin board, the portrait, the weapons case, the chairs, the window view, the ceiling light, the camera angle, or the desk geometry. EVERYTHING ELSE must be byte-for-byte identical to the reference image.
+2. One single sheet of paper from the desk stack lifted half a hand's breadth above the desk surface, suspended mid-air as if frozen in a slow updraft.
+
+3. The Czech flag fabric beginning to ripple subtly in a wind that should not exist in the room — one slight wave through the tricolor.
+
+4. The brass desk lamp's beige shade glowing a touch warmer and brighter than in the reference — the filament straining slightly.
+
+5. The framed Colonel portrait on the right wall hangs visibly crooked — tilted maybe 8-10 degrees off-level, the glass intact, the frame still mounted.
+
+6. One ceiling ducting panel above the desk shows a small dust line falling from a seam — fine grey concrete dust drifting down in a vertical painted streak, catching light from the fluorescent.
+
+7. The fluorescent ceiling tube flickers — paint the tube as half-lit, half-dim, suggesting a strobe in motion.
+
+Do NOT change the room's geometry, the camera angle, the floor, the wall texture, the layout of furniture, the window view, or the Colonel's portrait face. Same scene plus first-stage damage only. Painterly, the institution feeling its first crack.

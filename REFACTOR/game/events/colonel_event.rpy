@@ -178,7 +178,7 @@ label colonel_glitch_phase:
 
     pause 1.2
 
-    scene bg_colonel_office_glitch with glitch_transition
+    scene bg_police_office with glitch_transition
     show colonel normal at char_right
 
     "The room reassembles itself around him."
@@ -193,8 +193,7 @@ label colonel_glitch_phase:
 
     pause 0.6
 
-    "But the room is wrong."
-    "There are two phones on the desk now. The clock in the corner has three hands and none of them agree. One certificate on the back wall reads backward. The light is everywhere and from nowhere."
+    "But you can feel it — every detail of this room is wrong now in a way you cannot name. The geometry is too clean. The light has no source. The air has stopped moving."
     "Your blood runs cold."
     "He is looping."
     "He can't see you. He cannot process what just happened because there is no line of code for it."
@@ -268,7 +267,7 @@ label colonel_glitch_wake_up:
     show jb smirk at char_left
 
     "The office is just an office again."
-    "Cream walls. Brass nameplate. A man behind a desk, mouth open mid-line, the rest of his speech still queued up behind his teeth."
+    "Concrete walls. Brass nameplate. A man behind a desk, mouth open mid-line, the rest of his speech still queued up behind his teeth."
 
     pause 0.5
 

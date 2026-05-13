@@ -330,6 +330,24 @@ init python:
             self.energy = max(0, self.energy - n)
 
         ## ---------------- INTENT MANAGEMENT ----------------
+        def advance_intent(self):
+            """Move to the next intent. If the deck is exhausted, reshuffle
+            IMMEDIATELY so the next player turn always sees a valid incoming
+            intent. Without this, the queue could expire mid-enemy-turn and
+            the player would see "no intent → end turn → take damage from
+            nowhere" — the reshuffle would happen during enemy resolve and
+            the player gets blindsided by an intent they never saw queued.
+            """
+            self.intent_index += 1
+            if self.intent_index >= len(self.intent_queue):
+                self.intent_queue = build_enemy_deck(self.enemy_id)
+                self.intent_index = 0
+                ## Rvac drunken double-down — wrinkle fires on first reshuffle.
+                if self.enemy_id == "rvac" and not self.buffs.get("rvac_doubled", False):
+                    self.buffs["enemy_attack_bonus"] = self.buffs.get("enemy_attack_bonus", 0) + 3
+                    self.buffs["rvac_doubled"] = True
+                    self.add_log("[[Drunken double-down]: he's seeing red. +3 to his next swing.")
+
         def current_intent(self):
             if self.intent_index >= len(self.intent_queue):
                 return None
@@ -435,6 +453,24 @@ init python:
             bs.player_max_hp = 80
             bs.player_hp = 80
 
+        ## ── PERSISTENT RUN HP ─────────────────────────────────────────────────
+        ## HP carries between ladder battles + into the Colonel — first fight
+        ## starts at class max (run_hp=None branch), subsequent fights start at
+        ## whatever HP the previous battle ended with (saved by battle_finish on
+        ## victory; subtracted by forced_detour on defeat). Lazy-init pattern:
+        ## the very first battle in a new run sees run_hp=None and writes the
+        ## class max here so future battles have a value to load.
+        _run_hp = getattr(store, 'run_hp', None)
+        _run_hp_max = getattr(store, 'run_hp_max', None)
+        if _run_hp_max is None or _run_hp_max != bs.player_max_hp:
+            store.run_hp_max = bs.player_max_hp
+        if _run_hp is None:
+            store.run_hp = bs.player_max_hp
+        else:
+            ## Clamp into [1, max] so detour over-shoots or stale state can't
+            ## ghost-kill the player on battle entry.
+            bs.player_hp = max(1, min(bs.player_max_hp, _run_hp))
+
         ## Build draw pile from collected deck (full deck shuffled)
         if player_deck and player_deck.cards:
             bs.draw_pile = list(player_deck.cards)
@@ -459,18 +495,10 @@ init python:
         ## ladder enemies use their ENEMY_LIBRARY deck_template.
         bs.intent_queue = build_enemy_deck(enemy_id)
 
-        ## Enemy HP. Colonel scales with deck size (Easy/Hard/Insane/Ultra →
-        ## 80/100/130/160). Ladder enemies use ENEMY_LIBRARY max_hp.
+        ## Enemy HP. Colonel is a flat 100 HP — short, cinematic. Ladder
+        ## enemies use ENEMY_LIBRARY max_hp.
         if enemy_id == "colonel":
-            deck_size = len(bs.intent_queue)
-            if deck_size <= 5:
-                bs.enemy_max_hp = 80
-            elif deck_size <= 7:
-                bs.enemy_max_hp = 100
-            elif deck_size <= 9:
-                bs.enemy_max_hp = 130
-            else:
-                bs.enemy_max_hp = 160
+            bs.enemy_max_hp = 100
         else:
             bs.enemy_max_hp = _enemy.get("max_hp") or 80
         bs.enemy_hp = bs.enemy_max_hp
@@ -690,6 +718,12 @@ init python:
         """Resolve the colonel's current intent and advance the queue."""
         bs = battle_state
 
+        ## Block expires at the start of the OWNING character's next turn.
+        ## Player block resets in battle_start_player_turn (line ~529).
+        ## Enemy block must reset here — otherwise a turn-1 block intent
+        ## carries forward forever (bug: dodge stacks turn-on-turn).
+        bs.enemy_block = 0
+
         ## Reset damage trackers — fresh intent, fresh accounting
         bs.last_damage_to_player = 0
         bs.last_damage_to_enemy = 0
@@ -755,7 +789,7 @@ init python:
             ic = bs.current_intent()
             if ic:
                 bs.add_log("[[Algorithm]: skipped {}'s '{}'.".format(bs.enemy_log_name.lower(), ic.get("name", "?")))
-            bs.intent_index += 1
+            bs.advance_intent()
             if _debug:
                 bs.add_log("[[DBG]: branch=algorithm_skip")
             return
@@ -790,7 +824,7 @@ init python:
         if bs.cancel_next_attack:
             bs.cancel_next_attack = False
             bs.add_log("[[Refactor]: cancelled {}'s '{}'.".format(bs.enemy_log_name.lower(), ic.get("name", "?")))
-            bs.intent_index += 1
+            bs.advance_intent()
             if _debug:
                 bs.add_log("[[DBG]: branch=refactor_cancel")
             return
@@ -798,7 +832,7 @@ init python:
         ## Class immunity
         if stats and stats.player_class in ic.get("immunity", []):
             bs.add_log("[[{}]: '{}' bounces off you.".format(stats.player_class.upper(), ic.get("name", "?")))
-            bs.intent_index += 1
+            bs.advance_intent()
             if _debug:
                 bs.add_log("[[DBG]: branch=class_immunity")
             return
@@ -811,7 +845,7 @@ init python:
                     bs.add_log("[[{}]: '{}' is negated.".format(cond.upper(), ic.get("name", "?")))
                     if mod.get("damage_to_self"):
                         bs.deal_damage("enemy", mod["damage_to_self"])
-                    bs.intent_index += 1
+                    bs.advance_intent()
                     return
                 damage_reduction += mod.get("reduce_damage", 0)
 
@@ -823,7 +857,7 @@ init python:
             base = ic.get("value", 0) * (ic.get("value2", 1) if ic.get("intent") == "compound" else 1)
             bs.deal_damage("enemy", base * 2)
             bs.add_log("[[Mirror]: '{}' bounced for {} dmg. (2-turn cooldown.)".format(ic.get("name", "?"), base * 2))
-            bs.intent_index += 1
+            bs.advance_intent()
             if _debug:
                 bs.add_log("[[DBG]: branch=mirror_bounce")
             return
@@ -834,7 +868,7 @@ init python:
             base = ic.get("value", 0)
             bs.gain_block("player", base)
             bs.add_log("[[Reframe]: '{}' reframed into +{} block.".format(ic.get("name", "?"), base))
-            bs.intent_index += 1
+            bs.advance_intent()
             if _debug:
                 bs.add_log("[[DBG]: branch=reframe")
             return
@@ -921,7 +955,7 @@ init python:
         if _intent_was_attack and bs.last_damage_to_player == 0 and _pre_resolve_block == 0:
             bs.add_log("[[WARN]: '{}' resolved 0 dmg with no player block — investigate.".format(ic.get("name", "?")))
 
-        bs.intent_index += 1
+        bs.advance_intent()
 
 
     def _check_battle_condition(bs, cond):
@@ -947,14 +981,19 @@ init python:
 
 
     def battle_finish():
-        """Tear down — clear singleton + hide any lingering damage popup so it
-        doesn't carry over into the next battle/scene. Popups use unique _tag
-        per hit (dmg_popup_enemy_<seq>), so hiding the screen name alone won't
-        catch them — iterate the seq and hide each one. Also hide the default
-        screen-name tag for safety."""
+        """Tear down — clear singleton + persist HP on victory + hide any
+        lingering damage popup so it doesn't carry over.
+
+        Persistent HP rule: on victory, write bs.player_hp to store.run_hp so
+        the next battle starts at the post-fight HP. On defeat, forced_detour
+        writes the hospital-floored HP itself — battle_finish leaves run_hp
+        alone in that case (writing 0 here would over-write the detour's
+        floor and start the next fight at 0 HP)."""
         global battle_state
         if battle_state is not None:
             bs = battle_state
+            if bs.over == "victory":
+                store.run_hp = max(1, bs.player_hp)
             for _i in range(1, getattr(bs, '_popup_enemy_seq', 0) + 1):
                 try:
                     renpy.hide_screen("dmg_popup_enemy_{}".format(_i))

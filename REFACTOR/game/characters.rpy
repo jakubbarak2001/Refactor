@@ -24,12 +24,10 @@ define inspector = Character("???", color="#ccaa00", what_color="#e8d878")
 
 image bg_parking_lot         = im.Scale("images/backgrounds/police_parking_lot.jpg", 1920, 1080)
 image bg_police_office       = im.Scale("images/backgrounds/police_station_colonel_office.jpg", 1920, 1080)
-## Colonel-fight state-tracked office. Drives battle_screen + colonel_glitch_phase.
-image bg_colonel_office_smug   = im.Scale("images/backgrounds/colonel_office_smug.jpg",   1920, 1080)
+## Colonel-fight state-tracked office. Drives battle_screen progressive collapse.
 image bg_colonel_office_normal = im.Scale("images/backgrounds/colonel_office_normal.jpg", 1920, 1080)
 image bg_colonel_office_angry  = im.Scale("images/backgrounds/colonel_office_angry.jpg",  1920, 1080)
 image bg_colonel_office_shaken = im.Scale("images/backgrounds/colonel_office_shaken.jpg", 1920, 1080)
-image bg_colonel_office_glitch = im.Scale("images/backgrounds/colonel_office_glitch.jpg", 1920, 1080)
 image bg_police_interior     = im.Scale("images/backgrounds/police_station_interior.jpg", 1920, 1080)
 image bg_cafe                = im.Scale("images/backgrounds/cafe.jpg", 1920, 1080)
 image bg_random_event        = im.Scale("images/backgrounds/random_event.jpg", 1920, 1080)

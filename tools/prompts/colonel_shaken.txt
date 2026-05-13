@@ -1,5 +1,25 @@
-This is an EXPRESSION VARIANT of an existing character sprite — NOT a redesign. The attached image is "the Colonel" from a visual novel. Return THE SAME sprite with EVERYTHING identical — the same man, the same face and facial structure, the same dark navy Czech police dress uniform with brass buttons and shoulder boards, the same hands-clasped-at-the-waist pose, the same head angle, the same tight bust crop and composition, the same pure-white studio background, the same polished semi-realistic 3D render style and soft lighting — and change ONLY his facial expression to:
+Same painterly portrait as the attached image (which shows the man with an angry locked-jaw expression). Same man, same hairstyle, same clothing, same pose, same hands, same framing, same painterly style, same transparent background. Identity must be preserved 1:1.
 
-COMPOSURE CRACKING — SHAKEN, CAUGHT OFF GUARD. The eyes widened a touch, brows lifted and slightly drawn together in alarm; the smug certainty gone; mouth parted just slightly under the mustache as if a retort died in his throat; a faint tension in the jaw and neck; a flicker of "...that actually landed" crossing his face. He is still trying to hold his posture and authority, but for the first time it isn't working — there's real unease, even fear, leaking through the mask. Vulnerable, rattled, off-balance — but not yet broken; a man recalculating.
+KEEP from the reference: the locked-jaw tension, the firm sealed mouth, the disciplined posture, the masseter flex.
 
-DO NOT change the uniform, the pose, the hands, the framing, the background, the hair, the mustache, the age, or the build. Same person, same picture — only the face is shaken now.
+CHANGE the expression from RAGE to SHOCK — same intensity, opposite direction:
+
+- The eyes: were narrow in the reference. Now BLOWN WIDE OPEN — the whites of the eyes very visible above AND below the iris, more so than any normal-looking expression would show. The pupils blown HUGE — large black discs, the iris almost lost behind them. Gaze unfocused — staring straight ahead but seeing past the camera.
+
+- The eyebrows: were slammed DOWN in the reference. Now SHOT UP — both brows lifted high on the forehead, the inner ends pulled slightly together. The forehead crinkled into deep horizontal furrows.
+
+- The mouth: STAYS LOCKED CLOSED, lips pressed together in the same firm horizontal line as the reference. NOT open. NOT showing teeth. The discipline of the uniform refuses to let the mouth break. Slightly downturned at the corners.
+
+- The jaw: same masseter tension as the reference, the chin held forward and locked.
+
+- The skin tone: was flushed red in the reference. Now flipped — completely DRAINED of colour. Chalk-white cheeks, ashen across the bridge of the nose, faint grey under the eyes. NO warmth.
+
+- Heavy COLD SWEAT beads painted along the forehead just below the hairline and at the temples. Visible droplets catching the light. The upper lip dewed with moisture above the sealed mouth.
+
+- The hands clasped in front: CLENCHED hard — knuckles white, fingers digging into the opposite hand.
+
+Everything else byte-for-byte identical to the reference. Same uniform, same buzz cut, same body framing, same hands position, same transparent background.
+
+Painterly. The same locked discipline as the angry reference, but the man inside is no longer angry — he is SEEING something he cannot process. The mouth refuses to open. The eyes refuse to look away. The body is pale and trembling but standing.
+
+The expression must be VISIBLY DIFFERENT from a neutral face. The wide eyes must be obvious. The lifted brows must be obvious. The pale skin must be obvious. The sweat must be visible.

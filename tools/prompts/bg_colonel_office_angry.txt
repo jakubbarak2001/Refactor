@@ -1,33 +1,33 @@
-Reproduce the EXACT same room as the attached reference image (this is the Colonel's office at first-stage damage). Same composition, same camera angle, same painterly semi-realistic style, muted northern-Bohemian palette, soft brushwork. NO CHARACTERS. NO LEGIBLE TEXT — newspaper clippings, bulletin board, certificates, notebook contents stay as the same abstract painted strokes they are in the reference. 16:9 fills frame edge-to-edge.
+Reproduce the EXACT same room and EXACT same camera angle as the attached reference image (the Colonel's office at first-stage damage). Same painterly semi-realistic style, same brutalist concrete walls, same exposed metal ceiling ducting, same fluorescent ceiling tube fixture, same panelák view through the window, same Czech flag, same Colonel portrait, same bulletin board, same AK weapons case, same heavy dark-stained oak desk with all its contents, same high-backed leather office chair behind, same two wooden chairs facing, same grey concrete floor, same wood-panelled wainscoting. NO CHARACTERS. NO LEGIBLE TEXT.
 
-EVERY element from the reference must still be present, in the same place. Do not change the room's geometry, the camera angle, the floor pattern (white square tiles with grout), the wood-panelled wainscoting, the cream-and-peeling upper walls (preserve the existing water-damage patches), the layout. Specifically preserve:
-- The same fluorescent ceiling light tube at the top.
-- The same west-facing sash window on the left with the two parked Czech police Škoda cars outside, the birch trees, the cold daylight, the snow on the sill.
-- The same dark blue rectangular fabric backdrop panel on the back wall with the gold State Police lion-rampant shield ("STÁTNÍ POLICIE") centered on it.
-- The same Czech flag (red / white / blue-hoist-triangle) on its gold-finialed brass pole between the window and the shield.
-- The same heavy dark-stained wooden desk centered in frame with: the brass-stemmed desk lamp with the beige cone shade lit warm yellow, the stack of manila folders, the open notebook, the white coffee mug, the ashtray, the black rotary telephone, the old beige CRT monitor on the right side, the grey computer keyboard in front.
-- The same high-backed brown leather office chair behind the desk.
-- The same two plain wooden chairs (cushioned seats, plain backs) facing the desk from this side.
-- The same right-wall arrangement: the framed portrait of the Colonel (middle-aged officer in gold-epauletted blue dress uniform), the bulletin board / corkboard with the yellow-framed certificate, color photos, abstract newspaper clippings, and the hunting photos pinned at the bottom.
-- The same far-right glass-fronted weapons display case mounted on the wall with the AK-47 rifle and the two handguns above it.
-- The same lighting balance: cold grey daylight from the window, warm pool from the desk lamp, cold fluorescent overhead.
+This is the THIRD STAGE — active violent collapse. The damage already visible in the reference erupts. Add ALL of the following on top of the reference, while keeping every original object recognisable and still in its position:
 
-This state is THIRD STAGE damage — the room is in active violent collapse. Escalate the damage already visible in the reference. Add ALL of the following on top of the reference, while keeping every original object recognisable and still in its position:
+1. The hairline crack on the concrete back wall has erupted into a Y-shaped fault running floor-to-ceiling, concrete spalling in palm-sized chunks, exposing rusted rebar and crumbling cement beneath.
 
-1. The fine starburst crack on the blue State Police panel has erupted: the blue fabric is now torn diagonally across its full height, peeling away from the wall, exposing the cream plaster behind it. The gold shield hangs visibly crooked, one mounting screw failed.
-2. The hairline cracks in the cream upper walls have erupted into a Y-shaped fault running floor-to-ceiling across the back wall, plaster spalling away in palm-sized chunks, exposing the lath and a strip of rusted rebar / brick.
-3. Half a ceiling tile has fallen and now dangles by a twisted wire near the fluorescent light fixture. The fluorescent tube itself flickers — half the tube glows, half is dark. A cold blue-white spear of light enters from a small jagged hole in the ceiling near the corner, painted as a near-physical beam slicing across the desk at a wrong angle.
-4. The desk has been shoved 30cm off-centre, tilted so the right edge is lower. The CRT monitor has fallen sideways onto the desk, screen cracked into a spider-web, beige plastic split. The keyboard has slid half-off the desk, hanging by its cable. The brass lamp lies on its side with the shade dented, bulb still burning but flickering sickly amber. The black rotary phone is on the floor, receiver off the hook, cord stretched.
-5. Paperwork is in a maelstrom — at least fifteen sheets airborne mid-frame, painted in violent painterly motion, swirling around the desk. The open notebook has been hurled across the room, pages spinning. The white coffee mug is shattered on the floor at the desk's base, brown stain spreading across the white tiles. The ashtray contents are spilled in a streak across the desk top.
-6. One of the two wooden chairs facing the desk has been knocked onto its back and lies splay-legged on the white tiles. The other is tilted at 30 degrees, mid-fall.
-7. The high-backed leather office chair behind the desk has been thrown against the back wall and now half-embeds itself into the torn blue panel, leather slashed across one wing.
-8. The Colonel's framed portrait on the right wall hangs visibly crooked at 25 degrees, glass spider-webbed in a starburst centred on his face. Two of the small color photos have detached from the bulletin board and float mid-air in the right side of the frame.
-9. The AK weapons display case has its glass shattered diagonally — the AK-47 has slid down at an angle, no longer level, and one of the handguns has fallen from its mount.
-10. The Czech flag whips violently in a wind that does not exist in the room, the pole bent 30 degrees, the tricolor fabric snapping toward the ceiling against gravity. The flag itself is on fire at one corner, painted in dull orange and yellow tongues with a column of dark smoke staining the cream paint behind.
-11. A small fire crackles at the base of the wood-panelled wainscoting on the right wall just below the bulletin board, painted in dull orange/yellow tongues, with smoke staining the panel above.
-12. A fine grey haze of plaster dust fills the upper third of the room, lit by the failing fluorescent strobe + the cold blue beam + the dying lamp + the fire.
-13. Sparks shower from a severed electrical conduit dangling from the ceiling hole near where the cold blue beam enters.
+2. The dark blue State Police backdrop panel has been TORN diagonally from top to bottom, half of it peeling away from the wall, exposing the cracked concrete behind. The gold shield hangs crooked, one mounting screw failed, sparks showering from a severed electrical conduit dangling near it from a hole in the ceiling.
 
-Crucially: the room's geometry has begun to LIE. The ceiling has receded a little higher than the room's floor plan permits. The back wall is a fraction further away than it should be. The walls are very slightly being pulled outward by an unseen gravity. The cold blue spear's angle does not match the angle of the hole it enters through.
+3. A solid pale-blue cold spear of light enters through that ceiling hole at a wrong angle — painted as a near-physical beam cutting diagonally across the room, slicing across the desk surface in cold contrast to the warm desk lamp pool.
 
-Camera angle: identical to the reference — centred medium-wide, eye level with the desk. The room is fighting back and losing. Painterly, dramatic, lit by failing strobe + fire + cosmic beam + dying lamp.
+4. The desk has been shoved 30cm off-centre and tilted, the right edge lower than the left. The beige CRT monitor has fallen on its side onto the desk surface, screen spider-webbed in a starburst crack, beige plastic split. The grey keyboard slides half off the desk, hanging by its cable. The brass lamp lies tipped over with the shade dented, the bulb strobing sickly amber. The black rotary phone is on the concrete floor, receiver off the hook, cord stretched.
+
+5. Paperwork in a maelstrom — at least fifteen sheets airborne mid-frame, painted in violent painterly motion, swirling around the desk. The open notebook hurled across the room, pages spinning. White coffee mug shattered on the concrete floor at the desk's base, brown stain spreading. Ashtray contents spilled in a streak across the desk.
+
+6. One of the two front wooden chairs has been knocked onto its back on the concrete floor, splay-legged. The other tilts at 30 degrees, mid-fall.
+
+7. The high-backed leather office chair behind the desk has been thrown against the back wall and half-embedded into the torn blue panel, leather slashed across one wing.
+
+8. The framed Colonel portrait on the right wall hangs at a 25-degree tilt, glass spider-webbed in a starburst centred on the face. Two of the small color photographs have detached from the bulletin board and float mid-air.
+
+9. The AK weapons display case glass is shattered diagonally. The AK-47 has slid down at an angle. One handgun has fallen from its mount.
+
+10. The Czech flag whips violently in an impossible wind, the pole bent 30 degrees, the tricolor fabric snapping toward the ceiling against gravity. The flag is on fire at one corner, dull orange and yellow tongues with smoke staining the concrete behind.
+
+11. A small fire crackles at the base of the wood-panelled wainscoting on the right wall just below the bulletin board, dull orange/yellow tongues with smoke staining the concrete above.
+
+12. Grey concrete dust haze fills the upper third of the room, lit by the failing fluorescent strobe + the cold blue beam + the fire + the dying lamp.
+
+13. The fluorescent ceiling tube has cracked — half lit, half dark, sparking at one end.
+
+14. The room's geometry has begun to LIE: the ceiling appears slightly higher than the floor plan permits, the back wall a fraction further away than it should be — the walls feel as if they are being pulled outward by an unseen gravity.
+
+Camera angle: identical to the reference — same framing, same eye-level with the desk. The institution is fighting back and losing. Painterly, dramatic, lit by failing fluorescent + fire + cosmic blue beam + dying lamp.

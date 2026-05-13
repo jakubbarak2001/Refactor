@@ -1,5 +1,11 @@
-This is an EXPRESSION VARIANT of an existing character sprite — NOT a redesign. The attached image is "the Colonel" from a visual novel. Return THE SAME sprite with EVERYTHING identical — the same man, the same face and facial structure, the same dark navy Czech police dress uniform with brass buttons and shoulder boards, the same hands-clasped-at-the-waist pose, the same head angle, the same tight bust crop and composition, the same pure-white studio background, the same polished semi-realistic 3D render style and soft lighting — and change ONLY his facial expression to:
+Same painterly portrait as the attached image. Same man, same hairstyle, same clothing, same pose, same hands, same framing, same painterly style, same transparent background. Return the exact same portrait with the face changed to a much more aggressive expression — barely-controlled rage breaking through the discipline of the uniform:
 
-FURIOUS, BARELY-CONTAINED RAGE. Heavy brow slammed down and inward, deep furrow between the eyes; eyes blazing, hard and narrowed; nostrils flared; jaw clenched tight, the muscles standing out; mouth a tight snarl under the mustache, maybe a glimpse of bared teeth. The veins-in-the-temple look of an authoritarian who has just been defied and is one breath from detonating — but is still, terrifyingly, holding his composed posture.
+- Brows slammed down hard and pulled together, deep vertical furrow between them, the angular brow ridge prominent.
+- Eyes blazing, narrowed but intense, locked forward at the viewer, the whites slightly more visible.
+- Mouth pulled into a hard down-turned snarl, the lips parted and the teeth visible — both rows clenched together, the bottom row showing at the corners of the mouth.
+- Jaw muscles flexed and visible — the masseter on the side of the jaw bulging, the strong angular jaw even sharper from the tension.
+- A flush of red colour pushed across the cheeks and the bridge of the nose.
+- Forehead with deep horizontal stress lines and two strong vertical lines between the brows.
+- Neck slightly engaged, the angle of his head pushed forward a touch as if leaning into the rage.
 
-DO NOT change the uniform, the pose, the hands, the framing, the background, the hair, the mustache, the age, or the build. Same person, same picture — only the face is angry now.
+Everything else byte-for-byte identical to the reference — same uniform, same hairline, same body framing, same hands, same transparent background. Only the face shifts. Painterly, controlled rage about to detonate.

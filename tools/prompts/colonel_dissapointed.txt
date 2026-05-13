@@ -1,5 +1,23 @@
-This is an EXPRESSION VARIANT of an existing character sprite — NOT a redesign. The attached image is "the Colonel" from a visual novel. Return THE SAME sprite with EVERYTHING identical — the same man, the same face and facial structure, the same dark navy Czech police dress uniform with brass buttons and shoulder boards, the same hands-clasped-at-the-waist pose, the same head angle, the same tight bust crop and composition, the same pure-white studio background, the same polished semi-realistic 3D render style and soft lighting — and change ONLY his facial expression to:
+Same painterly portrait as the attached image. Same man, same hairstyle, same clothing, same pose, same hands, same framing, same painterly style, same transparent background. Identity must be preserved.
 
-COLD, WEARY, PATERNALISTIC DISAPPOINTMENT. The inner ends of the brows lifted slightly; eyelids lowered, gaze heavy and a touch downcast; mouth a flat, slightly downturned line under the mustache; chin dipped just a fraction; a long, tired exhale of a face. Not anger — something heavier and quieter: "You have let me down. And worse — you have proven me right." The look a man gives someone he expected more from and never really expected anything from.
+Change the face EXPRESSIVELY — go big on these changes, do not be subtle:
 
-DO NOT change the uniform, the pose, the hands, the framing, the background, the hair, the mustache, the age, or the build. Same person, same picture — only the face is disappointed now.
+- HEAD TILTED FORWARD AND DOWN by 15-20 degrees. The chin is visibly lower than in the reference, almost touching the front of the collar. The top of the head is more visible in the frame than in the reference. The neck angles forward clearly.
+
+- EYES CAST DOWN — not looking at the camera. The pupils are clearly aimed at the floor or the desk in front of him. The whites of the eyes show MORE ABOVE the iris than below. The eyelids are heavy and lowered, half-closed.
+
+- BROWS — the inner ends of the eyebrows lifted UP and the outer ends pulled DOWN, forming the classic sad/tired brow shape. A small soft furrow in the centre of the forehead. The eyebrow shape is NOT angry-down — it's sad-up-in-the-middle.
+
+- MOUTH — pulled into a clear FROWN. Both corners of the mouth turned DOWN visibly — not a flat line, a real downturn. The lips lightly pressed together. NO smile. NO smirk.
+
+- JAW — relaxed, not engaged. The masseter muscle that flexes on the angry sprite is NOT flexed here.
+
+- A SLIGHT SLUMP in the shoulders — they sit a little lower than in the reference, the spine giving up a fraction.
+
+- Skin tone neutral — not pale like shaken, not flushed like angry. Just tired. Maybe faintly grey under the eyes — a hint of dark circles.
+
+The pose of the hands clasped in front is identical. The uniform, hair, body framing, transparent background all identical.
+
+Painterly. Visibly weary, visibly disappointed, head physically lowered. The man who has stopped expecting better and is now grieving that quietly.
+
+DO NOT return a near-copy of the reference. The head tilt must be visible. The frown must be visible. The downcast eyes must be visible.
