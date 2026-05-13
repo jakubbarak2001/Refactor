@@ -103,7 +103,6 @@ label re_de_kovar_warning:
 
 label re_de_kovar_choice:
     scene bg_random_event
-    play sound "audio/sevirra_lenoloc.mp3"
 
     "[[Kovář — Stage 3]"
     "THE LIST"

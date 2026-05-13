@@ -48,7 +48,7 @@ label colonel_event:
             renpy.say(None, "[[FLModafinil — BIOHACKER]: Peak cognitive state. Dopamine locked. +15 HP, +1 max energy/turn (stacks with PROTOCOL).")
 
     ## --- Run the deck battle ---
-    play music "audio/colonel_arrives.mp3" fadein 1.0
+    play music "audio/dum_bez_dveri.mp3" fadein 1.0
 
     "He sits. He squares a deck of cards on the desk between you. The silence is heavy."
     "Then, he attacks."
@@ -144,16 +144,26 @@ label colonel_round_two:
 
 label colonel_glitch_phase:
 
-    play music "audio/sevirra_lenoloc.mp3" fadein 1.0
+    stop music fadeout 1.5
 
-    scene bg_police_office with glitch_transition
+    scene bg_colonel_office_shaken with glitch_transition
     show colonel shaken at char_right
 
     "[[SYSTEM]: Colonel HP = 0."
-    "He stumbles back. The deck slides off the desk, cards fanning across the floor. The sound echoes wrong — too long, like a sound effect on a broken loop."
-    "He looks at you. His mouth opens. Closes."
 
-    pause 1.5
+    pause 0.5
+
+    "He stumbles. One step back. Then another."
+    "The deck slides off the desk in a slow, painterly arc — fifty-two suits and ranks fanning across the parquet — and the sound of the cards hitting the floor arrives a full second too late, drawn out like a dragged audio file."
+    "The Czech flag is on fire. Half the ceiling is gone. The wind through the empty window-frame has no temperature."
+
+    pause 0.8
+
+    "He looks at you."
+    "His mouth opens. Closes. Opens. The shape of words but no breath behind them."
+    "Thirty-two years of being the man in this room and his face cannot find a single expression that fits being beaten by his son."
+
+    pause 1.0
 
     scene bg_black with glitch_transition
 
@@ -163,32 +173,55 @@ label colonel_glitch_phase:
     pause 0.8
 
     "[[ERROR]: Rollback FAILED."
-    "[[ERROR]: Falling back to cached state — bureaucracy_protocol_v1.exe"
+    "[[ERROR]: Reverting to cached state — bureaucracy_protocol_v1.exe"
+    "[[ERROR]: Reloading scene_assets..."
 
-    pause 0.8
+    pause 1.2
 
-    scene bg_police_office with glitch_transition
+    scene bg_colonel_office_glitch with glitch_transition
     show colonel normal at char_right
 
-    "He stands up straight."
-    "His face rearranges itself into the exact expression from when you walked in. The same squared deck. The same posture. The same dead certainty."
+    "The room reassembles itself around him."
+    "The plaster un-cracks. The flagpole un-bends. The framed certificates float back into their grid, glass un-shattering itself in a faint reverse-tinkle. The Czech flag re-knits itself out of its own ash."
+    "The desk — split in two a moment ago — slides back together along its own seam."
 
+    pause 0.5
+
+    "He stands up straight."
+    "His shoulders square."
+    "His face rearranges itself into the exact expression he wore when you walked into this office for the first time, twenty years ago, as a recruit who didn't know any better."
+
+    pause 0.6
+
+    "But the room is wrong."
+    "There are two phones on the desk now. The clock in the corner has three hands and none of them agree. One certificate on the back wall reads backward. The light is everywhere and from nowhere."
     "Your blood runs cold."
     "He is looping."
     "He can't see you. He cannot process what just happened because there is no line of code for it."
-    "He is not a man. He is a script."
-    "'police_bureaucracy.exe' — runtime: 32 years."
+
+    pause 0.6
+
+    "He is not a man."
+    "He is a script."
+    "{i}police_bureaucracy.exe{/i} — runtime: 32 years."
+
+    pause 0.6
 
     "He opens his mouth."
     colonel "'You are a {b}COWARD{/b}, JB! You were never fit for this force!'"
 
-    "You feel the familiar pull of the argument. The urge to prove yourself. To justify. To fight."
-    "Every debate you have ever lost with him rises up at once."
+    "And there it is."
+    "The opening line."
+    "Word for word, syllable for syllable, the same gravel in the throat, the same fleck of spit on the last consonant."
+    "Every fight you have ever lost with him rises up at once and pulls — pulls hard — at the front of your chest, the back of your throat, the muscle behind your jaw that wants to start talking."
+    "Defend yourself. Justify. Argue. Win this time."
 
-    "But then you see it."
-    "The loop."
-    "His eyes are already moving to the next line of script."
-    "He isn't waiting for your answer. He never was."
+    pause 0.8
+
+    "But then you look at his eyes."
+    "They are already moving to the next line."
+    "He isn't waiting for your answer."
+    "He never was."
 
     jump colonel_glitch_loop
 
@@ -212,24 +245,46 @@ label colonel_glitch_wake_up:
 
     scene bg_black with glitch_transition
 
+    pause 0.5
+
     "You take one breath."
+    "It is yours. Not a line you have rehearsed answering with. Just air. Just a lung that is alive."
+
+    pause 0.7
+
     "You stop performing for him."
-    "The argument dissolves like smoke."
-    "It never had any weight. It was just noise."
+    "The argument — every variant of it, every version, every if-then branch you have ever memorised — dissolves like smoke."
+    "It never had any weight."
+    "It was just noise."
 
     pause 1.0
 
     scene bg_police_office with dissolve
-    ## smirk reads as "I see through you, finally" — fits the
-    ## "no volume, no anger" cue better than determined (which reads
-    ## as committed-but-fighting). JB has TRANSCENDED the fight here.
+    ## Colonel restored to "normal" — the scripted, dead-certain version JB
+    ## walked in on. JB on smirk: "I see through you, finally" — fits the
+    ## "no volume, no anger" cue better than determined (which reads as
+    ## committed-but-fighting). JB has TRANSCENDED the fight here.
+    show colonel normal at char_right
     show jb smirk at char_left
 
+    "The office is just an office again."
+    "Cream walls. Brass nameplate. A man behind a desk, mouth open mid-line, the rest of his speech still queued up behind his teeth."
+
+    pause 0.5
+
     jb "'I'm done.'"
-    "Two words. No volume. No anger."
-    "You pick up your resignation letter from the desk. You fold it. You put it in his hand."
-    "He doesn't move. He can't process the action."
-    "You walk to the door."
+
+    "Two words."
+    "No volume. No anger."
+
+    pause 0.6
+
+    "You take your resignation letter out of your jacket pocket. You unfold it. You smooth it once against the edge of his desk."
+    "You place it in his hand."
+    "His fingers close around it on muscle memory."
+    "His eyes don't change. His mouth keeps moving."
+
+    pause 0.6
 
     jump colonel_victory_resolution
 

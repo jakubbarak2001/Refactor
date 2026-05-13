@@ -605,20 +605,43 @@ screen battle_screen():
             "Special":  "#00cc88",
         }
         bs = battle_state
-        ## Per-enemy battle background. Ladder enemies ship
-        ## images/backgrounds/bg_<sprite_id>.jpg; Colonel and any missing entry
-        ## fall through to the solid-black fill.
+        ## Per-enemy battle background.
+        ##   Colonel: state-tracked office (smug/normal/angry/shaken) progressively
+        ##   collapses as his HP drops; falls back to pristine office if a state
+        ##   render is missing.
+        ##   Ladder enemies: static bg_<sprite_id>.jpg.
         _battle_bg_img = None
+        _bg_is_colonel = False
         if bs is not None:
-            _bg_path = "images/backgrounds/bg_{}.jpg".format(getattr(bs, 'enemy_sprite_id', ''))
-            if renpy.loadable(_bg_path):
-                _battle_bg_img = _bg_path
+            _sprite_id = getattr(bs, 'enemy_sprite_id', '')
+            if bs.enemy_hp <= 0 or bs.enemy_hp <= bs.enemy_max_hp * 0.12:
+                _bg_state = "shaken"
+            elif bs.enemy_hp <= bs.enemy_max_hp * 0.30:
+                _bg_state = "angry"
+            elif bs.enemy_hp >= bs.enemy_max_hp * 0.80:
+                _bg_state = "smug"
+            else:
+                _bg_state = "normal"
+            _bg_state_path  = "images/backgrounds/{}_office_{}.jpg".format(_sprite_id, _bg_state)
+            _bg_static_path = "images/backgrounds/bg_{}.jpg".format(_sprite_id)
+            if _sprite_id == "colonel":
+                _bg_is_colonel = True
+                if renpy.loadable(_bg_state_path):
+                    _battle_bg_img = _bg_state_path
+                else:
+                    _battle_bg_img = "images/backgrounds/police_station_colonel_office.jpg"
+            elif renpy.loadable(_bg_static_path):
+                _battle_bg_img = _bg_static_path
 
     add "#0a0a0a"
     if _battle_bg_img:
         add Transform(_battle_bg_img, size=(config.screen_width, config.screen_height))
     ## Darken the bg so it sits behind the UI without fighting card colors.
-    add Solid("#00000099")
+    ## Colonel uses a lighter darken so the office destruction reads through.
+    if _bg_is_colonel:
+        add Solid("#00000066")
+    else:
+        add Solid("#00000099")
 
     ## Class-color top + bottom border framing the entire fight.
     use class_color_frame(thickness=6)
