@@ -561,10 +561,16 @@ screen battle_screen():
         text "[[BATTLE STATE NULL]" xalign 0.5 yalign 0.5 color "#ff0000" size 32
     else:
         ## ── Background portrait ────────────────────────────────────────────────
+        ## Sprite tracks the fight: smug while he's winning, composed mid-fight,
+        ## furious when cornered, mask cracking when nearly beaten.
         ## colonel_hit_shake oscillates xoffset for ~0.35s after enemy takes
         ## damage; otherwise it's a no-op (function returns None).
-        if bs.enemy_hp > 0 and bs.enemy_hp <= bs.enemy_max_hp * 0.3:
+        if bs.enemy_hp <= 0 or bs.enemy_hp <= bs.enemy_max_hp * 0.12:
+            add "colonel shaken" xalign 0.5 yalign 0.18 zoom 0.65 at colonel_hit_shake
+        elif bs.enemy_hp <= bs.enemy_max_hp * 0.30:
             add "colonel angry" xalign 0.5 yalign 0.18 zoom 0.65 at colonel_hit_shake
+        elif bs.enemy_hp >= bs.enemy_max_hp * 0.80:
+            add "colonel smug" xalign 0.5 yalign 0.18 zoom 0.65 at colonel_hit_shake
         else:
             add "colonel normal" xalign 0.5 yalign 0.18 zoom 0.65 at colonel_hit_shake
 

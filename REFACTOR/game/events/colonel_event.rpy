@@ -27,6 +27,9 @@ label colonel_event:
     ## --- Round 2: His Entrance ---
     call colonel_round_two from _call_colonel_round_two
 
+    hide jb with dissolve
+    show colonel normal at char_right
+
     ## --- Initialize the deck battle ---
     python:
         battle_init()
@@ -46,11 +49,8 @@ label colonel_event:
 
     ## --- Run the deck battle ---
     play music "audio/colonel_arrives.mp3" fadein 1.0
-    scene bg_police_office with glitch_transition
-    show colonel normal at char_right
 
-    "He invites you upstairs. He makes coffee. The silence is heavy."
-    colonel "'Black? Two sugars?' he asks."
+    "He sits. He squares a deck of cards on the desk between you. The silence is heavy."
     "Then, he attacks."
 
     $ battle_start_player_turn()
@@ -123,14 +123,21 @@ label colonel_round_two:
     scene bg_police_office with glitch_transition
     show colonel normal at char_right
 
-    "He invites you upstairs. You follow."
+    "The third-floor office. He's at the window, hands behind his back, watching the lot where his car is parked."
+
+    show colonel smug at char_right with dissolve
 
     if stats.player_class == "bodybuilder":
-        colonel "'You filled out. Iron body. Iron will. Limited vocabulary.'"
+        colonel "'So you really did it.' He looks you over, unhurried. 'All that iron in the body. None of it in the spine.'"
     elif stats.player_class == "dark_empath":
-        colonel "'You haven't blinked since you walked in. You already know how this ends.'"
+        colonel "'So you really did it.' A thin smile. 'You walked in here reading the room like it owes you something. You always did mistake watching people for understanding them.'"
     elif stats.player_class == "biohacker":
-        colonel "'Pupils wide. Breathing shallow. Whatever you took is peaking right now. Cute.'"
+        colonel "'So you really did it.' He almost laughs. 'Pupils like dinner plates. You optimized yourself right out of a pension. Cute.'"
+
+    show colonel normal at char_right with dissolve
+    show jb determined at char_left with dissolve
+
+    jb "'Quit the chatter, Colonel. Sit down. Deal the cards.'"
 
     return
 
@@ -144,9 +151,10 @@ label colonel_glitch_phase:
     play music "audio/sevirra_lenoloc.mp3" fadein 1.0
 
     scene bg_police_office with glitch_transition
+    show colonel shaken at char_right
 
     "[[SYSTEM]: Colonel HP = 0."
-    "He stumbles back. His coffee cup hits the floor. The sound echoes wrong — too long, like a sound effect on a broken loop."
+    "He stumbles back. The deck slides off the desk, cards fanning across the floor. The sound echoes wrong — too long, like a sound effect on a broken loop."
     "He looks at you. His mouth opens. Closes."
 
     pause 1.5
@@ -167,7 +175,7 @@ label colonel_glitch_phase:
     show colonel normal at char_right
 
     "He stands up straight."
-    "His face rearranges itself into the exact expression from this morning. The same coffee mug. The same posture. The same dead certainty."
+    "His face rearranges itself into the exact expression from when you walked in. The same squared deck. The same posture. The same dead certainty."
 
     "Your blood runs cold."
     "He is looping."

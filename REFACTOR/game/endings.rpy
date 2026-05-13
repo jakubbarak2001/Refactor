@@ -84,11 +84,15 @@ label good_ending:
 
     play music "audio/road_to_freedom.mp3" fadein 1.0
     scene bg_police_office
-    show colonel angry at char_right
+    show colonel shaken at char_right
 
     "You start to chuckle."
     "The chuckle turns into a laugh."
     "A loud, liberating, uncontrollable laugh."
+
+    "Something behind his eyes won't compute. For half a second the certainty isn't there."
+
+    show colonel angry at char_right with dissolve
 
     colonel "'WHY ARE YOU LAUGHING?! YOU THINK THIS IS FUNNY? YOUR LIFE IS OVER!'"
 
@@ -210,14 +214,14 @@ label reunion_ending:
     if getattr(store, '_reunion_via_defeat', False):
         ## Defeat path — JB lost the argument but walked out anyway.
         scene bg_police_office
-        show colonel normal at char_right
+        show colonel smug at char_right
 
         "You stand up."
         "Your hands are shaking. Your voice isn't."
 
         jb "'I'm doing it anyway.'"
 
-        "He doesn't answer. He doesn't need to."
+        "He doesn't answer. The faint smile doesn't move. He's already proven his point — to himself, anyway."
         "You walk to the door. You don't look back."
 
         stop music fadeout 2.0

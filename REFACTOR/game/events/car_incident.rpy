@@ -90,6 +90,8 @@ label car_incident_admit:
 
     "You sign."
 
+    show colonel smug at char_right with dissolve
+
     colonel "Honesty is the cheapest currency we have. Spend it before the expensive stuff."
     colonel "I'll be checking in on you."
 
