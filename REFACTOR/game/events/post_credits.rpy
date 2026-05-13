@@ -44,17 +44,26 @@ image post_credits_tease    = Text("will return.", size=56, color="#cccccc", ita
 ## no outlines / bold / italic / scale-flourish. Emphasis on Singapore comes
 ## from TIMING (the line hangs trailing, then Singapore drops in below) — not
 ## from size acrobatics. Restraint reads as cinema; flourish reads as game UI.
-image post_credits_line_jb       = Text("jb.",                           size=46, color="#e6dccc", font="fonts/RobotoMono-Regular.ttf")
-image post_credits_line_question = Text("how fast can you fly to",       size=46, color="#e6dccc", font="fonts/RobotoMono-Regular.ttf")
-image post_credits_line_singapore = Text("singapore?",                    size=58, color="#f0e6d4", font="fonts/RobotoMono-Regular.ttf")
+image post_credits_line_jb       = Text("jb.",                           size=46, color="#f4ecdc", font="fonts/RobotoMono-Regular.ttf")
+image post_credits_line_question = Text("how fast can you fly to",       size=46, color="#f4ecdc", font="fonts/RobotoMono-Regular.ttf")
+image post_credits_line_singapore = Text("singapore?",                    size=58, color="#f8efd9", font="fonts/RobotoMono-Regular.ttf")
+
+## Subtitle backdrop — semi-opaque dark band across the lower-third. Guarantees
+## readability on any bg (Martin's white shirt was the worst case). Bond /
+## Better-Call-Saul convention: the band reads as cinema, not as game UI.
+image post_credits_subtitle_band = Solid("#000000C8", xysize=(1920, 260))
+
+transform subtitle_band_pos:
+    xpos 0
+    ypos 820
 
 transform line_top_pos:
     xalign 0.5
-    yalign 0.82
+    yalign 0.85
 
 transform line_bottom_pos:
     xalign 0.5
-    yalign 0.90
+    yalign 0.95
 
 ## Sprite transforms — characters sit at the quarter-points so each half-bg
 ## fully contains its sprite without crossing the divider.
@@ -115,9 +124,13 @@ label post_credits_singapore:
     show martin como at split_right_sprite with Dissolve(1.2)
     pause 1.6
 
-    ## --- Lines as floating subtitle text. No say-box, no name tag, no
-    ## flourish. The question hangs, then Singapore drops in beneath it —
-    ## emphasis through timing and line break, not through size acrobatics. ---
+    ## --- Lines as floating subtitle text over a semi-opaque dark band. No
+    ## say-box, no name tag. The band guarantees readability on any bg —
+    ## Martin's white shirt would otherwise wash out the text. The question
+    ## hangs, then Singapore drops in beneath it — emphasis through timing
+    ## and line break, not through size acrobatics. ---
+    show post_credits_subtitle_band at subtitle_band_pos with Dissolve(0.45)
+
     show post_credits_line_jb at line_top_pos with Dissolve(0.5)
     pause 1.4
     hide post_credits_line_jb with Dissolve(0.45)
@@ -129,9 +142,10 @@ label post_credits_singapore:
     show post_credits_line_singapore at line_bottom_pos with Dissolve(0.5)
     pause 2.8
 
-    ## --- Lines fade. Beat of silence before the title slam. ---
+    ## --- Lines + band fade. Beat of silence before the title slam. ---
     hide post_credits_line_question with Dissolve(0.5)
     hide post_credits_line_singapore with Dissolve(0.5)
+    hide post_credits_subtitle_band with Dissolve(0.6)
     pause 0.9
 
     ## --- TITLE SLAM. Near-opaque wash drops, huge REFACTOR lands. ---
