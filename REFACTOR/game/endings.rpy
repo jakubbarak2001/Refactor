@@ -82,6 +82,14 @@ label homeless_ending:
 
 label good_ending:
 
+    python:
+        ## "I Don't Need IT" — escape ending reached without ever picking
+        ## a coding daily activity (coding_work_for_money / coding_fiverr /
+        ## coding_bootcamp / coding_bootcamp_de). Random events that grant
+        ## coding skill don't flip the flag — only daily-menu picks do.
+        if not getattr(store, '_did_coding_activity_ever', False):
+            unlock_achievement("i_dont_need_it")
+
     play music "audio/road_to_freedom.mp3" fadein 1.0
     scene bg_police_office
     show colonel shaken at char_right
@@ -138,7 +146,7 @@ label good_ending:
         "Three years later, you run a fitness app with 40,000 active users."
         "You wrote the backend yourself. Ugly at first. Then clean. Then elegant."
         "You still lift on Tuesdays. Your home office has a pull-up bar over the door."
-            "You look happier than any cop ever looked. That's not luck. That's a choice you made and kept making."
+        "You look happier than any cop ever looked. That's not luck. That's a choice you made and kept making."
     elif _ep_class == "dark_empath":
         if getattr(store, '_de_kovar_exposed', False):
             "Two journalists win a Pulitzer-equivalent for the Kovář investigation. Your name never appears."

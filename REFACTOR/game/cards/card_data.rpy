@@ -162,6 +162,77 @@ init -1 python:
         return bool(took)
 
 
+    _LADDER_REWARD_WEIGHTS = {
+        "easy":   {"common": 0.80, "uncommon": 0.20, "rare": 0.00},
+        "medium": {"common": 0.50, "uncommon": 0.40, "rare": 0.10},
+        "hard":   {"common": 0.30, "uncommon": 0.50, "rare": 0.20},
+    }
+
+
+    def _ladder_pool_eligible(c):
+        """Filter for the basic-reward pool: no class-lock, not boss-rarity,
+        and not explicitly pool-excluded (status/curse cards opt out)."""
+        if c.get("class_lock"):
+            return False
+        if c.get("rarity") == "boss":
+            return False
+        if c.get("pool_excluded"):
+            return False
+        return True
+
+
+    def _weighted_choice(weights, _r):
+        """weights: dict[label -> probability]. Returns the chosen label.
+        Falls back to the first label if rounding leaves the roll above the
+        last cumulative threshold."""
+        roll = _r.random()
+        cum  = 0.0
+        last = None
+        for k, w in weights.items():
+            last = k
+            cum += w
+            if roll < cum:
+                return k
+        return last
+
+
+    def pick_battle_rewards(tier):
+        """Pick 3 unique card_ids from the basic pool, weighted by tier.
+
+        tier: 'easy' / 'medium' / 'hard' — Easy biases common, Hard biases
+        uncommon/rare. Returns up to 3 ids; fewer only if the pool is too
+        small for the requested rarities (won't happen in practice once
+        Slice 3's cards ship).
+        """
+        import random as _r
+        weights = _LADDER_REWARD_WEIGHTS.get(tier, _LADDER_REWARD_WEIGHTS["easy"])
+
+        pool = [cid for cid, c in CARD_LIBRARY.items() if _ladder_pool_eligible(c)]
+        buckets = {
+            "common":   [c for c in pool if CARD_LIBRARY[c].get("rarity") == "common"],
+            "uncommon": [c for c in pool if CARD_LIBRARY[c].get("rarity") == "uncommon"],
+            "rare":     [c for c in pool if CARD_LIBRARY[c].get("rarity") == "rare"],
+        }
+
+        rolled = []
+        attempts = 0
+        while len(rolled) < 3 and attempts < 30:
+            attempts += 1
+            r = _weighted_choice(weights, _r)
+            if not buckets.get(r):
+                ## Fallback ladder: rare -> uncommon -> common
+                for fallback in ("uncommon", "common"):
+                    if buckets.get(fallback):
+                        r = fallback
+                        break
+                else:
+                    break
+            cid = _r.choice(buckets[r])
+            if cid not in rolled:
+                rolled.append(cid)
+        return rolled
+
+
     def offer_card(card_id, source_label="", pass_stats_text=""):
         """DEPRECATED for new activity callsites — use `can_offer_card` +
         script-level `call screen card_offer_screen(...)` + `commit_card`

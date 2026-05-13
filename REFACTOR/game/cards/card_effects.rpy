@@ -81,6 +81,31 @@ init python:
         "override":                "Deal 40 damage. -2 max energy next turn. Exhausts.",
         "the_dossier":             "Disable one 'emotional' or 'guilt' colonel attack. Deal 25 damage. Exhausts.",
         "the_compound":            "Deal (current energy × 10) damage. Lose 8 HP. Exhausts.",
+        ## Battle ladder basic pool — Body / Tech / Authority
+        "gut_punch":               "Deal 8 damage.",
+        "bracing":                 "Gain 8 block.",
+        "second_wind":             "Heal 6 HP. Gain 8 block.",
+        "body_check":              "Deal 14 damage.",
+        "payday":                  "Deal damage equal to (Money / 5,000), capped at 20.",
+        "bouncer_door":            "Gain 18 block. Retaliate 8 damage on the next hit.",
+        "quick_compile":           "Draw 1 card. Free.",
+        "lint_pass":               "Exhaust a random card from hand. Draw 1.",
+        "stack_trace":             "Peek next 3 intents. Draw 1.",
+        "unit_test":               "Gain 6 block for every Skill in your hand.",
+        "merge_conflict":          "Deal 10 damage. Draw 1.",
+        "kernel_patch":            "Gain 1 energy. Draw 2. Exhausts.",
+        "pair_program":            "Peek next 2 intents. Free.",
+        "radio_call":              "Gain 6 block. Peek 1 intent.",
+        "breath_test":             "Reduce his next attack by 5 (min 1).",
+        "procedural_kick":         "Deal 5 damage. Gain 5 block.",
+        "riot_shield":             "Gain 14 block. +4 starting block next turn.",
+        "cuff_em":                 "Skip his next attack. Exhausts.",
+        "internal_review":         "Cancel his next attack. Deal 8 damage. Exhausts.",
+        ## Status / curse cards (injected by enemy wrinkles; auto-exhaust on play)
+        "status_paperwork":        "Status. Fills the form. Exhausts.",
+        "status_counterfeit":      "Status. Deal 4. Take 8. Exhausts.",
+        "status_fumes":            "Status. Take 2. Exhausts.",
+        "status_tear_gas":         "Status. Take 3. Exhausts.",
     }
 
     ## ---------------------------------------------------------------------------
@@ -397,3 +422,149 @@ init python:
         ## Battle engine recomputes the retaliate value each turn from the buff key.
         state.gain_block(source, 20)
         state.buff(source, "iron_stance_active", True)
+
+    ## ---------------------------------------------------------------------------
+    ## Battle ladder basic pool — Body bucket
+    ## ---------------------------------------------------------------------------
+
+    @register_effect("gut_punch")
+    def _eff_gut_punch(state, source, target):
+        state.deal_damage(target, 8)
+
+    @register_effect("bracing")
+    def _eff_bracing(state, source, target):
+        state.gain_block(source, 8)
+
+    @register_effect("second_wind")
+    def _eff_second_wind(state, source, target):
+        state.heal(source, 6)
+        state.gain_block(source, 8)
+
+    @register_effect("body_check")
+    def _eff_body_check(state, source, target):
+        state.deal_damage(target, 14)
+
+    @register_effect("payday")
+    def _eff_payday(state, source, target):
+        dmg = min(20, (stats.available_money // 5000) if stats else 0)
+        state.deal_damage(target, dmg)
+        state.add_log("Payday: {} damage (savings/5k, cap 20).".format(dmg))
+
+    @register_effect("bouncer_door")
+    def _eff_bouncer_door(state, source, target):
+        state.gain_block(source, 18)
+        ## Reuse the single-shot retaliate slot used by iron_body (BB common).
+        ## Iron Body sets dmg=4; bouncer_door is rarer/costlier so dmg=8.
+        ## Adding to the existing buff (not overwriting) lets the two stack if
+        ## the player has both, which is fine — they're both "next-hit only".
+        state.buff(source, "single_retaliate_dmg", 8)
+
+    ## ---------------------------------------------------------------------------
+    ## Tech bucket
+    ## ---------------------------------------------------------------------------
+
+    @register_effect("quick_compile")
+    def _eff_quick_compile(state, source, target):
+        state.draw_cards(1)
+
+    @register_effect("lint_pass")
+    def _eff_lint_pass(state, source, target):
+        ## Exhaust a random card from hand (excluding self — picking self would
+        ## double-pile it: state.exhaust then engine.discard both run on the
+        ## same id), then draw 1. Useful for dumping a clog status the engine
+        ## injected (paperwork / fumes / tear_gas).
+        _pool = [c for c in state.hand if c != "lint_pass"]
+        if _pool:
+            _victim = __import__('random').choice(_pool)
+            state.exhaust(_victim)
+            state.add_log("Lint Pass: exhausted {}.".format(_victim))
+        state.draw_cards(1)
+
+    @register_effect("stack_trace")
+    def _eff_stack_trace(state, source, target):
+        state.peek_intents(3)
+        state.draw_cards(1)
+
+    @register_effect("unit_test")
+    def _eff_unit_test(state, source, target):
+        ## Block per OTHER Skill in hand, capped at 4. Excluding self means
+        ## solo Unit Test = 0 block — this is a build-payoff card, not a
+        ## vanilla Defend. Cap at 4 prevents Skill-flooded hands from
+        ## generating 30+ block on a 1E uncommon.
+        _skills = sum(
+            1 for cid in state.hand
+            if cid != "unit_test" and CARD_LIBRARY.get(cid, {}).get("type") == "Skill"
+        )
+        _skills = min(_skills, 4)
+        state.gain_block(source, 6 * _skills)
+        state.add_log("Unit Test: {} Skills in hand → {} block.".format(_skills, 6 * _skills))
+
+    @register_effect("merge_conflict")
+    def _eff_merge_conflict(state, source, target):
+        state.deal_damage(target, 10)
+        state.draw_cards(1)
+
+    @register_effect("kernel_patch")
+    def _eff_kernel_patch(state, source, target):
+        state.gain_energy(1)
+        state.draw_cards(2)
+
+    @register_effect("pair_program")
+    def _eff_pair_program(state, source, target):
+        state.peek_intents(2)
+
+    ## ---------------------------------------------------------------------------
+    ## Authority bucket
+    ## ---------------------------------------------------------------------------
+
+    @register_effect("radio_call")
+    def _eff_radio_call(state, source, target):
+        state.gain_block(source, 6)
+        state.peek_intents(1)
+
+    @register_effect("breath_test")
+    def _eff_breath_test(state, source, target):
+        ## Reuses the frame_trap reduction slot.
+        state.buff(source, "next_attack_reduction", 5)
+
+    @register_effect("procedural_kick")
+    def _eff_procedural_kick(state, source, target):
+        state.deal_damage(target, 5)
+        state.gain_block(source, 5)
+
+    @register_effect("riot_shield")
+    def _eff_riot_shield(state, source, target):
+        state.gain_block(source, 14)
+        state.buff(source, "vigil_next_turn_block", 4)
+
+    @register_effect("cuff_em")
+    def _eff_cuff_em(state, source, target):
+        state.skip_attacks(1)
+
+    @register_effect("internal_review")
+    def _eff_internal_review(state, source, target):
+        state.cancel_next_attack_set()
+        state.deal_damage(target, 8)
+
+    ## ---------------------------------------------------------------------------
+    ## Status / curse card effects — injected into draw pile by enemy wrinkles.
+    ## All exhaust on play; some self-damage. The "use" is to clear them
+    ## (or pay the toll if drawn at the wrong time).
+    ## ---------------------------------------------------------------------------
+
+    @register_effect("status_paperwork")
+    def _eff_status_paperwork(state, source, target):
+        state.add_log("[[Paperwork]: form filed. Hand thinner now.")
+
+    @register_effect("status_counterfeit")
+    def _eff_status_counterfeit(state, source, target):
+        state.deal_damage(target, 4)
+        state.deal_damage(source, 8)
+
+    @register_effect("status_fumes")
+    def _eff_status_fumes(state, source, target):
+        state.deal_damage(source, 2)
+
+    @register_effect("status_tear_gas")
+    def _eff_status_tear_gas(state, source, target):
+        state.deal_damage(source, 3)

@@ -1090,7 +1090,9 @@ screen day_calendar():
     frame:
         xalign 0.5
         yalign 0.0
-        yoffset 56
+        ## yoffset clears the stat bar even when the class tracker (SOMA /
+        ## PROFILES / STACK) is rendering its secondary line.
+        yoffset 82
         padding (16, 10)
         background Frame("#0a0a0aee", 4, 4)
 
@@ -1932,6 +1934,178 @@ screen card_solo_offer_screen(card, source_label=""):
     key "K_KP_ENTER" action Return("take")
     key "K_p" action Return("pass")
     key "K_ESCAPE" action Return("pass")
+
+
+## ---------------------------------------------------------------------------
+## Card Reward Trio — pick 1 of 3 cards from the basic pool (post-battle).
+## Visual mirrors card_solo_offer_screen at a slightly smaller per-panel size
+## so all 3 fit side-by-side. Returns the chosen card_id string, or "skip".
+## Keyboard: 1/2/3 = TAKE corresponding card. S / ESC = SKIP.
+## ---------------------------------------------------------------------------
+
+screen card_reward_trio_screen(cards):
+    modal True
+    zorder 700
+
+    add "#0a0a0aee"
+
+    python:
+        _ctp_palette = {
+            "Physical": "#ff6633", "Mental": "#9944cc", "Money": "#ffd700",
+            "Logic": "#00ccff", "Police": "#3388cc", "Special": "#00cc88",
+        }
+
+    use class_color_frame(thickness=3, alpha_suffix="aa")
+
+    vbox:
+        xalign 0.5
+        yalign 0.04
+        spacing 4
+
+        text "VICTORY REWARD":
+            xalign 0.5
+            color "#ffffff"
+            size 30
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+
+        text "CHOOSE ONE":
+            xalign 0.5
+            color "#888888"
+            size 14
+            font "fonts/RobotoMono-Regular.ttf"
+
+    hbox:
+        xalign 0.5
+        yalign 0.48
+        spacing 28
+
+        for _ctp_i, _cid in enumerate(cards):
+            python:
+                _c        = CARD_LIBRARY.get(_cid, {})
+                _name     = _c.get("name", _cid)
+                _type     = _c.get("type", "Skill")
+                _rarity   = _c.get("rarity", "common")
+                _cost     = _c.get("cost", 0)
+                _flavor   = _c.get("flavor", "")
+                _colorlab = _c.get("color", "Special")
+                _accent   = _ctp_palette.get(_colorlab, "#888888")
+                _effect_s = EFFECT_DESCRIPTIONS.get(_c.get("effect"), "")
+                _hot_n    = _ctp_i + 1
+
+            frame:
+                xsize 380
+                ysize 540
+                background Frame("#0d0d0dee", 4, 4)
+                padding (20, 18)
+
+                vbox:
+                    spacing 10
+                    xalign 0.5
+
+                    frame:
+                        xalign 0.5
+                        xsize 340
+                        ysize 4
+                        background Frame(_accent, 0, 0)
+
+                    null height 4
+
+                    frame:
+                        xsize 54
+                        ysize 54
+                        background Frame(_accent, 4, 4)
+                        xalign 0.5
+                        text "[_cost]":
+                            color "#000000"
+                            size 30
+                            bold True
+                            xalign 0.5
+                            yalign 0.5
+
+                    text _name substitute False:
+                        color "#ffffff"
+                        size 26
+                        bold True
+                        xalign 0.5
+                        font "fonts/RobotoMono-Regular.ttf"
+
+                    text "{} · {} · {}".format(_type, _rarity.upper(), _colorlab) substitute False:
+                        color _accent
+                        size 12
+                        xalign 0.5
+                        font "fonts/RobotoMono-Regular.ttf"
+
+                    null height 8
+
+                    if _effect_s:
+                        text _effect_s substitute False:
+                            color "#ffffff"
+                            size 15
+                            bold True
+                            xalign 0.5
+                            xmaximum 340
+                            text_align 0.5
+                            line_spacing 2
+                        null height 6
+
+                    text _flavor substitute False:
+                        color "#888888"
+                        size 12
+                        italic True
+                        xalign 0.5
+                        xmaximum 340
+                        text_align 0.5
+
+                    if _c.get("exhaust"):
+                        null height 4
+                        text "[[EXHAUST]":
+                            color "#cc4444"
+                            size 12
+                            bold True
+                            xalign 0.5
+
+                    null height 8
+
+                    textbutton "[[ TAKE — [_hot_n] ]":
+                        xalign 0.5
+                        action Return(_cid)
+                        text_color "#ffffff"
+                        text_hover_color _accent
+                        text_size 20
+                        text_bold True
+                        text_font "fonts/RobotoMono-Regular.ttf"
+                        text_xalign 0.5
+                        background Frame("#1a1a1aee", 4, 4)
+                        hover_background Frame("#2a2a2aee", 4, 4)
+                        padding (14, 10)
+
+    textbutton "[[ SKIP — no card ]":
+        xalign 0.5
+        yalign 0.93
+        action Return("skip")
+        text_color "#888888"
+        text_hover_color "#ffffff"
+        text_size 20
+        text_bold True
+        text_font "fonts/RobotoMono-Regular.ttf"
+        text_xalign 0.5
+        background Frame("#1a1a1aee", 4, 4)
+        hover_background Frame("#2a2a2aee", 4, 4)
+        padding (20, 10)
+
+    text "1 / 2 / 3 = TAKE   ·   S = SKIP   ·   ESC = SKIP":
+        xalign 0.5
+        yalign 0.985
+        color "#444444"
+        size 12
+        font "fonts/RobotoMono-Regular.ttf"
+
+    key "K_1" action If(len(cards) >= 1, Return(cards[0]), NullAction())
+    key "K_2" action If(len(cards) >= 2, Return(cards[1]), NullAction())
+    key "K_3" action If(len(cards) >= 3, Return(cards[2]), NullAction())
+    key "K_s" action Return("skip")
+    key "K_ESCAPE" action Return("skip")
 
 
 ## ---------------------------------------------------------------------------

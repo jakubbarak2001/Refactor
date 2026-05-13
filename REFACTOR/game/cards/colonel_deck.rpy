@@ -195,6 +195,439 @@ init python:
     ## Deck builder — assembles the colonel's deck for the current difficulty
     ## ---------------------------------------------------------------------------
 
+    ## ---------------------------------------------------------------------------
+    ## Battle ladder — Easy tier intents
+    ## ---------------------------------------------------------------------------
+
+    register_enemy_card(
+        "rvac_swing",
+        name     = "Roundhouse",
+        intent   = "attack",
+        value    = 12,
+        dialogue = "He winds up. Right at your jaw.",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "rvac_haymaker",
+        name     = "Haymaker",
+        intent   = "attack",
+        value    = 18,
+        dialogue = "He throws his whole bar tab into it.",
+        threat   = 3,
+    )
+    register_enemy_card(
+        "rvac_drink",
+        name     = "Pull from the Bottle",
+        intent   = "block",
+        value    = 4,
+        dialogue = "He swigs. The bottle empties. The fist gets heavier.",
+        threat   = 1,
+    )
+
+    register_enemy_card(
+        "tag_quick",
+        name     = "Quick Tag",
+        intent   = "attack",
+        value    = 9,
+        dialogue = "One darts in. Paints across your jacket. Darts out.",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "tag_team",
+        name     = "Tag Team",
+        intent   = "compound",
+        value    = 4,
+        value2   = 3,
+        dialogue = "All three move at once. Three quick hits.",
+        threat   = 3,
+    )
+    register_enemy_card(
+        "spray_blind",
+        name     = "Aerosol Cloud",
+        intent   = "debuff",
+        value    = 1,
+        dialogue = "A cloud goes off in your face. You'll draw one card short.",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "vandal_block",
+        name     = "Tagged Van",
+        intent   = "block",
+        value    = 6,
+        dialogue = "They duck behind a sprayed-over Trabant.",
+        threat   = 1,
+    )
+
+    register_enemy_card(
+        "chant",
+        name     = "Chant",
+        intent   = "buff",
+        value    = 3,
+        dialogue = "He starts a chant. Others join. The next hit lands harder.",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "flare_throw",
+        name     = "Flare Throw",
+        intent   = "attack",
+        value    = 14,
+        dialogue = "A flare arcs past your ear. You feel the heat.",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "pile_in",
+        name     = "Pile In",
+        intent   = "compound",
+        value    = 3,
+        value2   = 5,
+        dialogue = "The pack rushes. Six fast knocks.",
+        threat   = 3,
+    )
+
+    register_enemy_card(
+        "dossier_flick",
+        name     = "Dossier Flick",
+        intent   = "attack",
+        value    = 8,
+        dialogue = "A page slaps you across the temple. Paper cuts add up.",
+        threat   = 1,
+    )
+    register_enemy_card(
+        "read_aloud",
+        name     = "Read Aloud",
+        intent   = "attack",
+        value    = 11,
+        dialogue = "It reads a witness statement aloud. Each word lands.",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "paper_wall",
+        name     = "Paper Wall",
+        intent   = "block",
+        value    = 14,
+        dialogue = "It folds itself into a wall of forms.",
+        threat   = 1,
+    )
+    register_enemy_card(
+        "file_swap",
+        name     = "File Swap",
+        intent   = "debuff",
+        value    = 1,
+        dialogue = "A blank form drops into your draw pile.",
+        threat   = 2,
+    )
+
+    ## ---------------------------------------------------------------------------
+    ## Medium tier intents
+    ## ---------------------------------------------------------------------------
+
+    register_enemy_card(
+        "knockoff_swing",
+        name     = "Knockoff Swing",
+        intent   = "attack",
+        value    = 16,
+        dialogue = "He swings a counterfeit Rolex across your cheek.",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "stall_swarm",
+        name     = "Stánek Swarm",
+        intent   = "compound",
+        value    = 5,
+        value2   = 4,
+        dialogue = "Three stánkaři close in. Hands everywhere.",
+        threat   = 3,
+    )
+    register_enemy_card(
+        "haggle",
+        name       = "Haggle",
+        intent     = "debuff",
+        value      = 1,
+        debuff_key = "max_energy_penalty_next_turn",
+        dialogue   = "'Discount for cash, mister policeman.' He talks your energy down.",
+        threat     = 2,
+    )
+    register_enemy_card(
+        "lockup",
+        name     = "Lockup",
+        intent   = "block",
+        value    = 10,
+        dialogue = "Roll-down shutter slams. He waits behind it.",
+        threat   = 1,
+    )
+    register_enemy_card(
+        "markdown",
+        name     = "Markdown",
+        intent   = "attack",
+        value    = 12,
+        dialogue = "A price tag rakes your knuckles. Sticker glue stays for days.",
+        threat   = 1,
+    )
+
+    register_enemy_card(
+        "fume_swipe",
+        name     = "Fume Swipe",
+        intent   = "attack",
+        value    = 13,
+        dialogue = "He swings, and the mask trails chemical mist.",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "chem_burn",
+        name     = "Chem Burn",
+        intent   = "attack",
+        value    = 11,
+        dialogue = "Acid splash. The jacket is ruined.",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "chem_stoke",
+        name     = "Stoke the Cook",
+        intent   = "buff",
+        value    = 2,
+        dialogue = "He turns the burner up. The next strike will hit harder.",
+        threat   = 1,
+    )
+    register_enemy_card(
+        "lab_check",
+        name     = "Lab Check",
+        intent   = "block",
+        value    = 12,
+        dialogue = "He ducks behind the rig. Glassware between you.",
+        threat   = 1,
+    )
+    register_enemy_card(
+        "gas_release",
+        name     = "Gas Release",
+        intent   = "debuff",
+        value    = 1,
+        dialogue = "A valve hisses. Eyes water. You'll be a card short.",
+        threat   = 2,
+    )
+
+    register_enemy_card(
+        "boulder",
+        name     = "Boulder Drop",
+        intent   = "attack",
+        value    = 22,
+        dialogue = "A chunk of sandstone the size of a fridge comes loose.",
+        threat   = 3,
+    )
+    register_enemy_card(
+        "rumble",
+        name     = "Rumble",
+        intent   = "compound",
+        value    = 5,
+        value2   = 4,
+        dialogue = "The whole face shifts. Pebbles. Then larger.",
+        threat   = 3,
+    )
+    register_enemy_card(
+        "quake",
+        name       = "Quake",
+        intent     = "debuff",
+        value      = 1,
+        debuff_key = "max_energy_penalty_next_turn",
+        dialogue   = "The ground hums under your boots. Your hand goes uncertain.",
+        threat     = 2,
+    )
+    register_enemy_card(
+        "fortify",
+        name     = "Fortify",
+        intent   = "block",
+        value    = 20,
+        dialogue = "Stone settles. The face becomes wall again.",
+        threat   = 1,
+    )
+    register_enemy_card(
+        "aftershock",
+        name     = "Aftershock",
+        intent   = "attack",
+        value    = 9,
+        dialogue = "Small stone hits your shoulder. Then your back. Then your neck.",
+        threat   = 1,
+    )
+    register_enemy_card(
+        "roar",
+        name     = "Roar",
+        intent   = "buff",
+        value    = 6,
+        dialogue = "The wall hums at a frequency you can feel in your teeth.",
+        threat   = 2,
+    )
+
+    register_enemy_card(
+        "priority_call",
+        name     = "Priority Call",
+        intent   = "attack",
+        value    = 13,
+        dialogue = "The radio crackles. 'All units, your location.'",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "radio_static",
+        name     = "Static Burst",
+        intent   = "debuff",
+        value    = 1,
+        dialogue = "Static fills the channel. You miss the next dispatch.",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "false_alarm",
+        name     = "False Alarm",
+        intent   = "attack",
+        value    = 10,
+        dialogue = "A false call routes you across town. Wasted breath.",
+        threat   = 1,
+    )
+    register_enemy_card(
+        "silence",
+        name     = "Comms Silence",
+        intent   = "block",
+        value    = 14,
+        dialogue = "Channel goes dead. You can't reach him.",
+        threat   = 1,
+    )
+    register_enemy_card(
+        "frequency_jam",
+        name       = "Frequency Jam",
+        intent     = "debuff",
+        value      = 1,
+        debuff_key = "max_energy_penalty_next_turn",
+        dialogue   = "He overlays your channel. Your next move costs more.",
+        threat     = 2,
+    )
+
+    ## ---------------------------------------------------------------------------
+    ## Hard tier intents
+    ## ---------------------------------------------------------------------------
+
+    register_enemy_card(
+        "interview",
+        name     = "Interview",
+        intent   = "attack",
+        value    = 18,
+        dialogue = "'Where exactly were you on the eighteenth?' She's read it three times.",
+        threat   = 3,
+    )
+    register_enemy_card(
+        "audit",
+        name     = "Audit",
+        intent   = "debuff",
+        value    = 1,
+        dialogue = "She turns the page. Slowly. Your next move is short a card.",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "quote_regulation",
+        name     = "Quote Regulation",
+        intent   = "attack",
+        value    = 13,
+        dialogue = "She names the paragraph. The number lands harder than the words.",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "formal_warning",
+        name     = "Formal Warning",
+        intent   = "attack",
+        value    = 20,
+        dialogue = "A signature line slides under your hand. You sign.",
+        threat   = 3,
+    )
+    register_enemy_card(
+        "case_review",
+        name     = "Case Review",
+        intent   = "block",
+        value    = 18,
+        dialogue = "She closes the folder. You can't see what's inside anymore.",
+        threat   = 1,
+    )
+    register_enemy_card(
+        "wire_check",
+        name     = "Wire Check",
+        intent   = "attack",
+        value    = 16,
+        dialogue = "She plays back your own radio traffic. The tone gives you away.",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "transfer_pending",
+        name     = "Transfer Pending",
+        intent   = "compound",
+        value    = 7,
+        value2   = 3,
+        dialogue = "Three forms. Three signatures. Three different offices.",
+        threat   = 3,
+    )
+
+    register_enemy_card(
+        "breach_swing",
+        name     = "Breach Swing",
+        intent   = "attack",
+        value    = 20,
+        dialogue = "The lead operator swings the ram, then the baton.",
+        threat   = 3,
+    )
+    register_enemy_card(
+        "kettle",
+        name     = "Kettle",
+        intent   = "debuff",
+        value    = 1,
+        dialogue = "They form up around you. Less room. Less options.",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "shield_wall",
+        name     = "Shield Wall",
+        intent   = "block",
+        value    = 22,
+        dialogue = "The phalanx locks polycarbonate. Nothing comes through.",
+        threat   = 1,
+    )
+    register_enemy_card(
+        "gas_throw",
+        name     = "Gas Throw",
+        intent   = "compound",
+        value    = 4,
+        value2   = 5,
+        dialogue = "The canister bounces twice. Tear gas blooms.",
+        threat   = 3,
+    )
+    register_enemy_card(
+        "baton_combo",
+        name     = "Baton Combo",
+        intent   = "compound",
+        value    = 3,
+        value2   = 10,
+        dialogue = "Ten short strikes. Trained. Identical.",
+        threat   = 3,
+    )
+    register_enemy_card(
+        "formation_buff",
+        name     = "Hold Formation",
+        intent   = "buff",
+        value    = 4,
+        dialogue = "Three operators step forward in unison. The next strike will land harder.",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "phalanx_block",
+        name     = "Phalanx",
+        intent   = "block",
+        value    = 26,
+        dialogue = "Shields overlap. Shins braced. No daylight between them.",
+        threat   = 1,
+    )
+    register_enemy_card(
+        "clear_room",
+        name     = "Clear Room",
+        intent   = "attack",
+        value    = 26,
+        dialogue = "'Clear left. Clear right.' The corner finds you.",
+        threat   = 3,
+    )
+
+
     COLONEL_DECK_TEMPLATES = {
         ## Easy: 5 cards — drop two of the 7 (Brotherhood, Debt — guilt-heavy ones)
         5:  ["training_debt", "why_quit", "civilian_void", "safety_net", "blacklist"],

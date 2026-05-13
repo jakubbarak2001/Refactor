@@ -36,25 +36,30 @@ init python:
     import math as _juice_math
 
     def _colonel_shake_fn(trans, st, at):
-        """Damped horizontal oscillation on the colonel portrait. Fires when
-        battle_state.last_enemy_hit_time is recent (<0.35s). Returns None to
-        stop the per-frame callback once the shake settles."""
+        """Damped 2-axis oscillation on the enemy portrait (and anything else
+        wearing this transform). Beefed up to feel like screen-shake on
+        impact: ~26px horizontal + ~14px vertical oscillation, 0.45s decay.
+        Fires when battle_state.last_enemy_hit_time is recent."""
         bs = battle_state
         if bs is None or getattr(bs, 'last_enemy_hit_time', -1.0) < 0:
             trans.xoffset = 0
+            trans.yoffset = 0
             return None
         try:
             age = renpy.get_game_runtime() - bs.last_enemy_hit_time
         except Exception:
             trans.xoffset = 0
+            trans.yoffset = 0
             return None
-        if age >= 0.35:
+        if age >= 0.45:
             trans.xoffset = 0
+            trans.yoffset = 0
             return None
-        ## Decay envelope: amplitude tapers to 0 over 0.35s
-        amp = 10.0 * (1.0 - age / 0.35)
-        ## Sin oscillation at ~35 rad/s = ~5.5 Hz — fast snappy shake
-        trans.xoffset = int(amp * _juice_math.sin(age * 35.0))
+        ## Decay envelope: amplitude tapers to 0 over 0.45s
+        decay = 1.0 - age / 0.45
+        ## Mixed-frequency oscillation feels chunkier than a clean sine
+        trans.xoffset = int(26.0 * decay * _juice_math.sin(age * 32.0))
+        trans.yoffset = int(14.0 * decay * _juice_math.sin(age * 47.0))
         return 0.016  ## ~60 fps refresh
 
     def _player_frame_shake_fn(trans, st, at):
@@ -177,24 +182,25 @@ init python:
 
     def _dmg_popup_compute(trans, hit_time):
         """Float a damage number up ~70px and fade it over 0.85s, driven by
-        a wall-clock hit timestamp. Returns 0.016 while animating (forces
-        ~60fps redraws), None when done. Recomputes from the timestamp every
-        frame, so it's immune to displayable-identity quirks — the old
-        fx_events + `use ... id` popup pipeline rendered maybe one hit in
-        five; this replaces it, built on the same pattern as the block-gain
-        pulse / portrait shake (which work reliably)."""
+        a wall-clock hit timestamp. ALWAYS returns 0.016 — the transform must
+        keep polling even after one animation finishes so a later hit can
+        re-animate the same displayable without being remounted. Ren'Py
+        will not restart a transform that returned None; that was the
+        cause of the long-standing 'damage numbers only show sometimes'
+        bug. Alpha drops to 0 between hits — the widget is permanently
+        mounted but invisible when there's no recent damage to display."""
         if hit_time < 0:
             trans.alpha = 0.0
-            return None
+            return 0.016
         try:
             age = renpy.get_game_runtime() - hit_time
         except Exception:
             trans.alpha = 0.0
-            return None
+            return 0.016
         if age < 0.0 or age >= 0.85:
             trans.alpha = 0.0
             trans.yoffset = -70
-            return None
+            return 0.016
         trans.yoffset = int(-70.0 * (age / 0.85))
         trans.alpha = 1.0 if age < 0.5 else max(0.0, 1.0 - (age - 0.5) / 0.35)
         return 0.016
@@ -288,6 +294,54 @@ screen turn_banner_inner(turn_n):
             font "fonts/RobotoMono-Regular.ttf"
             outlines [(3, "#000000", 0, 0)]
 
+
+## ATL for the "-N" damage popups. One-shot animation: float up 70px while
+## fading out over 0.85s. Used by damage_popup_enemy_inner / _player_inner.
+transform damage_popup_atl:
+    alpha 1.0
+    yoffset 0
+    parallel:
+        linear 0.85 yoffset -70
+    parallel:
+        pause 0.5
+        linear 0.35 alpha 0.0
+
+
+## Inner screens for damage popups. Wrapped via `use damage_popup_<x>_inner(
+## damage=N) id "<x>_dmg_popup_<hit_time>"` from battle_screen — same proven
+## pattern as turn_banner_inner above. Each hit gets a unique id (keyed on
+## the hit timestamp), so Ren'Py mounts a fresh displayable + fires the ATL
+## from frame 0 every time. Pure animation, no transform-function timing
+## races. This is what replaces the long-standing flaky popup pipeline.
+screen damage_popup_enemy_inner(damage):
+    ## zorder 800 — must render ABOVE battle_screen (zorder 600). Without this
+    ## explicit zorder the popup mounts but draws BEHIND battle_screen's full-
+    ## screen background, so it's invisible in-fight (but visible from console
+    ## tests because the console opens at a higher zorder). This was the actual
+    ## root cause of the "popups never show in fights" bug.
+    zorder 800
+    text "-[damage]":
+        xalign 0.5
+        ypos 195
+        color "#ffdd44"
+        size 88
+        bold True
+        outlines [(4, "#000000", 0, 0)]
+        font "fonts/RobotoMono-Regular.ttf"
+        at damage_popup_atl
+
+screen damage_popup_player_inner(damage):
+    zorder 800
+    text "-[damage]":
+        xpos 130
+        ypos 500
+        color "#ff4422"
+        size 88
+        bold True
+        outlines [(4, "#000000", 0, 0)]
+        font "fonts/RobotoMono-Regular.ttf"
+        at damage_popup_atl
+
 ## Phase B juice — card hover lift. Cards in hand scale up + lift slightly
 ## on mouse-hover, settle on idle. Smooth ease so the cursor's-on-this-card
 ## affordance is unmistakable. ATL `on hover` / `on idle` blocks fire when
@@ -351,13 +405,13 @@ screen battle_help():
                     color "#cc2200"
                     size 18
                     bold True
-                text "The icon above the colonel's name shows what he'll do next turn:":
+                text "The icon above the enemy's head shows what they'll do next turn:":
                     color "#cccccc"
                     size 14
-                text "  🗡 ATTACK — deals N damage   ⚔ COMPOUND — N×hits damage   ■ BLOCK — gains block":
+                text "  🗡 ATTACK — deals N damage   ⚔ COMPOUND — N×hits damage   🛡 BLOCK — gains block":
                     color "#aaaaaa"
                     size 13
-                text "  ↑ BUFF — strengthens his next attack   ↓ DEBUFF — weakens you":
+                text "  ↑ BUFF — next attack +N dmg   🃏↓ DEBUFF — -N draw next turn   ⚡↓ DEBUFF — -N energy next turn":
                     color "#aaaaaa"
                     size 13
 
@@ -540,8 +594,6 @@ screen battle_screen():
     modal True
     zorder 600
 
-    add "#0a0a0a"
-
     ## Card-color palette (mirrors deck_viewer)
     python:
         _CARD_COLORS = {
@@ -553,6 +605,20 @@ screen battle_screen():
             "Special":  "#00cc88",
         }
         bs = battle_state
+        ## Per-enemy battle background. Ladder enemies ship
+        ## images/backgrounds/bg_<sprite_id>.jpg; Colonel and any missing entry
+        ## fall through to the solid-black fill.
+        _battle_bg_img = None
+        if bs is not None:
+            _bg_path = "images/backgrounds/bg_{}.jpg".format(getattr(bs, 'enemy_sprite_id', ''))
+            if renpy.loadable(_bg_path):
+                _battle_bg_img = _bg_path
+
+    add "#0a0a0a"
+    if _battle_bg_img:
+        add Transform(_battle_bg_img, size=(config.screen_width, config.screen_height))
+    ## Darken the bg so it sits behind the UI without fighting card colors.
+    add Solid("#00000099")
 
     ## Class-color top + bottom border framing the entire fight.
     use class_color_frame(thickness=6)
@@ -563,24 +629,34 @@ screen battle_screen():
         ## ── Background portrait ────────────────────────────────────────────────
         ## Sprite tracks the fight: smug while he's winning, composed mid-fight,
         ## furious when cornered, mask cracking when nearly beaten.
-        ## colonel_hit_shake oscillates xoffset for ~0.35s after enemy takes
-        ## damage; otherwise it's a no-op (function returns None).
-        if bs.enemy_hp <= 0 or bs.enemy_hp <= bs.enemy_max_hp * 0.12:
-            add "colonel shaken" xalign 0.5 yalign 0.18 zoom 0.65 at colonel_hit_shake
-        elif bs.enemy_hp <= bs.enemy_max_hp * 0.30:
-            add "colonel angry" xalign 0.5 yalign 0.18 zoom 0.65 at colonel_hit_shake
-        elif bs.enemy_hp >= bs.enemy_max_hp * 0.80:
-            add "colonel smug" xalign 0.5 yalign 0.18 zoom 0.65 at colonel_hit_shake
-        else:
-            add "colonel normal" xalign 0.5 yalign 0.18 zoom 0.65 at colonel_hit_shake
+        ## Ladder enemies only ship "<id> neutral" sprites — has_image check
+        ## falls back to neutral when the emotional state isn't defined.
+        python:
+            _sprite_base = getattr(bs, 'enemy_sprite_id', 'colonel')
+            if bs.enemy_hp <= 0 or bs.enemy_hp <= bs.enemy_max_hp * 0.12:
+                _state = "shaken"
+            elif bs.enemy_hp <= bs.enemy_max_hp * 0.30:
+                _state = "angry"
+            elif bs.enemy_hp >= bs.enemy_max_hp * 0.80:
+                _state = "smug"
+            else:
+                _state = "normal"
+            _sprite_tag = "{} {}".format(_sprite_base, _state)
+            if not renpy.has_image(_sprite_tag, exact=True):
+                _sprite_tag = "{} neutral".format(_sprite_base)
+        ## Sprite is bottom-anchored so the (often torso-cropped) lower edge
+        ## tucks behind the card hand instead of floating mid-screen.
+        add _sprite_tag xalign 0.5 ypos 800 yanchor 1.0 zoom 0.69 at colonel_hit_shake
 
         ## ── ENEMY HEADER ──────────────────────────────────────────────────────
-        frame:
+        ## Shakes alongside the enemy portrait on hits so impact reads as
+        ## a "screen shake" feel without wrapping the whole tree in a transform.
+        frame at colonel_hit_shake:
             xalign 0.5
             yalign 0.0
             yoffset 16
             padding (24, 12)
-            background Frame("#0d0d0dee", 4, 4)
+            background None
             xsize 1100
 
             vbox:
@@ -591,7 +667,7 @@ screen battle_screen():
                     spacing 16
                     xalign 0.5
 
-                    text "COLONEL":
+                    text "[bs.enemy_name!u]":
                         color "#ff2222"
                         size 22
                         bold True
@@ -615,98 +691,132 @@ screen battle_screen():
                             color "#88aaff"
                             size 18
 
-                ## Intent line — current + revealed peeks
+                ## ── INTENT INFOGRAPHICS ───────────────────────────────────────
+                ## Each peeked intent renders as a small icon+value panel with
+                ## the intent name in italic gray below. Type → glyph + color:
+                ##   attack       🗡 <dmg>             red       (+N if bonus queued)
+                ##   compound     ⚔ <val>×<hits>      red
+                ##   block        🛡 <block>          blue
+                ##   buff         ↑ +N dmg next       orange    (enemy_attack_bonus stack)
+                ##   debuff/draw  🃏↓ -N draw         purple
+                ##   debuff/nrg   ⚡↓ -N energy       purple
+                ## Threat tiering escalates ONLY on the current intent (i==0) so
+                ## the player's eye lands on the imminent hit. Bonus-damage
+                ## fidelity: when an attack is queued AND enemy_attack_bonus is
+                ## sitting in buffs (cold_stare / rvac / fanousek chant ramp),
+                ## the value renders as "<base> (+<bonus>)" — purely cosmetic,
+                ## no buff mutation.
                 python:
                     _ic = bs.current_intent()
                     _peek = []
                     if _ic:
                         _peek.append(_ic)
-                    ## Cap at 5 so DE PROFILES bonus (peek depth 1+deep_count) is visible
                     for _i in range(1, min(bs.intent_revealed, 5)):
                         idx = bs.intent_index + _i
                         if 0 <= idx < len(bs.intent_queue):
                             _peek.append(ENEMY_DECK_LIBRARY.get(bs.intent_queue[idx]))
+                    _enemy_atk_bonus = bs.buffs.get("enemy_attack_bonus", 0)
 
                 if _peek:
                     hbox:
-                        spacing 8
+                        spacing 12
                         xalign 0.5
-
-                        text "INTENT:":
-                            color "#aaaaaa"
-                            size 14
 
                         for _i, _intent in enumerate(_peek):
                             if _intent:
-                                $ _label = _intent.get("name", "?")
-                                $ _itype = _intent.get("intent", "attack")
-                                ## Phase C — compute total incoming damage so we
-                                ## can scale the intent display by threat tier.
-                                if _itype == "attack":
-                                    $ _icon = "🗡"
-                                    $ _ic_color = "#ff4422"
-                                    $ _dmg = _intent.get("value", 0)
-                                    $ _val_text = "{}".format(_dmg)
-                                elif _itype == "compound":
-                                    $ _icon = "⚔"
-                                    $ _ic_color = "#ff6644"
-                                    $ _dmg = _intent.get("value", 0) * _intent.get("value2", 1)
-                                    $ _val_text = "{}x{}".format(_intent.get("value", 0), _intent.get("value2", 1))
-                                elif _itype == "block":
-                                    $ _icon = "■"
-                                    $ _ic_color = "#88aaff"
-                                    $ _dmg = 0
-                                    $ _val_text = "+{}".format(_intent.get("value", 0))
-                                elif _itype == "buff":
-                                    $ _icon = "↑"
-                                    $ _ic_color = "#ffaa44"
-                                    $ _dmg = 0
-                                    $ _val_text = "+{}".format(_intent.get("value", 0))
-                                else:
-                                    $ _icon = "↓"
-                                    $ _ic_color = "#aa44cc"
-                                    $ _dmg = 0
-                                    $ _val_text = "DEBUFF"
-
-                                ## Threat tier — only escalate styling on the
-                                ## CURRENT intent (i==0); peeked ones stay
-                                ## subdued so the player's eye lands on the
-                                ## imminent hit.
                                 python:
+                                    _label = _intent.get("name", "?")
+                                    _itype = _intent.get("intent", "attack")
                                     _is_current = (_i == 0)
-                                    if _is_current and _dmg >= 15:
-                                        _intent_size = 22
-                                        _intent_color = "#ff2222"
-                                        _intent_bg = "#3a0000ee"
-                                        _icon_size = 24
-                                    elif _is_current and _dmg >= 8:
-                                        _intent_size = 18
-                                        _intent_color = "#ffcc44"
-                                        _intent_bg = "#2a1a00dd"
-                                        _icon_size = 20
-                                    elif _is_current:
-                                        _intent_size = 14
-                                        _intent_color = "#ffffff"
-                                        _intent_bg = "#1a1a1add"
-                                        _icon_size = 16
+
+                                    if _itype == "attack":
+                                        _icon = "🗡"
+                                        _ic_color = "#ff4422"
+                                        _base = _intent.get("value", 0)
+                                        _dmg_for_threat = _base
+                                        if _is_current and _enemy_atk_bonus > 0:
+                                            _val_text = "{} (+{})".format(_base, _enemy_atk_bonus)
+                                            _dmg_for_threat = _base + _enemy_atk_bonus
+                                        else:
+                                            _val_text = "{}".format(_base)
+                                    elif _itype == "compound":
+                                        _icon = "⚔"
+                                        _ic_color = "#ff6644"
+                                        _per_hit = _intent.get("value", 0)
+                                        _hits = _intent.get("value2", 1)
+                                        _val_text = "{}×{}".format(_per_hit, _hits)
+                                        _dmg_for_threat = _per_hit * _hits
+                                    elif _itype == "block":
+                                        _icon = "🛡"
+                                        _ic_color = "#88aaff"
+                                        _val_text = "{}".format(_intent.get("value", 0))
+                                        _dmg_for_threat = 0
+                                    elif _itype == "buff":
+                                        _icon = "↑"
+                                        _ic_color = "#ffaa44"
+                                        _val_text = "+{} dmg next".format(_intent.get("value", 0))
+                                        _dmg_for_threat = 0
+                                    elif _itype == "debuff":
+                                        _ic_color = "#aa44cc"
+                                        _dkey = _intent.get("debuff_key", "player_draw_penalty")
+                                        if _dkey == "max_energy_penalty_next_turn":
+                                            _icon = "⚡↓"
+                                            _val_text = "-{} energy".format(_intent.get("value", 1))
+                                        else:
+                                            _icon = "🃏↓"
+                                            _val_text = "-{} draw".format(_intent.get("value", 1))
+                                        _dmg_for_threat = 0
                                     else:
-                                        _intent_size = 14
-                                        _intent_color = "#888888"
-                                        _intent_bg = "#1a1a1add"
-                                        _icon_size = 16
+                                        _icon = "?"
+                                        _ic_color = "#888888"
+                                        _val_text = "?"
+                                        _dmg_for_threat = 0
+
+                                    ## Threat tier — current intent only.
+                                    if _is_current and _dmg_for_threat >= 15:
+                                        _val_size = 24
+                                        _val_color = "#ff2222"
+                                        _panel_bg = "#3a0000ee"
+                                        _icon_size = 26
+                                    elif _is_current and _dmg_for_threat >= 8:
+                                        _val_size = 22
+                                        _val_color = "#ffcc44"
+                                        _panel_bg = "#2a1a00dd"
+                                        _icon_size = 24
+                                    elif _is_current:
+                                        _val_size = 20
+                                        _val_color = "#ffffff"
+                                        _panel_bg = "#1a1a1add"
+                                        _icon_size = 22
+                                    else:
+                                        _val_size = 16
+                                        _val_color = "#888888"
+                                        _panel_bg = "#1a1a1add"
+                                        _icon_size = 18
 
                                 frame:
-                                    background Frame(_intent_bg, 4, 4)
-                                    padding (8, 4)
-                                    hbox:
-                                        spacing 4
-                                        text _icon:
-                                            color _ic_color
-                                            size _icon_size
-                                        text "[_label] [_val_text]":
-                                            color _intent_color
-                                            size _intent_size
-                                            bold _is_current
+                                    background Frame(_panel_bg, 4, 4)
+                                    padding (10, 6)
+                                    vbox:
+                                        spacing 1
+                                        xalign 0.5
+                                        hbox:
+                                            spacing 6
+                                            xalign 0.5
+                                            text _icon:
+                                                color _ic_color
+                                                size _icon_size
+                                            text "[_val_text]":
+                                                color _val_color
+                                                size _val_size
+                                                bold _is_current
+                                                font "fonts/RobotoMono-Regular.ttf"
+                                        text "[_label]":
+                                            color "#888888"
+                                            size 11
+                                            italic True
+                                            xalign 0.5
+                                            font "fonts/RobotoMono-Regular.ttf"
 
         ## ── BATTLE LOG removed per playtest report. Damage popups, intent
         ## icons, and the active-buff row carry the feedback channels. The
@@ -721,7 +831,7 @@ screen battle_screen():
             ypos 580
             xsize 360
             padding (16, 12)
-            background Frame("#0d0d0dee", 4, 4)
+            background None
 
             vbox:
                 spacing 8
@@ -856,7 +966,7 @@ screen battle_screen():
             ypos 580
             xsize 200
             padding (16, 12)
-            background Frame("#0d0d0dee", 4, 4)
+            background None
 
             vbox:
                 spacing 4
@@ -1115,46 +1225,22 @@ screen battle_screen():
                     text_align 0.5
 
         ## ── PHASE A JUICE OVERLAYS ────────────────────────────────────────────
-        ## Damage popups (`-N` floating over the hit target) + hit-flash washes,
-        ## all driven directly off bs.last_*_hit_time / bs.last_damage_to_* —
-        ## the same wall-clock-timestamp pattern as the block-gain pulse. The
-        ## old fx_events + `use ... id` popup pipeline was flaky (numbers showed
-        ## maybe one time in five); this renders them every frame for the full
-        ## animation. Placed at the end of the screen tree so it layers on top.
+        ## Damage popups are no longer mounted from inside battle_screen at all
+        ## — they're pushed IMPERATIVELY by deal_damage() in battle_engine via
+        ## renpy.show_screen("damage_popup_*_inner", damage=N). That bypasses
+        ## the screen-rebuild dependency that broke the previous attempts.
+        ## Hit-flash washes stay here because they're cheap conditional
+        ## Solid() draws that read state freshly via $ captures.
         $ _fx_now = renpy.get_game_runtime()
-
-        ## Damage dealt to the colonel — yellow "-N" rising off the portrait.
         $ _eh = getattr(bs, 'last_enemy_hit_time', -1.0)
-        if _eh > 0 and (_fx_now - _eh) < 0.85 and getattr(bs, 'last_damage_to_enemy', 0) > 0:
-            text "-[bs.last_damage_to_enemy]":
-                xalign 0.5
-                ypos 195
-                color "#ffdd44"
-                size 88
-                bold True
-                outlines [(4, "#000000", 0, 0)]
-                font "fonts/RobotoMono-Regular.ttf"
-                at enemy_dmg_popup
-
-        ## Damage taken by JB — red "-N" rising near the player frame.
         $ _ph = getattr(bs, 'last_player_hit_time', -1.0)
-        if _ph > 0 and (_fx_now - _ph) < 0.85 and getattr(bs, 'last_damage_to_player', 0) > 0:
-            text "-[bs.last_damage_to_player]":
-                xpos 130
-                ypos 500
-                color "#ff4422"
-                size 88
-                bold True
-                outlines [(4, "#000000", 0, 0)]
-                font "fonts/RobotoMono-Regular.ttf"
-                at player_dmg_popup
 
-        ## Player-hit flash — red wash over the whole screen, brief
+        ## Player-hit flash — red wash over the whole screen, brief.
         $ _player_hit_age = (_fx_now - _ph) if _ph > 0 else 999.0
         if _player_hit_age < 0.35:
             add Solid("#ff2222") xsize 1920 ysize 1080 at damage_flash_player
 
-        ## Enemy-hit flash — subtle green wash
+        ## Enemy-hit flash — subtle green wash.
         $ _enemy_hit_age = (_fx_now - _eh) if _eh > 0 else 999.0
         if _enemy_hit_age < 0.30:
             add Solid("#00ff41") xsize 1920 ysize 1080 at damage_flash_enemy

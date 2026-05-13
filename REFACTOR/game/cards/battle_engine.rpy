@@ -31,18 +31,21 @@ init python:
     import random as _battle_rand
 
     def _play_battle_sfx(name):
-        """Phase A juice — play a battle SFX from audio/sfx/<name>.ogg.
+        """Phase A juice — play a battle SFX from audio/sfx/<name>.<ext>.
 
-        Silently skips if the file is missing so the engine works with or
-        without the SFX library installed. The user can drop real .ogg
-        files in at any time and they'll auto-wire.
+        Tries .ogg, then .mp3, then .wav. Silently skips if no matching
+        file is present, so the engine works with or without the SFX
+        library installed. The user can drop any supported format and
+        it'll auto-wire.
         """
-        path = "audio/sfx/{}.ogg".format(name)
-        if renpy.loadable(path):
-            try:
-                renpy.sound.play(path)
-            except Exception:
-                pass
+        for _ext in (".ogg", ".mp3", ".wav"):
+            path = "audio/sfx/{}{}".format(name, _ext)
+            if renpy.loadable(path):
+                try:
+                    renpy.sound.play(path)
+                except Exception:
+                    pass
+                return
 
     class BattleState(object):
         """Singleton-style state for the deck-based Colonel fight."""
@@ -55,6 +58,14 @@ init python:
             self.enemy_hp = 100
             self.enemy_max_hp = 100
             self.enemy_block = 0
+
+            ## Enemy identity — populated by battle_init from ENEMY_LIBRARY.
+            ## Defaults preserve Colonel behavior so any code path that builds
+            ## a BattleState without going through battle_init still works.
+            self.enemy_id = "colonel"
+            self.enemy_name = "Colonel"
+            self.enemy_sprite_id = "colonel"
+            self.enemy_log_name = "Colonel"
 
             self.energy = 3
             self.max_energy = 3
@@ -96,6 +107,12 @@ init python:
             self.battle_end_time = -1.0      ## set when bs.over flips to victory/defeat
             self.last_player_block_gain_time = -1.0  ## block-text pulse on gain
 
+            ## Damage-popup tag counters — incremented per hit so every show_screen
+            ## call gets a unique _tag and Ren'Py mounts a fresh screen instance
+            ## with a fresh ATL. Same-tag show_screen calls get optimized away.
+            self._popup_enemy_seq = 0
+            self._popup_player_seq = 0
+
         def __setstate__(self, state):
             """Restore from pickle. Backfill juice fields if missing so saves
             taken DURING a battle on an older build don't AttributeError
@@ -119,6 +136,18 @@ init python:
                 self.battle_end_time = -1.0
             if not hasattr(self, 'last_player_block_gain_time'):
                 self.last_player_block_gain_time = -1.0
+            if not hasattr(self, 'enemy_id'):
+                self.enemy_id = "colonel"
+            if not hasattr(self, 'enemy_name'):
+                self.enemy_name = "Colonel"
+            if not hasattr(self, 'enemy_sprite_id'):
+                self.enemy_sprite_id = "colonel"
+            if not hasattr(self, 'enemy_log_name'):
+                self.enemy_log_name = "Colonel"
+            if not hasattr(self, '_popup_enemy_seq'):
+                self._popup_enemy_seq = 0
+            if not hasattr(self, '_popup_player_seq'):
+                self._popup_player_seq = 0
 
         ## ---------------- TIME ----------------
         def _now(self):
@@ -157,15 +186,44 @@ init python:
                 actual = amount - absorbed
                 self.enemy_hp -= actual
                 self.last_damage_to_enemy = actual
-                self.add_log("Colonel takes {} damage.".format(actual))
+                self.add_log("{} takes {} damage.".format(self.enemy_log_name, actual))
                 if self.enemy_hp <= 0:
                     self.enemy_hp = 0
                     self.over = "victory"
                     self.battle_end_time = self._now()
-                ## Phase A juice — floating "-N" popup + portrait shake + sfx
+                ## Phase A juice — floating "-N" popup + portrait shake + sfx.
+                ## We push the popup IMPERATIVELY via renpy.show_screen rather
+                ## than relying on battle_screen to mount it conditionally.
+                ## The screen-conditional approach kept failing because the
+                ## screen's `$ _ed = bs.last_damage_to_enemy` capture was
+                ## stale unless Ren'Py rebuilt the body, and Function actions
+                ## returning None don't reliably trigger rebuilds. show_screen
+                ## bypasses that entire layer — Ren'Py mounts the popup screen
+                ## directly, ATL fires from frame 0, calling show_screen again
+                ## with the same name replaces the prior popup so successive
+                ## hits each get a fresh animation. Wrapped in try/except for
+                ## non-interaction contexts (battle_init, Power auto-fire).
                 if actual > 0:
                     self.last_enemy_hit_time = self._now()
                     _play_battle_sfx("hit_thud")
+                    try:
+                        ## UNIQUE _tag per hit forces Ren'Py to mount a brand-new
+                        ## screen instance with a clean ATL state. hide+show with
+                        ## the same name gets optimized away (Ren'Py batches them
+                        ## and sees "ends up shown either way"). Unique tags
+                        ## guarantee a fresh mount every time. Previous-tag hide
+                        ## keeps the layer from accumulating zombie popups.
+                        if self._popup_enemy_seq > 0:
+                            renpy.hide_screen("dmg_popup_enemy_{}".format(self._popup_enemy_seq))
+                        self._popup_enemy_seq += 1
+                        renpy.show_screen(
+                            "damage_popup_enemy_inner",
+                            damage=actual,
+                            _tag="dmg_popup_enemy_{}".format(self._popup_enemy_seq),
+                        )
+                        renpy.restart_interaction()
+                    except Exception:
+                        pass
             elif target == "player":
                 ## Apply mental damage reduction if buff active
                 if self.buffs.get("mental_dr_50") and self._intent_has_tag("mental"):
@@ -185,15 +243,34 @@ init python:
                     self.player_hp = 0
                     self.over = "defeat"
                     self.battle_end_time = self._now()
-                ## Phase A juice — floating "-N" popup + flash overlay + sfx
+                ## Phase A juice — floating "-N" popup + flash overlay + sfx.
+                ## Same imperative show_screen pattern as the enemy branch.
+                ## "enemy_hit" plays the user-provided punch wav (audio/sfx/
+                ## enemy_hit.wav) — replaces the no-op hit_thud placeholder
+                ## for enemy-attack impact feedback.
                 if actual > 0:
                     self.last_player_hit_time = self._now()
-                    _play_battle_sfx("hit_thud")
+                    _play_battle_sfx("enemy_hit")
+                    try:
+                        ## Same unique-tag pattern as the enemy branch — see
+                        ## the comment there for the Ren'Py batch-optimization
+                        ## that forced this design.
+                        if self._popup_player_seq > 0:
+                            renpy.hide_screen("dmg_popup_player_{}".format(self._popup_player_seq))
+                        self._popup_player_seq += 1
+                        renpy.show_screen(
+                            "damage_popup_player_inner",
+                            damage=actual,
+                            _tag="dmg_popup_player_{}".format(self._popup_player_seq),
+                        )
+                        renpy.restart_interaction()
+                    except Exception:
+                        pass
 
         def gain_block(self, target, amount):
             if target == "enemy":
                 self.enemy_block += amount
-                self.add_log("Colonel gains {} block.".format(amount))
+                self.add_log("{} gains {} block.".format(self.enemy_log_name, amount))
             else:
                 self.player_block += amount
                 self.add_log("JB gains {} block.".format(amount))
@@ -303,22 +380,34 @@ init python:
 
     ## ---------------- ENGINE FUNCTIONS ----------------
 
-    def battle_init():
-        """Build a fresh BattleState for the colonel fight. Reads stats / player_deck / difficulty."""
+    def battle_init(enemy_id="colonel"):
+        """Build a fresh BattleState for a battle against enemy_id. Reads
+        stats / player_deck / difficulty. Colonel defaults preserve the
+        original entry point (`battle_init()`) used by colonel_event.rpy."""
         global battle_state
         bs = BattleState()
+
+        ## Enemy identity — pull from ENEMY_LIBRARY with Colonel-safe fallbacks.
+        _enemy = ENEMY_LIBRARY.get(enemy_id, {})
+        bs.enemy_id = enemy_id
+        bs.enemy_name = _enemy.get("display_name", "Colonel")
+        bs.enemy_sprite_id = _enemy.get("sprite_id", "colonel")
+        bs.enemy_log_name = _enemy.get("log_name", "Colonel")
 
         ## Player HP by class
         if stats and stats.player_class == "bodybuilder":
             bs.player_max_hp = 115
             bs.player_hp = 115
-            ## SOMA bonus: +1 starting block per turn for every 2 SOMA stacks
+            ## SOMA bonus: +1 starting block per turn for every 3 SOMA stacks
+            ## (was every 2 — nerfed so ladder fights actually test the player).
             _soma = getattr(store, 'bb_soma', 0)
-            if _soma >= 2:
-                bs.buffs["stoic_anchor_block"] = bs.buffs.get("stoic_anchor_block", 0) + (_soma // 2)
-                bs.add_log("[[SOMA x{}]: +{} starting block per turn.".format(_soma, _soma // 2))
-            bs.buffs["presence_charges"] = 3
-            bs.add_log("[[PRESENCE x3]: Block you don't have to play for. The room is smaller now. He has to plan around you.")
+            if _soma >= 3:
+                bs.buffs["stoic_anchor_block"] = bs.buffs.get("stoic_anchor_block", 0) + (_soma // 3)
+                bs.add_log("[[SOMA x{}]: +{} starting block per turn.".format(_soma, _soma // 3))
+            ## Presence: 1 charge (was 3). One free +3 starting block on turn 1
+            ## only, then the player has to play actual block cards.
+            bs.buffs["presence_charges"] = 1
+            bs.add_log("[[PRESENCE x1]: One free +3 block on your opening turn. After that the room shrinks again.")
         elif stats and stats.player_class == "dark_empath":
             bs.player_max_hp = 75
             bs.player_hp = 75
@@ -366,19 +455,24 @@ init python:
                 bs.exhaust_pile.append(cid)
                 bs.draw_pile.remove(cid)
 
-        ## Build colonel deck per difficulty
-        bs.intent_queue = build_colonel_deck()
+        ## Build enemy deck — Colonel uses build_colonel_deck() (difficulty-scaled);
+        ## ladder enemies use their ENEMY_LIBRARY deck_template.
+        bs.intent_queue = build_enemy_deck(enemy_id)
 
-        ## Colonel HP scales with deck size (Easy/Hard/Insane/Ultra → 80/100/130/160)
-        deck_size = len(bs.intent_queue)
-        if deck_size <= 5:
-            bs.enemy_max_hp = 80
-        elif deck_size <= 7:
-            bs.enemy_max_hp = 100
-        elif deck_size <= 9:
-            bs.enemy_max_hp = 130
+        ## Enemy HP. Colonel scales with deck size (Easy/Hard/Insane/Ultra →
+        ## 80/100/130/160). Ladder enemies use ENEMY_LIBRARY max_hp.
+        if enemy_id == "colonel":
+            deck_size = len(bs.intent_queue)
+            if deck_size <= 5:
+                bs.enemy_max_hp = 80
+            elif deck_size <= 7:
+                bs.enemy_max_hp = 100
+            elif deck_size <= 9:
+                bs.enemy_max_hp = 130
+            else:
+                bs.enemy_max_hp = 160
         else:
-            bs.enemy_max_hp = 160
+            bs.enemy_max_hp = _enemy.get("max_hp") or 80
         bs.enemy_hp = bs.enemy_max_hp
 
         ## Sanity guard — ensure player HP is never <= 0 at battle start.
@@ -459,12 +553,52 @@ init python:
             bs.buffs["crash_next_turn"] = False
             bs.add_log("[[Stack crash]: the spike wears off. -2 energy this turn.")
 
-        ## Draw 5 cards
-        bs.draw_cards(5)
+        ## --- Pre-draw wrinkles: modify draw pile or set buffs the draw sees ---
+        ## Status injections insert at the TOP of the draw pile so they land
+        ## in the player's hand THIS turn rather than waiting for reshuffle
+        ## (which on a 20-card deck could be 4+ turns away).
+        _eid = getattr(bs, 'enemy_id', 'colonel')
+        if _eid == "spis" and bs.turn >= 2:
+            bs.draw_pile.insert(0, "paperwork")
+            bs.add_log("[[Paper-clog]: a form files itself onto your stack.")
+        if _eid == "sprejeri":
+            ## Tag stack: +1 per player turn (capped at 4 to avoid feel-bad
+            ## end-game nukes from extended block/debuff streaks).
+            bs.buffs["sprejeri_tags"] = min(4, bs.buffs.get("sprejeri_tags", 0) + 1)
+        if _eid == "nguyen" and bs.turn == 3:
+            bs.draw_pile.insert(0, "counterfeit")
+            bs.add_log("[[Counterfeit]: a fake offer slides onto your stack.")
+        if _eid == "inspekce" and bs.turn >= 3 and bs.turn % 2 == 1:
+            bs.draw_pile.insert(0, "paperwork")
+            bs.add_log("[[Audit]: another form joins your stack.")
+        if _eid == "garda" and bs.turn in (3, 6):
+            bs.draw_pile.insert(0, "tear_gas")
+            bs.add_log("[[Tear gas]: a canister rolls onto your stack.")
+
+        ## Draw 5 cards — minus any pending draw penalty from the previous
+        ## enemy turn's debuff intents (authority_display, spray_blind,
+        ## file_swap, gas_release, radio_static, audit). Floor at 1 so
+        ## stacked penalties can't soft-lock the player to zero cards.
+        _draw_count = 5
+        _dp = bs.buffs.get("player_draw_penalty", 0)
+        if _dp > 0:
+            _draw_count = max(1, _draw_count - _dp)
+            bs.buffs["player_draw_penalty"] = 0
+            bs.add_log("[[Debuff]: -{} card draw this turn.".format(_dp))
+        bs.draw_cards(_draw_count)
 
         if bs.buffs.get("kick_charges", 0) > 0:
             bs.draw_cards(1)
             bs.buffs["kick_charges"] -= 1
+
+        ## --- Post-draw wrinkles: must run AFTER draw_cards(5) so hand exists ---
+        if _eid == "dispatcher" and bs.turn >= 3 and bs.turn % 3 == 0 and bs.hand:
+            ## Priority change: every 3rd turn, discard one random card from the
+            ## freshly-drawn hand and replace it — the case got reassigned mid-shift.
+            _victim = _battle_rand.choice(bs.hand)
+            bs.discard(_victim)
+            bs.draw_cards(1)
+            bs.add_log("[[Reassigned]: lost {}, drew replacement.".format(_victim))
 
         bs.add_log("--- Turn {} ---".format(bs.turn))
 
@@ -582,12 +716,33 @@ init python:
                 _pre_resolve_block,
             ))
 
+        ## --- Varic lab-timer: synthesize a burst intent that replaces the
+        ## scheduled turn-7 intent. Synthesizing (rather than early-return)
+        ## lets the normal pipeline fire below: brawl bleed ticks, retaliate
+        ## buffs (Iron Stance / Iron Body / single_retaliate_dmg) respond,
+        ## damage gets logged through state.deal_damage.
+        _varic_burst_intent = None
+        if bs.enemy_id == "varic":
+            _wd = ENEMY_LIBRARY.get("varic", {}).get("wrinkle_data", {})
+            _det_turn = _wd.get("detonation_turn", 7)
+            _det_dmg = _wd.get("detonation_dmg", 22)
+            if bs.turn == _det_turn and not bs.buffs.get("varic_detonated", False):
+                bs.buffs["varic_detonated"] = True
+                bs.add_log("[[Lab Timer]: the rig blows.")
+                _varic_burst_intent = {
+                    "id":     "varic_burst",
+                    "name":   "Lab Detonation",
+                    "intent": "attack",
+                    "value":  _det_dmg,
+                    "tags":   [],
+                }
+
         ## Brawl bleed — applied at the START of each colonel intent if active
         if bs.buffs.get("bleed_turns", 0) > 0:
             _bleed = bs.buffs.get("bleed_dmg", 0)
             if _bleed > 0:
                 bs.deal_damage("enemy", _bleed)
-                bs.add_log("[[Bleed]: colonel takes {} dmg from open wound.".format(_bleed))
+                bs.add_log("[[Bleed]: {} takes {} dmg from open wound.".format(bs.enemy_log_name.lower(), _bleed))
             bs.buffs["bleed_turns"] -= 1
             if bs.buffs["bleed_turns"] <= 0:
                 bs.buffs["bleed_dmg"] = 0
@@ -599,34 +754,42 @@ init python:
             bs.skip_attack_count -= 1
             ic = bs.current_intent()
             if ic:
-                bs.add_log("[[Algorithm]: skipped colonel's '{}'.".format(ic.get("name", "?")))
+                bs.add_log("[[Algorithm]: skipped {}'s '{}'.".format(bs.enemy_log_name.lower(), ic.get("name", "?")))
             bs.intent_index += 1
             if _debug:
                 bs.add_log("[[DBG]: branch=algorithm_skip")
             return
 
-        ic = bs.current_intent()
+        ic = _varic_burst_intent if _varic_burst_intent is not None else bs.current_intent()
         if ic is None:
-            ## Out of cards — colonel is exhausted, treat as victory if HP <= 25
-            if bs.enemy_hp <= 25:
-                bs.over = "victory"
-                try:
-                    bs.battle_end_time = renpy.get_game_runtime()
-                except Exception:
-                    pass
-                bs.add_log("Colonel runs out of arguments. You win.")
-            else:
-                ## Reshuffle: rebuild deck and continue
-                bs.intent_queue = build_colonel_deck()
-                bs.intent_index = 0
-                ic = bs.current_intent()
-                if ic is None:
-                    return
+            ## Out of intents — reshuffle the deck and continue. NO auto-victory
+            ## on deck exhaustion: the only win condition is enemy_hp == 0.
+            ## Players found the old HP<=25 auto-win cheap and unsatisfying.
+            bs.intent_queue = build_enemy_deck(bs.enemy_id)
+            bs.intent_index = 0
+            ## --- Rvac drunken double-down: first reshuffle adds +3 to
+            ## the next attack (uses existing one-shot enemy_attack_bonus
+            ## slot which zeros after one attack).
+            if bs.enemy_id == "rvac" and not bs.buffs.get("rvac_doubled", False):
+                bs.buffs["enemy_attack_bonus"] = bs.buffs.get("enemy_attack_bonus", 0) + 3
+                bs.buffs["rvac_doubled"] = True
+                bs.add_log("[[Drunken double-down]: he's seeing red. +3 to his next swing.")
+            ic = bs.current_intent()
+            if ic is None:
+                ## Deck somehow rebuilt empty (registration bug). Bail rather
+                ## than crash — the player just gets a free turn.
+                return
+
+        ## Defensive guard — every branch above either reassigned ic or returned,
+        ## but a future edit could miss this; bail rather than crashing the
+        ## immunity check at the dict access below.
+        if ic is None:
+            return
 
         ## Cancellation check
         if bs.cancel_next_attack:
             bs.cancel_next_attack = False
-            bs.add_log("[[Refactor]: cancelled colonel's '{}'.".format(ic.get("name", "?")))
+            bs.add_log("[[Refactor]: cancelled {}'s '{}'.".format(bs.enemy_log_name.lower(), ic.get("name", "?")))
             bs.intent_index += 1
             if _debug:
                 bs.add_log("[[DBG]: branch=refactor_cancel")
@@ -689,6 +852,16 @@ init python:
 
         if intent_type == "attack":
             dmg = max(1 if ic.get("value", 0) > 0 else 0, ic.get("value", 0) - damage_reduction)
+            ## --- Sprejeri tag stack spend: +tags dmg on attack when stack >= 3 ---
+            if bs.enemy_id == "sprejeri":
+                _tags = bs.buffs.get("sprejeri_tags", 0)
+                if _tags >= 3:
+                    dmg += _tags
+                    bs.buffs["sprejeri_tags"] = 0
+                    bs.add_log("[[Tag stack x{}]: +{} damage, stack reset.".format(_tags, _tags))
+            ## --- Garda formation strength: +3 dmg while above 50% HP ---
+            if bs.enemy_id == "garda" and bs.enemy_hp > bs.enemy_max_hp // 2:
+                dmg += 3
             bs.deal_damage("player", dmg, source_kind="intent")
         elif intent_type == "compound":
             hits = ic.get("value2", 1)
@@ -698,12 +871,20 @@ init python:
                     break
                 bs.deal_damage("player", per_hit, source_kind="intent")
         elif intent_type == "block":
-            bs.gain_block("enemy", ic.get("value", 0))
+            ## --- Pastyrak armor-crack: below 50% HP, block intents no-op ---
+            if bs.enemy_id == "pastyrak" and bs.enemy_hp <= bs.enemy_max_hp // 2:
+                bs.add_log("[[Armor cracked]: stone won't hold. No block this turn.")
+            else:
+                bs.gain_block("enemy", ic.get("value", 0))
         elif intent_type == "buff":
             ## Cold Stare — add to a self-attack-bonus stack
             bs.buffs["enemy_attack_bonus"] = bs.buffs.get("enemy_attack_bonus", 0) + ic.get("value", 0)
         elif intent_type == "debuff":
-            bs.buffs["player_draw_penalty"] = bs.buffs.get("player_draw_penalty", 0) + ic.get("value", 1)
+            ## Default debuff_key is player_draw_penalty (Colonel + Easy enemies).
+            ## Medium/Hard enemies override via ic["debuff_key"] (e.g.
+            ## "max_energy_penalty_next_turn" for energy-suppress intents).
+            _dbuff_key = ic.get("debuff_key", "player_draw_penalty")
+            bs.buffs[_dbuff_key] = bs.buffs.get(_dbuff_key, 0) + ic.get("value", 1)
 
         ## Apply enemy_attack_bonus to attacks
         if intent_type == "attack" and bs.buffs.get("enemy_attack_bonus"):
@@ -766,8 +947,29 @@ init python:
 
 
     def battle_finish():
-        """Tear down — clear singleton."""
+        """Tear down — clear singleton + hide any lingering damage popup so it
+        doesn't carry over into the next battle/scene. Popups use unique _tag
+        per hit (dmg_popup_enemy_<seq>), so hiding the screen name alone won't
+        catch them — iterate the seq and hide each one. Also hide the default
+        screen-name tag for safety."""
         global battle_state
+        if battle_state is not None:
+            bs = battle_state
+            for _i in range(1, getattr(bs, '_popup_enemy_seq', 0) + 1):
+                try:
+                    renpy.hide_screen("dmg_popup_enemy_{}".format(_i))
+                except Exception:
+                    pass
+            for _i in range(1, getattr(bs, '_popup_player_seq', 0) + 1):
+                try:
+                    renpy.hide_screen("dmg_popup_player_{}".format(_i))
+                except Exception:
+                    pass
+        for _popup in ("damage_popup_enemy_inner", "damage_popup_player_inner"):
+            try:
+                renpy.hide_screen(_popup)
+            except Exception:
+                pass
         battle_state = None
 
 

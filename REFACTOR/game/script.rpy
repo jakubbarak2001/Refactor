@@ -92,6 +92,61 @@ label dev_skip_to_colonel:
 
 
 ## ---------------------------------------------------------------------------
+## DEV — Ladder battle direct entry. Cycles through the 10-enemy roster on
+## successive presses so the wrinkles/decks/decks-vs-rewards can be sanity-
+## checked without playing through 30 days. Dev-only; no menu hookup yet.
+## ---------------------------------------------------------------------------
+
+label dev_ladder_test:
+
+    scene bg_black
+    play music "audio/tension_theme.mp3" fadein 0.8
+
+    python:
+        _ladder_roster = [
+            ("rvac",       "easy"),
+            ("sprejeri",   "easy"),
+            ("fanousek",   "easy"),
+            ("spis",       "easy"),
+            ("nguyen",     "medium"),
+            ("varic",      "medium"),
+            ("pastyrak",   "medium"),
+            ("dispatcher", "medium"),
+            ("inspekce",   "hard"),
+            ("garda",      "hard"),
+        ]
+        _idx = getattr(store, '_dev_ladder_idx', 0) % len(_ladder_roster)
+        store._dev_ladder_idx = _idx + 1
+        _picked_enemy, _picked_tier = _ladder_roster[_idx]
+
+        ## Boot BB on Hard with a representative mid-run kit so the fight
+        ## isn't trivial. Mirrors dev_skip_to_colonel's prep.
+        init_game("hard")
+        stats.player_class = "bodybuilder"
+        apply_class_bonuses(stats)
+        init_player_deck()
+        stats.coding_skill    = 80
+        stats.available_money = 40000
+        stats.pcr_hatred      = 30
+
+        for _cid in ["iron_will", "bracing", "gut_punch", "compile",
+                      "radio_call", "backup", "quick_jab"]:
+            grant_card(_cid, silent=True)
+
+        day_cycle.current_day = {"easy": 6, "medium": 12, "hard": 21}.get(_picked_tier, 6)
+
+        _ladder_summary = "DEV LADDER: {} ({}) | day {} | deck {} cards".format(
+            _picked_enemy, _picked_tier, day_cycle.current_day, len(player_deck.cards),
+        )
+
+    "[_ladder_summary]"
+
+    call battle_with(_picked_enemy, _picked_tier)
+
+    return
+
+
+## ---------------------------------------------------------------------------
 ## DIFFICULTY SELECTION
 ## ---------------------------------------------------------------------------
 
@@ -230,11 +285,19 @@ label day_start:
         if stats.available_money <= 0:
             renpy.jump("homeless_ending")
 
-    ## Crisis event — fires once per run when Hatred reaches 85
+    ## Crisis event — fires once per run when Hatred reaches 85. Top-level
+    ## `call expression ... from _xxx` so the named return label survives
+    ## script edits (save stability — see the comment near salary_day above).
     python:
-        if stats.pcr_hatred >= 85 and not getattr(store, '_crisis_triggered', False):
+        _should_crisis = (
+            stats.pcr_hatred >= 85
+            and not getattr(store, '_crisis_triggered', False)
+        )
+        if _should_crisis:
             store._crisis_triggered = True
-            renpy.call("crisis_event_" + stats.player_class)
+            _crisis_label = "crisis_event_" + stats.player_class
+    if _should_crisis:
+        call expression _crisis_label from _call_crisis_event_daystart
 
     show screen stats_bar
     call screen day_transition_screen(current_day) with arc_fade
@@ -265,38 +328,34 @@ label day_start:
         "[[AFTEREFFECTS]"
         "[_noot_flavor]"
 
-    ## Special events
-    python:
-        if current_day == 14:
-            renpy.call("salary_day")
+    ## Special events. Top-level `call ... from _xxx` (NOT renpy.call inside a
+    ## python block) so saves taken mid-call survive future line-shifting edits
+    ## to script.rpy — the `from` clause creates a named return label that's
+    ## looked up by name, not by line number.
+    if current_day == 14:
+        call salary_day from _call_salary_day_daystart
 
-        # Midnight Call — Day 15
-        if current_day == 15:
-            renpy.call("midnight_call")
+    if current_day == 15:
+        call midnight_call from _call_midnight_call_daystart
 
-        # Random events every 3rd day, before day 22
-        if current_day % 3 == 0 and current_day < 22:
-            renpy.call("random_event_check")
+    ## Battle ladder / random events:
+    ## - Regular cadence: days 3, 6, 9, 12, 15, 18, 21
+    ## - Plus day 27 — a Hard-tier slot for players who deferred the Colonel
+    ##   to day 30 (the day-25 Colonel path ends the game before reaching 27).
+    if current_day in (3, 6, 9, 12, 15, 18, 21, 27):
+        call random_event_check from _call_random_event_check_daystart
 
-        # Martin Meeting — Day 24
-        if current_day == 24:
-            renpy.call("martin_meeting")
+    if current_day == 24:
+        call martin_meeting from _call_martin_meeting_daystart
 
-        # Colonel Event — Day 25 or 30 (set during Martin Meeting)
-        if current_day == stats.colonel_day:
-            renpy.call("colonel_event")
+    if current_day == stats.colonel_day:
+        call colonel_event from _call_colonel_event_daystart
 
     ## BH-only random spending event — fires on non-event days, ~30% chance.
     ## "The cost of optimizing." Pool reshuffles when exhausted (events recur).
     python:
         _bh_event_day = (
-            current_day == 6 or
-            current_day == 12 or
-            current_day == 14 or
-            current_day == 15 or
-            current_day == 18 or
-            (current_day % 3 == 0 and current_day < 22) or
-            current_day == 24 or
+            current_day in (3, 6, 9, 12, 14, 15, 18, 21, 24, 27) or
             current_day == stats.colonel_day
         )
         _is_bh_player = (stats and stats.player_class == "biohacker")
@@ -376,6 +435,10 @@ label activity_gym:
 
     menu:
         "PAY [_gym_cost] CZK — We go gym!":
+            ## Same workout SFX as the BB hover preview on the class-select
+            ## screen (audio/sfx/gym_plates.mp3) — clicking "we go gym" should
+            ## sound like clanging plates.
+            play sound "audio/sfx/gym_plates.mp3"
             python:
                 if not stats.try_spend_money(_gym_cost):
                     renpy.say(None, "[[INSUFFICIENT FUNDS] You check your wallet... you don't even have [_gym_cost] CZK for the gym entry.")
@@ -789,6 +852,7 @@ label activity_coding:
 
 label coding_work_for_money:
 
+    $ store._did_coding_activity_ever = True
     python:
         _tier_name, _tier_info = get_coding_tier_info(stats.coding_skill)
         if _tier_name == "TIER 1":
@@ -811,6 +875,7 @@ label coding_work_for_money:
 
 label coding_fiverr:
 
+    $ store._did_coding_activity_ever = True
     python:
         _fiverr_cost = adjusted_cost(2500)
         if not stats.try_spend_money(_fiverr_cost):
@@ -867,6 +932,7 @@ label coding_fiverr:
 
 label coding_bootcamp:
 
+    $ store._did_coding_activity_ever = True
     python:
         _bc_cost = adjusted_cost(35000)
         _bc_cost_str = "{:,}".format(_bc_cost)
@@ -885,26 +951,17 @@ label coding_bootcamp:
             $ python_bootcamp = True
 
             python:
-                ## Locked-in reward of paying 35k: the perm buff. The card-or-stats
-                ## trade is the BONUS choice on top — a substantive rare card OR
-                ## +25 coding skill pumped immediately into the run.
-                _bc_outcome = "- {:,} CZK, [BOOTCAMP BUFF ACTIVATED] +5 Coding/night, +25 CODING".format(_bc_cost)
-                _bc_card_data = can_offer_card("production_push")
-
-            if _bc_card_data is not None:
-                window hide
-                call screen card_offer_screen(card=_bc_card_data, source_label="BOOTCAMP", pass_stats_text=_bc_outcome)
-                $ _took_bc = commit_card("production_push", _return == "take")
-            else:
-                $ _took_bc = False
-
-            python:
-                if not _took_bc:
-                    stats.increment_stats_coding_skill(25)
-                _bc_panel_text = show_outcome_panel(_took_bc, "production_push", _bc_outcome)
+                ## Bootcamp pays out everything in one go now: +25 coding, the
+                ## permanent +5/night buff, and the Production Push card. The
+                ## old "take card OR take stats" trade was removed — players
+                ## found the extra screen friction-heavy for an already-pricey
+                ## activity.
+                stats.increment_stats_coding_skill(25)
+                grant_card("production_push", silent=True)
+                _bc_outcome = "- {:,} CZK   +25 CODING   +5 Coding/night   [+ Production Push]".format(_bc_cost)
 
             window hide
-            show screen outcome_panel(_bc_panel_text)
+            show screen outcome_panel(_bc_outcome)
             pause
             hide screen outcome_panel
             python:
@@ -918,6 +975,7 @@ label coding_bootcamp:
 
 label coding_bootcamp_de:
 
+    $ store._did_coding_activity_ever = True
     python:
         _bc_cost = adjusted_cost(28000)
         _bc_cost_str = "{:,}".format(_bc_cost)
@@ -940,23 +998,14 @@ label coding_bootcamp_de:
             $ python_bootcamp = True
 
             python:
-                _bc_outcome = "- {:,} CZK [DARK EMPATH DISCOUNT], [BOOTCAMP BUFF ACTIVATED] +5 Coding/night, +25 CODING".format(_bc_cost)
-                _bc_card_data = can_offer_card("production_push")
-
-            if _bc_card_data is not None:
-                window hide
-                call screen card_offer_screen(card=_bc_card_data, source_label="BOOTCAMP", pass_stats_text=_bc_outcome)
-                $ _took_bc = commit_card("production_push", _return == "take")
-            else:
-                $ _took_bc = False
-
-            python:
-                if not _took_bc:
-                    stats.increment_stats_coding_skill(25)
-                _bc_panel_text = show_outcome_panel(_took_bc, "production_push", _bc_outcome)
+                ## Same consolidated reward as the universal bootcamp — see
+                ## coding_bootcamp comment. DE discount on price only.
+                stats.increment_stats_coding_skill(25)
+                grant_card("production_push", silent=True)
+                _bc_outcome = "- {:,} CZK [DE DISCOUNT]   +25 CODING   +5 Coding/night   [+ Production Push]".format(_bc_cost)
 
             window hide
-            show screen outcome_panel(_bc_panel_text)
+            show screen outcome_panel(_bc_outcome)
             pause
             hide screen outcome_panel
             python:
@@ -1598,62 +1647,83 @@ label crisis_event_biohacker:
 
 label random_event_check:
 
-    ## Random event pool — events removed once triggered (using a persistent list)
+    ## Narrative-event pool — events removed once triggered (drains per run).
+    ## Trimmed from 20 to 7 keepers (the "deck IS your 30 days" pivot — fewer
+    ## but stronger narrative beats; remaining slots roll battle ladder rungs).
+    ## Cut event bodies stay defined in events/random_events.rpy; they're just
+    ## unreferenced now.
     python:
         if not hasattr(store, 'random_event_pool'):
             store.random_event_pool = [
-                "re_israeli_developer",
-                "re_nightmare_wolf",
-                "re_civilian_small_talk",
-                "re_admin_mistake",
                 "re_overtime_offer",
-                "re_birthday_gift",
                 "re_corpse_in_care_home",
-                "re_forgotten_usb",
-                "re_turkish_fraud",
-                "re_printer_incident",
-                "re_citizen_czechoslovakia",
                 "re_paperwork_overload",
                 "re_dispatch_blue_screen",
                 "re_tech_bro_speeding",
-                ## New events (PROMPT 3)
-                "re_the_informant",
-                "re_the_evaluation",
                 "re_suicide_call",
-                "re_retirement_party",
                 "re_coding_interview",
-                "re_system_update",
             ]
+        _ladder_init_pool()
 
+    ## Class arc takes priority over both battle and event pool — fires
+    ## the next stage if the day window + class match. Returns None
+    ## otherwise (DE/BH only currently; BB has no arc post-f72e84b).
+    ## Top-level `call expression ... from _xxx` for save stability.
     python:
-        ## Class arc takes priority over random pool — fires the next stage if
-        ## the day window + class match. Returns None otherwise.
         _class_arc = class_arc_check()
-        if _class_arc:
-            renpy.call(_class_arc)
-            ## Restore ambient music after class arc
+    if _class_arc:
+        call expression _class_arc from _call_class_arc_random_event_check
+        python:
             if stats.pcr_hatred >= 75:
                 renpy.music.play("audio/tension_theme.mp3", fadein=1.5)
             else:
                 renpy.music.play("audio/enter_the_code_theme.mp3", fadein=1.5)
-            ## Apply nightly cycle and advance day (mirrors random event behaviour)
             _re_nightly = int(round(5 * diff_setting("nightly_hatred_mult", 1.0)))
             stats.increment_stats_pcr_hatred(_re_nightly)
             if python_bootcamp:
                 stats.increment_stats_coding_skill(5)
             day_cycle.next_day()
-            renpy.jump("random_event_check_done")
+        jump random_event_check_done
 
-        if store.random_event_pool:
-            _chosen = __import__('random').choice(store.random_event_pool)
-            store.random_event_pool.remove(_chosen)
-            renpy.call(_chosen)
-            ## Restore ambient music after random event
+    ## Battle vs event roll. Returns 'battle' / 'event' / None.
+    $ _slot_kind, _slot_eid, _slot_tier = roll_ladder_or_event(day_cycle.current_day)
+
+    if _slot_kind == "battle":
+        call battle_with(_slot_eid, _slot_tier)
+        python:
             if stats.pcr_hatred >= 75:
                 renpy.music.play("audio/tension_theme.mp3", fadein=1.5)
             else:
                 renpy.music.play("audio/enter_the_code_theme.mp3", fadein=1.5)
-            # Random events consume a day — apply the same nightly cycle as do_end_day.
+            _re_nightly = int(round(5 * diff_setting("nightly_hatred_mult", 1.0)))
+            stats.increment_stats_pcr_hatred(_re_nightly)
+            if python_bootcamp:
+                stats.increment_stats_coding_skill(5)
+            day_cycle.next_day()
+        jump random_event_check_done
+
+    python:
+        _chosen_event = None
+        if _slot_kind == "event" and store.random_event_pool:
+            _chosen_event = __import__('random').choice(store.random_event_pool)
+            store.random_event_pool.remove(_chosen_event)
+
+    if _chosen_event:
+        call expression _chosen_event from _call_random_event_pool_choice
+        python:
+            if stats.pcr_hatred >= 75:
+                renpy.music.play("audio/tension_theme.mp3", fadein=1.5)
+            else:
+                renpy.music.play("audio/enter_the_code_theme.mp3", fadein=1.5)
+            _re_nightly = int(round(5 * diff_setting("nightly_hatred_mult", 1.0)))
+            stats.increment_stats_pcr_hatred(_re_nightly)
+            if python_bootcamp:
+                stats.increment_stats_coding_skill(5)
+            day_cycle.next_day()
+    else:
+        python:
+            ## Silent slot — Easy-loss skip-tomorrow penalty, or both pools
+            ## exhausted. Apply nightly cycle so the day still advances cleanly.
             _re_nightly = int(round(5 * diff_setting("nightly_hatred_mult", 1.0)))
             stats.increment_stats_pcr_hatred(_re_nightly)
             if python_bootcamp:

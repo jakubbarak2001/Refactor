@@ -594,3 +594,261 @@ init python:
         exhaust = True,
         flavor  = "Gain 10 block. Draw 1. You owned it. The next hit lands soft.",
     )
+
+    ## ---------------------------------------------------------------------------
+    ## BATTLE LADDER BASIC POOL — Body / Tech / Authority. No class-lock, no boss
+    ## rarity. Composed from existing engine primitives (no new effect machinery).
+    ## ---------------------------------------------------------------------------
+
+    ## BODY — block, retaliate, money-scale
+    register_card(
+        "gut_punch",
+        name   = "Gut Punch",
+        type   = "Attack",
+        color  = "Physical",
+        cost   = 1,
+        rarity = "common",
+        effect = "gut_punch",
+        flavor = "Deal 8. Below the ribs. He folds.",
+    )
+    register_card(
+        "bracing",
+        name   = "Bracing",
+        type   = "Skill",
+        color  = "Physical",
+        cost   = 1,
+        rarity = "common",
+        effect = "bracing",
+        flavor = "Gain 8 block. Square your stance.",
+    )
+    register_card(
+        "second_wind",
+        name   = "Second Wind",
+        type   = "Skill",
+        color  = "Physical",
+        cost   = 2,
+        rarity = "uncommon",
+        effect = "second_wind",
+        flavor = "Heal 6. Gain 8 block. The lungs come back.",
+    )
+    register_card(
+        "body_check",
+        name   = "Body Check",
+        type   = "Attack",
+        color  = "Physical",
+        cost   = 2,
+        rarity = "uncommon",
+        effect = "body_check",
+        flavor = "Deal 14. Drop your weight through them.",
+    )
+    register_card(
+        "payday",
+        name   = "Payday",
+        type   = "Attack",
+        color  = "Money",
+        cost   = 1,
+        rarity = "uncommon",
+        effect = "payday",
+        flavor = "Deal damage = Money / 5,000, max 20. Cash hits harder.",
+    )
+    register_card(
+        "bouncer_door",
+        name   = "Bouncer Door",
+        type   = "Skill",
+        color  = "Physical",
+        cost   = 2,
+        rarity = "rare",
+        effect = "bouncer_door",
+        flavor = "Gain 18 block. Retaliate 8 dmg on the next hit.",
+    )
+
+    ## TECH — draw, exhaust, scale
+    register_card(
+        "quick_compile",
+        name   = "Quick Compile",
+        type   = "Skill",
+        color  = "Logic",
+        cost   = 0,
+        rarity = "common",
+        effect = "quick_compile",
+        flavor = "Draw 1. The build is green.",
+    )
+    register_card(
+        "lint_pass",
+        name   = "Lint Pass",
+        type   = "Skill",
+        color  = "Logic",
+        cost   = 1,
+        rarity = "common",
+        effect = "lint_pass",
+        flavor = "Exhaust a random card from hand. Draw 1. Strip the noise.",
+    )
+    register_card(
+        "stack_trace",
+        name   = "Stack Trace",
+        type   = "Skill",
+        color  = "Logic",
+        cost   = 1,
+        rarity = "uncommon",
+        effect = "stack_trace",
+        flavor = "Peek 3 intents. Draw 1. Walk the call up.",
+    )
+    register_card(
+        "unit_test",
+        name   = "Unit Test",
+        type   = "Skill",
+        color  = "Logic",
+        cost   = 1,
+        rarity = "uncommon",
+        effect = "unit_test",
+        flavor = "Gain 6 block per Skill in hand. Coverage is armor.",
+    )
+    register_card(
+        "merge_conflict",
+        name   = "Merge Conflict",
+        type   = "Attack",
+        color  = "Logic",
+        cost   = 2,
+        rarity = "uncommon",
+        effect = "merge_conflict",
+        flavor = "Deal 10. Draw 1. Resolve theirs by overwriting.",
+    )
+    register_card(
+        "kernel_patch",
+        name    = "Kernel Patch",
+        type    = "Skill",
+        color   = "Logic",
+        cost    = 2,
+        rarity  = "rare",
+        effect  = "kernel_patch",
+        exhaust = True,
+        flavor  = "Gain 1 energy. Draw 2. Live-patching mid-conversation.",
+    )
+    register_card(
+        "pair_program",
+        name   = "Pair Program",
+        type   = "Skill",
+        color  = "Logic",
+        cost   = 0,
+        rarity = "uncommon",
+        effect = "pair_program",
+        flavor = "Peek 2 intents. Free. Two heads on one problem.",
+    )
+
+    ## AUTHORITY — peek, cancel, status-friendly
+    register_card(
+        "radio_call",
+        name   = "Radio Call",
+        type   = "Skill",
+        color  = "Police",
+        cost   = 1,
+        rarity = "common",
+        effect = "radio_call",
+        flavor = "Gain 6 block. Peek 1. Dispatch flags the next move.",
+    )
+    register_card(
+        "breath_test",
+        name   = "Breath Test",
+        type   = "Skill",
+        color  = "Police",
+        cost   = 1,
+        rarity = "common",
+        effect = "breath_test",
+        flavor = "Reduce his next attack by 5 (min 1). 'Blow into the tube.'",
+    )
+    register_card(
+        "procedural_kick",
+        name   = "Procedural Kick",
+        type   = "Attack",
+        color  = "Police",
+        cost   = 1,
+        rarity = "common",
+        effect = "procedural_kick",
+        flavor = "Deal 5. Gain 5 block. By the book, with a boot.",
+    )
+    register_card(
+        "riot_shield",
+        name   = "Riot Shield",
+        type   = "Skill",
+        color  = "Police",
+        cost   = 2,
+        rarity = "uncommon",
+        effect = "riot_shield",
+        flavor = "Gain 14 block. +4 starting block next turn. Lock the line.",
+    )
+    register_card(
+        "cuff_em",
+        name    = "Cuff 'Em",
+        type    = "Skill",
+        color   = "Police",
+        cost    = 2,
+        rarity  = "uncommon",
+        effect  = "cuff_em",
+        exhaust = True,
+        flavor  = "Skip his next attack. Steel on the wrist.",
+    )
+    register_card(
+        "internal_review",
+        name    = "Internal Review",
+        type    = "Skill",
+        color   = "Police",
+        cost    = 1,
+        rarity  = "rare",
+        effect  = "internal_review",
+        exhaust = True,
+        flavor  = "Cancel his next attack. Deal 8. The case is on paper now.",
+    )
+
+    ## ---------------------------------------------------------------------------
+    ## STATUS / CURSE CARDS — injected into the player's draw pile by enemy
+    ## wrinkles. Marked pool_excluded so they never appear as ladder rewards.
+    ## ---------------------------------------------------------------------------
+
+    register_card(
+        "paperwork",
+        name          = "Paperwork",
+        type          = "Skill",
+        color         = "Special",
+        cost          = 1,
+        rarity        = "common",
+        effect        = "status_paperwork",
+        exhaust       = True,
+        pool_excluded = True,
+        flavor        = "Status. Fills the form. Plays itself out of your hand.",
+    )
+    register_card(
+        "counterfeit",
+        name          = "Counterfeit",
+        type          = "Attack",
+        color         = "Special",
+        cost          = 1,
+        rarity        = "common",
+        effect        = "status_counterfeit",
+        exhaust       = True,
+        pool_excluded = True,
+        flavor        = "Status. Deal 4. Take 8. Looked like a deal.",
+    )
+    register_card(
+        "fumes",
+        name          = "Fumes",
+        type          = "Skill",
+        color         = "Special",
+        cost          = 1,
+        rarity        = "common",
+        effect        = "status_fumes",
+        exhaust       = True,
+        pool_excluded = True,
+        flavor        = "Status. Take 2. The lab leaked.",
+    )
+    register_card(
+        "tear_gas",
+        name          = "Tear Gas",
+        type          = "Skill",
+        color         = "Special",
+        cost          = 1,
+        rarity        = "common",
+        effect        = "status_tear_gas",
+        exhaust       = True,
+        pool_excluded = True,
+        flavor        = "Status. Take 3. Eyes go first.",
+    )
