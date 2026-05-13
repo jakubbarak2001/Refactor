@@ -718,14 +718,10 @@ init python:
 
         ## Iron Stance retaliate-on-hit (BB) — scales with turn count.
         ## Turn 1: 4 dmg. Turn 5: 12. Turn 10: 22. Rewards surviving longer.
-        ## Vladek's Form (BB arc reward) doubles the retaliate value.
         if bs.buffs.get("iron_stance_active") and bs.last_damage_to_player > 0:
             _retaliate = 4 + (max(1, bs.turn) - 1) * 2
-            if bs.buffs.get("vladeks_active"):
-                _retaliate *= 2
             bs.deal_damage("enemy", _retaliate)
-            _suffix = " [Vladek's Form: doubled]" if bs.buffs.get("vladeks_active") else ""
-            bs.add_log("[[Iron Stance]: retaliated for {} dmg (turn {}).{}".format(_retaliate, bs.turn, _suffix))
+            bs.add_log("[[Iron Stance]: retaliated for {} dmg (turn {}).".format(_retaliate, bs.turn))
 
         ## Iron Body single-shot retaliate (BB common) — fires once on next hit
         if bs.buffs.get("single_retaliate_dmg", 0) > 0 and bs.last_damage_to_player > 0:

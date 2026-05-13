@@ -553,18 +553,6 @@ init python:
     ## ---------------------------------------------------------------------------
 
     register_card(
-        "vladeks_form",
-        name       = "Vladek's Form",
-        type       = "Power",
-        color      = "Physical",
-        cost       = 2,
-        rarity     = "boss",
-        effect     = "vladeks_form",
-        class_lock = "bodybuilder",
-        flavor     = "Power: +2 SOMA-equivalent block per turn. Retaliate scales doubled. The competition is over.",
-    )
-
-    register_card(
         "the_dossier",
         name       = "The Dossier",
         type       = "Skill",

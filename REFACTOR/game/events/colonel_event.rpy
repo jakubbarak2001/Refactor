@@ -71,10 +71,6 @@ label colonel_event:
     ##   - perfect victory with stat-starved life
     ##   - defeat (lost the argument but walked out anyway — the "I'm doing it
     ##     anyway" defiance beat is gated on _reunion_via_defeat in reunion_ending)
-    python:
-        if getattr(store, 'corrupt_chain_3_completed', False):
-            renpy.jump("happy_nation_ending")
-
     if _outcome == "defeat":
         $ store._reunion_via_defeat = True
         jump reunion_ending
@@ -239,11 +235,6 @@ label colonel_glitch_wake_up:
 
 
 label colonel_victory_resolution:
-
-    ## Check if the corrupt cop chain was completed — overrides good ending
-    python:
-        if getattr(store, 'corrupt_chain_3_completed', False):
-            renpy.jump("happy_nation_ending")
 
     ## Normal victory: escaped
     jump good_ending

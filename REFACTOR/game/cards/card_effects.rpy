@@ -79,7 +79,6 @@ init python:
         "hrv_spike":               "Gain +2 energy. Lose 5 HP.",
         "cognitive_stack":         "Draw 3 cards. Exhausts.",
         "override":                "Deal 40 damage. -2 max energy next turn. Exhausts.",
-        "vladeks_form":            "Power: +2 starting block/turn. Iron Stance retaliate doubled.",
         "the_dossier":             "Disable one 'emotional' or 'guilt' colonel attack. Deal 25 damage. Exhausts.",
         "the_compound":            "Deal (current energy × 10) damage. Lose 8 HP. Exhausts.",
     }
@@ -372,12 +371,6 @@ init python:
     ## ---------------------------------------------------------------------------
     ## Arc-reward effects
     ## ---------------------------------------------------------------------------
-
-    @register_effect("vladeks_form")
-    def _eff_vladeks_form(state, source, target):
-        ## BB boss power: stacks with iron_stance + adds passive starting block
-        state.buff(source, "stoic_anchor_block", 2)
-        state.buff(source, "vladeks_active", True)
 
     @register_effect("the_dossier")
     def _eff_the_dossier(state, source, target):

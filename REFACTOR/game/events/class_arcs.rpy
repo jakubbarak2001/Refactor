@@ -2,160 +2,15 @@
 ## REFACTOR — Class-Specific Multi-Stage Arcs (GOTY v2)
 ##
 ## Each class has a 3-stage NPC relationship arc:
-##   BB → THE TRAINER (gym mentor → competition slot → competition day)
 ##   DE → THE KOVÁŘ AFFAIR (notice → confrontation → choice)
 ##   BH → THE TELEGRAM SOURCE (online contact → lab visit → test subject)
+## (BB Trainer arc was removed — the battle ladder replaces it.)
 ##
 ## Stages fire on day-windowed checks during random-event rolls. Player class
 ## must match. Stage advances via store.{bb|de|bh}_arc_stage.
 ##
 ## Each stage is Slay-the-Spire-distilled: setup hook + 2-3 options.
 ################################################################################
-
-
-## ---------------------------------------------------------------------------
-## BB ARC — THE TRAINER
-## ---------------------------------------------------------------------------
-
-label re_bb_trainer_intro:
-    scene bg_random_event
-    play sound "audio/police_siren.mp3"
-
-    python:
-        store._phone_notifications.append("Vladek: 'Talk after your set. — V'")
-
-    "[[Vladek — Stage 1]"
-    "THE TRAINER"
-
-    "Vladek wipes his forehead after your last set. Looks at you a long second."
-    "'JB. I've been watching you. You have the frame, the discipline. You're wasting it on uniformed bullshit.'"
-    "'I run a private programme. I'd take you on. Free of charge.'"
-
-    menu:
-        "Take the offer. [[+1 SOMA, -10 Hatred, arc continues]":
-            python:
-                store.bb_arc_stage = 1
-                add_soma(1)
-                stats.increment_stats_pcr_hatred(-10)
-            "He nods. 'Tomorrow. 5 AM. Don't be late.'"
-            "You haven't trained in front of someone who actually believes in you in three years."
-            window hide
-            show screen outcome_panel("+1 SOMA, -10 PCR HATRED  ·  [Vladek's programme opened]")
-            pause
-            hide screen outcome_panel
-
-        "Decline. [[arc closes]":
-            python:
-                store.bb_arc_stage = -1
-            "He shrugs. 'Suit yourself. The body keeps score either way.'"
-            "He doesn't make the offer twice."
-            window hide
-            show screen outcome_panel("ARC CLOSED. Vladek won't ask again.")
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-label re_bb_competition_offer:
-    scene bg_random_event
-    play sound "audio/police_siren.mp3"
-
-    python:
-        _bb_entry_cost = adjusted_cost(8000)
-
-    "[[Vladek — Stage 2]"
-    "COMPETITION SLOT"
-
-    "Vladek's voice on the phone: 'JB. I have a slot. National amateur strongman, three weeks out. Entry's [_bb_entry_cost] CZK. You'd pay it back in winnings or in pride.'"
-    "'You'd be the only cop in the field. They'd remember you.'"
-
-    menu:
-        "Register. [[-[_bb_entry_cost] CZK, arc continues]" if stats.available_money >= _bb_entry_cost:
-            python:
-                stats.try_spend_money(_bb_entry_cost)
-                store.bb_arc_stage = 2
-                add_soma(2)
-            "You wire the entry. Vladek answers in three minutes: 'Good. Now we work.'"
-            "Three weeks of doubled volume. Your back hurts in places you didn't know existed."
-            window hide
-            show screen outcome_panel("-{} CZK, +2 SOMA  ·  [Competition day approaching]".format(_bb_entry_cost))
-            pause
-            hide screen outcome_panel
-
-        "Pass. [[arc closes]":
-            python:
-                store.bb_arc_stage = -1
-            "He doesn't argue. He doesn't call again."
-            window hide
-            show screen outcome_panel("ARC CLOSED. Vladek won't ask twice.")
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-label re_bb_competition_day:
-    scene bg_random_event
-    play sound "audio/tension_theme.mp3"
-
-    "[[Vladek — Stage 3]"
-    "COMPETITION DAY"
-
-    "Big arena. Atlas stones, log press, deadlift ladder. Sixteen competitors. You're number 14."
-    "Your hands are chalked. Vladek is at the rail, arms folded, face unreadable."
-    "First stone. 130kg. The bar bends. The crowd watches."
-
-    python:
-        ## Performance scales with SOMA accumulated through the arc + class baseline
-        _bb_strength = stats.coding_skill // 30 + store.bb_soma + (1 if stats.player_class == "bodybuilder" else 0)
-        _bb_chance = min(35 + _bb_strength * 8, 90)
-        _bb_all_in_label = "GO ALL IN — Push for the win. [skill check {}%]".format(_bb_chance)
-
-    "Your training, your form, your soma — call it [_bb_strength]. Performance ceiling: [_bb_chance]%%."
-
-    menu:
-        "[_bb_all_in_label]":
-            python:
-                _roll = __import__('random').randint(1, 100)
-                if _roll <= _bb_chance:
-                    stats.increment_stats_value_money(35000)
-                    stats.increment_stats_pcr_hatred(-30)
-                    add_soma(5)
-                    store.bb_arc_stage = 3
-                    store._bb_arc_won = True
-                    _bb_msg = "You finish 2nd. Prize money: 35,000 CZK. Vladek says one word as you step off the platform: 'Good.'"
-                    _bb_out = "+35,000 CZK, -30 PCR HATRED, +5 SOMA. [You left your body on the platform]"
-                else:
-                    stats.increment_stats_value_money(2000)
-                    stats.increment_stats_pcr_hatred(15)
-                    store.bb_arc_stage = 3
-                    _bb_msg = "Top half but no podium. 2,000 CZK consolation. Vladek nods. 'Next year.'"
-                    _bb_out = "+2,000 CZK, +15 PCR HATRED. (Honourable. Not enough.)"
-            "[_bb_msg]"
-            window hide
-            show screen outcome_panel(_bb_out)
-            pause
-            hide screen outcome_panel
-            ## Podium win → grant Vladek's Form (boss-rarity arc reward) + achievement
-            python:
-                if getattr(store, '_bb_arc_won', False):
-                    unlock_achievement("vladeks_pupil")
-                    offer_card_solo("vladeks_form", "VLADEK 3/3 — COMPETITION WON")
-
-        "Play it safe. [[guaranteed +5,000 CZK, no SOMA]":
-            python:
-                stats.increment_stats_value_money(5000)
-                stats.increment_stats_pcr_hatred(-5)
-                store.bb_arc_stage = 3
-            "You skip the deadlift ladder's top weight. Bottom-half finish. The body intact."
-            "Vladek says nothing on the drive home. The silence is heavier than a barbell."
-            window hide
-            show screen outcome_panel("+5,000 CZK, -5 PCR HATRED.")
-            pause
-            hide screen outcome_panel
-
-    return
 
 
 ## ---------------------------------------------------------------------------
@@ -511,15 +366,7 @@ init python:
 
         d = day_cycle.current_day
         cls = stats.player_class
-        if cls == "bodybuilder":
-            stage = getattr(store, 'bb_arc_stage', 0)
-            if stage == 0 and 6 <= d <= 12:
-                return "re_bb_trainer_intro"
-            if stage == 1 and 13 <= d <= 18:
-                return "re_bb_competition_offer"
-            if stage == 2 and 19 <= d <= 21:
-                return "re_bb_competition_day"
-        elif cls == "dark_empath":
+        if cls == "dark_empath":
             stage = getattr(store, 'de_arc_stage', 0)
             if stage == 0 and 6 <= d <= 12:
                 return "re_de_kovar_eyes"
@@ -548,13 +395,7 @@ init python:
         if stats is None:
             return None
         cls = stats.player_class
-        if cls == "bodybuilder":
-            stage = getattr(store, 'bb_arc_stage', 0)
-            if stage == 1:
-                return "re_bb_competition_offer"
-            if stage == 2:
-                return "re_bb_competition_day"
-        elif cls == "dark_empath":
+        if cls == "dark_empath":
             stage = getattr(store, 'de_arc_stage', 0)
             if stage == 1:
                 return "re_de_kovar_warning"

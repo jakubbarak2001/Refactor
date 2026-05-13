@@ -195,16 +195,10 @@ init python:
         if stats is None:
             return {}
         marks = {
-            6:  ("BRIBE",    "#ff8833"),
             14: ("SALARY",   "#ffd700"),
             15: ("CALL",     "#9944cc"),
             24: ("MARTIN",   "#33aacc"),
         }
-        ## Corrupt-cop chain links — only highlight if active
-        if getattr(store, 'corrupt_chain_1', False):
-            marks[12] = ("CHAIN",  "#ff8833")
-        if getattr(store, 'corrupt_chain_2', False):
-            marks[18] = ("CHAIN",  "#ff8833")
         ## Colonel day depends on Martin Meeting timing choice
         marks[stats.colonel_day] = ("COLONEL", "#cc2200")
         return marks
@@ -238,10 +232,6 @@ init python:
     day_cycle = None
     python_bootcamp   = False
     activity_selected = False
-
-    # Corrupt cop chain flags (set by re_the_bribe, re_corrupt_cop_2)
-    corrupt_chain_1 = False             # True if player took the Day 6 bribe
-    corrupt_chain_2 = False             # True if player completed Day 12 chain event
 
     # Nootropic system state (Biohacker class only)
     nootropic_tier_max   = 1            # highest unlocked tier (1–5)
@@ -278,9 +268,6 @@ init python:
         flmodafinil_unlocked = False
         cold_read_index      = 0
         store._crisis_triggered = False
-        store.corrupt_chain_1 = False
-        store.corrupt_chain_2 = False
-        store.corrupt_chain_3_completed = False
         store._nightmare_wolf_triggered = False
         store._reunion_via_defeat = False
 
@@ -291,8 +278,7 @@ init python:
         store.de_profiles = {"rookie": 0, "veteran": 0, "lieutenant": 0, "clerk": 0}
         ## BH: PROTOCOL (current active compound profile, set by last nootropic taken).
         store.bh_protocol = None
-        ## Class-arc multi-stage flags (Trainer / Kovář / Telegram)
-        store.bb_arc_stage = 0
+        ## Class-arc multi-stage flags (Kovář / Telegram)
         store.de_arc_stage = 0
         store.bh_arc_stage = 0
         ## Phone notification queue — set-pieces append strings here, PHONE button
@@ -366,7 +352,6 @@ init python:
         "hackerman":        {"category": "Collection", "name": "Hackerman",               "desc": "Max out coding skill to 250. You are the compiler now.",        "hint": "Reach 250 Coding Skill (the cap)."},
         "the_return":       {"category": "Story",      "name": "The Return",              "desc": "Walk out of the station, then walk back six months later.",         "hint": "Leave the Colonel behind without the perfect exit. Six months later you'll find out what that costs."},
         ## --- Class arc achievements ---
-        "vladeks_pupil":    {"category": "Story",      "name": "Vladek's Pupil",          "desc": "Place at the Strongman competition. The trainer was right.",     "hint": "Bodybuilder only — finish Vladek's competition arc on the podium."},
         "bring_the_lt":     {"category": "Story",      "name": "Bring The Lieutenant",    "desc": "Expose Kovář's flagged report to journalists.",                  "hint": "Dark Empath only — choose to expose, not leverage or comply."},
         "subject_zero":     {"category": "Story",      "name": "Subject Zero",            "desc": "Become the trial. Document everything. Lose your baseline.",     "hint": "Biohacker only — agree to the 21-day compound trial."},
         "profile_master":   {"category": "Collection", "name": "Profile Master",          "desc": "Cold-read all four station targets at least three times each.",  "hint": "Dark Empath only — read every target deeply."},

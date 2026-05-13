@@ -676,8 +676,8 @@ label martin_good_ending_selection:
     martin "'JB, you're ready. I can't fight him for you, but I can give you an edge.'"
     martin "'He'll lie about your training contract. There's a paragraph that nukes the lie. Quote it and watch him choke.'"
 
-    ## TAKE / PASS via the shared solo offer screen (same UI Vladek uses for
-    ## Stage 3/3). On PASS the player still walks away with Stoic Anchor as
+    ## TAKE / PASS via the shared solo offer screen.
+    ## On PASS the player still walks away with Stoic Anchor as
     ## the consolation gift — Martin doesn't send him out empty-handed.
     python:
         _took_paragraph = offer_card_solo("paragraph_4b", "MARTIN — THE LEGAL NUKE")

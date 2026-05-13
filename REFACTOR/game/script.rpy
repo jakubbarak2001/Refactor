@@ -274,17 +274,8 @@ label day_start:
         if current_day == 15:
             renpy.call("midnight_call")
 
-        # Day 6 — Bribe event always fires (hardcoded, gates corrupt cop chain)
-        if current_day == 6:
-            renpy.call("re_the_bribe")
-        # Day 12 — Corrupt cop chain event 2 (only if bribe was taken on Day 6)
-        elif current_day == 12 and getattr(store, 'corrupt_chain_1', False):
-            renpy.call("re_corrupt_cop_2")
-        # Day 18 — Corrupt cop chain event 3 (only if chain 2 was completed)
-        elif current_day == 18 and getattr(store, 'corrupt_chain_2', False):
-            renpy.call("re_corrupt_cop_3")
-        # Random events every 3rd day, before day 22 (days 9, 15, 21 — or 12/18 if chain inactive)
-        elif current_day % 3 == 0 and current_day < 22:
+        # Random events every 3rd day, before day 22
+        if current_day % 3 == 0 and current_day < 22:
             renpy.call("random_event_check")
 
         # Martin Meeting — Day 24
@@ -484,7 +475,7 @@ label activity_gym_heavy:
         if not hasattr(store, 'gym_streak'):
             store.gym_streak = 0
 
-    "Vladek meets you at the door. He doesn't say hello. He looks at your shoulders, then your eyes, then nods once."
+    "The owner meets you at the door. Doesn't say hello. Looks at your shoulders, then your eyes, then nods once."
     "'Heavy day. We go until you can't grip the bar.'"
     "Two hours later your forearms feel like wet rope and your back is one long ache."
     "You drive home with the windows down. The wind is loud. Your head is finally quiet."
@@ -1631,7 +1622,6 @@ label random_event_check:
                 "re_suicide_call",
                 "re_retirement_party",
                 "re_coding_interview",
-                ## re_the_bribe excluded — hardcoded to Day 6
                 "re_system_update",
             ]
 

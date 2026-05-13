@@ -1751,7 +1751,7 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
 
 ## ---------------------------------------------------------------------------
 ## Card Solo Offer — TAKE / PASS prompt for arc-reward cards where there is
-## no stat alternative (Vladek 3/3, Martin's legal nuke). Card preview
+## no stat alternative (e.g. Martin's legal nuke). Card preview
 ## centered; TAKE / PASS buttons underneath. Same visual language as
 ## card_offer_screen so the player learns one pattern.
 ## ---------------------------------------------------------------------------
