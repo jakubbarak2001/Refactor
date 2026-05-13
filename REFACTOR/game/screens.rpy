@@ -2515,302 +2515,275 @@ screen difficulty_selection_screen():
     key "K_KP_ENTER" action [SetField(store, "_chosen_difficulty", DIFF_DATA[_hov]["key"]), Return()]
 
 
-## Class display data — order + portrait + flavor + trades. Mirrors DIFF_DATA.
+## Class display data — order + portrait + flavor. Triptych layout: one
+## full-bleed column per class. The playable column (BB) stays crisp + bright;
+## DE/BH are locked previews — blurred + dimmed, lightening a touch on their
+## own hover. Not selectable.
 init python:
     CLASS_SELECT_ORDER = ["bodybuilder", "dark_empath", "biohacker"]
     LOCKED_CLASSES = {"dark_empath", "biohacker"}
     CLASS_PORTRAITS = {
-        "bodybuilder": "jb_bb_portrait",
-        "dark_empath": "jb_de_portrait",
-        "biohacker":   "jb_bh_portrait",
+        "bodybuilder": "images/sprites/jb_bodybuilder.jpg",
+        "dark_empath": "images/sprites/jb_dark_empath.jpg",
+        "biohacker":   "images/sprites/jb_biohacker.jpg",
     }
-    CLASS_STARTERS = {
-        "bodybuilder": "heavy_set",
-        "dark_empath": "read_him",
-        "biohacker":   "stack_up",
-    }
-    CLASS_FLAVOR = {
-        "bodybuilder": "Hatred is fuel. Words bounce off muscle. — Trade-off: the coding curve is steep.",
-        "dark_empath": "The Colonel is a function with predictable inputs. — Trade-off: one mistake costs more.",
-        "biohacker":   "Stack the compounds. Read the data. Optimize the meat. — Trade-off: the crash hits hard.",
+    ## Crop rect (x, y, w, h) applied to each source jpg before it's scaled to
+    ## fill a column. Source images are 1264px tall; a column is 640x1080 → the
+    ## crop window is 749px wide. x is biased toward the right edge of the source
+    ## so the subject sits a touch left of centre in the column (looked shoved
+    ## right with a plain cover-fit, which anchors the crop top-left).
+    CLASS_CROP = {
+        "bodybuilder": (50, 0, 749, 1264),
+        "dark_empath": (70, 0, 749, 1264),
+        "biohacker":   (75, 0, 749, 1264),
     }
     CLASS_HOVER_SFX = {
         "bodybuilder": "audio/sfx/gym_plates.mp3",
         "dark_empath": "audio/sfx/dark_empath_whispers.mp3",
         "biohacker":   "audio/sfx/biohacker_lab.mp3",
     }
+    ## Brief flavor lines. The playable class (BB) also shows one perk-flavored
+    ## identity line (CLASS_IDENTITY) under the name; the locked previews fall
+    ## back to these. Full perks/decks/trades stay cut from this screen by design.
+    CLASS_FLAVOR = {
+        "bodybuilder": "Hatred is fuel. Words bounce off muscle.",
+        "dark_empath": "The Colonel is a function with predictable inputs.",
+        "biohacker":   "Stack the compounds. Read the data. Optimize the meat.",
+    }
+    CLASS_IDENTITY = {
+        "bodybuilder": "Words bounce off muscle. The grind pays — in cash and calm. Code comes slower.",
+    }
+    CLASS_COL_W = 640   # 1920 / 3
+
+    def _class_select_action(idx):
+        """Click/Enter action for class column `idx`: commit it if playable,
+        else fire the locked-column 'denied' feedback (recoil pulse + flash
+        message, both driven off the `_denied` screen var)."""
+        k = CLASS_SELECT_ORDER[idx]
+        if k in LOCKED_CLASSES:
+            return SetScreenVariable("_denied", idx)
+        return [SetField(stats, "player_class", k), Return()]
+
+
+## Per-column focus transforms — these wrap only the PORTRAIT layer. The
+## overlays (accent bar, name plate, bottom scrim, stamp/pill) sit *outside*
+## this, so they stay crisp + full-brightness no matter what's focused.
+##
+## _classcol_hero — the playable class (BB). Just centres the portrait: no
+## blur, no dim, no zoom, ever. It's crisp + full-brightness from frame one,
+## which is what makes it visibly own the screen next to the recessed locked
+## columns. (No hover zoom — it scaled the bright portrait up just enough to
+## poke past the bottom scrim's edges.)
+transform _classcol_hero:
+    anchor (0.5, 0.5)
+    pos (0.5, 0.5)
+    zoom 1.0
+
+## _classcol_locked_idle — DE / BH previews. Heavily blurred + dimmed at rest;
+## hovering un-blurs them just enough to read as a teaser, but they stay dim
+## (and the portrait keeps an image-level desaturation) so they never compete
+## with BB. Bare ATL == `on idle` target → no entry flicker. No zoom, so the
+## portrait can never poke past its column / the scrim either.
+transform _classcol_locked_idle:
+    anchor (0.5, 0.5)
+    pos (0.5, 0.5)
+    blur 11.0
+    matrixcolor BrightnessMatrix(-0.45)
+    on hover:
+        ease 0.25 blur 1.5 matrixcolor BrightnessMatrix(-0.25)
+    on idle:
+        ease 0.25 blur 11.0 matrixcolor BrightnessMatrix(-0.45)
+
+## Whole-column fade-up on screen entry (composed onto each column's outer
+## fixed). No `on` handlers, so the button's focus events pass straight through
+## to the portrait transform without disturbing the fade.
+transform _classcol_enter:
+    alpha 0.0
+    linear 0.40 alpha 1.0
+
+## Gentle breathing on the SELECT pill so the eye finds the click target.
+transform _select_pulse:
+    alpha 1.0
+    easein 0.9 alpha 0.6
+    easeout 0.9 alpha 1.0
+    repeat
+
+## Locked-column recoil — applied to the clicked column's LOCKED stamp.
+transform _deny_pulse:
+    zoom 1.0
+    easeout 0.10 zoom 1.16
+    easein 0.22 zoom 1.0
+
+## No-op transform — the `else` branch of a conditional `at` (Ren'Py needs a
+## real transform there, not None).
+transform _xf_none:
+    alpha 1.0
+
+## "that one's locked" flash message — fade in, hold, fade out (~1.15s).
+transform _deny_msg:
+    alpha 0.0
+    linear 0.15 alpha 1.0
+    pause 0.70
+    linear 0.30 alpha 0.0
 
 
 screen class_selection_screen():
     modal True
     zorder 500
 
-    default _cls_hov = 0
+    ## Which column the keyboard / last hover is "on" (0 = BB). Drives the
+    ## locked-column sub-text and the Enter-to-commit target.
+    default _focus  = 0
+    ## A locked column the player just tried to take (-1 = none). A timer
+    ## clears it; while set it drives the recoil pulse + the flash message.
+    default _denied = -1
 
-    ## Background
-    add "#0a0a0a"
+    add "#050505"
 
-    ## Subtle dark wash on left panel
-    frame:
-        xpos 0
-        ypos 0
-        xsize 720
-        ysize 1080
-        background "#0d000033"
-
-    ## Vertical red separator
-    frame:
-        xpos 718
-        ypos 0
-        xsize 3
-        ysize 1080
-        background "#cc2200"
-
-    ## Title (top-left)
-    vbox:
-        xpos 70
-        ypos 72
-        spacing 6
-
-        text "WHO ARE YOU, JB?":
-            color "#cc2200"
-            size 34
-            bold True
-            font "fonts/RobotoMono-Regular.ttf"
-
-        text "Three pivots. Same name. Choose your shape.":
-            color "#444444"
-            size 19
-            font "fonts/RobotoMono-Regular.ttf"
-
-    ## Class list (left) — whole-row click target.
+    ## --- The three columns ---
     for _i, _cls_key in enumerate(CLASS_SELECT_ORDER):
-        $ _cd = CLASS_DATA[_cls_key]
+        $ _cd     = CLASS_DATA[_cls_key]
         $ _accent = _cd["color"]
         $ _locked = _cls_key in LOCKED_CLASSES
-        $ _y = 220 + _i * 88
-        $ _hover_sfx = CLASS_HOVER_SFX.get(_cls_key)
+        $ _x      = _i * CLASS_COL_W
+        $ _hsfx   = CLASS_HOVER_SFX.get(_cls_key)
+        $ _idline = (CLASS_IDENTITY.get(_cls_key) or CLASS_FLAVOR[_cls_key])
 
         button:
-            xpos 0
-            ypos _y
-            xsize 718
-            ysize 88
-            background ("#1a000033" if _cls_hov == _i else "#00000000")
-            hover_background "#1a000033"
-            action (NullAction() if _locked else [SetField(stats, "player_class", _cls_key), Return()])
-            hovered ([SetScreenVariable("_cls_hov", _i), Play("sound", _hover_sfx)] if _hover_sfx else SetScreenVariable("_cls_hov", _i))
+            xpos _x
+            ypos 0
+            xsize CLASS_COL_W
+            ysize 1080
+            background "#00000000"
+            action _class_select_action(_i)
+            hovered [SetScreenVariable("_focus", _i), (Play("sound", _hsfx) if _hsfx else NullAction())]
 
-            hbox:
-                yalign 0.5
+            fixed:
+                ## Outer fixed: just fades the whole column up on entry. The
+                ## overlays below it stay un-blurred / full-brightness — only
+                ## the inner portrait layer gets the blur/dim/zoom treatment.
+                at _classcol_enter
+
+                ## --- Portrait layer (the only thing that blurs + dims) ---
+                fixed:
+                    at (_classcol_hero if not _locked else _classcol_locked_idle)
+                    ## Full-bleed portrait — source jpg cropped to the column's
+                    ## aspect (see CLASS_CROP), scaled to fill. Locked portraits
+                    ## also carry an image-level desaturation so they read as a
+                    ## ghost preview even when hovered.
+                    add CLASS_PORTRAITS[_cls_key]:
+                        crop CLASS_CROP[_cls_key]
+                        xysize (CLASS_COL_W, 1080)
+                        matrixcolor (SaturationMatrix(0.18) * BrightnessMatrix(-0.05) if _locked else IdentityMatrix())
+
+                ## --- Overlays (crisp, full brightness) ---
+
+                ## Top accent bar
+                add Solid(_accent if not _locked else "#666666"):
+                    xysize (CLASS_COL_W, 6)
+
+                ## Class name — centred on a scrim band over the upper portrait
                 frame:
-                    xsize 5
-                    ysize 88
-                    background ("#3a1a1a" if _locked else (_accent if _cls_hov == _i else "#1a0000"))
-                frame:
-                    xsize 22
-                    ysize 88
-                    background "#00000000"
-                text ("🔒 " if _locked else ("▶  " if _cls_hov == _i else "   ")):
-                    color ("#666666" if _locked else _accent)
-                    size 28
-                    yalign 0.5
-                    font "fonts/RobotoMono-Regular.ttf"
-                text _cd["name"]:
-                    color ("#555555" if _locked else (_accent if _cls_hov == _i else "#444444"))
-                    size  (32 if _cls_hov == _i else 28)
-                    bold  (_cls_hov == _i)
-                    italic _locked
-                    font  "fonts/RobotoMono-Regular.ttf"
-                    yalign 0.5
+                    xfill True
+                    ypos 70
+                    background "#000000aa"
+                    padding (0, 14)
+                    text _cd["name"]:
+                        xalign 0.5
+                        color (_accent if not _locked else "#888888")
+                        size 36
+                        bold True
+                        outlines [(2, "#000000", 0, 0)]
+                        font "fonts/RobotoMono-Regular.ttf"
 
-            ## Locked rows shouldn't commit on click — Return() is gated by the
-            ## ternary above, but explicitly nulling the action also makes the
-            ## intent unambiguous to a reader. (Hover focus still updates via
-            ## `hovered`, so the right-side details panel reacts correctly.)
+                ## No bottom scrim — the portrait stays fully visible. The bits
+                ## of text/UI below each carry their own tight backing so they
+                ## read on a bright portrait without darkening it.
 
-    ## --- Hovered class details (bottom-left) ---
-    python:
-        _cur_key      = CLASS_SELECT_ORDER[_cls_hov]
-        _cur_data     = CLASS_DATA[_cur_key]
-        _cur_color    = _cur_data["color"]
-        _cur_locked   = _cur_key in LOCKED_CLASSES
-        _cur_tagline  = "\"???\"" if _cur_locked else "\"" + _cur_data["tagline"] + "\""
-        _cur_flavor   = "\"???\"" if _cur_locked else "\"" + CLASS_FLAVOR[_cur_key] + "\""
-        _cur_coding   = "Coding   ???" if _cur_locked else "Coding   {:+d}".format(_cur_data["coding_modifier"])
-        _cur_hatred   = "Hatred   ???" if _cur_locked else "Hatred   {:+d}".format(_cur_data["hatred_modifier"])
-        _cur_perks    = (["???", "???", "???", "???"] if _cur_locked else list(_cur_data["perks"][:4]))
+                ## Bottom info: one identity line → SELECT pill / LOCKED stamp.
+                ## (The class name is in the plate up top, over the portrait.)
+                vbox:
+                    xpos 32
+                    yalign 1.0
+                    yoffset -32
+                    spacing 14
+                    xmaximum (CLASS_COL_W - 56)
 
-    ## Tagline
-    text _cur_tagline:
-        xpos 70
-        ypos 510
-        color "#cccccc"
-        size 22
-        italic True
-        font "fonts/RobotoMono-Regular.ttf"
-        xmaximum 620
+                    frame:
+                        background "#0b0b0bba"
+                        padding (14, 8)
+                        text _idline:
+                            color ("#e2e2e2" if not _locked else "#a8a8a8")
+                            size 18
+                            italic True
+                            xmaximum (CLASS_COL_W - 84)
+                            font "fonts/RobotoMono-Regular.ttf"
 
-    ## Separator
-    frame:
-        xpos 70
-        ypos 568
-        xsize 580
-        ysize 2
-        background "#2a0000"
+                    if _locked:
+                        ## LOCKED stamp — 2px border via a nested frame; recoils
+                        ## (_deny_pulse) when this column was just clicked.
+                        frame:
+                            background "#5a3a3a"
+                            padding (2, 2)
+                            at (_deny_pulse if _denied == _i else _xf_none)
+                            frame:
+                                background "#0a0606ee"
+                                padding (22, 10)
+                                vbox:
+                                    spacing 4
+                                    text "LOCKED":
+                                        color "#cccccc"
+                                        size 25
+                                        bold True
+                                        font "fonts/RobotoMono-Regular.ttf"
+                                    text ("PREVIEW ONLY — CAN'T SELECT YET" if _focus == _i else "IN DEVELOPMENT"):
+                                        color ("#bdbdbd" if _focus == _i else "#9a9a9a")
+                                        size 14
+                                        font "fonts/RobotoMono-Regular.ttf"
+                    else:
+                        ## SELECT pill — the click affordance (the whole column
+                        ## is the hit target; this just shows where to click).
+                        ## Dark-backed + accent-bordered so it pops on the
+                        ## un-scrimmed bright portrait.
+                        frame:
+                            background (_accent + "cc")
+                            padding (2, 2)
+                            at _select_pulse
+                            frame:
+                                background "#0c0c0cdd"
+                                padding (22, 11)
+                                text "▶  SELECT":
+                                    color _accent
+                                    size 24
+                                    bold True
+                                    outlines [(1, "#000000", 0, 0)]
+                                    font "fonts/RobotoMono-Regular.ttf"
 
-    ## Trades block — starting modifiers
-    vbox:
-        xpos 70
-        ypos 584
-        spacing 4
-
-        text "TRADES":
-            color _cur_color
-            size 14
-            bold True
-            font "fonts/RobotoMono-Regular.ttf"
-
-        text _cur_coding:
-            color "#C8A44E"
-            size 19
-            font "fonts/RobotoMono-Regular.ttf"
-
-        text _cur_hatred:
-            color "#C8A44E"
-            size 19
-            font "fonts/RobotoMono-Regular.ttf"
-
-    ## Kit block — perks (concise)
-    vbox:
-        xpos 70
-        ypos 730
-        spacing 4
-
-        text "KIT":
-            color _cur_color
-            size 14
-            bold True
-            font "fonts/RobotoMono-Regular.ttf"
-
-        for _perk in _cur_perks:
-            text _perk:
-                color "#aaaaaa"
-                size 14
-                xmaximum 580
-                font "fonts/RobotoMono-Regular.ttf"
-
-    ## Flavor (manifesto-like)
-    text _cur_flavor:
-        xpos 70
-        ypos 920
-        color "#666666"
-        size 14
-        italic True
-        font "fonts/RobotoMono-Regular.ttf"
-        xmaximum 620
-
-    ## Confirm hint — switches to a lock notice when hovering a locked class
-    text ("— LOCKED IN THIS VERSION · COMING SOON —" if _cur_locked else "— CLICK OR PRESS ENTER TO COMMIT —"):
-        xpos 70
-        ypos 1010
-        color ("#3a1a1a" if _cur_locked else "#551100")
-        size 16
-        font "fonts/RobotoMono-Regular.ttf"
-
-    ## Right panel — JB portrait, class-color border, swaps on hover.
-    ## Frame: 504x754 outer (orange border) wrapping a 500x750 inner mask.
-    ## Image is pre-scaled to 500x750 so it fills the inner frame exactly.
-    frame:
-        xpos 1068
-        ypos 163
-        xsize 504
-        ysize 754
-        background ("#3a1a1a" if _cur_locked else _cur_color)
-    frame:
-        xpos 1070
-        ypos 165
-        xsize 500
-        ysize 750
-        background "#0a0a0a"
-
-    add CLASS_PORTRAITS[_cur_key]:
-        xpos 1070
-        ypos 165
-        at _cls_portrait_anim
-        alpha (0.30 if _cur_locked else 1.0)
-
-    ## Class name overlay — sits on the bottom 60px of the portrait
-    frame:
-        xpos 1070
-        ypos 855
-        xsize 500
-        ysize 60
-        background Frame("#0a0a0aee", 0, 0)
-
-        text (("🔒  " + _cur_data["name"]) if _cur_locked else _cur_data["name"]):
-            color ("#666666" if _cur_locked else _cur_color)
-            size 28
-            bold True
+    ## --- "that column is locked" flash + auto-clear. Sits over the upper
+    ## portrait, below the name plates and clear of the bottom UI cluster. ---
+    if _denied >= 0:
+        $ _deny_name = CLASS_DATA[CLASS_SELECT_ORDER[_denied]]["name"]
+        frame:
             xalign 0.5
-            yalign 0.5
-            font "fonts/RobotoMono-Regular.ttf"
-
-    ## Starting deck preview — below the portrait
-    python:
-        _starter_signature = CLASS_STARTERS.get(_cur_key, None)
-        _starter_card = CARD_LIBRARY.get(_starter_signature, {}) if _starter_signature else {}
-
-    vbox:
-        xpos 1070
-        ypos 935
-        xsize 500
-        spacing 4
-
-        text "STARTING DECK":
-            color ("#666666" if _cur_locked else _cur_color)
-            size 12
-            bold True
-            font "fonts/RobotoMono-Regular.ttf"
-
-        if _cur_locked:
-            text "1× ???   —   ???":
-                color "#666666"
-                size 13
-                italic True
+            ypos 210
+            background "#1a0606ee"
+            padding (28, 12)
+            at _deny_msg
+            text "[_deny_name] is still in development — BODYBUILDER is the only class you can take right now.":
+                color "#dd9d8c"
+                size 16
+                xalign 0.5
                 font "fonts/RobotoMono-Regular.ttf"
-        elif _starter_card:
-            hbox:
-                spacing 6
-                text "1× {}".format(_starter_card.get("name", "?")):
-                    color "#ffffff"
-                    size 13
-                    bold True
-                    font "fonts/RobotoMono-Regular.ttf"
-                text "— {}".format(_starter_card.get("flavor", "")):
-                    color "#888888"
-                    size 12
-                    italic True
-                    xmaximum 380
+        timer 1.2 action SetScreenVariable("_denied", -1)
 
-        text ("???" if _cur_locked else "4× Strike   ·   4× Defend"):
-            color ("#555555" if _cur_locked else "#aaaaaa")
-            size 12
-            font "fonts/RobotoMono-Regular.ttf"
-
-    ## Keyboard nav — ENTER only commits if the hovered class is unlocked
-    key "K_UP"       action SetScreenVariable("_cls_hov", max(0, _cls_hov - 1))
-    key "K_DOWN"     action SetScreenVariable("_cls_hov", min(2, _cls_hov + 1))
-    key "K_RETURN"   action ([NullAction()] if CLASS_SELECT_ORDER[_cls_hov] in LOCKED_CLASSES else [SetField(stats, "player_class", CLASS_SELECT_ORDER[_cls_hov]), Return()])
-    key "K_KP_ENTER" action ([NullAction()] if CLASS_SELECT_ORDER[_cls_hov] in LOCKED_CLASSES else [SetField(stats, "player_class", CLASS_SELECT_ORDER[_cls_hov]), Return()])
-
-
-## Portrait fade-on-show transform (matches difficulty screen)
-transform _cls_portrait_anim:
-    on show:
-        alpha 0.0
-        linear 0.18 alpha 1.0
-    alpha 1.0
+    ## Keyboard nav is Ren'Py's built-in button focus: Left/Right move focus
+    ## between the three columns, Enter activates the focused one (same path as
+    ## a click — its `action _class_select_action(_i)`). `hovered` fires on
+    ## keyboard focus too, so it keeps `_focus` in sync and the `on hover`/
+    ## `on idle` ATL events animate the portrait under keyboard nav as well.
+    ## (No explicit `key` handlers — they'd double-dispatch against the focused
+    ## button's own activation, and a locked column's no-Return action would
+    ## then let the still-focused BB button commit by accident.)
 
 
 style class_select_btn is button_text:

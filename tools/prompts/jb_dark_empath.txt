@@ -1,0 +1,16 @@
+CHARACTER PORTRAIT — "JB, THE DARK EMPATH" — an alternate-life version of JB, the early-30s protagonist of a cop-themed visual novel. The FIRST attached image is the existing version of this exact portrait (jb_dark_empath.jpg) — KEEP its composition, framing, pose, setting and rendering style. The other attached images (jb_neutral.png, jb_smirk.png) are the canonical face/style reference. This is a clean re-render, not a redesign.
+
+KEEP THE SAME (from jb_dark_empath.jpg):
+- Composition: tall vertical portrait, the man centered, cropped roughly waist-up, body turned slightly while the head faces the camera. A little headroom at the top.
+- Setting: a police-station interior corridor behind him — institutional ceiling lights, lockers / doors, two uniformed officers blurred deep in the background. Cool, slightly desaturated, low-key lighting.
+- Outfit: a long brown detective/trench overcoat with a popped collar, worn open over a dark (near-black) shirt; a small dark rectangular "POLICIE" patch in yellow caps on the coat and a yellow shield patch on the shoulder (keep the text clean and legible, not garbled).
+- Render style: smooth semi-realistic 3D character render — clean soft shading, subtle subsurface skin, gentle rim light, NO painterly brushstrokes, NO sketch lines, no anime — the same idealized "video-game cinematic" look as the canon sprites.
+
+THE CHARACTER (match the canon face exactly — copy from jb_neutral.png / jb_smirk.png):
+- Early-30s man, strong square jaw, defined cheekbones, short dark brown hair (neat side-part / tight fade), thick straight dark eyebrows, brown slightly-hooded eyes, light even stubble, warm-neutral skin tone (NO green/teal cast). Athletic build (normal, not bulked).
+- Expression: a quiet, knowing half-smile — calm, perceptive, slightly unsettling, like he's already read you. "You feel everything. You weaponize it." Not a broad grin — a subtle, intelligent, faintly predatory smirk; eyes doing most of the work.
+
+ABSOLUTE RULES:
+- Same composition + setting + outfit + render pipeline as the attached jb_dark_empath.jpg — this is a quality re-render, keep the framing.
+- Same recognizable JB face — do not change jaw, hairline, brows, nose.
+- Crisp, clean image; "POLICIE" patch text legible, not garbled; no extra props or clutter beyond the corridor setting.

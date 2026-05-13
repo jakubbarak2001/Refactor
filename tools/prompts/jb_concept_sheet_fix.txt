@@ -1,0 +1,7 @@
+The attached image is a finished character turnaround sheet (jb_concept_sheet_1.jpg). Return it UNCHANGED except for ONE single fix.
+
+DO NOT CHANGE ANYTHING ELSE. Keep every other panel pixel-for-pixel identical: the FRONT bust, the LEFT PROFILE bust, the 3/4 RIGHT bust, the RIGHT PROFILE bust, the bottom expression row (NEUTRAL / ANGRY / BORED / BROKEN), all the labels, the white background, the layout, the rendering style, the lighting, the face, the outfit, the "POLICIE" patches. Identical.
+
+THE ONLY FIX: the panel currently labelled "3/4 LEFT" (top row, second from left) is drawn almost front-on — it barely reads as a three-quarter view. Redraw ONLY that one panel so the head and torso are turned roughly 30-45 degrees to the character's left, showing a clear, proper 3/4 angle of the same man (same face, same crossed-arms pose, same black plate-carrier vest with the "POLICIE" patch, same render style, same white background, same crop). It must obviously read as "3/4" next to the front view — distinct from it, not a near-duplicate.
+
+Output the full sheet with that single panel corrected and everything else untouched.

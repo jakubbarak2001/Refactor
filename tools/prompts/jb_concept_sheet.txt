@@ -1,0 +1,25 @@
+CHARACTER TURNAROUND SHEET for "JB" — protagonist of a cop-themed visual novel. CRITICAL: match the EXACT rendering style of the attached reference images (jb_neutral.png, jb_angry.png, jb_bored.png, jb_broken.png). That style is: smooth semi-realistic 3D character render — clean soft studio lighting, subtle subsurface skin shading, gentle rim light, NO visible painterly brushstrokes, NO sketch lines, slightly idealized "video-game cinematic" look. Pure white background. Tight upper-body / bust crop. Do not deviate from this style — the sheet must look like it was rendered in the same pipeline as the reference sprites.
+
+THE CHARACTER (identical in every panel — copy the face from the references EXACTLY):
+- Early-30s man. Strong square jaw, defined cheekbones. Short dark brown hair, neat side-parted / slicked-back top with a tight clean fade on the sides. Thick straight dark eyebrows. Brown eyes, slightly hooded. Light even stubble. Warm-neutral skin tone — NO green/teal cast. Athletic, broad-shouldered, muscular build.
+
+THE OUTFIT (identical in every panel — copy from the references EXACTLY):
+- Black tactical plate carrier vest over a black short-sleeve t-shirt, bare muscular forearms.
+- On the LEFT chest plate: a rectangular black velcro patch with the word "POLICIE" in CLEAN, BOLD, CLEARLY LEGIBLE YELLOW CAPITAL LETTERS. The text must be sharp and readable — not blurred, not garbled, spelled exactly P-O-L-I-C-I-E.
+- On the RIGHT shoulder: a yellow shield-shaped "POLICIE" patch.
+- Black MOLLE pouches across the lower vest, black belt. Arms crossed in front of the chest (like the references) for the front-facing panels.
+
+LAYOUT — a clean horizontal turnaround sheet, white background, thin small labels under each bust:
+1. FRONT — neutral expression, arms crossed (this should look essentially identical to jb_neutral.png).
+2. 3/4 LEFT — neutral.
+3. LEFT PROFILE — neutral.
+4. 3/4 RIGHT — neutral.
+5. RIGHT PROFILE — neutral.
+Optionally one small extra row with 3-4 of the canon expressions (neutral, angry brow-furrow, tired/bored, broken/hand-on-forehead) at small size — but keep it MINIMAL; the turnaround views are the priority. Do NOT fill the sheet with a big expression grid.
+
+ABSOLUTE RULES:
+- Match the reference RENDER STYLE exactly — smooth 3D render, not concept-painting, not anime, not cartoon.
+- Same face in every panel. Do not change jaw, hairline, brows, nose.
+- "POLICIE" patch text must be crisp and readable yellow caps.
+- One outfit only — the black police plate-carrier kit. No civilian clothes.
+- Pure white background. Tight upper-body crops. Soft even lighting.

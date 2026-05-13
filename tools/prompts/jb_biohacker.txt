@@ -1,0 +1,19 @@
+CHARACTER PORTRAIT — "JB, THE BIOHACKER" — an alternate-life version of JB, the early-30s protagonist of a cop-themed visual novel. CRITICAL: match the EXACT rendering style of the attached reference images (jb_neutral.png, jb_smirk.png). That style is: smooth semi-realistic 3D character render — clean soft shading, subtle subsurface skin, gentle rim light, NO visible painterly brushstrokes, NO sketch lines, no anime, no cartoon — a slightly idealized "video-game cinematic" look. Same face as the references: early-30s man, strong square jaw, defined cheekbones, short dark brown hair (neat, side-parted / lightly slicked), thick straight dark eyebrows, brown slightly-hooded eyes, light even stubble, warm-neutral skin tone (NO green/teal cast on the skin itself). Athletic build. He must be clearly recognizable as the same man as in the references.
+
+COMPOSITION: a single vertical PORTRAIT — head-and-upper-chest bust, subject DEAD CENTER with a little headroom at the top. NOT a white background this time: he is half-emerging from a near-black, deep-shadow background — face lit, body falling off into darkness, "lurking out of the dark" framing. Vertical / tall aspect (roughly 2:3).
+
+THE GAG (play it completely straight — he is dead serious about an absurd routine):
+- A single neat horizontal strip of pale beige/white "mouth tape" sealed across his lips (the nasal-breathing sleep biohack). His mouth is taped shut — but the smugness reads entirely through the EYES and the faint lift of his cheeks: a knowing, superior, mysterious half-smile-with-the-eyes. The vibe is "I will live to 120 and none of you know my secrets." Calm, ominous, slightly unsettling confidence. Not goofy — deadpan and a little cult-leader.
+- Subtle biohacker tells, kept tasteful, not cluttered: a small circular continuous-glucose-monitor patch on one upper arm; a matte black sleep-tracking ring on a finger if a hand is visible; maybe a thin black recovery/EEG headband. Optional faint thin wires.
+
+LIGHTING / MOOD:
+- Behind and to one side of him: the deep red glow of red-light-therapy panels — a wall of warm crimson light bleeding a strong red rim onto that side of his face, hair and shoulder.
+- From the other side / front: a cool, faint cyan-teal techy glow (as if from monitors / data readouts), catching the edge of his cheekbone and glinting in his eye.
+- Otherwise low-key, moody, mysterious. Soft volumetric haze. The red and the cyan should frame the face dramatically against the black.
+
+ABSOLUTE RULES:
+- Same render pipeline / style as the reference sprites — smooth 3D render, not painting, not anime.
+- Same recognizable JB face — do not change jaw, hairline, brows, nose.
+- Mouth taped with ONE clean horizontal strip; expression carried by the eyes — confident, ominous, secretive, faintly amused.
+- Dark background, subject centered, vertical bust crop, with the red-panel glow + subtle cyan tech glow as the only major light sources.
+- Keep it tasteful and cinematic — one or two biohacker props max, no busy clutter.
