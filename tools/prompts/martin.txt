@@ -1,0 +1,15 @@
+Regenerate the character "Martin" from the attached martin_normal.png reference, keeping him EXACTLY consistent — same face, same person, same rendering style.
+
+THE CHARACTER (copy from the reference exactly):
+- Man, around 30. Short dark-blond / light-brown hair, neatly cropped, slightly textured on top, faded short on the sides. Light-brown short beard / heavy stubble, neatly groomed. Light hazel-green eyes, friendly but sharp. Straight nose, defined but soft jaw. Fair, warm skin tone — NO green/teal cast. Lean-athletic build, decent shoulders. Approachable, confident "successful young tech guy" vibe.
+- Outfit: a fitted dark navy short-sleeve polo shirt, top button undone. A simple dark wristwatch on the left wrist. Smart-casual.
+- Pose / framing: relaxed upper-body / bust shot, one hand resting on hip (as in the reference), slight turn of the torso, head facing roughly toward the viewer. Pure white / very light background. Same tight crop as the reference.
+- Rendering style: smooth semi-realistic digital painting — soft studio lighting, gentle rim light, subtle painterly brushwork, clean edges. Match the reference exactly. NOT photoreal, NOT anime, NOT cartoon.
+
+EXPRESSION: warm, easy, slightly knowing half-smile — relaxed and confident (same as the reference martin_normal.png).
+
+ABSOLUTE RULES:
+- Same face as the reference. Do not change the hairline, beard shape, eye colour, nose, or jaw.
+- Same navy polo, same watch, same hand-on-hip pose, same crop.
+- Pure white background.
+- Match the reference's painterly render style precisely.

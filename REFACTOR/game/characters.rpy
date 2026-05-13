@@ -101,11 +101,11 @@ image jb_de_portrait = im.Scale("images/sprites/jb_dark_empath.jpg", 500, 750)
 image jb_bh_portrait = im.Scale("images/sprites/jb_biohacker.jpg",   500, 750)
 
 ## Colonel sprites
-image colonel normal        = im.Scale("images/sprites/colonel_normal.png",        600, 900)
-image colonel angry         = im.Scale("images/sprites/colonel_angry.png",         600, 900)
-image colonel disappointed  = im.Scale("images/sprites/colonel_dissapointed.png",  600, 900)
-image colonel smug          = im.Scale("images/sprites/colonel_smug.png",          600, 900)
-image colonel shaken        = im.Scale("images/sprites/colonel_shaken.png",        600, 900)
+image colonel normal        = im.Scale("images/sprites/npcs/colonel_normal.png",        600, 900)
+image colonel angry         = im.Scale("images/sprites/npcs/colonel_angry.png",         600, 900)
+image colonel disappointed  = im.Scale("images/sprites/npcs/colonel_dissapointed.png",  600, 900)
+image colonel smug          = im.Scale("images/sprites/npcs/colonel_smug.png",          600, 900)
+image colonel shaken        = im.Scale("images/sprites/npcs/colonel_shaken.png",        600, 900)
 
 ## Difficulty selection portrait images — portrait orientation ~420x630
 image diff_easy   = im.Scale("images/pictures/easy_difficulty_pic.png",   420, 630)
@@ -114,10 +114,25 @@ image diff_insane = im.Scale("images/pictures/insane_difficulty_pic.png", 420, 6
 image diff_ultra  = im.Scale("images/pictures/ultra_difficulty_pic.png",  420, 630)
 
 ## Martin sprites — source is square, scale proportionally to match 900px height
-image martin normal  = im.Scale("images/sprites/martin_normal.png", 600, 900)
-image martin default = im.Scale("images/sprites/martin_normal.png", 600, 900)
-image martin smiling = im.Scale("images/sprites/martin_normal.png", 600, 900)
-image martin serious = im.Scale("images/sprites/martin_normal.png", 600, 900)
+image martin normal  = im.Scale("images/sprites/npcs/martin_normal.png", 600, 900)
+image martin default = im.Scale("images/sprites/npcs/martin_normal.png", 600, 900)
+image martin smiling = im.Scale("images/sprites/npcs/martin_normal.png", 600, 900)
+image martin serious = im.Scale("images/sprites/npcs/martin_normal.png", 600, 900)
 
 ## Inspector sprites (GIBS — Happy Nation ending)
-image inspector neutral = im.Scale("images/sprites/inspector_neutral.png", 600, 900)
+image inspector neutral = im.Scale("images/sprites/npcs/inspector_neutral.png", 600, 900)
+
+## Battle-ladder enemies (northern-Bohemia police-case grotesques)
+## Easy tier
+image rvac neutral          = im.Scale("images/sprites/enemies/rvac_neutral.png",          600, 900)
+image sprejeri neutral      = im.Scale("images/sprites/enemies/sprejeri_neutral.png",      600, 900)
+image fanousek neutral      = im.Scale("images/sprites/enemies/fanousek_neutral.png",      600, 900)
+image spis neutral          = im.Scale("images/sprites/enemies/spis_neutral.png",          600, 900)
+## Medium tier
+image nguyen neutral        = im.Scale("images/sprites/enemies/nguyen_neutral.png",        600, 900)
+image varic neutral         = im.Scale("images/sprites/enemies/varic_neutral.png",         600, 900)
+image pastyrak neutral      = im.Scale("images/sprites/enemies/pastyrak_neutral.png",      600, 900)
+image dispatcher neutral    = im.Scale("images/sprites/enemies/dispatcher_neutral.png",    600, 900)
+## Hard tier
+image inspekce neutral      = im.Scale("images/sprites/enemies/inspekce_neutral.png",      600, 900)
+image garda neutral         = im.Scale("images/sprites/enemies/garda_neutral.png",         600, 900)

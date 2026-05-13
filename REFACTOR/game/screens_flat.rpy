@@ -92,7 +92,6 @@ init python:
     _C_KNIFE  = "images/jb_flat/colonel_knife.png"
     _C_DEFACE = "images/jb_flat/colonel_deface.png"   # red-marker vandalism + ZRÁDCE over the photo
     _C_WALL   = "images/jb_flat/colonel_wall.png"     # "ALL COPS ARE BEAUTIFUL (:" etc. on the wall
-    _C_SCHIZO = "images/jb_flat/colonel_schizo.png"   # manic "POLICIE POLICIE" cop-doodle scrawl, wall between calendar & photo
     _C_BAZ    = "images/jb_flat/colonel_bazooka.png"
 
     COLONEL_THRESHOLDS = [20, 35, 50, 70, 82, 90]
@@ -108,14 +107,12 @@ init python:
         50: [(_C_KNIFE, 621, 345, 100, 70, 0)],
         70: [(_C_DEFACE, 595, 341, 67, 41, 0)],
         82: [(_C_DEFACE, 595, 341, 67, 41, 0),
-             (_C_WALL, 125, 10, 380, 200, 17),
-             (_C_SCHIZO, 355, 255, 180, 100, 5)],
+             (_C_WALL, 125, 10, 380, 200, 17)],
         90: [(_C_WALL, 125, 10, 380, 200, 17),
-             (_C_SCHIZO, 355, 255, 180, 100, 5),
              (_C_BAZ, 241, 64, 482, 516, 0)],
     }
     # fallback colours used if a PNG is missing (so it never crashes)
-    COLONEL_PLACEHOLDER = {_C_DART: "#ffcc00", _C_KNIFE: "#cccccc", _C_DEFACE: "#cc2222", _C_WALL: "#202020", _C_SCHIZO: "#303030", _C_BAZ: "#3a2a1a"}
+    COLONEL_PLACEHOLDER = {_C_DART: "#ffcc00", _C_KNIFE: "#cccccc", _C_DEFACE: "#cc2222", _C_WALL: "#202020", _C_BAZ: "#3a2a1a"}
     COLONEL_DECAL_DEFAULT = (495, 280, 120, 140, 0)
 
     # static props composited onto the flat: (image, left, top, width, height, rotate_deg, class_or_None).
