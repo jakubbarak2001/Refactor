@@ -200,7 +200,7 @@ init -1 python:
         bg_id        = "courtroom",
         log_name     = "Counsel",
         tier         = "medium",
-        max_hp       = 130,
+        max_hp       = 120,
         deck_template = ["objection", "cross_examine", "paragraph_5_2", "procedural_shield", "build_argument", "intimidate"],
         wrinkle      = "paragraph_cite",
         wrinkle_data = {"cadence": 3, "bonus_dmg": 6},
@@ -235,7 +235,7 @@ init -1 python:
         sprite_id    = "inspekce",
         log_name     = "Internal Affairs",
         tier         = "hard",
-        max_hp       = 175,
+        max_hp       = 150,
         deck_template = [
             "interview", "audit", "quote_regulation",
             "formal_warning", "case_review", "wire_check", "transfer_pending",
@@ -253,7 +253,7 @@ init -1 python:
         sprite_id    = "garda",
         log_name     = "Guard",
         tier         = "hard",
-        max_hp       = 210,
+        max_hp       = 180,
         deck_template = [
             "breach_swing", "kettle", "shield_wall", "gas_throw",
             "baton_combo", "formation_buff", "phalanx_block", "clear_room",
