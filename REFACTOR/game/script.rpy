@@ -778,12 +778,18 @@ label bouncer_strip_bar:
             _btext = "A fight breaks out inside. You break it up, but one participant recognizes your face from the force.\n'Ty vole, to je POLDA!' Your boss gives you only a partial payout."
             _boutcome = "+{} CZK, +25 PCR HATRED{}".format(1000 + _bb_cash, _bb_tag)
         else:
-            _pending_money = -12500 + _bb_cash
-            _pending_hatred = 35
-            _pending_coding = -5
-            _strip_card = "loan_sharks"
-            _btext = "You turn your back for one second — enough for a coked-up idiot to drive a vodka bottle into your skull.\nPolice arrives and discovers you're moonlighting illegally. Your boss is furious."
-            _boutcome = "{} CZK, +35 PCR HATRED, -5 CODING SKILLS{}".format(-12500 + _bb_cash, _bb_tag)
+            ## Worst-case strip bar outcome — pure beat-up, no debt. The old
+            ## version subtracted 12.5K CZK AND offered loan_sharks card AND
+            ## stripped 5 coding. One bad RNG roll could torpedo a run. Now
+            ## you just take the hatred hit; the bouncer profession is the
+            ## risk, not getting put in actual debt.
+            _pending_money = _bb_cash
+            _pending_hatred = 30
+            _btext = "You turn your back for one second — enough for a coked-up idiot to drive a vodka bottle into your skull.\nThe ambulance is faster than the cops. The boss doesn't pay you for the night — but he doesn't fire you either.\nThe headache lasts three days. The stitches itch worse."
+            if _bb_cash:
+                _boutcome = "+{} CZK [BB BONUS], +30 PCR HATRED".format(_bb_cash)
+            else:
+                _boutcome = "No pay tonight, +30 PCR HATRED"
 
     "[_btext]"
 
@@ -1061,13 +1067,13 @@ label activity_night_shift:
     scene bg_police_interior
 
     "You volunteer for the extra night shift."
-    "3,000 CZK for 8 more hours in uniform."
+    "5,000 CZK for 8 more hours in uniform."
     "You don't need the money. But you do need the distraction."
 
     menu:
-        "Take the shift. (+3,000 CZK) (+ [[CARD] BACKUP)":
+        "Take the shift. (+5,000 CZK) (+ [[CARD] BACKUP)":
             python:
-                stats.increment_stats_value_money(3000)
+                stats.increment_stats_value_money(5000)
                 stats.increment_stats_pcr_hatred(15)
 
                 ## Random chance for a coding opportunity or incident during night shift
@@ -1096,7 +1102,7 @@ label activity_night_shift:
             "You check your watch every hour."
             "[_ns_bonus]"
             window hide
-            show screen outcome_panel("+3,000 CZK, +15 PCR HATRED.{}".format(_ns_bonus))
+            show screen outcome_panel("+5,000 CZK, +15 PCR HATRED.{}".format(_ns_bonus))
             pause
             hide screen outcome_panel
 

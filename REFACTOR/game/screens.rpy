@@ -979,7 +979,7 @@ screen activity_select_screen():
             title          = "NIGHT SHIFT",
             accent         = "#3388cc",
             cost_text      = "FREE",
-            effect_chips   = [("CZK", +3000), ("Hatred", +15)],
+            effect_chips   = [("CZK", +5000), ("Hatred", +15)],
             flavor_text    = "Trade time for money.",
             class_relevant = False,
         )
