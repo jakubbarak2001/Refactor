@@ -372,10 +372,10 @@ init python:
                 "Immune to Colonel's Brotherhood guilt trip.",
                 "Extra brute-force option if caught at car incident.",
             ],
-            "passive": "Built for the long fight. Persistent HP scales with gym attendance; bouncer bonus turns physical work into capital.",
+            "passive": "Built for the long fight. Persistent HP scales with gym attendance; bouncer bonus turns physical work into capital. Coding caps at 100 — you can buy your way to Junior Dev, not Senior.",
             "coding_modifier":   0,
             "hatred_modifier":   0,
-            "coding_ceiling":  250,
+            "coding_ceiling":  100,
         },
         "dark_empath": {
             "name":    "DARK EMPATH",
