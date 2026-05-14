@@ -62,21 +62,17 @@ label colonel_event:
         _outcome = battle_outcome()
         battle_finish()
 
-    ## Outcome routing.
-    ## CORRUPT chain overrides everything: ÚRNA gets you regardless of fight quality.
-    ## Only a perfect victory with sustainable stats earns the triumphant good_ending —
-    ## the glitch phase confirms JB actually broke the loop. Everything else routes
-    ## to reunion_ending, the "six months later you walked back to the station" coda:
-    ##   - close/pyrrhic victory (any stats)
-    ##   - perfect victory with stat-starved life
-    ##   - defeat (lost the argument but walked out anyway — the "I'm doing it
-    ##     anyway" defiance beat is gated on _reunion_via_defeat in reunion_ending)
-    if _outcome == "defeat":
-        $ store._reunion_via_defeat = True
-        jump reunion_ending
-
-    if _outcome != "victory_perfect" or (stats.coding_skill < 70 and stats.available_money < 25000):
-        jump reunion_ending
+    ## Outcome routing — reunion_ending temporarily hidden.
+    ## Any non-defeat outcome (perfect / pyrrhic / close) routes to good_ending
+    ## via the glitch phase. Defeat also routes to good_ending as a stopgap until
+    ## reunion is re-enabled. To restore the original split, uncomment the block
+    ## below and remove the unconditional jump.
+    ##
+    ## if _outcome == "defeat":
+    ##     $ store._reunion_via_defeat = True
+    ##     jump reunion_ending
+    ## if _outcome != "victory_perfect" or (stats.coding_skill < 70 and stats.available_money < 25000):
+    ##     jump reunion_ending
 
     jump colonel_glitch_phase
 
@@ -153,72 +149,38 @@ label colonel_glitch_phase:
 
     pause 0.5
 
-    "He stumbles. One step back. Then another."
-    "The deck slides off the desk in a slow, painterly arc — fifty-two suits and ranks fanning across the parquet — and the sound of the cards hitting the floor arrives a full second too late, drawn out like a dragged audio file."
-    "The Czech flag is on fire. Half the ceiling is gone. The wind through the empty window-frame has no temperature."
+    "He stumbles. The deck slides off the desk and the sound arrives a second too late."
+    "His mouth opens. Closes. No breath behind it."
 
     pause 0.8
-
-    "He looks at you."
-    "His mouth opens. Closes. Opens. The shape of words but no breath behind them."
-    "Thirty-two years of being the man in this room and his face cannot find a single expression that fits being beaten by his son."
-
-    pause 1.0
 
     scene bg_black with glitch_transition
 
     "[[ERROR]: NPC_STATE.integrity = CRITICAL"
-    "[[ERROR]: Attempting rollback..."
+    "[[ERROR]: Rollback FAILED. Reverting to cached state — bureaucracy_protocol_v1.exe"
 
-    pause 0.8
-
-    "[[ERROR]: Rollback FAILED."
-    "[[ERROR]: Reverting to cached state — bureaucracy_protocol_v1.exe"
-    "[[ERROR]: Reloading scene_assets..."
-
-    pause 1.2
+    pause 1.0
 
     scene bg_police_office with glitch_transition
     show colonel normal at char_right
 
-    "The room reassembles itself around him."
-    "The plaster un-cracks. The flagpole un-bends. The framed certificates float back into their grid, glass un-shattering itself in a faint reverse-tinkle. The Czech flag re-knits itself out of its own ash."
-    "The desk — split in two a moment ago — slides back together along its own seam."
-
-    pause 0.5
-
-    "He stands up straight."
-    "His shoulders square."
-    "His face rearranges itself into the exact expression he wore when you walked into this office for the first time, twenty years ago, as a recruit who didn't know any better."
+    "The room reassembles. The desk slides back together. He stands up straight."
+    "But the geometry is too clean. The light has no source. The air has stopped moving."
 
     pause 0.6
 
-    "But you can feel it — every detail of this room is wrong now in a way you cannot name. The geometry is too clean. The light has no source. The air has stopped moving."
-    "Your blood runs cold."
     "He is looping."
-    "He can't see you. He cannot process what just happened because there is no line of code for it."
-
-    pause 0.6
-
-    "He is not a man."
-    "He is a script."
     "{i}police_bureaucracy.exe{/i} — runtime: 32 years."
 
     pause 0.6
 
-    "He opens his mouth."
     colonel "'You are a {b}COWARD{/b}, JB! You were never fit for this force!'"
 
-    "And there it is."
-    "The opening line."
-    "Word for word, syllable for syllable, the same gravel in the throat, the same fleck of spit on the last consonant."
-    "Every fight you have ever lost with him rises up at once and pulls — pulls hard — at the front of your chest, the back of your throat, the muscle behind your jaw that wants to start talking."
-    "Defend yourself. Justify. Argue. Win this time."
+    "The opening line. Word for word."
 
     pause 0.8
 
-    "But then you look at his eyes."
-    "They are already moving to the next line."
+    "His eyes are already moving to the next one."
     "He isn't waiting for your answer."
     "He never was."
 

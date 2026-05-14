@@ -63,3 +63,6 @@ tools/logs/
 
 # --- Pre-Ren'Py pygame relic (kept on disk, not in git)
 /game/
+
+# --- Audio backup files from in-place ffmpeg edits
+REFACTOR/game/audio/**/*_orig.mp3

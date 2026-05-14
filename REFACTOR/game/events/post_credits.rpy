@@ -44,9 +44,9 @@ image post_credits_tease    = Text("will return.", size=56, color="#cccccc", ita
 ## no outlines / bold / italic / scale-flourish. Emphasis on Singapore comes
 ## from TIMING (the line hangs trailing, then Singapore drops in below) — not
 ## from size acrobatics. Restraint reads as cinema; flourish reads as game UI.
-image post_credits_line_jb       = Text("jb.",                           size=46, color="#f4ecdc", font="fonts/RobotoMono-Regular.ttf")
+image post_credits_line_jb       = Text("JB.",                           size=46, color="#f4ecdc", font="fonts/RobotoMono-Regular.ttf")
 image post_credits_line_question = Text("how fast can you fly to",       size=46, color="#f4ecdc", font="fonts/RobotoMono-Regular.ttf")
-image post_credits_line_singapore = Text("Singapore?",                    size=58, color="#f8efd9", font="fonts/RobotoMono-Regular.ttf")
+image post_credits_line_singapore = Text("Singapore?",                    size=58, color="#7691ff", font="fonts/RobotoMono-Regular.ttf")
 
 ## Subtitle backdrop — semi-opaque dark band across the lower-third. Guarantees
 ## readability on any bg (Martin's white shirt was the worst case). Bond /
@@ -99,9 +99,12 @@ label post_credits_singapore:
     play music "audio/coding_in_snow_theme.mp3" fadein 2.4 volume 0.45
     scene bg_post_credit_jira_only with Dissolve(1.6)
     show jb developer_happy at split_left_sprite with Dissolve(1.0)
-    pause 2.6
+    pause 1.6
 
-    ## --- Phone vibrates on the table. He picks up. ---
+    ## --- Phone vibrates on the table. Two rings, then he picks up. ---
+    play sound "audio/sfx/phone_vibrate.mp3"
+    pause 4.0
+    stop sound fadeout 0.3
     show jb developer_call at split_left_sprite with Dissolve(0.5)
     pause 1.0
 
@@ -133,10 +136,10 @@ label post_credits_singapore:
     ## and line break, not through size acrobatics. ---
     show post_credits_subtitle_band at subtitle_band_pos with Dissolve(0.45)
 
+    play sound "audio/martin_singapore_line.mp3"
     show post_credits_line_jb at line_top_pos with Dissolve(0.5)
-    pause 1.4
+    pause 3.4
     hide post_credits_line_jb with Dissolve(0.45)
-    pause 0.5
 
     show post_credits_line_question at line_top_pos with Dissolve(0.6)
     pause 1.7

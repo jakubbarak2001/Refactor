@@ -657,7 +657,7 @@ default _ACT_DEFAULT_GLYPHS = {
     "COLD READ": "◊",
     "RECOVERY": "❋",
     "BOUNCER": "$",
-    "CODING": "{{ }}",
+    "CODING": "</>",
     "NIGHT SHIFT": "◐",
     "PHONE": "☏",
     "SLEEP": "☾",
@@ -666,8 +666,7 @@ default _ACT_DEFAULT_GLYPHS = {
 }
 
 screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effect_chips=None, locked=False, lock_text="", class_relevant=False, flavor_text="", art_glyph=""):
-    ## Six-layer construction mirrors the StS card render:
-    ##   L1: glow halo (class-relevant tiles only — pulses)
+    ## Layered construction mirrors the StS card render:
     ##   L2: drop shadow
     ##   L3: accent-colored border
     ##   L4: warm-dark inner panel (#1a1410)
@@ -695,11 +694,6 @@ screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effe
         sensitive (not locked)
         action Jump(label_name)
         at activity_hover_lift
-
-        ## L1: glow halo — pulses on class-relevant tiles to draw the eye.
-        if class_relevant and not locked:
-            add Solid(accent + "44") xpos 0 ypos 0 xysize (340, 320) at card_glow_pulse
-            add Solid(accent + "77") xpos 6 ypos 6 xysize (328, 308) at card_glow_pulse
 
         ## L2: drop shadow
         add Solid("#00000099") xpos 22 ypos 22 xysize (320, 280)

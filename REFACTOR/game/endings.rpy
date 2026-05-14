@@ -94,37 +94,26 @@ label good_ending:
     show colonel shaken at char_right
     show jb smirk at char_left
 
-    "You start to chuckle."
-    "The chuckle turns into a laugh."
-    "A loud, liberating, uncontrollable laugh."
-
-    "Something behind his eyes won't compute. For half a second the certainty isn't there."
+    "You start to laugh. Quiet at first. Then not."
 
     show colonel angry at char_right with dissolve
 
-    colonel "'WHY ARE YOU LAUGHING?! YOU THINK THIS IS FUNNY? YOUR LIFE IS OVER!'"
+    colonel "'YOU THINK THIS IS FUNNY?! YOUR LIFE IS OVER!'"
 
     jb "'No, Colonel.'"
-    jb "'My life isn't over.'"
 
     pause 1.0
 
     jb "'It's just {stshl=compiling}.'"
 
-    pause 2.0
+    pause 1.5
 
-    "> EXECUTING: sys.exit(0) ..."
-    "> TEARING DOWN: police_station_module.py ..."
-    "> RELEASING RESOURCES ..."
+    "You turn your back on him and walk to the door."
+    "The heavy metal door of the station. Supposed to be locked. Supposed to be hard to leave."
 
-    "You turn your back on him."
-    "He is still screaming, his face red, veins popping."
-    "But as you walk towards the exit door, his voice starts to fade."
-    "Not because of distance. But because you lowered his volume slider."
+    pause 0.6
 
-    "You reach the heavy metal door of the station."
-    "It's supposed to be locked. It's supposed to be hard to leave."
-    "You simply push it open."
+    "You push it open with one hand."
 
     $ renpy.movie_cutscene("video/jb_good_ending.webm")
 
