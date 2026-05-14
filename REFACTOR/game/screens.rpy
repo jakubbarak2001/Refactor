@@ -2280,19 +2280,27 @@ screen card_acquired_toast(card):
             "Police":   "#3388cc",
             "Special":  "#00cc88",
         }
-        ## Rage cards override the color palette and header — they aren't
-        ## "acquired", they're forced on you by your own hatred.
-        _ct_is_rage = bool(card.get("is_rage"))
+        ## Corruption variants override the color palette + header. These
+        ## cards aren't "acquired" — they're forced on you. Rage by hatred,
+        ## Compromise by losing fights.
+        _ct_is_rage       = bool(card.get("is_rage"))
+        _ct_is_compromise = bool(card.get("is_compromise"))
         if _ct_is_rage:
             _ct_color = "#ff3322"
             _ct_header = "🔥 RAGE FORCED"
+            _ct_bg = "#1a0a0aff"
+        elif _ct_is_compromise:
+            _ct_color = "#a09890"
+            _ct_header = "⊘ COMPROMISE LANDED"
+            _ct_bg = "#0d0d0aff"
         else:
             _ct_color = _CARD_TOAST_COLORS.get(card.get("color", "Special"), "#888888")
             _ct_header = "CARD ACQUIRED"
+            _ct_bg = "#0d1018ff"
 
     frame at _card_toast_anim:
         padding (18, 14)
-        background Frame("#1a0a0aff" if _ct_is_rage else "#0d1018ff", 4, 4)
+        background Frame(_ct_bg, 4, 4)
 
         vbox:
             spacing 5

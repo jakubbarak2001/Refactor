@@ -111,6 +111,8 @@ init python:
         "outburst":                "Deal 12.\nLose 5 HP.",
         "tunnel_vision":           "Deal 14.\nDiscard 1 random card.",
         "snap":                    "Deal 8.\nExhaust 1 random card from hand.",
+        ## Compromise card (injected by forced_detour on 2nd+ loss; unplayable)
+        "compromise":              "Unplayable.\nDead weight in hand.",
         ## Combat-reward rares (ladder-fight drops)
         "killing_blow":            "Deal 14. If enemy is below half HP: deal 14 more.",
         "tactical_read":           "Peek 5 intents. Gain 1 energy. Exhausts.",
@@ -664,6 +666,14 @@ init python:
             state.add_log("Snap: exhausted {}.".format(_name))
         else:
             state.add_log("Snap: 8 damage.")
+
+    @register_effect("compromise")
+    def _eff_compromise(state, source, target):
+        ## Defense-in-depth no-op — Compromise carries unplayable=True, so
+        ## hand_playable returns False and battle_play_card never resolves
+        ## this effect. If something bypasses the gate (dev tool, future
+        ## bug), log and return rather than crash on a missing handler.
+        state.add_log("Compromise: it's a dead card. It does nothing.")
 
     ## ---------------------------------------------------------------------------
     ## Combat-reward rares — ladder-fight drops, heavier mechanics than the

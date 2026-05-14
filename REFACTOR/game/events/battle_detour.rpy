@@ -53,6 +53,15 @@ label forced_detour(enemy_id, tier):
             _hp_loss,
         )
 
+        ## Loss-stacking (vision §2 — multiple stalls degrade the run).
+        ## First loss is just the stat cost; second and subsequent losses
+        ## also inject a permanent UNPLAYABLE Compromise card into the deck.
+        ## The deck IS the 30 days; bad weeks stick.
+        store._battle_losses = getattr(store, '_battle_losses', 0) + 1
+        if store._battle_losses >= 2:
+            grant_card("compromise", silent=False)
+            _detour_summary += "\n[CORRUPTION] + Compromise (dead weight in deck)"
+
     hide screen detour_header
     show screen outcome_panel(_detour_summary)
     pause 2.2

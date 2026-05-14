@@ -49,10 +49,12 @@ init -1 python:
             "effect":     None,
             "exhaust":    False,
             "class_lock": None,
-            "flavor":     "",
-            "art":        None,
-            "art_glyph":  None,
-            "is_rage":    False,
+            "flavor":        "",
+            "art":           None,
+            "art_glyph":     None,
+            "is_rage":       False,
+            "is_compromise": False,
+            "unplayable":    False,
         }
         defaults.update(fields)
         defaults["id"] = card_id

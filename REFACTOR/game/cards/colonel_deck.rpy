@@ -638,8 +638,18 @@ init python:
     }
 
     def build_colonel_deck():
-        """Return the colonel's deck for the current difficulty as a shuffled list of card-ids."""
+        """Return the colonel's deck for the current difficulty as a shuffled list of card-ids.
+
+        Loss-stacking: every 2 ladder losses promotes the Colonel by one
+        template tier (5 → 7 → 9, capped). The vision wants stalled runs
+        to compound into a harder boss, not just degrade stats."""
         size = diff_setting("colonel_deck_size", 7)
+        _tiers = [5, 7, 9]
+        _losses = getattr(store, '_battle_losses', 0)
+        _bumps = _losses // 2
+        if size in _tiers and _bumps > 0:
+            _idx = min(len(_tiers) - 1, _tiers.index(size) + _bumps)
+            size = _tiers[_idx]
         template = COLONEL_DECK_TEMPLATES.get(size, COLONEL_DECK_TEMPLATES[7])
         deck = list(template)
         __import__('random').shuffle(deck)

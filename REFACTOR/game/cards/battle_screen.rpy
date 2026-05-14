@@ -578,9 +578,14 @@ screen battle_pile_peek():
                                 spacing 8
                                 for _cid in _row:
                                     $ _c = CARD_LIBRARY.get(_cid, {})
-                                    $ _c_is_status = (_c.get("effect") or "").startswith("status_")
-                                    $ _c_is_rage   = bool(_c.get("is_rage"))
-                                    if _c_is_rage:
+                                    $ _c_is_status     = (_c.get("effect") or "").startswith("status_")
+                                    $ _c_is_rage       = bool(_c.get("is_rage"))
+                                    $ _c_is_compromise = bool(_c.get("is_compromise"))
+                                    if _c_is_compromise:
+                                        $ _ccol = "#5a5550"
+                                        $ _c_prefix = "⊘ "
+                                        $ _c_name_color = "#a09890"
+                                    elif _c_is_rage:
                                         $ _ccol = "#aa1a1a"
                                         $ _c_prefix = "🔥 "
                                         $ _c_name_color = "#ff8866"
@@ -1143,17 +1148,23 @@ screen battle_screen():
                 for _cid in bs.hand:
                     $ _card = CARD_LIBRARY.get(_cid, {})
                     $ _ctype = _card.get("type", "Skill")
-                    ## Status / curse cards (injected by enemy wrinkles) override the
-                    ## normal type palette so the player can spot the trash card in
-                    ## hand without reading. Sickly mustard-green = "this is rot".
-                    ## Rage cards (injected by hatred thresholds) use a deep blood-
-                    ## red — distinct from normal Attack red — to flag corruption.
-                    $ _is_status = (_card.get("effect") or "").startswith("status_")
-                    $ _is_rage   = bool(_card.get("is_rage"))
+                    ## Three corruption categories, each visually distinct:
+                    ##   Status     — enemy-injected, single-fight (paperwork/fumes/...).
+                    ##                Mustard #8a7a2a, ☠ glyph.
+                    ##   Rage       — hatred-injected at 40/60/80, permanent in deck.
+                    ##                Blood #aa1a1a, 🔥 glyph.
+                    ##   Compromise — loss-injected on 2nd+ ladder loss, permanent
+                    ##                AND unplayable (dead weight in hand).
+                    ##                Broken gray #5a5550, ⊘ glyph.
+                    $ _is_status     = (_card.get("effect") or "").startswith("status_")
+                    $ _is_rage       = bool(_card.get("is_rage"))
+                    $ _is_compromise = bool(_card.get("is_compromise"))
                     ## Type-driven palette: Attack=red, Skill=blue, Power=purple.
                     ## Card "color" taxonomy (Physical/Mental/Money/...) reads as
                     ## random tinting to playtesters; type is unambiguous.
-                    if _is_rage:
+                    if _is_compromise:
+                        $ _color = "#5a5550"
+                    elif _is_rage:
                         $ _color = "#aa1a1a"
                     elif _is_status:
                         $ _color = "#8a7a2a"
@@ -1162,7 +1173,9 @@ screen battle_screen():
                     $ _ok, _reason = bs.hand_playable(_cid)
                     $ _border = _color if _ok else "#3a2020"
                     $ _effect_text = effect_description(_card.get("effect")) or _card.get("flavor", "")
-                    if _is_rage:
+                    if _is_compromise:
+                        $ _subtitle = "COMPROMISE · DEAD WEIGHT"
+                    elif _is_rage:
                         $ _subtitle = "RAGE · CORRUPTED"
                     elif _is_status:
                         $ _subtitle = "STATUS · CURSE"
@@ -1170,7 +1183,9 @@ screen battle_screen():
                         $ _subtitle = (_ctype.upper() + " · " + (_card.get("color") or "").upper()).strip(" ·")
                     $ _art_path = "images/cards/{}.png".format(_cid)
                     $ _has_art  = renpy.loadable(_art_path)
-                    if _is_rage:
+                    if _is_compromise:
+                        $ _art_glyph = "⊘"
+                    elif _is_rage:
                         $ _art_glyph = "🔥"
                     elif _is_status:
                         $ _art_glyph = "☠"

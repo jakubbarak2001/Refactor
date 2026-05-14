@@ -916,6 +916,26 @@ init python:
     )
 
     ## ---------------------------------------------------------------------------
+    ## COMPROMISE — loss-injected dead-weight card (granted by forced_detour
+    ## on the 2nd+ ladder loss). Permanent in deck, UNPLAYABLE (occupies a
+    ## hand slot and can't be cycled). Removable via the Fixer at a discount.
+    ## ---------------------------------------------------------------------------
+
+    register_card(
+        "compromise",
+        name          = "Compromise",
+        type          = "Skill",
+        color         = "Compromise",
+        cost          = 0,
+        rarity        = "common",
+        effect        = "compromise",
+        is_compromise = True,
+        unplayable    = True,
+        pool_excluded = True,
+        flavor        = "Something you let go that you can't take back.",
+    )
+
+    ## ---------------------------------------------------------------------------
     ## COMBAT REWARDS — rare-tier cards designed to drop from ladder fights.
     ## Heavier mechanics than activity-granted commons/uncommons; the ladder
     ## is the path to power. Tier weights in pick_battle_rewards bias toward

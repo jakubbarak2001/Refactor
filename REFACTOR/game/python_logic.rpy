@@ -332,6 +332,10 @@ init python:
         ## Hatred-corruption tracker — set of thresholds (40/60/80) already
         ## crossed this run. See _check_rage_injection / RAGE_THRESHOLDS.
         store._rage_thresholds_triggered = set()
+        ## Battle-loss counter — incremented in forced_detour. Drives the
+        ## Compromise card injection on the 2nd+ loss and (eventually) the
+        ## Colonel deck scaling. Reset per run.
+        store._battle_losses = 0
 
         ## --- Class progression state ---
         ## BB: SOMA stack (each gym session +1, max 10). 5+ unlocks Iron Body buff in fight.

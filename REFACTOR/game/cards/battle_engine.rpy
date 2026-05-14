@@ -383,6 +383,11 @@ init python:
             c = CARD_LIBRARY.get(card_id)
             if c is None:
                 return False, "Unknown card."
+            ## Compromise cards (loss-injected) carry unplayable=True — they
+            ## sit dead in hand, costing a draw slot. Gate before the energy
+            ## check so a 0-cost Compromise still reports as unplayable.
+            if c.get("unplayable"):
+                return False, "Unplayable. Dead weight."
             cost = c.get("cost", 0)
             if isinstance(cost, int) and cost > self.energy:
                 return False, "Not enough energy."
