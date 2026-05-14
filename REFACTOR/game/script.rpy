@@ -1137,9 +1137,12 @@ label activity_fixer:
     scene bg_jb_flat
 
     python:
-        ## Starter identity cards — non-removable. Each class signature, plus
-        ## the universal baseline. Identity is sacred; the Fixer doesn't touch it.
-        _FIXER_STARTER_LOCKED = {"strike", "defend", "heavy_set", "read_him", "stack_up"}
+        ## Class-signature cards stay locked — you only have one copy of each
+        ## and they define the class fantasy. Strike/Defend ARE removable
+        ## (thinning basic attacks/blocks is half the point of a card-removal
+        ## shop — see Slay-the-Spire). Player starts with 4 of each, so
+        ## scrubbing one or two is strategic, not run-ending.
+        _FIXER_STARTER_LOCKED = {"heavy_set", "read_him", "stack_up"}
 
         def _fixer_price_for(cid):
             c = CARD_LIBRARY.get(cid, {})
