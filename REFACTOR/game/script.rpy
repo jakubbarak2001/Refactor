@@ -1138,6 +1138,12 @@ label activity_night_shift:
 
 label activity_fixer:
 
+    ## Per-day gate — one shred per day. Entered from the sidebar button
+    ## on the daily hub. Does NOT consume the daily activity slot.
+    if getattr(store, '_fixer_shredded_today', False):
+        "He doesn't open the door. 'Already did your one tonight. Tomorrow.'"
+        jump daily_menu
+
     scene bg_jb_flat
 
     python:
@@ -1176,7 +1182,7 @@ label activity_fixer:
         _fixer_action, _fixer_card = _return if isinstance(_return, tuple) else ("leave", None)
 
     if _fixer_action == "leave":
-        ## Free reconnaissance — no day burned. Player just browsed.
+        ## Free reconnaissance — no shred, no flag. Player just browsed.
         jump daily_menu
 
     python:
@@ -1185,6 +1191,7 @@ label activity_fixer:
             renpy.jump("daily_menu")
         player_deck.remove(_fixer_card)
         store._fixer_removals = getattr(store, '_fixer_removals', 0) + 1
+        store._fixer_shredded_today = True
         _fixer_name = CARD_LIBRARY.get(_fixer_card, {}).get("name", _fixer_card)
         _fixer_outcome = "- {:,} CZK   - 1 card ({})   ·   Next shred: {:,} CZK".format(
             _fixer_current, _fixer_name, fixer_current_price()
@@ -1198,9 +1205,9 @@ label activity_fixer:
     pause
     hide screen outcome_panel
 
-    python:
-        activity_selected = True
-    jump end_day
+    ## Fixer doesn't consume the day. Return to the hub so the player can
+    ## still pick an activity (gym, bouncer, coding, night shift).
+    jump daily_menu
 
 
 ## ---------------------------------------------------------------------------
@@ -1250,6 +1257,8 @@ label do_end_day:
         # Advance day
         day_cycle.next_day()
         activity_selected = False
+        # Per-day Fixer gate — new day, one new shred available.
+        store._fixer_shredded_today = False
         # Reset gym streak if player didn't go to gym today
         if not getattr(store, 'gym_day', False):
             store.gym_streak = 0

@@ -340,6 +340,10 @@ init python:
         ## successful shred bumps the next removal's CZK cost. See
         ## fixer_current_price() in cards/card_data.rpy.
         store._fixer_removals = 0
+        ## Per-day Fixer gate — one shred per day. Reset in do_end_day.
+        ## Fixer visits don't consume the daily activity, but they're
+        ## rate-limited so you can't bulk-shred a whole deck with cash.
+        store._fixer_shredded_today = False
 
         ## --- Class progression state ---
         ## BB: SOMA stack (each gym session +1, max 10). 5+ unlocks Iron Body buff in fight.

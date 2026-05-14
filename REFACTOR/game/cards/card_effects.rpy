@@ -10,7 +10,6 @@
 ##   state.heal(target, amount)               — restore HP
 ##   state.draw_cards(n)                      — draw n cards into hand
 ##   state.gain_energy(n)                     — increase current-turn energy
-##   state.peek_intents(n)                    — reveal next n enemy intents
 ##   state.cancel_next_attack_set()           — null out next colonel attack
 ##   state.skip_attacks(n)                    — skip next n colonel intents
 ##   state.buff(target, key, value)           — apply named modifier
@@ -40,7 +39,7 @@ init python:
         "deal_damage_6":           "Deal 6 damage.",
         "gain_block_5":            "Gain 5 block.",
         "heavy_set":               "Deal 4 + (Hatred / 10) damage. Scales with how much you hate this job.",
-        "read_him":                "Peek the next 3 enemy intents. Draw 1 card.",
+        "read_him":                "Gain 6 block. Draw 2 cards.",
         "stack_up":                "Gain +2 energy this turn. Crash next turn (-2 energy).",
         "gain_block_12":           "Gain 12 block.",
         "deal_damage_double_next": "Your next attack this turn fires twice.",
@@ -50,13 +49,14 @@ init python:
         "vip_treatment":           "Deal 30 damage. Lose 10 HP. Exhausts.",
         "refactor":                "Cancel the enemy's next attack. Exhausts.",
         "compile":                 "Draw 2 cards.",
+        "production_push":         "Deal 14 damage. Draw 1 card. +6 damage per other Logic/Tech card in hand.",
         "gain_block_15":           "Gain 15 block.",
         "procedural_defense":      "Block all damage from the enemy's next attack turn.",
         "racetam_burst":           "Gain +1 energy. Draw 1 card.",
         "flmodafinil_spike":       "Deal 28 damage. 50%: -1 max energy next turn. Exhausts.",
         "mirror":                  "The enemy's next attack hits THEM at 2x damage. 2-turn cooldown.",
         "algorithm":               "Skip the enemy's next 2 attacks. Exhausts.",
-        "snitch_info":             "Reveal the enemy's full deck for the rest of the fight. Exhausts.",
+        "snitch_info":             "Deal 18 damage. Exhausts.",
         "paragraph_4b":            "Deal 40 damage. Auto-counters 'Training Debt'. Exhausts.",
         "ghost_secret":            "Cancel the enemy's next attack. Deal 15 damage. Exhausts.",
         "job_offer":               "Power: +5 max HP. +1 starting block per turn.",
@@ -70,11 +70,11 @@ init python:
         "iron_stance":             "Power: +20 block. Retaliate (4 + 2x turn) damage when you're hit.",
         "spotter":                 "Gain 6 block. Draw 1 card.",
         "brawl":                   "Deal 10 damage. Apply 3-turn bleed (3 dmg/turn) to the enemy.",
-        "empaths_insight":         "Power: peek 5 intents. +1 starting block for the first 3 turns.",
+        "empaths_insight":         "Power: +5 starting block per turn for the first 3 turns.",
         "iron_body":               "Gain 6 block. Retaliate 4 damage on the next hit.",
         "pump":                    "Gain +2 energy this turn. +5 Hatred.",
         "strongman":               "Gain 25 block. Draw 2. Exhausts.",
-        "tell":                    "Peek 1 intent. Gain 3 block. Free.",
+        "tell":                    "Gain 8 block. Free.",
         "frame_trap":              "Reduce the enemy's next attack by 8 (min 1).",
         "charm":                   "Heal 8 HP. Gain 3 block.",
         "hrv_spike":               "Gain +2 energy. Lose 5 HP.",
@@ -91,12 +91,12 @@ init python:
         "bouncer_door":            "Gain 18 block. Retaliate 8 damage on the next hit.",
         "quick_compile":           "Draw 1 card. Free.",
         "lint_pass":               "Exhaust a random card from hand. Draw 1.",
-        "stack_trace":             "Peek next 3 intents. Draw 1.",
+        "stack_trace":             "Draw 2 cards.",
         "unit_test":               "Gain 6 block for every Skill in your hand.",
         "merge_conflict":          "Deal 10 damage. Draw 1.",
         "kernel_patch":            "Gain 1 energy. Draw 2. Exhausts.",
-        "pair_program":            "Peek next 2 intents. Free.",
-        "radio_call":              "Gain 6 block. Peek 1 intent.",
+        "pair_program":            "Gain 3 block. Draw 1 card. Free.",
+        "radio_call":              "Gain 10 block.",
         "breath_test":             "Reduce his next attack by 5 (min 1).",
         "procedural_kick":         "Deal 5 damage. Gain 5 block.",
         "riot_shield":             "Gain 14 block. +4 starting block next turn.",
@@ -117,7 +117,7 @@ init python:
         "compromise":              "Unplayable.\nDead weight in hand.",
         ## Combat-reward rares (ladder-fight drops)
         "killing_blow":            "Deal 14. If enemy is below half HP: deal 14 more.",
-        "tactical_read":           "Peek 5 intents. Gain 1 energy. Exhausts.",
+        "tactical_read":           "Gain 2 energy this turn. Exhausts.",
         "iron_drill":              "Gain 12 block + 4 per Skill in hand (capped at +12).",
         "last_stand":              "Deal 16. If you're below half HP, draw 2. Exhausts.",
     }
@@ -185,9 +185,10 @@ init python:
 
     @register_effect("read_him")
     def _eff_read_him(state, source, target):
-        ## DE signature — peek next 3 colonel intents AND draw 1 (tempo + info)
-        state.peek_intents(3)
-        state.draw_cards(1)
+        ## DE signature — info became defense+tempo. Peek mechanic removed
+        ## per feedback_no_peek_intent: it doesn't fit the sim feel.
+        state.gain_block(source, 6)
+        state.draw_cards(2)
 
     @register_effect("stack_up")
     def _eff_stack_up(state, source, target):
@@ -232,8 +233,10 @@ init python:
 
     @register_effect("vip_treatment")
     def _eff_vip_treatment(state, source, target):
+        ## Self-harm leg bypasses block (you slammed your own knee into the
+        ## bouncer rail; block stops the drunk, not the rail).
         state.deal_damage(target, 30)
-        state.deal_damage(source, 10)
+        state.deal_damage(source, 10, bypass_block=True)
 
     ## ---------------------------------------------------------------------------
     ## Coding
@@ -299,7 +302,9 @@ init python:
 
     @register_effect("snitch_info")
     def _eff_snitch(state, source, target):
-        state.peek_intents(99)  ## reveal full deck for the rest of the fight
+        ## Was a full-deck peek; peek mechanic removed. Reframed as "you used
+        ## the intel" — one-shot heavy hit, exhausts.
+        state.deal_damage(target, 18)
 
     @register_effect("paragraph_4b")
     def _eff_paragraph_4b(state, source, target):
@@ -382,9 +387,10 @@ init python:
 
     @register_effect("empaths_insight")
     def _eff_empaths_insight(state, source, target):
-        ## DE rare power: peek deeper + extra starting block for 3 turns
-        state.peek_intents(5)
-        state.buff(source, "insight_block", 1)
+        ## DE rare power: bumped block-per-turn buff to fully replace the
+        ## peek leg of the original effect (peek mechanic removed). +5
+        ## starting block per turn for 3 turns instead of +1.
+        state.buff(source, "insight_block", 5)
         state.buff(source, "insight_turns_left", 3)
 
     ## ---------------------------------------------------------------------------
@@ -411,8 +417,9 @@ init python:
 
     @register_effect("tell")
     def _eff_tell(state, source, target):
-        state.peek_intents(1)
-        state.gain_block(source, 3)
+        ## 0-cost block — peek mechanic removed; block bumped 3 → 8 to
+        ## restore the card's defensive value.
+        state.gain_block(source, 8)
 
     @register_effect("frame_trap")
     def _eff_frame_trap(state, source, target):
@@ -425,8 +432,9 @@ init python:
 
     @register_effect("hrv_spike")
     def _eff_hrv_spike(state, source, target):
+        ## Syringe doesn't care about your shield. Bypass block.
         state.gain_energy(2)
-        state.deal_damage(source, 5)
+        state.deal_damage(source, 5, bypass_block=True)
         state.add_log("HRV Spike: +2 energy, -5 HP. Recorded.")
 
     @register_effect("cognitive_stack")
@@ -457,7 +465,9 @@ init python:
         ## At 1E in hand, energy at this point is 0 → +1 = 1 → 10 dmg (correct minimum).
         _e = state.energy + 1
         state.deal_damage(target, _e * 10)
-        state.deal_damage(source, 8)
+        ## Self-harm bypasses block — the compound goes through your veins,
+        ## not your guard.
+        state.deal_damage(source, 8, bypass_block=True)
         state.add_log("[[The Compound]: {}E spent → {} dmg, -8 HP.".format(_e, _e * 10))
 
     @register_effect("iron_stance")
@@ -527,8 +537,8 @@ init python:
 
     @register_effect("stack_trace")
     def _eff_stack_trace(state, source, target):
-        state.peek_intents(3)
-        state.draw_cards(1)
+        ## Peek mechanic removed — repurposed as pure cycling.
+        state.draw_cards(2)
 
     @register_effect("unit_test")
     def _eff_unit_test(state, source, target):
@@ -556,7 +566,10 @@ init python:
 
     @register_effect("pair_program")
     def _eff_pair_program(state, source, target):
-        state.peek_intents(2)
+        ## Peek mechanic removed — repurposed as free defensive draw.
+        ## Differentiates from quick_compile (pure draw 1) via the block leg.
+        state.gain_block(source, 3)
+        state.draw_cards(1)
 
     ## ---------------------------------------------------------------------------
     ## Authority bucket
@@ -564,8 +577,8 @@ init python:
 
     @register_effect("radio_call")
     def _eff_radio_call(state, source, target):
-        state.gain_block(source, 6)
-        state.peek_intents(1)
+        ## Peek mechanic removed; block bumped 6 → 10 to compensate.
+        state.gain_block(source, 10)
 
     @register_effect("breath_test")
     def _eff_breath_test(state, source, target):
@@ -634,12 +647,10 @@ init python:
     def _eff_outburst(state, source, target):
         ## Threshold-40 Rage. 12 dmg @ 1 energy — paid for in 9 HP AND
         ## +2 hatred (corruption snowballs into the next Rage threshold).
-        ## Self-damage is floor-clamped to leave you at 1 HP min (see
-        ## deal_damage source_kind="effect" branch). Net trade: +6 dmg
-        ## over Strike's 6 baseline, costing 9 HP and pushing toward
-        ## the next Rage card.
+        ## Self-damage bypasses block — your block stops the enemy, not
+        ## your own rage. Floor-clamped to leave you at 1 HP min.
         state.deal_damage(target, 12)
-        state.deal_damage(source, 9)
+        state.deal_damage(source, 9, bypass_block=True)
         if stats:
             stats.increment_stats_pcr_hatred(2)
         state.add_log("Outburst: 12 damage. -9 HP. +2 Hatred.")
@@ -723,8 +734,9 @@ init python:
 
     @register_effect("tactical_read")
     def _eff_tactical_read(state, source, target):
-        state.peek_intents(5)
-        state.gain_energy(1)
+        ## Peek mechanic removed; energy gain bumped 1 → 2 to compensate.
+        ## 0-cost exhaust + 2 energy = a clean one-shot tempo spike.
+        state.gain_energy(2)
 
     @register_effect("iron_drill")
     def _eff_iron_drill(state, source, target):

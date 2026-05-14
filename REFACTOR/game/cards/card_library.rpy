@@ -63,7 +63,7 @@ init python:
         rarity     = "uncommon",
         effect     = "read_him",
         class_lock = "dark_empath",
-        flavor     = "Peek the next 3 enemy intents. Draw 1. Knowing what's coming buys time.",
+        flavor     = "You hold for a half-second. He swings where you were.",
     )
 
     register_card(
@@ -272,7 +272,7 @@ init python:
         rarity  = "uncommon",
         effect  = "snitch_info",
         exhaust = True,
-        flavor  = "Reveal the enemy's full deck. Foreknowledge to spend.",
+        flavor  = "The voicemail was clean. The next swing isn't.",
     )
 
     ## MARTIN'S GIFTS — Phase 1.8 will replace final_boss_buff with these
@@ -445,7 +445,7 @@ init python:
         rarity     = "rare",
         effect     = "empaths_insight",
         class_lock = "dark_empath",
-        flavor     = "Peek 5 intents at battle start. +1 starting block per turn for 3 turns.",
+        flavor     = "Their first move tells you their last. Block stacks.",
     )
 
     ## ---------------------------------------------------------------------------
@@ -500,7 +500,7 @@ init python:
         rarity     = "common",
         effect     = "tell",
         class_lock = "dark_empath",
-        flavor     = "Peek 1 intent. Gain 3 block. Free.",
+        flavor     = "You see his shoulders set before the swing.",
     )
 
     register_card(
@@ -709,7 +709,7 @@ init python:
         cost   = 1,
         rarity = "uncommon",
         effect = "stack_trace",
-        flavor = "Peek 3 intents. Draw 1. Walk the call up.",
+        flavor = "Walk the call up. Two more swings ready.",
     )
     register_card(
         "unit_test",
@@ -750,7 +750,7 @@ init python:
         cost   = 0,
         rarity = "uncommon",
         effect = "pair_program",
-        flavor = "Peek 2 intents. Free. Two heads on one problem.",
+        flavor = "Two heads on one problem.",
     )
 
     ## AUTHORITY — peek, cancel, status-friendly
@@ -762,7 +762,7 @@ init python:
         cost   = 1,
         rarity = "common",
         effect = "radio_call",
-        flavor = "Gain 6 block. Peek 1. Dispatch flags the next move.",
+        flavor = "Dispatch holds the corridor.",
     )
     register_card(
         "breath_test",
@@ -961,7 +961,7 @@ init python:
         rarity  = "rare",
         effect  = "tactical_read",
         exhaust = True,
-        flavor  = "Peek 5 intents. Gain 1 energy. Free, exhausts.",
+        flavor  = "One look at the board. You go again.",
     )
     register_card(
         "iron_drill",

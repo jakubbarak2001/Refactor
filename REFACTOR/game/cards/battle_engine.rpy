@@ -166,7 +166,7 @@ init python:
                 self.log = self.log[-12:]
 
         ## ---------------- DAMAGE / BLOCK ----------------
-        def deal_damage(self, target, amount, source_kind="effect"):
+        def deal_damage(self, target, amount, source_kind="effect", bypass_block=False):
             """target: 'player' | 'enemy' (or string aliases).
 
             source_kind: 'effect' (card-played effect) | 'intent' (colonel's
@@ -176,6 +176,11 @@ init python:
             so a single card play can never insta-defeat the player. This
             is a fix for the long-standing 'select any card → instantly
             loose' bug — see commit log.
+
+            bypass_block: when True, player block is NOT subtracted from
+            the incoming damage. Used by self-harm cards whose text reads
+            'Lose N HP' — your block stops enemies, not your own outburst
+            or the syringe you just stabbed yourself with.
             """
             if amount <= 0:
                 return
@@ -228,8 +233,11 @@ init python:
                 ## Apply mental damage reduction if buff active
                 if self.buffs.get("mental_dr_50") and self._intent_has_tag("mental"):
                     amount = max(1, amount // 2)
-                absorbed = min(self.player_block, amount)
-                self.player_block -= absorbed
+                if bypass_block:
+                    absorbed = 0
+                else:
+                    absorbed = min(self.player_block, amount)
+                    self.player_block -= absorbed
                 actual = amount - absorbed
                 ## Insta-loss prevention: card self-damage cannot drop HP below 1.
                 ## Only the colonel's actual intent (source_kind='intent') can defeat.
@@ -353,8 +361,9 @@ init python:
                 return None
             return ENEMY_DECK_LIBRARY.get(self.intent_queue[self.intent_index])
 
-        def peek_intents(self, n):
-            self.intent_revealed = max(self.intent_revealed, n)
+        ## peek_intents removed per feedback_no_peek_intent — multi-turn
+        ## intent reveal doesn't fit the sim. Default intent_revealed=1
+        ## keeps StS-style single-turn intent display intact.
 
         def cancel_next_attack_set(self):
             self.cancel_next_attack = True
@@ -435,16 +444,11 @@ init python:
         elif stats and stats.player_class == "dark_empath":
             bs.player_max_hp = 75 + _gym_b
             bs.player_hp = 75 + _gym_b
-            ## READ baseline: peek 2 intents at fight start; PROFILES adds further depth.
-            bs.peek_intents(2)
-            ## PROFILES bonus: +1 intent peek per profile read 2+ times.
-            ## Threshold 2 (was 3) is reachable in a 30-day run with 8 cold reads.
-            _de_deep_profiles = sum(1 for n, c in getattr(store, 'de_profiles', {}).items() if c >= 2)
-            if _de_deep_profiles > 0:
-                bs.peek_intents(1 + _de_deep_profiles)
-                bs.add_log("[[PROFILES x{}]: peek depth {}.".format(_de_deep_profiles, 1 + _de_deep_profiles))
-            bs.buffs["read_charges"] = 3
-            bs.add_log("[[READ x3]: One free look at what he's about to do. He has tells. He's never had to hide them from you before.")
+            ## DE init kept minimal — class is locked (BB-only scope per
+            ## feedback_bb_only_scope). The original peek-intents perk was
+            ## removed per feedback_no_peek_intent; no replacement designed
+            ## here since DE isn't currently playable. If/when DE ships,
+            ## design a non-peek class identity perk in this slot.
         elif stats and stats.player_class == "biohacker":
             bs.player_max_hp = 80 + _gym_b
             bs.player_hp = 80 + _gym_b
@@ -548,9 +552,6 @@ init python:
         if bs.buffs.get("presence_charges", 0) > 0:
             bs.player_block += 3
             bs.buffs["presence_charges"] -= 1
-        if bs.buffs.get("read_charges", 0) > 0:
-            bs.peek_intents(bs.intent_revealed + 1)
-            bs.buffs["read_charges"] -= 1
         if bs.buffs.get("vigil_next_turn_block"):
             bs.player_block += bs.buffs["vigil_next_turn_block"]
             bs.buffs["vigil_next_turn_block"] = 0  ## consume

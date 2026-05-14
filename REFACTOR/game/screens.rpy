@@ -984,22 +984,6 @@ screen activity_select_screen():
             class_relevant = False,
         )
 
-        ## VISIT FIXER - money-as-shop (vision §1 pillar 3). Spend CZK to
-        ## remove a card from the deck. Gated to day 10+ so early game stays
-        ## focused on resource acquisition; by day 10 the player has likely
-        ## hit a hatred threshold (Rage card) or lost a fight (Compromise)
-        ## and has a reason to use the valve.
-        if day_cycle and day_cycle.current_day >= 10:
-            use _activity_tile(
-                label_name     = "activity_fixer",
-                title          = "VISIT FIXER",
-                accent         = "#9a8060",
-                cost_text      = "VARIES",
-                effect_chips   = [("CZK", None), ("Cards", -1)],
-                flavor_text    = "A phone older than the law. He scrubs decks.",
-                class_relevant = False,
-            )
-
     ## Floating BACK button - bottom-left, deliberately separate from the
     ## activity grid so it reads as navigation, not a tile.
     textbutton "[[ ← BACK ]":
@@ -1077,7 +1061,7 @@ screen daily_hub_screen():
             _hub_cta_color = "#cc2200"
             _hub_cta_hover = "#ff4422"
 
-    ## ── Sidebar — PHONE only, gated on unread notifications ─────────────────
+    ## ── Sidebar — PHONE (gated on unread notifications) ─────────────────────
     if _phone_msgs:
         frame:
             xpos 1700
@@ -1104,6 +1088,42 @@ screen daily_hub_screen():
                     xfill True
 
                 text "Unread.":
+                    xalign 0.5
+                    color "#888888"
+                    size 12
+                    italic True
+                    font "fonts/RobotoMono-Regular.ttf"
+
+    ## ── Sidebar — FIXER (day 10+; one shred per day; free time, doesn't
+    ## burn your daily activity). Dimmed and disabled after today's shred.
+    if _today >= 10:
+        $ _fixer_done = bool(getattr(store, '_fixer_shredded_today', False))
+        frame:
+            xpos 1700
+            ypos (380 if _phone_msgs else 240)
+            xsize 200
+            padding (14, 14)
+            background Frame("#0a0a0aee", 4, 4)
+
+            vbox:
+                spacing 8
+                xfill True
+
+                textbutton ("FIXER · DONE" if _fixer_done else "✂  FIXER"):
+                    xalign 0.5
+                    action Jump("activity_fixer")
+                    sensitive (not _fixer_done)
+                    text_color ("#5a5550" if _fixer_done else "#9a8060")
+                    text_hover_color "#ffffff"
+                    text_size 18
+                    text_bold True
+                    text_font "fonts/RobotoMono-Regular.ttf"
+                    background "#00000000"
+                    hover_background Frame("#1a1410dd", 3, 3)
+                    padding (10, 8)
+                    xfill True
+
+                text ("He's done for the day." if _fixer_done else "Shred a card. Free time."):
                     xalign 0.5
                     color "#888888"
                     size 12
