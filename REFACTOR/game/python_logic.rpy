@@ -336,6 +336,10 @@ init python:
         ## Compromise card injection on the 2nd+ loss and (eventually) the
         ## Colonel deck scaling. Reset per run.
         store._battle_losses = 0
+        ## Fixer-removal counter — drives escalating removal price. Each
+        ## successful shred bumps the next removal's CZK cost. See
+        ## fixer_current_price() in cards/card_data.rpy.
+        store._fixer_removals = 0
 
         ## --- Class progression state ---
         ## BB: SOMA stack (each gym session +1, max 10). 5+ unlocks Iron Body buff in fight.

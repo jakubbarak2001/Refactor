@@ -1118,18 +1118,16 @@ label activity_night_shift:
 ## sim action for card removal. Removal-only in v1; upgrades deferred.
 ##
 ## Flow:
-##   1. Build the removable-card list (skip starter identity cards).
-##   2. Empty list → free reconnaissance, return to daily_menu.
-##   3. fixer_removal_screen → ("remove", card_id, price) or ("leave", ...).
-##   4. Leave: free reconnaissance, return to daily_menu.
-##   5. Remove: spend money, remove card, consume the day's activity.
+##   1. Compute the current flat removal price (escalates with prior shreds).
+##   2. Build the removable-card list (class signatures locked).
+##   3. Empty list → free reconnaissance, return to daily_menu.
+##   4. fixer_removal_screen → ("remove", card_id) or ("leave", None).
+##   5. Leave: free reconnaissance, return to daily_menu.
+##   6. Remove: spend money, remove card, bump _fixer_removals, end day.
 ##
-## Price tiers (no adjusted_cost — the Fixer is street-level, not gym):
-##   common     : 6,000 CZK
-##   uncommon   : 8,000 CZK
-##   rare       : 12,000 CZK
-##   compromise :  5,000 CZK   (pity tier — easiest corruption to scrub)
-##   rage       : 15,000 CZK   (corruption is sticky — costs more than rares)
+## Pricing: flat current price for ANY card. Escalates each shred. See
+## fixer_current_price() / fixer_next_price() in cards/card_data.rpy.
+## Curve: 5K, 8K, 11K, 14K, 17K, 20K, 20K, ...
 ## ---------------------------------------------------------------------------
 
 label activity_fixer:
@@ -1144,28 +1142,19 @@ label activity_fixer:
         ## scrubbing one or two is strategic, not run-ending.
         _FIXER_STARTER_LOCKED = {"heavy_set", "read_him", "stack_up"}
 
-        def _fixer_price_for(cid):
-            c = CARD_LIBRARY.get(cid, {})
-            if c.get("is_rage"):
-                return 15000
-            if c.get("is_compromise"):
-                return 5000
-            rarity = c.get("rarity", "common")
-            if rarity == "rare":
-                return 12000
-            if rarity == "uncommon":
-                return 8000
-            return 6000
+        ## One flat price per visit — every card costs the same right now.
+        ## After a shred, _fixer_removals bumps and the NEXT visit costs more.
+        _fixer_current = fixer_current_price()
+        _fixer_next    = fixer_next_price()
 
-        ## Build entries — one per (card_id, price). Each duplicate counts as
-        ## a separate entry so the player can pick which copy goes (and to
-        ## visualize how cluttered the deck is).
+        ## Build entries — one row per card instance (duplicates render
+        ## separately so the player picks WHICH copy disappears).
         _fixer_entries = []
         if player_deck is not None:
             for _cid in player_deck.cards:
                 if _cid in _FIXER_STARTER_LOCKED:
                     continue
-                _fixer_entries.append((_cid, _fixer_price_for(_cid)))
+                _fixer_entries.append(_cid)
 
     if not _fixer_entries:
         "The flat smells like old smoke. The fixer doesn't look up from his crossword."
@@ -1175,25 +1164,28 @@ label activity_fixer:
     "A flat on the third floor of a panelák. The doorbell doesn't work; he knew you'd be here."
     "'Pick what disappears. I take cash. I don't take notes.'"
 
-    call screen fixer_removal_screen(entries=_fixer_entries)
+    call screen fixer_removal_screen(entries=_fixer_entries, price=_fixer_current, next_price=_fixer_next)
 
     python:
-        _fixer_action, _fixer_card, _fixer_price = _return if isinstance(_return, tuple) else ("leave", None, None)
+        _fixer_action, _fixer_card = _return if isinstance(_return, tuple) else ("leave", None)
 
     if _fixer_action == "leave":
         ## Free reconnaissance — no day burned. Player just browsed.
         jump daily_menu
 
     python:
-        if not stats.try_spend_money(_fixer_price):
+        if not stats.try_spend_money(_fixer_current):
             renpy.say(None, "[[INSUFFICIENT FUNDS] He counts the notes again. 'Come back when you can pay.'")
             renpy.jump("daily_menu")
         player_deck.remove(_fixer_card)
+        store._fixer_removals = getattr(store, '_fixer_removals', 0) + 1
         _fixer_name = CARD_LIBRARY.get(_fixer_card, {}).get("name", _fixer_card)
-        _fixer_outcome = "- {:,} CZK   - 1 card ({})".format(_fixer_price, _fixer_name)
+        _fixer_outcome = "- {:,} CZK   - 1 card ({})   ·   Next shred: {:,} CZK".format(
+            _fixer_current, _fixer_name, fixer_current_price()
+        )
 
     "He feeds the card into a shredder that's older than you. The teeth are loud."
-    "'Done. That's not in your deck anymore.'"
+    "'Done. That's not in your deck anymore. Next one's pricier.'"
 
     window hide
     show screen outcome_panel(_fixer_outcome)

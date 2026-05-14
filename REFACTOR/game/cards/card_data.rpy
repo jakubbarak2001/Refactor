@@ -119,6 +119,41 @@ init -1 python:
     ## Module-level deck — initialised in init_game alongside stats/day_cycle.
     player_deck = None
 
+    ## ---------------------------------------------------------------------------
+    ## Fixer pricing — flat current price for ANY removal, escalates per shred.
+    ## Defined at init-python level (not inside label python blocks) so the
+    ## helper is module-pickled with the rest of init state. Defining helpers
+    ## inside label python: blocks puts them in store and breaks save pickling
+    ## — see the 2026-05-14 crash on _fixer_price_for.
+    ## ---------------------------------------------------------------------------
+    FIXER_BASE_PRICE  = 5000
+    FIXER_PRICE_STEP  = 3000
+    FIXER_PRICE_CAP   = 20000
+
+    def fixer_current_price():
+        """Flat CZK cost for the NEXT card-removal. Escalates with each prior
+        removal this run, capped at FIXER_PRICE_CAP. Reads store._fixer_removals
+        (initialized in python_logic.rpy:init_game)."""
+        n = getattr(store, '_fixer_removals', 0)
+        return min(FIXER_BASE_PRICE + n * FIXER_PRICE_STEP, FIXER_PRICE_CAP)
+
+    def fixer_next_price():
+        """Price the NEXT removal will cost AFTER the current shred lands.
+        Used by the picker header to telegraph the escalation."""
+        n = getattr(store, '_fixer_removals', 0) + 1
+        return min(FIXER_BASE_PRICE + n * FIXER_PRICE_STEP, FIXER_PRICE_CAP)
+
+    ## Backward-compat shim for saves made during the broken-pickle window.
+    ## The previous fixer revision defined `_fixer_price_for` inside a label
+    ## python: block, which pushed a function into `store` that couldn't
+    ## re-pickle on save. Defining the same name at init-python level here
+    ## means any save carrying the stale store entry resolves to THIS
+    ## function on load — and it's picklable. Returns the flat current
+    ## price ignoring the per-card argument.
+    def _fixer_price_for(card_id=None):
+        return fixer_current_price()
+
+
     def grant_card(card_id, silent=False):
         """Force-add a card to the player's deck. Used by init_player_deck and dev label.
 

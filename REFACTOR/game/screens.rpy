@@ -2278,16 +2278,23 @@ screen card_reward_trio_screen(cards):
 ## the player's deck (vision §1 pillar 3: money is the only shop). Activity
 ## entrypoint is activity_fixer in script.rpy.
 ##
-## Receives a list of entries: each (card_id, price). Returns either
-## ("remove", card_id, price) — caller deducts money + removes card —
-## or ("leave", None, None) — free reconnaissance, no day consumed.
+## Pricing is FLAT — every card costs the same `price` right now. The price
+## escalates between visits (each successful shred bumps the next). `next_price`
+## is telegraphed in the header so the player can decide if they want to scrub
+## now or wait (and have a stronger reason).
 ##
-## Reactive money check: each row's REMOVE button reads stats.available_money
-## fresh on each interaction (Ren'Py re-renders on action), so unaffordable
-## removals show as disabled in real time.
+## Receives:
+##   entries    list of card_id strings (one per card instance — duplicates
+##              render as separate rows so the player picks WHICH copy goes).
+##   price      flat CZK cost to shred ANY card this visit.
+##   next_price what the NEXT shred will cost (after this one resolves).
+##
+## Returns:
+##   ("remove", card_id) — caller deducts `price` and removes the card.
+##   ("leave", None)     — free reconnaissance, no day consumed.
 ## ---------------------------------------------------------------------------
 
-screen fixer_removal_screen(entries):
+screen fixer_removal_screen(entries, price, next_price):
     modal True
     zorder 700
 
@@ -2306,6 +2313,8 @@ screen fixer_removal_screen(entries):
             "compromise": "⊘ ",
             "status":     "☠ ",
         }
+        _f_affordable = (stats.available_money >= price)
+        _f_price_color = ("#ffd700" if _f_affordable else "#a04040")
 
     vbox:
         xalign 0.5
@@ -2327,16 +2336,35 @@ screen fixer_removal_screen(entries):
             italic True
             font "fonts/RobotoMono-Regular.ttf"
 
-        text "WALLET: [stats.available_money:,] CZK":
+        ## Pricing strip — current visit's flat price + escalation telegraph.
+        hbox:
             xalign 0.5
-            color "#ffd700"
-            size 18
-            bold True
-            font "fonts/RobotoMono-Regular.ttf"
+            spacing 28
+            text "TONIGHT'S PRICE: [price:,] CZK":
+                color _f_price_color
+                size 22
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
+            text "·":
+                color "#444444"
+                size 22
+            text "NEXT SHRED: [next_price:,] CZK":
+                color "#888888"
+                size 18
+                italic True
+                font "fonts/RobotoMono-Regular.ttf"
+            text "·":
+                color "#444444"
+                size 22
+            text "WALLET: [stats.available_money:,] CZK":
+                color "#ffd700"
+                size 18
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
 
         viewport:
             xsize 1100
-            ysize 600
+            ysize 580
             scrollbars "vertical"
             mousewheel True
             draggable True
@@ -2344,10 +2372,9 @@ screen fixer_removal_screen(entries):
             vbox:
                 spacing 6
 
-                for _entry in entries:
+                for _fcid in entries:
                     python:
-                        _fcid, _fprice = _entry
-                        _fc = CARD_LIBRARY.get(_fcid, {})
+                        _fc    = CARD_LIBRARY.get(_fcid, {})
                         _fname = _fc.get("name", _fcid)
                         _ftype = _fc.get("type", "Skill")
                         _frar  = _fc.get("rarity", "common")
@@ -2362,8 +2389,6 @@ screen fixer_removal_screen(entries):
                             _fcorr = None
                         _fglyph = _CORRUPTION_GLYPH.get(_fcorr, "")
                         _fcol   = _CORRUPTION_COLOR.get(_fcorr) or {"Attack": "#cc4422", "Skill": "#3388cc", "Power": "#aa44cc"}.get(_ftype, "#888888")
-                        _f_affordable = (stats.available_money >= _fprice)
-                        _f_price_color = ("#ffd700" if _f_affordable else "#a04040")
 
                     frame:
                         xsize 1080
@@ -2389,28 +2414,19 @@ screen fixer_removal_screen(entries):
                                 size 18
                                 bold True
                                 font "fonts/RobotoMono-Regular.ttf"
-                                xsize 360
+                                xsize 420
 
                             ## Type · rarity
                             text "[_ftype.upper()] · [_frar.upper()]":
                                 color "#888888"
                                 size 13
                                 font "fonts/RobotoMono-Regular.ttf"
-                                xsize 220
+                                xsize 360
 
-                            ## Price
-                            text "[_fprice:,] CZK":
-                                color _f_price_color
-                                size 18
-                                bold True
-                                font "fonts/RobotoMono-Regular.ttf"
-                                xsize 180
-                                xalign 1.0
-
-                            ## REMOVE button
+                            ## SHRED button
                             textbutton "[[ SHRED ]":
                                 sensitive _f_affordable
-                                action Return(("remove", _fcid, _fprice))
+                                action Return(("remove", _fcid))
                                 text_color ("#ff8866" if _f_affordable else "#553333")
                                 text_hover_color "#ffaa88"
                                 text_size 16
@@ -2422,7 +2438,7 @@ screen fixer_removal_screen(entries):
 
         textbutton "[[ ← LEAVE — no time lost ]":
             xalign 0.5
-            action Return(("leave", None, None))
+            action Return(("leave", None))
             text_color "#888888"
             text_hover_color "#ffffff"
             text_size 18
@@ -2432,7 +2448,7 @@ screen fixer_removal_screen(entries):
             hover_background Frame("#1a1a1aee", 3, 3)
             padding (24, 10)
 
-    key "K_ESCAPE" action Return(("leave", None, None))
+    key "K_ESCAPE" action Return(("leave", None))
 
 
 ## ---------------------------------------------------------------------------
