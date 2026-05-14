@@ -107,10 +107,12 @@ init python:
         "status_counterfeit":      "Status. Deal 4. Take 8. Exhausts.",
         "status_fumes":            "Status. Take 2. Exhausts.",
         "status_tear_gas":         "Status. Take 3. Exhausts.",
-        ## Rage cards (injected at hatred 40/60/80; permanent — not exhaust)
-        "outburst":                "Deal 12.\nLose 5 HP.",
-        "tunnel_vision":           "Deal 14.\nDiscard 1 random card.",
-        "snap":                    "Deal 8.\nExhaust 1 random card from hand.",
+        ## Rage cards (injected at hatred 40/60/80; permanent — not exhaust).
+        ## Each Rage play also adds +2 Hatred — corruption snowballs into the
+        ## next threshold faster.
+        "outburst":                "Deal 12.\nLose 9 HP.\n+2 Hatred.",
+        "tunnel_vision":           "Deal 14.\nDiscard 1 random card from hand or draw pile.\n+2 Hatred.",
+        "snap":                    "Deal 8.\nExhaust 1 random hand card — and remove it from your deck.\n+2 Hatred.",
         ## Compromise card (injected by forced_detour on 2nd+ loss; unplayable)
         "compromise":              "Unplayable.\nDead weight in hand.",
         ## Combat-reward rares (ladder-fight drops)
@@ -630,42 +632,70 @@ init python:
 
     @register_effect("outburst")
     def _eff_outburst(state, source, target):
-        ## Threshold-40 Rage. 12 dmg @ 1 energy — rare-tier raw power — paid
-        ## for in HP. Self-damage is floor-clamped to leave you at 1 HP min
-        ## (see deal_damage source_kind="effect" branch).
+        ## Threshold-40 Rage. 12 dmg @ 1 energy — paid for in 9 HP AND
+        ## +2 hatred (corruption snowballs into the next Rage threshold).
+        ## Self-damage is floor-clamped to leave you at 1 HP min (see
+        ## deal_damage source_kind="effect" branch). Net trade: +6 dmg
+        ## over Strike's 6 baseline, costing 9 HP and pushing toward
+        ## the next Rage card.
         state.deal_damage(target, 12)
-        state.deal_damage(source, 5)
-        state.add_log("Outburst: 12 damage. -5 HP.")
+        state.deal_damage(source, 9)
+        if stats:
+            stats.increment_stats_pcr_hatred(2)
+        state.add_log("Outburst: 12 damage. -9 HP. +2 Hatred.")
 
     @register_effect("tunnel_vision")
     def _eff_tunnel_vision(state, source, target):
         ## Threshold-60 Rage. 14 dmg @ 1 energy. Rage clouds judgment — one
-        ## random card leaves your hand for the discard pile. Hits Defends,
-        ## key combos, or other Rage cards indifferently.
+        ## random card from hand OR draw pile is discarded. Hitting the draw
+        ## pile means the victim is a card you haven't even seen yet — could
+        ## be your key Strongman that won't show up this turn now.
         state.deal_damage(target, 14)
-        _others = _other_cards_in_hand(state, "tunnel_vision")
-        if _others:
-            _victim = _rage_rand.choice(_others)
-            state.discard(_victim)
+        _candidates = _other_cards_in_hand(state, "tunnel_vision") + list(state.draw_pile)
+        if _candidates:
+            _victim = _rage_rand.choice(_candidates)
+            ## state.discard handles hand removal. For draw pile we hand-remove
+            ## then push to discard_pile (matching discard semantics).
+            if _victim in state.hand:
+                state.discard(_victim)
+            elif _victim in state.draw_pile:
+                state.draw_pile.remove(_victim)
+                state.discard_pile.append(_victim)
             _name = CARD_LIBRARY.get(_victim, {}).get("name", _victim)
             state.add_log("Tunnel Vision: discarded {}.".format(_name))
-        else:
-            state.add_log("Tunnel Vision: 14 damage.")
+        if stats:
+            stats.increment_stats_pcr_hatred(2)
 
     @register_effect("snap")
     def _eff_snap(state, source, target):
-        ## Threshold-80 Rage. Free swing — but the run pays. A random card in
-        ## hand is exhausted (gone for the rest of THIS fight, not the run).
-        ## 0-cost makes it always playable; the exhaust is the price.
+        ## Threshold-80 Rage. Free 8 dmg — but a random hand card is exhausted
+        ## for the fight AND removed from the run-deck permanently. Class
+        ## signature cards (heavy_set / read_him / stack_up), other Rage cards,
+        ## and Compromise cards are NOT permanent-removed (the first because
+        ## class identity is sacred; the latter two because removing your own
+        ## corruption mid-fight would be a free heal — corruption is sticky).
         state.deal_damage(target, 8)
         _others = _other_cards_in_hand(state, "snap")
         if _others:
             _victim = _rage_rand.choice(_others)
             state.exhaust(_victim)
-            _name = CARD_LIBRARY.get(_victim, {}).get("name", _victim)
-            state.add_log("Snap: exhausted {}.".format(_name))
-        else:
-            state.add_log("Snap: 8 damage.")
+            _vc = CARD_LIBRARY.get(_victim, {})
+            _name = _vc.get("name", _victim)
+            _protected = (
+                _victim in CLASS_SIGNATURE_CARDS
+                or bool(_vc.get("is_rage"))
+                or bool(_vc.get("is_compromise"))
+            )
+            if not _protected and player_deck is not None:
+                try:
+                    player_deck.remove(_victim)
+                    state.add_log("Snap: exhausted {} AND removed from deck.".format(_name))
+                except Exception:
+                    state.add_log("Snap: exhausted {}.".format(_name))
+            else:
+                state.add_log("Snap: exhausted {} (protected from deck removal).".format(_name))
+        if stats:
+            stats.increment_stats_pcr_hatred(2)
 
     @register_effect("compromise")
     def _eff_compromise(state, source, target):

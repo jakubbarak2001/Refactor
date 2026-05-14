@@ -119,6 +119,12 @@ init -1 python:
     ## Module-level deck — initialised in init_game alongside stats/day_cycle.
     player_deck = None
 
+    ## Class-signature cards — protected from permanent-removal effects
+    ## (Snap's deck-shred, future Fixer logic, anything else that nukes
+    ## cards out of the run-deck). One copy of each per class; the card
+    ## IS the class fantasy.
+    CLASS_SIGNATURE_CARDS = {"heavy_set", "read_him", "stack_up"}
+
     ## ---------------------------------------------------------------------------
     ## Fixer pricing — flat current price for ANY removal, escalates per shred.
     ## Defined at init-python level (not inside label python blocks) so the
