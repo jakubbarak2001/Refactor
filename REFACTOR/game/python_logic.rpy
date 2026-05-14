@@ -68,6 +68,10 @@ init python:
             self.pcr_hatred += amount
             if self.pcr_hatred < 0:
                 self.pcr_hatred = 0
+            ## Hatred corrupts (vision §1 pillar 2). Each threshold crossing
+            ## jams a permanent Rage card into the deck. One-shot per threshold
+            ## — dipping below and back up does NOT re-grant.
+            _check_rage_injection()
 
         def stats_description_money(self):
             money_levels = [
@@ -199,6 +203,37 @@ init python:
         if store.bb_soma >= 10:
             unlock_achievement("maximum_stack")
 
+    ## ---------------------------------------------------------------------------
+    ## Hatred corruption — vision §1 pillar 2.
+    ## Each threshold (40 / 60 / 80) jams a permanent Rage card into the deck
+    ## on first crossing. The deck IS the 30 days; bad weeks stick.
+    ## Fired from increment_stats_pcr_hatred after the mutation lands.
+    ## ---------------------------------------------------------------------------
+    RAGE_THRESHOLDS = [
+        (40, "outburst"),
+        (60, "tunnel_vision"),
+        (80, "snap"),
+    ]
+
+    def _check_rage_injection():
+        if stats is None:
+            return
+        triggered = getattr(store, '_rage_thresholds_triggered', None)
+        if triggered is None:
+            store._rage_thresholds_triggered = set()
+            triggered = store._rage_thresholds_triggered
+        ## grant_card lives in card_data.rpy; reference via globals() so this
+        ## file doesn't need to know the registration order at init time.
+        _grant = globals().get("grant_card")
+        if _grant is None:
+            return
+        for threshold, card_id in RAGE_THRESHOLDS:
+            if threshold in triggered:
+                continue
+            if stats.pcr_hatred >= threshold:
+                if _grant(card_id, silent=False):
+                    triggered.add(threshold)
+
     def get_key_event_days():
         """Return dict[day -> (label, color)] for calendar markers."""
         if stats is None:
@@ -294,6 +329,9 @@ init python:
         ## Permanent max-HP bonus accrued from gym sessions (+5 per regular gym).
         ## Added on top of class baseline in battle_init. Resets on new run.
         store.gym_max_hp_bonus = 0
+        ## Hatred-corruption tracker — set of thresholds (40/60/80) already
+        ## crossed this run. See _check_rage_injection / RAGE_THRESHOLDS.
+        store._rage_thresholds_triggered = set()
 
         ## --- Class progression state ---
         ## BB: SOMA stack (each gym session +1, max 10). 5+ unlocks Iron Body buff in fight.

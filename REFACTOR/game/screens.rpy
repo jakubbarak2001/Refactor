@@ -2280,11 +2280,19 @@ screen card_acquired_toast(card):
             "Police":   "#3388cc",
             "Special":  "#00cc88",
         }
-        _ct_color = _CARD_TOAST_COLORS.get(card.get("color", "Special"), "#888888")
+        ## Rage cards override the color palette and header — they aren't
+        ## "acquired", they're forced on you by your own hatred.
+        _ct_is_rage = bool(card.get("is_rage"))
+        if _ct_is_rage:
+            _ct_color = "#ff3322"
+            _ct_header = "🔥 RAGE FORCED"
+        else:
+            _ct_color = _CARD_TOAST_COLORS.get(card.get("color", "Special"), "#888888")
+            _ct_header = "CARD ACQUIRED"
 
     frame at _card_toast_anim:
         padding (18, 14)
-        background Frame("#0d1018ff", 4, 4)
+        background Frame("#1a0a0aff" if _ct_is_rage else "#0d1018ff", 4, 4)
 
         vbox:
             spacing 5
@@ -2296,7 +2304,7 @@ screen card_acquired_toast(card):
                     color _ct_color
                     size 18
                     bold True
-                text "CARD ACQUIRED":
+                text _ct_header:
                     color _ct_color
                     size 14
                     bold True

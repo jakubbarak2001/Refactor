@@ -578,7 +578,20 @@ screen battle_pile_peek():
                                 spacing 8
                                 for _cid in _row:
                                     $ _c = CARD_LIBRARY.get(_cid, {})
-                                    $ _ccol = _PEEK_COLORS.get(_c.get("color", "Special"), "#888888")
+                                    $ _c_is_status = (_c.get("effect") or "").startswith("status_")
+                                    $ _c_is_rage   = bool(_c.get("is_rage"))
+                                    if _c_is_rage:
+                                        $ _ccol = "#aa1a1a"
+                                        $ _c_prefix = "🔥 "
+                                        $ _c_name_color = "#ff8866"
+                                    elif _c_is_status:
+                                        $ _ccol = "#8a7a2a"
+                                        $ _c_prefix = "☠ "
+                                        $ _c_name_color = "#d4c47a"
+                                    else:
+                                        $ _ccol = _PEEK_COLORS.get(_c.get("color", "Special"), "#888888")
+                                        $ _c_prefix = ""
+                                        $ _c_name_color = "#ffffff"
                                     frame:
                                         xsize 340
                                         background Frame("#0d0d0dee", 3, 3)
@@ -589,8 +602,8 @@ screen battle_pile_peek():
                                                 color _ccol
                                                 size 14
                                                 bold True
-                                            text _c.get("name", _cid):
-                                                color "#ffffff"
+                                            text "{}{}".format(_c_prefix, _c.get("name", _cid)):
+                                                color _c_name_color
                                                 size 14
 
     textbutton "[[ CLOSE ]":
@@ -1130,17 +1143,39 @@ screen battle_screen():
                 for _cid in bs.hand:
                     $ _card = CARD_LIBRARY.get(_cid, {})
                     $ _ctype = _card.get("type", "Skill")
+                    ## Status / curse cards (injected by enemy wrinkles) override the
+                    ## normal type palette so the player can spot the trash card in
+                    ## hand without reading. Sickly mustard-green = "this is rot".
+                    ## Rage cards (injected by hatred thresholds) use a deep blood-
+                    ## red — distinct from normal Attack red — to flag corruption.
+                    $ _is_status = (_card.get("effect") or "").startswith("status_")
+                    $ _is_rage   = bool(_card.get("is_rage"))
                     ## Type-driven palette: Attack=red, Skill=blue, Power=purple.
                     ## Card "color" taxonomy (Physical/Mental/Money/...) reads as
                     ## random tinting to playtesters; type is unambiguous.
-                    $ _color = {"Attack": "#cc4422", "Skill": "#3388cc", "Power": "#aa44cc"}.get(_ctype, "#888888")
+                    if _is_rage:
+                        $ _color = "#aa1a1a"
+                    elif _is_status:
+                        $ _color = "#8a7a2a"
+                    else:
+                        $ _color = {"Attack": "#cc4422", "Skill": "#3388cc", "Power": "#aa44cc"}.get(_ctype, "#888888")
                     $ _ok, _reason = bs.hand_playable(_cid)
                     $ _border = _color if _ok else "#3a2020"
                     $ _effect_text = effect_description(_card.get("effect")) or _card.get("flavor", "")
-                    $ _subtitle = (_ctype.upper() + " · " + (_card.get("color") or "").upper()).strip(" ·")
+                    if _is_rage:
+                        $ _subtitle = "RAGE · CORRUPTED"
+                    elif _is_status:
+                        $ _subtitle = "STATUS · CURSE"
+                    else:
+                        $ _subtitle = (_ctype.upper() + " · " + (_card.get("color") or "").upper()).strip(" ·")
                     $ _art_path = "images/cards/{}.png".format(_cid)
                     $ _has_art  = renpy.loadable(_art_path)
-                    $ _art_glyph = _card.get("art_glyph") or {"Attack": "⚔", "Skill": "✦", "Power": "★"}.get(_ctype, "●")
+                    if _is_rage:
+                        $ _art_glyph = "🔥"
+                    elif _is_status:
+                        $ _art_glyph = "☠"
+                    else:
+                        $ _art_glyph = _card.get("art_glyph") or {"Attack": "⚔", "Skill": "✦", "Power": "★"}.get(_ctype, "●")
 
                     button:
                         xsize 220

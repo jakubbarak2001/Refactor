@@ -52,6 +52,7 @@ init -1 python:
             "flavor":     "",
             "art":        None,
             "art_glyph":  None,
+            "is_rage":    False,
         }
         defaults.update(fields)
         defaults["id"] = card_id

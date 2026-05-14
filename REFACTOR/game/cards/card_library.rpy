@@ -872,6 +872,50 @@ init python:
     )
 
     ## ---------------------------------------------------------------------------
+    ## RAGE CARDS — corruption injected by hatred thresholds (40/60/80).
+    ## Permanent additions to the deck (no exhaust). High raw damage, self-
+    ## corrupting side effects. The deck IS the 30 days; bad days stick.
+    ## See _check_rage_injection in python_logic.rpy.
+    ## ---------------------------------------------------------------------------
+
+    register_card(
+        "outburst",
+        name          = "Outburst",
+        type          = "Attack",
+        color         = "Rage",
+        cost          = 1,
+        rarity        = "uncommon",
+        effect        = "outburst",
+        is_rage       = True,
+        pool_excluded = True,
+        flavor        = "You said it. You can't unsay it. The doorframe doesn't survive either.",
+    )
+    register_card(
+        "tunnel_vision",
+        name          = "Tunnel Vision",
+        type          = "Attack",
+        color         = "Rage",
+        cost          = 1,
+        rarity        = "uncommon",
+        effect        = "tunnel_vision",
+        is_rage       = True,
+        pool_excluded = True,
+        flavor        = "All you see is him. The hand forgets what else it was holding.",
+    )
+    register_card(
+        "snap",
+        name          = "Snap",
+        type          = "Attack",
+        color         = "Rage",
+        cost          = 0,
+        rarity        = "rare",
+        effect        = "snap",
+        is_rage       = True,
+        pool_excluded = True,
+        flavor        = "Free swing. Something in the deck breaks for good.",
+    )
+
+    ## ---------------------------------------------------------------------------
     ## COMBAT REWARDS — rare-tier cards designed to drop from ladder fights.
     ## Heavier mechanics than activity-granted commons/uncommons; the ladder
     ## is the path to power. Tier weights in pick_battle_rewards bias toward

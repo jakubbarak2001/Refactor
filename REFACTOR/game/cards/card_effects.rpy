@@ -107,6 +107,10 @@ init python:
         "status_counterfeit":      "Status. Deal 4. Take 8. Exhausts.",
         "status_fumes":            "Status. Take 2. Exhausts.",
         "status_tear_gas":         "Status. Take 3. Exhausts.",
+        ## Rage cards (injected at hatred 40/60/80; permanent — not exhaust)
+        "outburst":                "Deal 12.\nLose 5 HP.",
+        "tunnel_vision":           "Deal 14.\nDiscard 1 random card.",
+        "snap":                    "Deal 8.\nExhaust 1 random card from hand.",
         ## Combat-reward rares (ladder-fight drops)
         "killing_blow":            "Deal 14. If enemy is below half HP: deal 14 more.",
         "tactical_read":           "Peek 5 intents. Gain 1 energy. Exhausts.",
@@ -130,7 +134,7 @@ init python:
         h = stats.pcr_hatred if stats else 0
         if effect_id == "heavy_set":
             dmg = 4 + (h // 10)
-            return "Deal {} damage. (4 + Hatred / 10. Hatred {} → {}.)".format(dmg, h, dmg)
+            return "Deal {} damage.\nScales with Hatred.".format(dmg)
         return EFFECT_DESCRIPTIONS.get(effect_id, "")
 
     ## ---------------------------------------------------------------------------
@@ -605,6 +609,61 @@ init python:
     @register_effect("status_tear_gas")
     def _eff_status_tear_gas(state, source, target):
         state.deal_damage(source, 3)
+
+    ## ---------------------------------------------------------------------------
+    ## Rage cards — corruption injected by hatred thresholds. High raw damage,
+    ## self-corrupting side effects (self-damage, random discard, random
+    ## exhaust). Permanent in deck — these recur until removed by a fixer.
+    ## ---------------------------------------------------------------------------
+
+    import random as _rage_rand
+
+    def _other_cards_in_hand(state, self_id):
+        """Return hand cards excluding the card currently resolving (so a Rage
+        card never discards/exhausts itself when it triggers from hand)."""
+        try:
+            return [cid for cid in state.hand if cid != self_id]
+        except Exception:
+            return []
+
+    @register_effect("outburst")
+    def _eff_outburst(state, source, target):
+        ## Threshold-40 Rage. 12 dmg @ 1 energy — rare-tier raw power — paid
+        ## for in HP. Self-damage is floor-clamped to leave you at 1 HP min
+        ## (see deal_damage source_kind="effect" branch).
+        state.deal_damage(target, 12)
+        state.deal_damage(source, 5)
+        state.add_log("Outburst: 12 damage. -5 HP.")
+
+    @register_effect("tunnel_vision")
+    def _eff_tunnel_vision(state, source, target):
+        ## Threshold-60 Rage. 14 dmg @ 1 energy. Rage clouds judgment — one
+        ## random card leaves your hand for the discard pile. Hits Defends,
+        ## key combos, or other Rage cards indifferently.
+        state.deal_damage(target, 14)
+        _others = _other_cards_in_hand(state, "tunnel_vision")
+        if _others:
+            _victim = _rage_rand.choice(_others)
+            state.discard(_victim)
+            _name = CARD_LIBRARY.get(_victim, {}).get("name", _victim)
+            state.add_log("Tunnel Vision: discarded {}.".format(_name))
+        else:
+            state.add_log("Tunnel Vision: 14 damage.")
+
+    @register_effect("snap")
+    def _eff_snap(state, source, target):
+        ## Threshold-80 Rage. Free swing — but the run pays. A random card in
+        ## hand is exhausted (gone for the rest of THIS fight, not the run).
+        ## 0-cost makes it always playable; the exhaust is the price.
+        state.deal_damage(target, 8)
+        _others = _other_cards_in_hand(state, "snap")
+        if _others:
+            _victim = _rage_rand.choice(_others)
+            state.exhaust(_victim)
+            _name = CARD_LIBRARY.get(_victim, {}).get("name", _victim)
+            state.add_log("Snap: exhausted {}.".format(_name))
+        else:
+            state.add_log("Snap: 8 damage.")
 
     ## ---------------------------------------------------------------------------
     ## Combat-reward rares — ladder-fight drops, heavier mechanics than the
