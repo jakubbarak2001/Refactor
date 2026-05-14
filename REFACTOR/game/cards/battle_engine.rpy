@@ -938,6 +938,7 @@ init python:
             "gas_throw":   "audio/sfx/gas_throw.mp3",
             "flare_throw": "audio/sfx/flare_throw.mp3",
             "paper_wall":  "audio/sfx/paper_wall.mp3",
+            "rvac_swing":  "audio/sfx/rvac_swing.mp3",
         }.get(ic.get("id", ""))
         if _card_sfx:
             renpy.sound.play(_card_sfx)
