@@ -662,6 +662,7 @@ default _ACT_DEFAULT_GLYPHS = {
     "PHONE": "☏",
     "SLEEP": "☾",
     "REST": "❋",
+    "VISIT FIXER": "✂",
 }
 
 screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effect_chips=None, locked=False, lock_text="", class_relevant=False, flavor_text="", art_glyph=""):
@@ -982,6 +983,22 @@ screen activity_select_screen():
             flavor_text    = "Trade time for money.",
             class_relevant = False,
         )
+
+        ## VISIT FIXER - money-as-shop (vision §1 pillar 3). Spend CZK to
+        ## remove a card from the deck. Gated to day 10+ so early game stays
+        ## focused on resource acquisition; by day 10 the player has likely
+        ## hit a hatred threshold (Rage card) or lost a fight (Compromise)
+        ## and has a reason to use the valve.
+        if day_cycle and day_cycle.current_day >= 10:
+            use _activity_tile(
+                label_name     = "activity_fixer",
+                title          = "VISIT FIXER",
+                accent         = "#9a8060",
+                cost_text      = "VARIES",
+                effect_chips   = [("CZK", None), ("Cards", -1)],
+                flavor_text    = "A phone older than the law. He scrubs decks.",
+                class_relevant = False,
+            )
 
     ## Floating BACK button - bottom-left, deliberately separate from the
     ## activity grid so it reads as navigation, not a tile.
@@ -2254,6 +2271,168 @@ screen card_reward_trio_screen(cards):
     key "K_3" action If(len(cards) >= 3, Return(cards[2]), NullAction())
     key "K_s" action Return("skip")
     key "K_ESCAPE" action Return("skip")
+
+
+## ---------------------------------------------------------------------------
+## Fixer Removal — scrollable picker for spending CZK to remove a card from
+## the player's deck (vision §1 pillar 3: money is the only shop). Activity
+## entrypoint is activity_fixer in script.rpy.
+##
+## Receives a list of entries: each (card_id, price). Returns either
+## ("remove", card_id, price) — caller deducts money + removes card —
+## or ("leave", None, None) — free reconnaissance, no day consumed.
+##
+## Reactive money check: each row's REMOVE button reads stats.available_money
+## fresh on each interaction (Ren'Py re-renders on action), so unaffordable
+## removals show as disabled in real time.
+## ---------------------------------------------------------------------------
+
+screen fixer_removal_screen(entries):
+    modal True
+    zorder 700
+
+    add "#0a0a0aee"
+
+    use class_color_frame(thickness=3, alpha_suffix="aa")
+
+    python:
+        _CORRUPTION_COLOR = {
+            "rage":       "#aa1a1a",
+            "compromise": "#5a5550",
+            "status":     "#8a7a2a",
+        }
+        _CORRUPTION_GLYPH = {
+            "rage":       "🔥 ",
+            "compromise": "⊘ ",
+            "status":     "☠ ",
+        }
+
+    vbox:
+        xalign 0.5
+        yalign 0.5
+        spacing 14
+
+        text "FIXER · RUN A CARD THROUGH THE SHREDDER":
+            xalign 0.5
+            color "#9a8060"
+            size 36
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+            outlines [(2, "#000000", 0, 0)]
+
+        text "He doesn't take cards. He shreds them. Pick what disappears.":
+            xalign 0.5
+            color "#888888"
+            size 15
+            italic True
+            font "fonts/RobotoMono-Regular.ttf"
+
+        text "WALLET: [stats.available_money:,] CZK":
+            xalign 0.5
+            color "#ffd700"
+            size 18
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+
+        viewport:
+            xsize 1100
+            ysize 600
+            scrollbars "vertical"
+            mousewheel True
+            draggable True
+
+            vbox:
+                spacing 6
+
+                for _entry in entries:
+                    python:
+                        _fcid, _fprice = _entry
+                        _fc = CARD_LIBRARY.get(_fcid, {})
+                        _fname = _fc.get("name", _fcid)
+                        _ftype = _fc.get("type", "Skill")
+                        _frar  = _fc.get("rarity", "common")
+                        ## Classify corruption category for visual prefix.
+                        if _fc.get("is_rage"):
+                            _fcorr = "rage"
+                        elif _fc.get("is_compromise"):
+                            _fcorr = "compromise"
+                        elif (_fc.get("effect") or "").startswith("status_"):
+                            _fcorr = "status"
+                        else:
+                            _fcorr = None
+                        _fglyph = _CORRUPTION_GLYPH.get(_fcorr, "")
+                        _fcol   = _CORRUPTION_COLOR.get(_fcorr) or {"Attack": "#cc4422", "Skill": "#3388cc", "Power": "#aa44cc"}.get(_ftype, "#888888")
+                        _f_affordable = (stats.available_money >= _fprice)
+                        _f_price_color = ("#ffd700" if _f_affordable else "#a04040")
+
+                    frame:
+                        xsize 1080
+                        ysize 56
+                        background Frame("#0d0d0dee", 3, 3)
+                        padding (14, 6)
+
+                        hbox:
+                            spacing 18
+                            yalign 0.5
+
+                            ## Cost gem
+                            text "[[ [_fc.get('cost', 0)] ]":
+                                color _fcol
+                                size 18
+                                bold True
+                                font "fonts/RobotoMono-Regular.ttf"
+                                xsize 60
+
+                            ## Name with corruption prefix
+                            text "[_fglyph][_fname]":
+                                color "#ffffff"
+                                size 18
+                                bold True
+                                font "fonts/RobotoMono-Regular.ttf"
+                                xsize 360
+
+                            ## Type · rarity
+                            text "[_ftype.upper()] · [_frar.upper()]":
+                                color "#888888"
+                                size 13
+                                font "fonts/RobotoMono-Regular.ttf"
+                                xsize 220
+
+                            ## Price
+                            text "[_fprice:,] CZK":
+                                color _f_price_color
+                                size 18
+                                bold True
+                                font "fonts/RobotoMono-Regular.ttf"
+                                xsize 180
+                                xalign 1.0
+
+                            ## REMOVE button
+                            textbutton "[[ SHRED ]":
+                                sensitive _f_affordable
+                                action Return(("remove", _fcid, _fprice))
+                                text_color ("#ff8866" if _f_affordable else "#553333")
+                                text_hover_color "#ffaa88"
+                                text_size 16
+                                text_bold True
+                                text_font "fonts/RobotoMono-Regular.ttf"
+                                background Frame("#1a0d0dee" if _f_affordable else "#0d0d0dee", 3, 3)
+                                hover_background Frame("#3a1a1aee", 3, 3)
+                                padding (16, 6)
+
+        textbutton "[[ ← LEAVE — no time lost ]":
+            xalign 0.5
+            action Return(("leave", None, None))
+            text_color "#888888"
+            text_hover_color "#ffffff"
+            text_size 18
+            text_bold True
+            text_font "fonts/RobotoMono-Regular.ttf"
+            background Frame("#0d0d0dee", 3, 3)
+            hover_background Frame("#1a1a1aee", 3, 3)
+            padding (24, 10)
+
+    key "K_ESCAPE" action Return(("leave", None, None))
 
 
 ## ---------------------------------------------------------------------------

@@ -337,8 +337,8 @@ label day_start:
     if current_day == 14:
         call salary_day from _call_salary_day_daystart
 
-    if current_day == 15:
-        call midnight_call from _call_midnight_call_daystart
+    # if current_day == 15:
+    #     call midnight_call from _call_midnight_call_daystart
 
     ## Battle ladder / random events:
     ## - Regular cadence: days 3, 6, 9, 12, 15, 18, 21
@@ -1109,6 +1109,97 @@ label activity_night_shift:
 
         "Return to menu.":
             jump daily_menu
+
+
+## ---------------------------------------------------------------------------
+## ACTIVITY: VISIT FIXER (day 10+ only — tile gate in activity_select_screen)
+##
+## Vision §1 pillar 3: money is the only shop. The Fixer is the in-fiction
+## sim action for card removal. Removal-only in v1; upgrades deferred.
+##
+## Flow:
+##   1. Build the removable-card list (skip starter identity cards).
+##   2. Empty list → free reconnaissance, return to daily_menu.
+##   3. fixer_removal_screen → ("remove", card_id, price) or ("leave", ...).
+##   4. Leave: free reconnaissance, return to daily_menu.
+##   5. Remove: spend money, remove card, consume the day's activity.
+##
+## Price tiers (no adjusted_cost — the Fixer is street-level, not gym):
+##   common     : 6,000 CZK
+##   uncommon   : 8,000 CZK
+##   rare       : 12,000 CZK
+##   compromise :  5,000 CZK   (pity tier — easiest corruption to scrub)
+##   rage       : 15,000 CZK   (corruption is sticky — costs more than rares)
+## ---------------------------------------------------------------------------
+
+label activity_fixer:
+
+    scene bg_jb_flat
+
+    python:
+        ## Starter identity cards — non-removable. Each class signature, plus
+        ## the universal baseline. Identity is sacred; the Fixer doesn't touch it.
+        _FIXER_STARTER_LOCKED = {"strike", "defend", "heavy_set", "read_him", "stack_up"}
+
+        def _fixer_price_for(cid):
+            c = CARD_LIBRARY.get(cid, {})
+            if c.get("is_rage"):
+                return 15000
+            if c.get("is_compromise"):
+                return 5000
+            rarity = c.get("rarity", "common")
+            if rarity == "rare":
+                return 12000
+            if rarity == "uncommon":
+                return 8000
+            return 6000
+
+        ## Build entries — one per (card_id, price). Each duplicate counts as
+        ## a separate entry so the player can pick which copy goes (and to
+        ## visualize how cluttered the deck is).
+        _fixer_entries = []
+        if player_deck is not None:
+            for _cid in player_deck.cards:
+                if _cid in _FIXER_STARTER_LOCKED:
+                    continue
+                _fixer_entries.append((_cid, _fixer_price_for(_cid)))
+
+    if not _fixer_entries:
+        "The flat smells like old smoke. The fixer doesn't look up from his crossword."
+        "'You don't have anything I can scrub yet. Come back when you do.'"
+        jump daily_menu
+
+    "A flat on the third floor of a panelák. The doorbell doesn't work; he knew you'd be here."
+    "'Pick what disappears. I take cash. I don't take notes.'"
+
+    call screen fixer_removal_screen(entries=_fixer_entries)
+
+    python:
+        _fixer_action, _fixer_card, _fixer_price = _return if isinstance(_return, tuple) else ("leave", None, None)
+
+    if _fixer_action == "leave":
+        ## Free reconnaissance — no day burned. Player just browsed.
+        jump daily_menu
+
+    python:
+        if not stats.try_spend_money(_fixer_price):
+            renpy.say(None, "[[INSUFFICIENT FUNDS] He counts the notes again. 'Come back when you can pay.'")
+            renpy.jump("daily_menu")
+        player_deck.remove(_fixer_card)
+        _fixer_name = CARD_LIBRARY.get(_fixer_card, {}).get("name", _fixer_card)
+        _fixer_outcome = "- {:,} CZK   - 1 card ({})".format(_fixer_price, _fixer_name)
+
+    "He feeds the card into a shredder that's older than you. The teeth are loud."
+    "'Done. That's not in your deck anymore.'"
+
+    window hide
+    show screen outcome_panel(_fixer_outcome)
+    pause
+    hide screen outcome_panel
+
+    python:
+        activity_selected = True
+    jump end_day
 
 
 ## ---------------------------------------------------------------------------
