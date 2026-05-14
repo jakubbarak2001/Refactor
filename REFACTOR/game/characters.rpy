@@ -136,7 +136,7 @@ image fanousek neutral      = im.Scale("images/sprites/enemies/fanousek_neutral.
 image spis neutral          = im.Scale("images/sprites/enemies/spis_neutral.png",          600, 900)
 ## Medium tier
 image nguyen neutral        = im.Scale("images/sprites/enemies/nguyen_neutral.png",        600, 900)
-image varic neutral         = im.Scale("images/sprites/enemies/varic_neutral.png",         600, 900)
+image grundza neutral       = im.Scale("images/sprites/enemies/grundza_neutral.png",       600, 900)
 image lawyer neutral        = im.Scale("images/sprites/enemies/lawyer_neutral.png",        600, 900)
 image dispatcher neutral    = im.Scale("images/sprites/enemies/dispatcher_neutral.png",    600, 900)
 ## Hard tier

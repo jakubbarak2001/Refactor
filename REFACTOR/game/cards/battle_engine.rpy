@@ -340,7 +340,7 @@ init python:
             """
             self.intent_index += 1
             if self.intent_index >= len(self.intent_queue):
-                self.intent_queue = build_enemy_deck(self.enemy_id)
+                self.intent_queue = build_enemy_deck(self.enemy_id, prev_card_id=self.last_intent_resolved)
                 self.intent_index = 0
                 ## Rvac drunken double-down — wrinkle fires on first reshuffle.
                 if self.enemy_id == "rvac" and not self.buffs.get("rvac_doubled", False):
@@ -751,21 +751,21 @@ init python:
                 _pre_resolve_block,
             ))
 
-        ## --- Varic lab-timer: synthesize a burst intent that replaces the
-        ## scheduled turn-7 intent. Synthesizing (rather than early-return)
-        ## lets the normal pipeline fire below: brawl bleed ticks, retaliate
-        ## buffs (Iron Stance / Iron Body / single_retaliate_dmg) respond,
-        ## damage gets logged through state.deal_damage.
-        _varic_burst_intent = None
-        if bs.enemy_id == "varic":
-            _wd = ENEMY_LIBRARY.get("varic", {}).get("wrinkle_data", {})
+        ## --- Grundza lab-timer: synthesize a burst intent that replaces
+        ## the scheduled turn-7 intent. Synthesizing (rather than early-
+        ## return) lets the normal pipeline fire below: brawl bleed ticks,
+        ## retaliate buffs (Iron Stance / Iron Body / single_retaliate_dmg)
+        ## respond, damage gets logged through state.deal_damage.
+        _grundza_burst_intent = None
+        if bs.enemy_id == "grundza":
+            _wd = ENEMY_LIBRARY.get("grundza", {}).get("wrinkle_data", {})
             _det_turn = _wd.get("detonation_turn", 7)
             _det_dmg = _wd.get("detonation_dmg", 22)
-            if bs.turn == _det_turn and not bs.buffs.get("varic_detonated", False):
-                bs.buffs["varic_detonated"] = True
+            if bs.turn == _det_turn and not bs.buffs.get("grundza_detonated", False):
+                bs.buffs["grundza_detonated"] = True
                 bs.add_log("[[Lab Timer]: the rig blows.")
-                _varic_burst_intent = {
-                    "id":     "varic_burst",
+                _grundza_burst_intent = {
+                    "id":     "grundza_burst",
                     "name":   "Lab Detonation",
                     "intent": "attack",
                     "value":  _det_dmg,
@@ -795,12 +795,12 @@ init python:
                 bs.add_log("[[DBG]: branch=algorithm_skip")
             return
 
-        ic = _varic_burst_intent if _varic_burst_intent is not None else bs.current_intent()
+        ic = _grundza_burst_intent if _grundza_burst_intent is not None else bs.current_intent()
         if ic is None:
             ## Out of intents — reshuffle the deck and continue. NO auto-victory
             ## on deck exhaustion: the only win condition is enemy_hp == 0.
             ## Players found the old HP<=25 auto-win cheap and unsatisfying.
-            bs.intent_queue = build_enemy_deck(bs.enemy_id)
+            bs.intent_queue = build_enemy_deck(bs.enemy_id, prev_card_id=bs.last_intent_resolved)
             bs.intent_index = 0
             ## --- Rvac drunken double-down: first reshuffle adds +3 to
             ## the next attack (uses existing one-shot enemy_attack_bonus

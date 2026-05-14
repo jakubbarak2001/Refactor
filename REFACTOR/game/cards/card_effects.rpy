@@ -64,6 +64,7 @@ init python:
         "stoic_anchor":            "Power: +3 starting block per turn. Heal 3 HP after each enemy attack.",
         "quick_jab":               "Deal 7 damage.",
         "loan_sharks":             "Pay 5,000 CZK to deal 30 damage. (No funds = no damage.) Exhausts.",
+        "paid_review":             "Pay 10,000 CZK to cancel the enemy's next attack and draw 2. (No funds = no effect.) Exhausts.",
         "chain_of_command":        "Gain 10 block. Draw 1 card.",
         "vigil":                   "Gain 4 block now. +4 starting block next turn.",
         "iron_stance":             "Power: +20 block. Retaliate (4 + 2x turn) damage when you're hit.",
@@ -112,6 +113,25 @@ init python:
         "iron_drill":              "Gain 12 block + 4 per Skill in hand (capped at +12).",
         "last_stand":              "Deal 16. If you're below half HP, draw 2. Exhausts.",
     }
+
+    ## ---------------------------------------------------------------------------
+    ## Dynamic description resolution.
+    ## Most cards have a static description above. Stat-scaling cards (Heavy Set
+    ## scales off Hatred, side_income/payday scale off Money) read better when
+    ## the player sees the *current* damage spelled out, not the formula. This
+    ## helper returns the dynamic line for those and falls back to the static
+    ## dict for everything else. Call this from every UI site that previously
+    ## did EFFECT_DESCRIPTIONS.get(effect_id, "").
+    ## ---------------------------------------------------------------------------
+
+    def effect_description(effect_id):
+        if not effect_id:
+            return ""
+        h = stats.pcr_hatred if stats else 0
+        if effect_id == "heavy_set":
+            dmg = 4 + (h // 10)
+            return "Deal {} damage. (4 + Hatred / 10. Hatred {} → {}.)".format(dmg, h, dmg)
+        return EFFECT_DESCRIPTIONS.get(effect_id, "")
 
     ## ---------------------------------------------------------------------------
     ## Universal starters
@@ -313,6 +333,18 @@ init python:
             state.add_log("Loan Sharks: 5000 CZK spent. 30 damage.")
         else:
             state.add_log("Loan Sharks: card fizzles — no 5,000 CZK on hand.")
+
+    @register_effect("paid_review")
+    def _eff_paid_review(state, source, target):
+        ## BB's escape valve for the coding ceiling — cash buys the senior's
+        ## hour. 10K CZK → cancel next attack + draw 2. No funds → fizzles
+        ## (still exhausts; you texted, you got nothing back).
+        if stats and stats.try_spend_money(10000):
+            state.cancel_next_attack_set()
+            state.draw_cards(2)
+            state.add_log("Paid Review: 10000 CZK spent. Attack cancelled. +2 cards.")
+        else:
+            state.add_log("Paid Review: phone goes to voicemail. No funds.")
 
     @register_effect("chain_of_command")
     def _eff_chain_of_command(state, source, target):

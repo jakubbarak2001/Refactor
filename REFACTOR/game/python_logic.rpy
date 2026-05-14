@@ -50,9 +50,18 @@ init python:
                 self.available_money = 0
 
         def increment_stats_coding_skill(self, amount):
+            ## Per-class hard ceiling. BB physically cannot become a senior
+            ## engineer through study — to win the Colonel he must buy his way
+            ## past the skill gate. Default ceiling 250 for classes that
+            ## don't set one.
+            ceiling = 250
+            cls = getattr(self, "player_class", None)
+            if cls and cls in CLASS_DATA:
+                ceiling = CLASS_DATA[cls].get("coding_ceiling", 250)
             self.coding_skill += amount
+            if self.coding_skill >= ceiling:
+                self.coding_skill = ceiling
             if self.coding_skill >= 250:
-                self.coding_skill = 250
                 unlock_achievement("hackerman")
 
         def increment_stats_pcr_hatred(self, amount):
@@ -311,14 +320,16 @@ init python:
             "tagline": "Iron body. Iron will. Limited vocabulary.",
             "color":   class_accent_color("bodybuilder"),
             "perks": [
+                "Bouncer shifts pay +2,500 CZK on every outcome.",
                 "Gym sessions deal -5 extra Hatred on all outcomes.",
-                "Bouncer shifts pay +1,500 CZK on every outcome.",
+                "Permanent +5 max HP per gym session, persistent across the run.",
                 "Immune to Colonel's Brotherhood guilt trip.",
                 "Extra brute-force option if caught at car incident.",
             ],
-            "passive": "Starts with -5 Coding Skill (brains traded for brawn).",
-            "coding_modifier": -5,
-            "hatred_modifier":  0,
+            "passive": "Built for the long fight. Persistent HP scales with gym attendance; bouncer bonus turns physical work into capital.",
+            "coding_modifier":   0,
+            "hatred_modifier":   0,
+            "coding_ceiling":  250,
         },
         "dark_empath": {
             "name":    "DARK EMPATH",
@@ -332,8 +343,9 @@ init python:
                 "civilian_small_talk always succeeds (-25 Hatred guaranteed).",
             ],
             "passive": "Starts with -5 Police Hatred (already numb to the madness).",
-            "coding_modifier":  0,
-            "hatred_modifier": -5,
+            "coding_modifier":   0,
+            "hatred_modifier":  -5,
+            "coding_ceiling":  250,
         },
         "biohacker": {
             "name":    "BIOHACKER",
@@ -346,8 +358,9 @@ init python:
                 "Colonel's Safety Net attack is auto-countered.",
             ],
             "passive": "Starts with +5 Coding Skill (analytical edge from baseline).",
-            "coding_modifier": 5,
-            "hatred_modifier":  0,
+            "coding_modifier":   5,
+            "hatred_modifier":   0,
+            "coding_ceiling":  250,
         },
     }
 
@@ -402,8 +415,10 @@ init python:
         if cls not in CLASS_DATA:
             return
         data = CLASS_DATA[cls]
-        stats_obj.coding_skill  = max(0, stats_obj.coding_skill + data["coding_modifier"])
-        stats_obj.pcr_hatred    = max(0, stats_obj.pcr_hatred   + data["hatred_modifier"])
+        ## Route the coding modifier through the helper so the per-class
+        ## ceiling clamp applies (matters when the modifier is positive — BH).
+        stats_obj.increment_stats_coding_skill(data["coding_modifier"])
+        stats_obj.pcr_hatred = max(0, stats_obj.pcr_hatred + data["hatred_modifier"])
 
     # Salary amounts keyed by hatred bracket (mirrors receive_salary in game_rules.py)
     def salary_amount(pcr_hatred):

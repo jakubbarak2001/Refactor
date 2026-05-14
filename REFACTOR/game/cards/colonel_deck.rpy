@@ -236,7 +236,7 @@ init python:
         "tag_team",
         name     = "Tag Team",
         intent   = "compound",
-        value    = 4,
+        value    = 5,
         value2   = 3,
         dialogue = "All three move at once. Three quick hits.",
         threat   = 3,
@@ -279,7 +279,7 @@ init python:
         name     = "Pile In",
         intent   = "compound",
         value    = 3,
-        value2   = 5,
+        value2   = 4,
         dialogue = "The pack rushes. Six fast knocks.",
         threat   = 3,
     )
@@ -288,7 +288,7 @@ init python:
         "dossier_flick",
         name     = "Dossier Flick",
         intent   = "attack",
-        value    = 8,
+        value    = 10,
         dialogue = "A page slaps you across the temple. Paper cuts add up.",
         threat   = 1,
     )
@@ -296,7 +296,7 @@ init python:
         "read_aloud",
         name     = "Read Aloud",
         intent   = "attack",
-        value    = 11,
+        value    = 13,
         dialogue = "It reads a witness statement aloud. Each word lands.",
         threat   = 2,
     )
@@ -333,7 +333,7 @@ init python:
         "stall_swarm",
         name     = "Stánek Swarm",
         intent   = "compound",
-        value    = 5,
+        value    = 4,
         value2   = 4,
         dialogue = "Three stánkaři close in. Hands everywhere.",
         threat   = 3,
@@ -368,7 +368,7 @@ init python:
         "fume_swipe",
         name     = "Fume Swipe",
         intent   = "attack",
-        value    = 13,
+        value    = 15,
         dialogue = "He swings, and the mask trails chemical mist.",
         threat   = 2,
     )
@@ -376,13 +376,13 @@ init python:
         "chem_burn",
         name     = "Chem Burn",
         intent   = "attack",
-        value    = 11,
+        value    = 13,
         dialogue = "Acid splash. The jacket is ruined.",
         threat   = 2,
     )
     register_enemy_card(
         "chem_stoke",
-        name     = "Stoke the Cook",
+        name     = "Time to Cook",
         intent   = "buff",
         value    = 2,
         dialogue = "He turns the burner up. The next strike will hit harder.",
@@ -409,7 +409,7 @@ init python:
         "paragraph_5_2",
         name     = "Paragraf 5(2)",
         intent   = "attack",
-        value    = 22,
+        value    = 18,
         dialogue = "He pushes the glasses up the bridge of his nose. The lenses catch the light. 'Paragraf 5, odstavec 2. Pane policisto, that one you should know by heart.'",
         threat   = 3,
     )
@@ -433,7 +433,7 @@ init python:
     )
     register_enemy_card(
         "procedural_shield",
-        name     = "Procedural Shield",
+        name     = "Presumption of Innocence",
         intent   = "block",
         value    = 20,
         dialogue = "He flips the case folder shut and rests his palm on the cover. 'Bez důkazu žádné obvinění.'",
@@ -460,7 +460,7 @@ init python:
         "priority_call",
         name     = "Priority Call",
         intent   = "attack",
-        value    = 13,
+        value    = 15,
         dialogue = "The radio crackles. 'All units, your location.'",
         threat   = 2,
     )
@@ -476,7 +476,7 @@ init python:
         "false_alarm",
         name     = "False Alarm",
         intent   = "attack",
-        value    = 10,
+        value    = 14,
         dialogue = "A false call routes you across town. Wasted breath.",
         threat   = 1,
     )
@@ -598,7 +598,7 @@ init python:
         name     = "Baton Combo",
         intent   = "compound",
         value    = 3,
-        value2   = 10,
+        value2   = 7,
         dialogue = "Ten short strikes. Trained. Identical.",
         threat   = 3,
     )

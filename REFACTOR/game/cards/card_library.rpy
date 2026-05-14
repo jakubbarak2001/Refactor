@@ -51,7 +51,7 @@ init python:
         rarity     = "uncommon",
         effect     = "heavy_set",
         class_lock = "bodybuilder",
-        flavor     = "Damage scales with your hatred.",
+        flavor     = "Every plate you've ever loaded. Stacked on the bar. Aimed at him.",
     )
 
     register_card(
@@ -417,6 +417,23 @@ init python:
         effect     = "brawl",
         class_lock = "bodybuilder",
         flavor     = "Deal 10 + apply 3-turn bleed (3 dmg/turn). The Colonel sees this is personal.",
+    )
+
+    ## Paid Review — BB's "buy your way past the skill gate" card. JB hits his
+    ## coding ceiling at 100; this card lets bouncer cash do the work his
+    ## keyboard can't. 10,000 CZK ≈ three solid bouncer nights. No funds → no
+    ## effect (matches loan_sharks pattern).
+    register_card(
+        "paid_review",
+        name       = "Paid Review",
+        type       = "Skill",
+        color      = "Tech",
+        cost       = 1,
+        rarity     = "rare",
+        effect     = "paid_review",
+        class_lock = "bodybuilder",
+        exhaust    = True,
+        flavor     = "You text the senior you met at the club. He's expensive. He's awake. He answers.",
     )
 
     register_card(

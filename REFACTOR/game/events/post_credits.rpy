@@ -46,7 +46,7 @@ image post_credits_tease    = Text("will return.", size=56, color="#cccccc", ita
 ## from size acrobatics. Restraint reads as cinema; flourish reads as game UI.
 image post_credits_line_jb       = Text("jb.",                           size=46, color="#f4ecdc", font="fonts/RobotoMono-Regular.ttf")
 image post_credits_line_question = Text("how fast can you fly to",       size=46, color="#f4ecdc", font="fonts/RobotoMono-Regular.ttf")
-image post_credits_line_singapore = Text("singapore?",                    size=58, color="#f8efd9", font="fonts/RobotoMono-Regular.ttf")
+image post_credits_line_singapore = Text("Singapore?",                    size=58, color="#f8efd9", font="fonts/RobotoMono-Regular.ttf")
 
 ## Subtitle backdrop — semi-opaque dark band across the lower-third. Guarantees
 ## readability on any bg (Martin's white shirt was the worst case). Bond /
@@ -88,7 +88,9 @@ transform split_divider_pos:
 
 label post_credits_singapore:
 
-    ## --- Hand-off from the ending screen: drop to silence, hold the dark. ---
+    ## --- Hand-off from the ending screen: drop to silence, hold the dark.
+    ## Stats bar is also hidden — the HUD has no place in a cinematic coda. ---
+    hide screen stats_bar
     stop music fadeout 2.2
     scene bg_black with Dissolve(1.0)
     pause 1.4

@@ -9,7 +9,7 @@
 ##
 ## Entry schema:
 ##   id            stable string key
-##   display_name  shown in the battle header (e.g. "Vařič")
+##   display_name  shown in the battle header (e.g. "Grundza")
 ##   sprite_id     base image-name; battle_screen falls back to
 ##                 "<sprite_id> neutral" if no emotional state matches
 ##   log_name      short name for "{} takes {} damage." log lines
@@ -47,10 +47,16 @@ init -1 python:
         ENEMY_LIBRARY[enemy_id] = defaults
         return defaults
 
-    def build_enemy_deck(enemy_id):
+    def build_enemy_deck(enemy_id, prev_card_id=None):
         """Returns a shuffled list of enemy-card-ids for this enemy. Colonel
         delegates to build_colonel_deck() so his difficulty-scaling path stays
-        intact. Ladder enemies read deck_template from ENEMY_LIBRARY."""
+        intact. Ladder enemies read deck_template from ENEMY_LIBRARY.
+
+        Anti-adjacency: enemy block resets each turn, so two consecutive blocks
+        are pure waste (only the second one matters). After shuffling we (1) make
+        sure no two adjacent cards are both 'block' within the deck, and (2) if
+        the previous resolved card was 'block', swap the first card off-block so
+        reshuffles don't chain into another block."""
         if enemy_id == "colonel":
             return build_colonel_deck()
         e = ENEMY_LIBRARY.get(enemy_id)
@@ -58,6 +64,25 @@ init -1 python:
             return []
         deck = list(e["deck_template"])
         __import__('random').shuffle(deck)
+
+        def _intent_of(cid):
+            c = ENEMY_DECK_LIBRARY.get(cid)
+            return c.get("intent") if c else None
+
+        prev_intent = _intent_of(prev_card_id) if prev_card_id else None
+        if prev_intent == "block" and deck and _intent_of(deck[0]) == "block":
+            for j in range(1, len(deck)):
+                if _intent_of(deck[j]) != "block":
+                    deck[0], deck[j] = deck[j], deck[0]
+                    break
+
+        for i in range(len(deck) - 1):
+            if _intent_of(deck[i]) == "block" and _intent_of(deck[i + 1]) == "block":
+                for j in range(i + 2, len(deck)):
+                    if _intent_of(deck[j]) != "block":
+                        deck[i + 1], deck[j] = deck[j], deck[i + 1]
+                        break
+
         return deck
 
 
@@ -123,7 +148,7 @@ init -1 python:
         sprite_id    = "spis",
         log_name     = "Case File",
         tier         = "easy",
-        max_hp       = 70,
+        max_hp       = 55,
         deck_template = ["dossier_flick", "read_aloud", "paper_wall", "file_swap"],
         wrinkle      = "paper_clog",
         detour_lines = [
@@ -152,15 +177,16 @@ init -1 python:
     )
 
     register_enemy(
-        "varic",
-        display_name = "Vařič",
-        sprite_id    = "varic",
-        log_name     = "Vařič",
+        "grundza",
+        display_name = "Grundza",
+        sprite_id    = "grundza",
+        bg_id        = "varic",
+        log_name     = "Grundza",
         tier         = "medium",
         max_hp       = 125,
         deck_template = ["fume_swipe", "chem_burn", "chem_stoke", "lab_check", "gas_release"],
         wrinkle      = "lab_timer",
-        wrinkle_data = {"detonation_turn": 7, "detonation_dmg": 32},
+        wrinkle_data = {"detonation_turn": 7, "detonation_dmg": 20},
         detour_lines = [
             "The lab door slams. Half the squad's gear comes back contaminated.",
             "Internal Affairs pencils your name in the column marked 'incident'.",
@@ -174,7 +200,7 @@ init -1 python:
         bg_id        = "courtroom",
         log_name     = "Counsel",
         tier         = "medium",
-        max_hp       = 145,
+        max_hp       = 130,
         deck_template = ["objection", "cross_examine", "paragraph_5_2", "procedural_shield", "build_argument", "intimidate"],
         wrinkle      = "paragraph_cite",
         wrinkle_data = {"cadence": 3, "bonus_dmg": 6},

@@ -12,8 +12,8 @@ label start:
     scene bg_black
     $ play_daily_music(fadein=2.0)
 
-    ## Difficulty selection
-    call difficulty_selection from _call_difficulty_selection
+    ## Difficulty selection — hidden for now; default to Easy
+    $ init_game("easy")
 
     ## Character class selection
     call character_class_selection from _call_character_class_selection
@@ -51,8 +51,11 @@ label dev_skip_to_colonel:
         apply_class_bonuses(stats)
         init_player_deck()
 
-        ## Mid-late stats (representative of a real run reaching colonel)
-        stats.coding_skill    = 110
+        ## Mid-late stats (representative of a real run reaching colonel).
+        ## Coding clamped to the class ceiling so BB (cap 100) tests at its
+        ## actual maximum instead of an impossible 110.
+        _dev_ceiling = CLASS_DATA.get(_picked_class, {}).get("coding_ceiling", 250)
+        stats.coding_skill    = min(110, _dev_ceiling)
         stats.available_money = 60000
         stats.pcr_hatred      = 50
 
@@ -109,7 +112,7 @@ label dev_ladder_test:
             ("fanousek",   "easy"),
             ("spis",       "easy"),
             ("nguyen",     "medium"),
-            ("varic",      "medium"),
+            ("grundza",    "medium"),
             ("lawyer",     "medium"),
             ("dispatcher", "medium"),
             ("inspekce",   "hard"),
@@ -347,7 +350,15 @@ label day_start:
     if current_day == 24:
         call martin_meeting from _call_martin_meeting_daystart
 
-    if current_day == stats.colonel_day:
+    ## Self-heal poisoned saves: stats.colonel_day must be 25 (Martin's
+    ## "brave" path) or 30 (default / "reasonable"). Any other value is
+    ## stale state from an older build or a dev-console tweak — left
+    ## alone it would trigger the final boss mid-run on load.
+    python:
+        if stats.colonel_day not in (25, 30):
+            stats.colonel_day = 30
+
+    if current_day == stats.colonel_day and current_day >= 25:
         call colonel_event from _call_colonel_event_daystart
 
     ## BH-only random spending event — fires on non-event days, ~30% chance.
@@ -479,20 +490,28 @@ label activity_gym:
 
             ## SOMA always lands for BB — gym session is "I trained the body."
             $ add_soma(1)
-            ## Persistent +5 max HP per session + 10 HP heal. Max bonus accrues
-            ## across the run and is folded into battle_init via gym_max_hp_bonus.
+            ## Persistent +5 max HP per session + heal for 25% of (new) max HP.
+            ## Max bonus accrues across the run and is folded into battle_init
+            ## via gym_max_hp_bonus. Lazy-inits run_hp on day-1 gyms (before any
+            ## battle has set up the persistent-HP fields).
             python:
-                _gym_heal = 10
                 _gym_max_bump = 5
                 store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + _gym_max_bump
-                _rh = getattr(store, 'run_hp', None)
-                _rhm = getattr(store, 'run_hp_max', None)
-                if _rhm is not None:
-                    store.run_hp_max = _rhm + _gym_max_bump
-                    _rhm = store.run_hp_max
-                if _rh is not None and _rhm is not None:
-                    store.run_hp = min(_rhm, _rh + _gym_heal)
-                    _gym_outcome = _gym_outcome + ", +{} MAX HP, +{} HP".format(_gym_max_bump, _gym_heal)
+                if store.run_hp_max is None:
+                    if stats.player_class == "bodybuilder":
+                        _class_base = 115
+                    elif stats.player_class == "dark_empath":
+                        _class_base = 75
+                    elif stats.player_class == "biohacker":
+                        _class_base = 80
+                    else:
+                        _class_base = 80
+                    store.run_hp_max = _class_base + store.gym_max_hp_bonus - _gym_max_bump
+                    store.run_hp = store.run_hp_max
+                store.run_hp_max += _gym_max_bump
+                _gym_heal = int(round(store.run_hp_max * 0.25))
+                store.run_hp = min(store.run_hp_max, store.run_hp + _gym_heal)
+                _gym_outcome = _gym_outcome + ", +{} MAX HP, +{} HP".format(_gym_max_bump, _gym_heal)
             ## Compute card-offer eligibility in python (no UI), THEN do the
             ## modal at script level via `call screen`. Avoids the transient-
             ## layer leak that came from `renpy.call_screen` inside python.
@@ -667,7 +686,7 @@ label bouncer_night_club:
 
     python:
         _roll = __import__('random').randint(1, 100)
-        _bb_cash = 1500 if stats.player_class == "bodybuilder" else 0
+        _bb_cash = 2500 if stats.player_class == "bodybuilder" else 0
         _bouncer_card = None
         ## Pending stat deltas — applied unconditionally if no card to offer,
         ## or only on PASS if there is one.
@@ -680,11 +699,14 @@ label bouncer_night_club:
             _btext = "Uneventful. You stand in a doorway for six hours, nodding at people who are happier than you.\nA man in a pink shirt calls you 'big guy'. You do not react.\nAt 3 AM you calculate exactly how many more shifts like this you'd need to quit forever.\nThe number is getting smaller."
             _boutcome = "+ {} CZK, +10 PCR HATRED{}".format(4000 + _bb_cash, " [BODYBUILDER BONUS]" if _bb_cash else "")
         elif _roll <= 90:
-            _pending_money = 7500 + _bb_cash
+            _pending_money = 9000 + _bb_cash
             _pending_hatred = -10
-            _bouncer_card = "side_income"
+            ## BB on a good night: meets the senior dev who'll review code for cash.
+            ## paid_review is a skill-purchase card — still useful even without a
+            ## hard coding cap (it's faster than studying). Others: side_income.
+            _bouncer_card = "paid_review" if stats.player_class == "bodybuilder" else "side_income"
             _btext = "Rare night. A group of regulars tips heavy, the manager actually notices your work, and nobody throws up on anyone.\nDriving home at 4 AM, windows down, you think: 'If this was my real job I would hate it slightly less.'\nThat is the closest thing to joy you have felt all week."
-            _boutcome = "+ {} CZK, -10 PCR HATRED{}".format(7500 + _bb_cash, " [BODYBUILDER BONUS]" if _bb_cash else "")
+            _boutcome = "+ {} CZK, -10 PCR HATRED{}".format(9000 + _bb_cash, " [BODYBUILDER BONUS]" if _bb_cash else "")
         else:
             ## Bad outcome — no card offered; stats apply unconditionally below.
             _pending_money = 4000 + _bb_cash
@@ -722,7 +744,7 @@ label bouncer_strip_bar:
 
     python:
         _roll = __import__('random').randint(1, 100)
-        _bb_cash = 1500 if stats.player_class == "bodybuilder" else 0
+        _bb_cash = 2500 if stats.player_class == "bodybuilder" else 0
         _bb_tag = " [BODYBUILDER BONUS]" if _bb_cash else ""
         _strip_card = None
         ## Pending stat deltas — applied unconditionally if no card; only on PASS otherwise.
@@ -1131,7 +1153,7 @@ label do_end_day:
         _run_hp = getattr(store, 'run_hp', None)
         _run_hp_max = getattr(store, 'run_hp_max', None)
         if _run_hp is not None and _run_hp_max is not None and _run_hp < _run_hp_max:
-            store.run_hp = min(_run_hp_max, _run_hp + 5)
+            store.run_hp = min(_run_hp_max, _run_hp + 10)
 
         # Advance day
         day_cycle.next_day()

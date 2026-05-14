@@ -8,12 +8,24 @@
 
 label car_incident:
 
+    ## Intro cutscene plays before dossier chrome — opening title moment
+    ## owns the screen alone, no UI bleed.
     $ renpy.movie_cutscene("video/car_incident_intro.webm")
 
-    play music "audio/coding_in_snow_theme.mp3" fadein 1.0
+    ## Force the swap. The daily-pool track is on the music channel from
+    ## `start`; a plain `play music` after a movie cutscene has been flaky on
+    ## Windows (channel state sometimes held by the movie). Hard-stop first.
+    stop music
+    play music "audio/car_incident_dawn.mp3" fadein 1.0
 
     scene bg_parking_lot
     call screen arc_title_card("I", "THE INCIDENT") with arc_fade
+
+    ## The dossier say-window is global now; this label only opts in to
+    ## the persistent HUD strips + per-beat metadata.
+    $ set_dossier_beat("06:30", "FILE I/01 · INTAKE")
+    show screen dossier_hud
+
     show jb neutral at char_left with dissolve
     pause 0.6
 
@@ -26,26 +38,27 @@ label car_incident:
 
     "..."
 
-    play music "audio/coding_in_snow_theme.mp3" fadein 0.5
+    play music "audio/car_incident_dawn.mp3" fadein 0.5
 
     "A polite crunch. You look in the mirror. You see grey."
     "You get out. A Kodiaq is parked diagonal across the back lane. Your bumper found his front grille at maybe four kph."
     "Nobody parks like that. Except the Commandant."
 
-    ## Flashback — make the Colonel identity unmissable. Banner first, then
-    ## the cutscene, so the playtester knows WHO they're about to meet.
+    ## Flashback — hard cut to the banner, then straight into the cutscene.
+    ## No fade transition or padding pauses; the abrupt swap is the point.
     stop music fadeout 0.3
-    scene bg_black with fade
-    pause 0.3
+    scene bg_black
+    hide screen dossier_hud
 
     "{size=+18}{color=#ffcc00}{b}FLASHBACK — THE COLONEL{/b}{/color}{/size}"
 
-    pause 0.3
     $ renpy.movie_cutscene("video/colonel_car_incident.webm")
 
     scene bg_parking_lot with fade
+    $ set_dossier_beat("06:34", "FILE I/02 · COLONEL'S CAR")
+    show screen dossier_hud
     show jb worried at char_left
-    play music "audio/coding_in_snow_theme.mp3" fadein 0.5
+    play music "audio/car_incident_dawn.mp3" fadein 0.5
 
     "{cps=8}{b}{color=#ffcc00}{size=+12}AND THIS IS HIS CAR.{/size}{/color}{/b}{/cps}"
     "Cameras. Gossip. The Commandant's morning walk-around. He'll know by lunch."
@@ -61,6 +74,7 @@ label car_incident:
 label car_incident_admit:
 
     scene bg_police_interior
+    $ set_dossier_beat("06:51", "FILE I/03 · REPORT")
     show jb determined at char_left
 
     "You write your name and badge number on a torn corner of paper. Wedge it under his wiper. Walk inside and tell the supervisor before the Commandant does."
@@ -68,10 +82,13 @@ label car_incident_admit:
 
     stop music fadeout 1.5
     scene bg_black with fade
+    hide screen dossier_hud
     pause 0.4
     play music "audio/you_failed_me_son.mp3" fadein 1.0
 
     scene bg_police_office with fade
+    $ set_dossier_beat("09:47", "FILE I/04 · DEPOSITION")
+    show screen dossier_hud
 
     "Three hours later the Colonel is sitting in the Commandant's chair. The Commandant is standing in the corner of his own office."
 
@@ -116,10 +133,18 @@ label car_incident_admit:
 label car_incident_end:
 
     scene bg_police_interior
+    $ set_dossier_beat("10:15", "FILE I/05 · 30 DAYS")
     show jb determined at char_left
 
     "30 days. Pay him back. Become a developer. Don't break."
     "Every night you don't move forward, you gain HATRED."
+
+    ## End of the prologue's HUD-strip window. The dossier say-window
+    ## itself stays global — only the strips + per-beat metadata are
+    ## prologue-scoped, so clear those before handing off to the
+    ## tutorial and daily loop.
+    hide screen dossier_hud
+    $ set_dossier_beat("", "")
 
     ## Onboarding — 6-popup intro before the first daily menu. Persistent flag
     ## inside `tutorial_intro` early-returns on replay.
