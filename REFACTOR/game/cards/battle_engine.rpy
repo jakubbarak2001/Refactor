@@ -932,16 +932,11 @@ init python:
             bs.add_log("[[Frame Trap]: attack softened.")
 
         ## Per-card SFX — fire once at the start of the intent resolve so the
-        ## sound layers under (not behind) the per-hit popup thuds. Only mapped
-        ## cards play; everything else stays silent.
-        _card_sfx = {
-            "gas_throw":   "audio/sfx/gas_throw.mp3",
-            "flare_throw": "audio/sfx/flare_throw.mp3",
-            "paper_wall":  "audio/sfx/paper_wall.mp3",
-            "rvac_swing":  "audio/sfx/rvac_swing.mp3",
-        }.get(ic.get("id", ""))
-        if _card_sfx:
-            renpy.sound.play(_card_sfx)
+        ## sound layers under (not behind) the per-hit popup thuds. Card_id ==
+        ## the basename in audio/sfx/<id>.{ogg,mp3,wav}; _play_battle_sfx does
+        ## the loadable check + try/except + auto-extension lookup.
+        if ic.get("id") in ("gas_throw", "flare_throw", "paper_wall", "rvac_swing"):
+            _play_battle_sfx(ic["id"])
 
         ## Resolve intent by type
         intent_type = ic.get("intent", "attack")
