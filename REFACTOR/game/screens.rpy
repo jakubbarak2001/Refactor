@@ -17,6 +17,35 @@ transform _hatred_warn_pulse:
     repeat
 
 
+## ---------------------------------------------------------------------------
+## Dossier design tokens — shared by the main menu chrome, the prologue HUD
+## strips, and the prologue say-window restyle. Treat as the single source
+## of truth for the "case-file" aesthetic so future surfaces (daily menu,
+## events, choice) can opt in without re-hardcoding colors / fonts.
+## ---------------------------------------------------------------------------
+define DOSSIER_FONT      = "fonts/RobotoMono-Regular.ttf"
+define DOSSIER_BG_BAR    = "#0a0a0acc"
+## Say-window backing — alpha 0xaa (~67%) lets the BG character art
+## bleed through behind the dialogue. Dialogue text still reads cleanly
+## via its default outline.
+define DOSSIER_BG_SOLID  = "#0a0a0aaa"
+define DOSSIER_INK       = "#c0d0e0"
+define DOSSIER_INK_DIM   = "#667788"
+define DOSSIER_RED       = "#cc2200"
+define DOSSIER_GLYPH     = "►"
+
+## Beat metadata strings shown in the top dossier_hud strip (and only
+## while that strip is on-screen). Defaulted empty so the strip's
+## right-side text simply doesn't render outside of opted-in labels.
+default dossier_beat_time = ""
+default dossier_beat_slug = ""
+
+init python:
+    def set_dossier_beat(time_str, slug):
+        store.dossier_beat_time = time_str
+        store.dossier_beat_slug = slug
+
+
 screen class_color_frame(thickness=3, alpha_suffix=""):
     $ _ccf_color = class_accent_color() + alpha_suffix
     frame:
@@ -612,93 +641,150 @@ screen _activity_chip_row(chips):
 ##      for sub-menus that haven't migrated yet.
 ## ---------------------------------------------------------------------------
 
-screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effect_chips=None, locked=False, lock_text="", class_relevant=False, flavor_text=""):
-    ## Three-line schema (top -> bottom):
-    ##   1. cost_text       - CZK number or FREE
-    ##   2. effect_text     - "Reward: <delta>" line
-    ##   3. flavor_text     - italic mood line - omitted when empty
-    ##
-    ## Color scheme: only the class-relevant tile glows in the player's class
-    ## color. Every other tile defaults to neutral white/gray to avoid the
-    ## historical color collision (e.g. orange GYM implying BB ownership).
+## Activity-tile hover lift — gentle pop when the cursor lands on a tile.
+## Smaller scale than reward cards because tiles are bigger and the row
+## of four shouldn't shove around dramatically.
+transform activity_hover_lift:
+    on hover:
+        ease 0.15 zoom 1.04 yoffset -12
+    on idle:
+        ease 0.15 zoom 1.0 yoffset 0
+
+## Default glyph per activity title — keeps the icon zone meaningful without
+## requiring every call site to pass an art_glyph. Falls through to ★.
+default _ACT_DEFAULT_GLYPHS = {
+    "GYM": "▲",
+    "COLD READ": "◊",
+    "RECOVERY": "❋",
+    "BOUNCER": "$",
+    "CODING": "{{ }}",
+    "NIGHT SHIFT": "◐",
+    "PHONE": "☏",
+    "SLEEP": "☾",
+    "REST": "❋",
+}
+
+screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effect_chips=None, locked=False, lock_text="", class_relevant=False, flavor_text="", art_glyph=""):
+    ## Six-layer construction mirrors the StS card render:
+    ##   L1: glow halo (class-relevant tiles only — pulses)
+    ##   L2: drop shadow
+    ##   L3: accent-colored border
+    ##   L4: warm-dark inner panel (#1a1410)
+    ##   L5: zoned content (title banner → glyph zone → cost → chips → flavor)
     python:
         if locked:
-            _at_text_color = "#444444"
+            _at_title_color   = "#554434"
+            _at_glyph_color   = "#3a3a3a"
+            _at_border_color  = "#3a2020"
         elif class_relevant:
-            _at_text_color = accent
+            _at_title_color   = "#e8c878"
+            _at_glyph_color   = accent
+            _at_border_color  = accent
         else:
-            _at_text_color = "#cccccc"
-        _at_bar_color = accent if class_relevant else "#3a3a3a"
+            _at_title_color   = "#e8e0d0"
+            _at_glyph_color   = accent
+            _at_border_color  = accent
+        _at_glyph = art_glyph or _ACT_DEFAULT_GLYPHS.get(title, "★")
+
     button:
-        xsize 320
-        ysize 260
-        background Frame("#0d0d0dee", 3, 3)
-        hover_background Frame("#181014ee", 3, 3)
+        xsize 340
+        ysize 320
+        background None
+        hover_background None
         sensitive (not locked)
         action Jump(label_name)
+        at activity_hover_lift
 
-        vbox:
-            xalign 0.5
-            yalign 0.5
-            spacing 4
-            xfill True
+        ## L1: glow halo — pulses on class-relevant tiles to draw the eye.
+        if class_relevant and not locked:
+            add Solid(accent + "44") xpos 0 ypos 0 xysize (340, 320) at card_glow_pulse
+            add Solid(accent + "77") xpos 6 ypos 6 xysize (328, 308) at card_glow_pulse
 
-            ## Top accent bar
+        ## L2: drop shadow
+        add Solid("#00000099") xpos 22 ypos 22 xysize (320, 280)
+
+        ## L3 + L4: accent border wrapping warm-dark inner panel.
+        frame:
+            xpos 10
+            ypos 10
+            xsize 320
+            ysize 280
+            background Frame(_at_border_color, 6, 6)
+            padding (6, 6)
+
             frame:
-                xalign 0.5
-                xsize 280
-                ysize 4
-                background Frame(_at_bar_color, 0, 0)
+                xfill True
+                yfill True
+                background Frame("#1a1410", 4, 4)
+                padding (10, 8)
 
-            null height 14
+                vbox:
+                    xfill True
+                    spacing 5
 
-            text title:
-                color _at_text_color
-                size 28
-                bold True
-                xalign 0.5
-                font "fonts/RobotoMono-Regular.ttf"
+                    ## TITLE BANNER — gold on dark ribbon
+                    frame:
+                        xfill True
+                        ysize 38
+                        background Frame("#0a0806", 4, 4)
+                        text title:
+                            color _at_title_color
+                            size 22
+                            bold True
+                            xalign 0.5
+                            yalign 0.5
+                            xmaximum 280
+                            text_align 0.5
+                            font "fonts/RobotoMono-Regular.ttf"
 
-            text "─────────":
-                color "#222222"
-                size 12
-                xalign 0.5
+                    ## GLYPH ZONE — accent-tinted backdrop with a large symbol.
+                    frame:
+                        xfill True
+                        ysize 64
+                        background Frame(accent + "22", 4, 4)
+                        text _at_glyph:
+                            xalign 0.5
+                            yalign 0.5
+                            size 38
+                            color _at_glyph_color
+                            bold True
+                            outlines [(2, "#000000", 0, 0)]
 
-            null height 4
+                    ## COST — gold accent on the financial line.
+                    text cost_text:
+                        color ("#ffd700" if not locked else "#3a3a3a")
+                        size 16
+                        bold True
+                        xalign 0.5
+                        font "fonts/RobotoMono-Regular.ttf"
 
-            text cost_text:
-                color ("#ffd700" if not locked else "#333333")
-                size 15
-                xalign 0.5
-                font "fonts/RobotoMono-Regular.ttf"
+                    ## EFFECT — chip row (preferred) or legacy "Reward:" string.
+                    if effect_chips:
+                        use _activity_chip_row(chips=effect_chips)
+                    elif effect_text:
+                        text "Reward: [effect_text]":
+                            color "#cccccc"
+                            size 13
+                            xalign 0.5
 
-            null height 2
-
-            if effect_chips:
-                use _activity_chip_row(chips=effect_chips)
-            elif effect_text:
-                text "Reward: [effect_text]":
-                    color _at_text_color
-                    size 13
-                    xalign 0.5
-
-            null height 4
-
-            if locked and lock_text:
-                text lock_text:
-                    color "#444444"
-                    size 11
-                    italic True
-                    xalign 0.5
-
-            if not locked and flavor_text:
-                text flavor_text:
-                    color "#666666"
-                    size 11
-                    italic True
-                    xalign 0.5
-                    xmaximum 290
-                    text_align 0.5
+                    ## FLAVOR / LOCK NOTE — italic at the bottom.
+                    null height 2
+                    if locked and lock_text:
+                        text lock_text:
+                            color "#554434"
+                            size 11
+                            italic True
+                            xalign 0.5
+                            text_align 0.5
+                            xmaximum 280
+                    elif flavor_text:
+                        text flavor_text:
+                            color "#888080"
+                            size 11
+                            italic True
+                            xalign 0.5
+                            text_align 0.5
+                            xmaximum 280
 
 
 ## ---------------------------------------------------------------------------
@@ -728,15 +814,16 @@ screen activity_submenu(title, options, subtitle="", back_label="daily_menu"):
 
     vbox:
         xalign 0.5
-        ypos 88
-        spacing 4
+        ypos 64
+        spacing 6
 
         text title:
             xalign 0.5
-            color "#cc2200"
-            size 32
+            color "#e8c878"
+            size 48
             bold True
             font "fonts/RobotoMono-Regular.ttf"
+            outlines [(3, "#000000", 0, 0)]
 
         if subtitle:
             text subtitle:
@@ -806,20 +893,22 @@ screen activity_select_screen():
 
     vbox:
         xalign 0.5
-        ypos 88
-        spacing 4
+        ypos 64
+        spacing 6
 
         text "PICK TODAY'S MOVE":
             xalign 0.5
-            color "#cc2200"
-            size 36
+            color "#e8c878"
+            size 52
             bold True
             font "fonts/RobotoMono-Regular.ttf"
+            outlines [(3, "#000000", 0, 0)]
 
         text "One activity per day. Choose carefully.":
             xalign 0.5
-            color "#666666"
+            color "#888888"
             size 15
+            italic True
             font "fonts/RobotoMono-Regular.ttf"
 
     ## Tile row — 4 tiles in a single row. Slot 1 is the class-locked relief
@@ -1595,7 +1684,7 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
                 null height 6
 
                 ## EFFECT — what the card actually does. Mechanics first, vibes second.
-                $ _co_effect = EFFECT_DESCRIPTIONS.get(card.get("effect"), "")
+                $ _co_effect = effect_description(card.get("effect"))
                 if _co_effect:
                     text _co_effect substitute False:
                         color "#ffffff"
@@ -1814,7 +1903,7 @@ screen card_solo_offer_screen(card, source_label=""):
         _co_cost    = card.get("cost", 0)
         _co_flavor  = card.get("flavor", "")
         _co_color_label = card.get("color", "")
-        _co_effect  = EFFECT_DESCRIPTIONS.get(card.get("effect"), "")
+        _co_effect  = effect_description(card.get("effect"))
 
     use class_color_frame(thickness=3, alpha_suffix="aa")
 
@@ -1984,35 +2073,23 @@ screen card_reward_trio_screen(cards):
     add "#0a0a0aee"
 
     python:
-        _ctp_palette = {
-            "Physical": "#ff6633", "Mental": "#9944cc", "Money": "#ffd700",
-            "Logic": "#00ccff", "Police": "#3388cc", "Special": "#00cc88",
-        }
+        _type_palette = {"Attack": "#cc4422", "Skill": "#3388cc", "Power": "#aa44cc"}
 
     use class_color_frame(thickness=3, alpha_suffix="aa")
 
-    vbox:
+    text "CHOOSE A CARD":
         xalign 0.5
-        yalign 0.04
-        spacing 4
-
-        text "VICTORY REWARD":
-            xalign 0.5
-            color "#ffffff"
-            size 30
-            bold True
-            font "fonts/RobotoMono-Regular.ttf"
-
-        text "CHOOSE ONE":
-            xalign 0.5
-            color "#888888"
-            size 14
-            font "fonts/RobotoMono-Regular.ttf"
+        yalign 0.12
+        color "#e8c878"
+        size 64
+        bold True
+        font "fonts/RobotoMono-Regular.ttf"
+        outlines [(3, "#000000", 0, 0)]
 
     hbox:
         xalign 0.5
-        yalign 0.48
-        spacing 28
+        yalign 0.5
+        spacing 36
 
         for _ctp_i, _cid in enumerate(cards):
             python:
@@ -2023,117 +2100,154 @@ screen card_reward_trio_screen(cards):
                 _cost     = _c.get("cost", 0)
                 _flavor   = _c.get("flavor", "")
                 _colorlab = _c.get("color", "Special")
-                _accent   = _ctp_palette.get(_colorlab, "#888888")
-                _effect_s = EFFECT_DESCRIPTIONS.get(_c.get("effect"), "")
+                _accent   = _type_palette.get(_type, "#888888")
+                _effect_s = effect_description(_c.get("effect"))
                 _hot_n    = _ctp_i + 1
+                _subtitle = (_type.upper() + " · " + _rarity.upper() + " · " + _colorlab.upper()).strip(" ·")
+                _art_path = "images/cards/{}.png".format(_cid)
+                _has_art  = renpy.loadable(_art_path)
+                _art_glyph = _c.get("art_glyph") or {"Attack": "⚔", "Skill": "✦", "Power": "★"}.get(_type, "●")
+                ## Fan-out hover offset: left leans left, centre stays, right leans right.
+                ## Indexed by position in the trio; 4th+ slot defaults to no shift.
+                _hover_xoff = (-36, 0, 36)[_ctp_i] if _ctp_i < 3 else 0
 
-            frame:
-                xsize 380
-                ysize 540
-                background Frame("#0d0d0dee", 4, 4)
-                padding (20, 18)
+            button:
+                xsize 420
+                ysize 580
+                background None
+                hover_background None
+                action Return(_cid)
+                at reward_card_hover(_hover_xoff)
 
-                vbox:
-                    spacing 10
-                    xalign 0.5
+                ## L1: glow halo — pulses softly, signaling all three are selectable.
+                add Solid(_accent + "44") xpos 0 ypos 0 xysize (420, 580) at card_glow_pulse
+                add Solid(_accent + "77") xpos 8 ypos 8 xysize (404, 564) at card_glow_pulse
+
+                ## L2: drop shadow
+                add Solid("#000000aa") xpos 26 ypos 28 xysize (380, 540)
+
+                ## L3 + L4: type-colored border wrapping warm-dark inner panel.
+                frame:
+                    xpos 16
+                    ypos 16
+                    xsize 380
+                    ysize 540
+                    background Frame(_accent, 6, 6)
+                    padding (8, 8)
 
                     frame:
+                        xfill True
+                        yfill True
+                        background Frame("#1a1410", 4, 4)
+                        padding (12, 10)
+
+                        vbox:
+                            xfill True
+                            spacing 6
+
+                            ## TITLE BANNER
+                            frame:
+                                xfill True
+                                ysize 44
+                                background Frame("#0a0806", 4, 4)
+                                text _name substitute False:
+                                    color "#e8c878"
+                                    size 24
+                                    bold True
+                                    xalign 0.5
+                                    yalign 0.5
+                                    xmaximum 320
+                                    text_align 0.5
+                                    font "fonts/RobotoMono-Regular.ttf"
+
+                            ## ART ZONE
+                            frame:
+                                xfill True
+                                ysize 200
+                                background Frame(_accent + "22", 4, 4)
+                                if _has_art:
+                                    add Transform(_art_path, size=(320, 188)) xalign 0.5 yalign 0.5
+                                else:
+                                    text _art_glyph:
+                                        xalign 0.5
+                                        yalign 0.5
+                                        color _accent
+                                        size 110
+                                        outlines [(3, "#000000", 0, 0)]
+
+                            ## TYPE SUBTITLE
+                            text _subtitle substitute False:
+                                xalign 0.5
+                                size 11
+                                color _accent
+                                bold True
+                                font "fonts/RobotoMono-Regular.ttf"
+
+                            null height 2
+
+                            ## DESCRIPTION BAND
+                            frame:
+                                xfill True
+                                yminimum 100
+                                background Frame("#241d15", 4, 4)
+                                padding (12, 10)
+                                if _effect_s:
+                                    text _effect_s substitute False:
+                                        color "#e8e0d0"
+                                        size 14
+                                        bold True
+                                        xalign 0.5
+                                        yalign 0.5
+                                        xmaximum 320
+                                        text_align 0.5
+                                        line_spacing 2
+
+                            ## FLAVOR
+                            if _flavor:
+                                text _flavor substitute False:
+                                    color "#777777"
+                                    size 11
+                                    italic True
+                                    xalign 0.5
+                                    xmaximum 320
+                                    text_align 0.5
+
+                            if _c.get("exhaust"):
+                                text "EXHAUST":
+                                    color "#cc4444"
+                                    size 11
+                                    bold True
+                                    xalign 0.5
+
+                ## COST GEM — diamond overhanging card top-left.
+                ## Geometry mirrors battle gem ratio (battle: xpos -11/-14 on
+                ## a 220-wide slot → reward: scaled 1.9× for the 420-wide slot).
+                fixed:
+                    xpos -27
+                    ypos -28
+                    xysize (95, 95)
+                    add Transform(Solid(_accent), size=(60, 60), rotate=45) xalign 0.5 yalign 0.5
+                    text "[_cost]":
                         xalign 0.5
-                        xsize 340
-                        ysize 4
-                        background Frame(_accent, 0, 0)
-
-                    null height 4
-
-                    frame:
-                        xsize 54
-                        ysize 54
-                        background Frame(_accent, 4, 4)
-                        xalign 0.5
-                        text "[_cost]":
-                            color "#000000"
-                            size 30
-                            bold True
-                            xalign 0.5
-                            yalign 0.5
-
-                    text _name substitute False:
-                        color "#ffffff"
-                        size 26
+                        yalign 0.5
+                        color "#0a0806"
+                        size 34
                         bold True
-                        xalign 0.5
                         font "fonts/RobotoMono-Regular.ttf"
 
-                    text "{} · {} · {}".format(_type, _rarity.upper(), _colorlab) substitute False:
-                        color _accent
-                        size 12
-                        xalign 0.5
-                        font "fonts/RobotoMono-Regular.ttf"
-
-                    null height 8
-
-                    if _effect_s:
-                        text _effect_s substitute False:
-                            color "#ffffff"
-                            size 15
-                            bold True
-                            xalign 0.5
-                            xmaximum 340
-                            text_align 0.5
-                            line_spacing 2
-                        null height 6
-
-                    text _flavor substitute False:
-                        color "#888888"
-                        size 12
-                        italic True
-                        xalign 0.5
-                        xmaximum 340
-                        text_align 0.5
-
-                    if _c.get("exhaust"):
-                        null height 4
-                        text "[[EXHAUST]":
-                            color "#cc4444"
-                            size 12
-                            bold True
-                            xalign 0.5
-
-                    null height 8
-
-                    textbutton "[[ TAKE — [_hot_n] ]":
-                        xalign 0.5
-                        action Return(_cid)
-                        text_color "#ffffff"
-                        text_hover_color _accent
-                        text_size 20
-                        text_bold True
-                        text_font "fonts/RobotoMono-Regular.ttf"
-                        text_xalign 0.5
-                        background Frame("#1a1a1aee", 4, 4)
-                        hover_background Frame("#2a2a2aee", 4, 4)
-                        padding (14, 10)
-
-    textbutton "[[ SKIP — no card ]":
+    textbutton "SKIP":
         xalign 0.5
-        yalign 0.93
+        yalign 0.86
         action Return("skip")
-        text_color "#888888"
+        text_color "#bbbbbb"
         text_hover_color "#ffffff"
-        text_size 20
+        text_size 22
         text_bold True
         text_font "fonts/RobotoMono-Regular.ttf"
         text_xalign 0.5
-        background Frame("#1a1a1aee", 4, 4)
-        hover_background Frame("#2a2a2aee", 4, 4)
-        padding (20, 10)
-
-    text "1 / 2 / 3 = TAKE   ·   S = SKIP   ·   ESC = SKIP":
-        xalign 0.5
-        yalign 0.985
-        color "#444444"
-        size 12
-        font "fonts/RobotoMono-Regular.ttf"
+        background Frame("#1a1a1aee", 6, 6)
+        hover_background Frame("#3a1a1aee", 6, 6)
+        padding (44, 14)
 
     key "K_1" action If(len(cards) >= 1, Return(cards[0]), NullAction())
     key "K_2" action If(len(cards) >= 2, Return(cards[1]), NullAction())
@@ -2758,7 +2872,7 @@ init python:
     CLASS_FLAVOR = {
         "bodybuilder": "Hatred is fuel. Words bounce off muscle.",
         "dark_empath": "The Colonel is a function with predictable inputs.",
-        "biohacker":   "Stack the compounds. Read the data. Optimize the meat.",
+        "biohacker":   "BPM 58, HRV 84, cortisol low — ready for action.",
     }
     CLASS_IDENTITY = {
         "bodybuilder": "Words bounce off muscle. The grind pays — in cash and calm. Code comes slower.",
@@ -3348,33 +3462,19 @@ style frame:
 screen say(who, what):
 
     ## Canonical Ren'Py say screen — `window id="window"` and
-    ## `text what id="what"` ALWAYS present at the same screen-root
-    ## location. The previous `if not renpy.get_screen("choice"):`
-    ## conditional wrapping changed the widget tree shape based on
-    ## runtime state, which appeared to corrupt Ren'Py's transient-
-    ## layer bookkeeping under modal call_screen interactions (gym →
-    ## card-offer → pause crash with "ui.interact called with non-
-    ## empty widget/layer stack").
+    ## `text what id="what"` are produced by `say_dossier` at the same
+    ## screen-root depth they used to occupy here, preserving the
+    ## widget-tree-shape invariant. The previous
+    ## `if not renpy.get_screen("choice"):` conditional wrapping (since
+    ## removed) changed that shape based on runtime state and caused
+    ## modal-stack corruption (gym → card-offer → pause crash with
+    ## "ui.interact called with non-empty widget/layer stack"). Do not
+    ## re-introduce a conditional that omits the window wrapper.
     ##
-    ## The conditional was originally added to hide the say-window
-    ## while a menu's choice screen was up. With this revert, the
-    ## dialogue window will visually overlap menu choices unless an
-    ## explicit `window hide` runs before each `menu:` statement.
-    ## That trade-off is acceptable to recover crash-free play.
-    window:
-        id "window"
-        background Frame("#0d0d1aee", 8, 8)
-
-        vbox:
-            spacing 8
-
-            if who is not None:
-                window:
-                    id "namebox"
-                    style "namebox"
-                    text who id "who"
-
-            text what id "what"
+    ## The dialogue window will visually overlap menu choices unless an
+    ## explicit `window hide` runs before each `menu:` statement. That
+    ## trade-off is accepted to keep play crash-free.
+    use say_dossier(who, what)
 
 
 ## Make the namebox available for styling through the Character object.
@@ -3423,6 +3523,148 @@ style say_dialogue:
     xsize gui.dialogue_width
 
     adjust_spacing False
+
+
+## ---------------------------------------------------------------------------
+## Dossier HUD — top + bottom 36px case-file strips. Shown only during
+## opted-in labels via `show screen dossier_hud`. Mirrors the main menu's
+## top/bottom bars (mm_status font/size/color) so the player's eye
+## recognizes the same chrome from the title screen.
+## zorder 90 sits above stats_bar (100? — stats_bar is hidden in the
+## prologue anyway) and below the choice overlay (250).
+## ---------------------------------------------------------------------------
+screen dossier_hud():
+    zorder 90
+
+    ## Top strip
+    frame:
+        xfill True
+        ysize 36
+        ypos 0
+        background Solid(DOSSIER_BG_BAR)
+        padding (0, 0)
+        has fixed
+
+        text "CASE FILE — JB  //  ARC I — THE INCIDENT":
+            style "mm_status"
+            xpos 28
+            yalign 0.5
+
+        if dossier_beat_time != "" or dossier_beat_slug != "":
+            text "[dossier_beat_time]  //  [dossier_beat_slug]":
+                style "mm_status"
+                xalign 1.0
+                xoffset -28
+                yalign 0.5
+
+    ## Bottom strip
+    frame:
+        xfill True
+        ysize 36
+        yalign 1.0
+        background Solid(DOSSIER_BG_BAR)
+        padding (0, 0)
+        has fixed
+
+        text "STATE POLICE  //  INTERNAL USE ONLY":
+            style "mm_status"
+            xpos 28
+            yalign 0.5
+
+        text "[[space] advance   [[esc] menu":
+            style "mm_status"
+            xalign 1.0
+            xoffset -28
+            yalign 0.5
+
+
+## ---------------------------------------------------------------------------
+## say_dossier — canonical dialogue window. `screen say` unconditionally
+## delegates here, so this is what every Character() line in the game
+## renders through. Preserves the load-bearing widget IDs ("window",
+## "what") that the Ren'Py modal-stack bookkeeping relies on — see the
+## comment in `screen say` above about the prior crash. Do not
+## restructure without re-testing menu/choice interactions.
+##
+## Geometry: caps height at `ymaximum 230` (fits ~3 lines of dialogue,
+## the soft writing constraint). 67% alpha backing lets the BG bleed
+## through. Beat metadata lives in the top dossier_hud strip — NOT
+## here — so it stays fixed when the strip is on screen, and is silent
+## otherwise. Per-character namebox color comes from `Character(color=)`.
+## ---------------------------------------------------------------------------
+screen say_dossier(who, what):
+    ## Uppercase the speaker name in Python — text-widget [var!u]
+    ## substitution doesn't apply to screen parameters reliably, which
+    ## was rendering "[who!u]" as literal text.
+    $ _dossier_who = who.upper() if who else ""
+
+    window:
+        id "window"
+        background Frame(DOSSIER_BG_SOLID, 0, 0)
+        padding (0, 0, 0, 0)
+        xalign 0.5
+        xfill True
+        yalign gui.textbox_yalign
+        ## Height bounds: the spine's `yfill True` propagates up to push
+        ## the hbox toward `ymaximum`, so the practical knob for window
+        ## height is ymaximum (not yminimum). Keep it tight so character
+        ## art above the textbox stays unobstructed.
+        yminimum 0
+        ymaximum 230
+        bottom_margin 44
+
+        hbox:
+            spacing 0
+            xfill True
+
+            ## 4px rust-red left spine — frame with yfill so it stretches
+            ## to the hbox's natural height. (`add` doesn't accept yfill;
+            ## a frame with a Solid background does.)
+            frame:
+                xsize 4
+                yfill True
+                background Solid(DOSSIER_RED)
+                padding (0, 0)
+
+            ## Inner content area. Tight vertical padding so the window
+            ## stays short; horizontal padding mirrors the original say
+            ## window (60) minus the 4px the spine ate.
+            frame:
+                background None
+                padding (56, 14, 60, 16)
+                xfill True
+
+                vbox:
+                    spacing 6
+                    xfill True
+
+                    ## ALL-CAPS RobotoMono speaker + 1px slate underline.
+                    ## Skipped on narrator lines (who=None).
+                    if who is not None:
+                        vbox:
+                            spacing 3
+                            xalign 0.0
+
+                            ## No inline `color` — let each Character(color=...)
+                            ## drive the namebox tint (colonel blue, martin
+                            ## green, inspector yellow, jb white). The slate
+                            ## underline below + RobotoMono uppercase keep
+                            ## the dossier vocabulary regardless of color.
+                            text _dossier_who id "who":
+                                font DOSSIER_FONT
+                                size 20
+                                kerning 2
+                                outlines [(1, "#000000aa", 0, 0)]
+
+                            frame:
+                                xsize 140
+                                ysize 1
+                                background Solid(DOSSIER_INK_DIM)
+                                padding (0, 0)
+
+                    ## Body — preserve `id "what"` for Character() styling.
+                    text what id "what"
+
 
 ## Input screen ################################################################
 ##

@@ -51,6 +51,7 @@ init -1 python:
             "class_lock": None,
             "flavor":     "",
             "art":        None,
+            "art_glyph":  None,
         }
         defaults.update(fields)
         defaults["id"] = card_id

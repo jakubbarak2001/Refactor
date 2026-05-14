@@ -352,6 +352,25 @@ transform card_hover_lift:
     on idle:
         ease 0.14 zoom 1.0 yoffset 0
 
+## Slow alpha breath on the playable-card halo. Signals castability across
+## the whole hand at a glance — eyes lock to the pulsing colored rings.
+transform card_glow_pulse:
+    alpha 0.55
+    linear 1.2 alpha 0.95
+    linear 1.2 alpha 0.55
+    repeat
+
+## Reward-card hover lift — stronger than the battle hover-lift since reward
+## cards are bigger and the player is meant to compare them up-close. Click
+## anywhere on the card body to take it. `xoff` lets the call site spread
+## the card AWAY from the centre on hover (left card leans left, right card
+## leans right) so the lifted card doesn't visually overlap its neighbours.
+transform reward_card_hover(xoff=0):
+    on hover:
+        ease 0.18 zoom 1.08 yoffset -24 xoffset xoff
+    on idle:
+        ease 0.18 zoom 1.0 yoffset 0 xoffset 0
+
 
 ## ---------------------------------------------------------------------------
 ## Battle Help — accessible via "?" button. One-screen reference.
@@ -678,6 +697,13 @@ screen battle_screen():
         ## Sprite is bottom-anchored so the (often torso-cropped) lower edge
         ## tucks behind the card hand instead of floating mid-screen.
         add _sprite_tag xalign 0.5 ypos _sprite_ypos yanchor 1.0 zoom 0.69 at colonel_hit_shake
+
+        ## ── VIGNETTE ──────────────────────────────────────────────────────────
+        ## Bottom-band darken between sprite and UI: punches cards forward
+        ## against a dimmed backdrop. All UI panels (HP, buffs, energy,
+        ## end-turn, pile counter, hand) render ABOVE this layer so the
+        ## info chrome stays bright while the play area dramatizes.
+        add Solid("#000000bb") xsize 1920 ysize 320 ypos 760
 
         ## ── ENEMY HEADER ──────────────────────────────────────────────────────
         ## Shakes alongside the enemy portrait on hits so impact reads as
@@ -1079,149 +1105,156 @@ screen battle_screen():
             tooltip "How does this fight work?"
 
         ## ── HAND ──────────────────────────────────────────────────────────────
-        ## Each card: 200×280 button. Color-coded border (4px) wrapping a dark
-        ## inner panel. Cost gem overlaps the top-left corner. Effect text is
-        ## the centerpiece — what the card actually does, not just flavor.
+        ## Multi-layer card construction per slot (220×316 each):
+        ##   L1: glow halo (playable only, pulsing alpha)
+        ##   L2: drop shadow (offset solid behind border)
+        ##   L3: type-colored border (red=Attack/blue=Skill/purple=Power)
+        ##   L4: warm-dark inner panel (#1a1410 — card-stock tone)
+        ##   L5: zoned content (title band → art zone → type subtitle → description)
+        ##   L6: cost gem (rotated-square diamond, overlaps top-left)
+        ##   L7: exhaust badge (conditional, bottom-center)
+        ## All halo + shadow stays inside the 220px slot so adjacent cards never bleed.
+        ## xmaximum 1880 + spacing 2 gives headroom for hands up to 8 cards
+        ## (8×220 + 7×2 = 1774) without overflowing the 1920px screen.
         frame:
             xalign 0.5
-            ypos 790
-            padding (16, 10)
-            background Frame("#0a0a0acc", 4, 4)
+            ypos 780
+            padding (10, 8)
+            background None
+            xmaximum 1880
 
             hbox:
-                spacing 14
+                spacing 2
                 xalign 0.5
 
                 for _cid in bs.hand:
                     $ _card = CARD_LIBRARY.get(_cid, {})
                     $ _ctype = _card.get("type", "Skill")
-                    ## Border + type-strip color now driven by card TYPE
-                    ## (Attack=red, Skill=blue, Power=purple). The card "color"
-                    ## taxonomy (Physical/Mental/Money/...) reads as random
-                    ## class-tinting to playtesters — orange for BB cards
-                    ## confused the player about ownership. Type-based is
-                    ## unambiguous: red = it hits, blue = it defends/cycles,
-                    ## purple = it's a passive power.
+                    ## Type-driven palette: Attack=red, Skill=blue, Power=purple.
+                    ## Card "color" taxonomy (Physical/Mental/Money/...) reads as
+                    ## random tinting to playtesters; type is unambiguous.
                     $ _color = {"Attack": "#cc4422", "Skill": "#3388cc", "Power": "#aa44cc"}.get(_ctype, "#888888")
                     $ _ok, _reason = bs.hand_playable(_cid)
-                    $ _border = _color if _ok else "#3a1010"
-                    $ _border_hover = "#ffffff" if _ok else _border
-                    $ _effect_text = EFFECT_DESCRIPTIONS.get(_card.get("effect"), _card.get("flavor", ""))
-                    ## Geometric glyphs in BMP (well-supported across fonts) — visual hierarchy for type
-                    $ _type_glyph = {"Attack": "▲", "Skill": "■", "Power": "★"}.get(_ctype, "●")
+                    $ _border = _color if _ok else "#3a2020"
+                    $ _effect_text = effect_description(_card.get("effect")) or _card.get("flavor", "")
+                    $ _subtitle = (_ctype.upper() + " · " + (_card.get("color") or "").upper()).strip(" ·")
+                    $ _art_path = "images/cards/{}.png".format(_cid)
+                    $ _has_art  = renpy.loadable(_art_path)
+                    $ _art_glyph = _card.get("art_glyph") or {"Attack": "⚔", "Skill": "✦", "Power": "★"}.get(_ctype, "●")
 
                     button:
-                        xsize 200
-                        ysize 280
-                        background Solid(_border)
-                        hover_background Solid(_border_hover)
+                        xsize 220
+                        ysize 316
+                        background None
+                        hover_background None
                         sensitive _ok
                         action [Function(battle_play_card, _cid), Function(renpy.restart_interaction)]
                         at card_hover_lift
 
-                        ## Inner panel — inset 4px from each edge for the border effect
-                        frame:
-                            xpos 4
-                            ypos 4
-                            xsize 192
-                            ysize 272
-                            background Solid("#0d0d0dff" if _ok else "#1a0a0aff")
-                            padding (10, 10)
+                        ## L1: glow halo — two alpha layers approximate falloff.
+                        ## Pulses gently on playable cards; invisible when locked.
+                        if _ok:
+                            add Solid(_color + "44") xpos 0 ypos 0 xysize (220, 316) at card_glow_pulse
+                            add Solid(_color + "77") xpos 4 ypos 4 xysize (212, 308) at card_glow_pulse
 
-                            vbox:
-                                spacing 3
+                        ## L2: drop shadow — offset solid behind the card body.
+                        add Solid("#000000aa") xpos 16 ypos 14 xysize (200, 300)
+
+                        ## L3 + L4: type-colored border wrapping warm-dark inner panel.
+                        frame:
+                            xpos 10
+                            ypos 8
+                            xsize 200
+                            ysize 300
+                            background Frame(_border, 6, 6)
+                            padding (6, 6)
+
+                            frame:
                                 xfill True
+                                yfill True
+                                background Frame("#1a1410", 4, 4)
+                                padding (6, 4)
 
-                                ## Top row: name centered, room left for the cost gem corner
-                                frame:
+                                vbox:
                                     xfill True
-                                    ysize 32
-                                    background None
-                                    text _card.get("name", _cid):
-                                        color ("#ffffff" if _ok else "#666666")
-                                        size 15
-                                        bold True
+                                    spacing 4
+
+                                    ## ── TITLE BANNER — gold serif on dark ribbon ──
+                                    frame:
+                                        xfill True
+                                        ysize 28
+                                        background Frame("#0a0806", 4, 4)
+                                        text _card.get("name", _cid):
+                                            color ("#e8c878" if _ok else "#554434")
+                                            size 14
+                                            bold True
+                                            xalign 0.5
+                                            yalign 0.5
+                                            xmaximum 160
+                                            text_align 0.5
+                                            font "fonts/RobotoMono-Regular.ttf"
+
+                                    ## ── ART ZONE — illustration or glyph fallback ──
+                                    frame:
+                                        xfill True
+                                        ysize 100
+                                        background Frame(_color + "22", 4, 4)
+                                        if _has_art:
+                                            add Transform(_art_path, size=(168, 92)) xalign 0.5 yalign 0.5
+                                        else:
+                                            text _art_glyph:
+                                                xalign 0.5
+                                                yalign 0.5
+                                                color (_color if _ok else "#553333")
+                                                size 60
+                                                outlines [(2, "#000000", 0, 0)]
+
+                                    ## ── TYPE SUBTITLE — small-caps line under art ──
+                                    text _subtitle:
                                         xalign 0.5
-                                        yalign 0.5
-                                        xmaximum 160
-                                        text_align 0.5
-                                        font "fonts/RobotoMono-Regular.ttf"
-
-                                ## Type strip — colored, small caps feel
-                                hbox:
-                                    spacing 6
-                                    xalign 0.5
-                                    text _type_glyph:
-                                        color _color
-                                        size 12
-                                    text _ctype.upper():
-                                        color _color
-                                        size 10
+                                        size 9
+                                        color (_color if _ok else "#554040")
                                         bold True
                                         font "fonts/RobotoMono-Regular.ttf"
-                                    text "·":
-                                        color "#444444"
-                                        size 10
-                                    text _card.get("color", "").upper():
-                                        color _color
-                                        size 10
-                                        font "fonts/RobotoMono-Regular.ttf"
 
-                                ## Divider
-                                frame:
-                                    xalign 0.5
-                                    xsize 150
-                                    ysize 1
-                                    background Solid(_color)
+                                    ## ── DESCRIPTION — distinct parchment-tone band ──
+                                    frame:
+                                        xfill True
+                                        yminimum 72
+                                        background Frame("#241d15", 4, 4)
+                                        padding (6, 6)
+                                        text _effect_text:
+                                            color ("#e8e0d0" if _ok else "#554840")
+                                            size 12
+                                            xalign 0.5
+                                            yalign 0.5
+                                            xmaximum 168
+                                            text_align 0.5
+                                            line_spacing 2
 
-                                null height 3
-
-                                ## EFFECT — the meaty middle
-                                text _effect_text:
-                                    color ("#e8e8e8" if _ok else "#555555")
-                                    size 12
-                                    xalign 0.5
-                                    xmaximum 168
-                                    text_align 0.5
-                                    line_spacing 2
-
-                                null height 4
-
-                                ## Flavor — italic, gray, smaller
-                                text _card.get("flavor", ""):
-                                    color ("#777777" if _ok else "#3a3a3a")
-                                    size 9
-                                    italic True
-                                    xalign 0.5
-                                    xmaximum 168
-                                    text_align 0.5
-
-                        ## Cost gem — overlaps the top-left corner of the border
-                        frame:
-                            xpos -4
-                            ypos -4
-                            xsize 36
-                            ysize 36
-                            background Solid(_color if _ok else "#552222")
+                        ## L6: cost gem — diamond (rotated square) overlapping
+                        ## card top-left. Number rendered un-rotated on top.
+                        fixed:
+                            xpos -11
+                            ypos -14
+                            xysize (50, 50)
+                            add Transform(Solid(_color if _ok else "#553333"), size=(32, 32), rotate=45) xalign 0.5 yalign 0.5
                             text "[_card.get('cost', 0)]":
-                                color ("#000000" if _ok else "#222222")
-                                size 20
-                                bold True
                                 xalign 0.5
                                 yalign 0.5
+                                color ("#0a0806" if _ok else "#221a1a")
+                                size 18
+                                bold True
                                 font "fonts/RobotoMono-Regular.ttf"
 
-                        ## Exhaust badge — centered horizontally near the bottom
-                        ## of the card, below the effect/flavor text. Larger and
-                        ## brighter than the previous corner pip so it actually
-                        ## reads at-a-glance.
+                        ## L7: exhaust badge (conditional) — bottom-center over border.
                         if _card.get("exhaust"):
                             frame:
-                                xalign 0.5
-                                ypos 250
+                                xpos 55
+                                ypos 286
                                 xsize 110
                                 ysize 22
-                                background Solid("#5a0000")
+                                background Frame("#5a0000ee", 4, 4)
                                 text "EXHAUST":
                                     color "#ff8866"
                                     size 12
@@ -1307,18 +1340,6 @@ screen battle_screen():
                         font "fonts/RobotoMono-Regular.ttf"
                         outlines [(4, "#000000", 0, 0)]
                         at battle_end_fanfare
-                    text "His face is empty. He has nothing left to say.":
-                        color "#88ff88"
-                        size 20
-                        italic True
-                        xalign 0.5
-                        at battle_end_subtitle
-                    text "HP {}/{}  ·  Round {}".format(bs.player_hp, bs.player_max_hp, bs.turn):
-                        color "#557755"
-                        size 14
-                        xalign 0.5
-                        font "fonts/RobotoMono-Regular.ttf"
-                        at battle_end_subtitle
             timer 2.5 action Return("victory")
 
         if bs.over == "defeat":
