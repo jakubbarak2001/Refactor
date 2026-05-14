@@ -495,7 +495,12 @@ label activity_gym:
             ## via gym_max_hp_bonus. Lazy-inits run_hp on day-1 gyms (before any
             ## battle has set up the persistent-HP fields).
             python:
-                _gym_max_bump = 5
+                ## Cap the persistent gym HP bonus at +30 (6 sessions worth).
+                ## Without a cap a 10-session run pushed BB to 165 HP vs a
+                ## 100 HP boss — trivializing the capstone. With the cap +
+                ## Colonel HP 140, BB tops out at ~145 vs 140: real fight.
+                _GYM_HP_BONUS_CAP = 30
+                _gym_max_bump = max(0, min(5, _GYM_HP_BONUS_CAP - getattr(store, 'gym_max_hp_bonus', 0)))
                 store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + _gym_max_bump
                 if store.run_hp_max is None:
                     if stats.player_class == "bodybuilder":
@@ -511,7 +516,10 @@ label activity_gym:
                 store.run_hp_max += _gym_max_bump
                 _gym_heal = int(round(store.run_hp_max * 0.25))
                 store.run_hp = min(store.run_hp_max, store.run_hp + _gym_heal)
-                _gym_outcome = _gym_outcome + ", +{} MAX HP, +{} HP".format(_gym_max_bump, _gym_heal)
+                if _gym_max_bump > 0:
+                    _gym_outcome = _gym_outcome + ", +{} MAX HP, +{} HP".format(_gym_max_bump, _gym_heal)
+                else:
+                    _gym_outcome = _gym_outcome + ", MAX HP capped, +{} HP".format(_gym_heal)
             ## Compute card-offer eligibility in python (no UI), THEN do the
             ## modal at script level via `call screen`. Avoids the transient-
             ## layer leak that came from `renpy.call_screen` inside python.

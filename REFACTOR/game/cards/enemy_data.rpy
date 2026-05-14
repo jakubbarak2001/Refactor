@@ -104,7 +104,7 @@ init -1 python:
         sprite_id    = "rvac",
         log_name     = "Brawler",
         tier         = "easy",
-        max_hp       = 55,
+        max_hp       = 65,
         deck_template = ["rvac_swing", "rvac_haymaker", "rvac_drink"],
         wrinkle      = "drunken_double",
         detour_lines = [
@@ -119,7 +119,7 @@ init -1 python:
         sprite_id    = "sprejeri",
         log_name     = "Taggers",
         tier         = "easy",
-        max_hp       = 60,
+        max_hp       = 70,
         deck_template = ["tag_quick", "tag_team", "spray_blind", "vandal_block"],
         wrinkle      = "tag_stack",
         detour_lines = [
@@ -134,7 +134,7 @@ init -1 python:
         sprite_id    = "fanousek",
         log_name     = "Hooligan",
         tier         = "easy",
-        max_hp       = 60,
+        max_hp       = 70,
         deck_template = ["chant", "flare_throw", "pile_in"],
         detour_lines = [
             "His crew finds you behind the bus station. They take turns on your kidneys.",
@@ -148,7 +148,7 @@ init -1 python:
         sprite_id    = "spis",
         log_name     = "Case File",
         tier         = "easy",
-        max_hp       = 55,
+        max_hp       = 65,
         deck_template = ["dossier_flick", "read_aloud", "paper_wall", "file_swap"],
         wrinkle      = "paper_clog",
         detour_lines = [

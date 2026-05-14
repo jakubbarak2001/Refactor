@@ -41,7 +41,7 @@ init python:
         "heavy_set":               "Deal 4 + (Hatred / 10) damage. Scales with how much you hate this job.",
         "read_him":                "Gain 6 block. Draw 2 cards.",
         "stack_up":                "Gain +2 energy this turn. Crash next turn (-2 energy).",
-        "gain_block_12":           "Gain 12 block.",
+        "gain_block_12":           "Gain 9 block.",
         "deal_damage_double_next": "Your next attack this turn fires twice.",
         "boundary":                "Deal 4 damage. Heal 4 HP.",
         "reframe":                 "Convert the enemy's next attack into block for you. Exhausts.",
@@ -49,8 +49,8 @@ init python:
         "vip_treatment":           "Deal 30 damage. Lose 10 HP. Exhausts.",
         "refactor":                "Cancel the enemy's next attack. Exhausts.",
         "compile":                 "Draw 2 cards.",
-        "production_push":         "Deal 14 damage. Draw 1 card. +6 damage per other Logic/Tech card in hand.",
-        "gain_block_15":           "Gain 15 block.",
+        "production_push":         "Deal 10 damage. Draw 1 card. +6 damage per Skill in hand.",
+        "gain_block_15":           "Gain 10 block.",
         "procedural_defense":      "Block all damage from the enemy's next attack turn.",
         "racetam_burst":           "Gain +1 energy. Draw 1 card.",
         "flmodafinil_spike":       "Deal 28 damage. 50%: -1 max energy next turn. Exhausts.",
@@ -61,13 +61,13 @@ init python:
         "ghost_secret":            "Cancel the enemy's next attack. Deal 15 damage. Exhausts.",
         "job_offer":               "Power: +5 max HP. +1 starting block per turn.",
         "stoic_refactor":          "Power: take 50% damage from Mental-typed attacks.",
-        "stoic_anchor":            "Power: +3 starting block per turn. Heal 3 HP after each enemy attack.",
+        "stoic_anchor":            "Power: +2 starting block per turn. Heal 2 HP after each enemy attack.",
         "quick_jab":               "Deal 7 damage.",
         "loan_sharks":             "Pay 5,000 CZK to deal 30 damage. (No funds = no damage.) Exhausts.",
         "paid_review":             "Pay 10,000 CZK to cancel the enemy's next attack and draw 2. (No funds = no effect.) Exhausts.",
         "chain_of_command":        "Gain 10 block. Draw 1 card.",
         "vigil":                   "Gain 4 block now. +4 starting block next turn.",
-        "iron_stance":             "Power: +20 block. Retaliate (4 + 2x turn) damage when you're hit.",
+        "iron_stance":             "Power: +20 block. Retaliate min(12, 4 + 2×turn) damage when you're hit.",
         "spotter":                 "Gain 6 block. Draw 1 card.",
         "brawl":                   "Deal 10 damage. Apply 3-turn bleed (3 dmg/turn) to the enemy.",
         "empaths_insight":         "Power: +5 starting block per turn for the first 3 turns.",
@@ -96,7 +96,7 @@ init python:
         "merge_conflict":          "Deal 10 damage. Draw 1.",
         "kernel_patch":            "Gain 1 energy. Draw 2. Exhausts.",
         "pair_program":            "Gain 3 block. Draw 1 card. Free.",
-        "radio_call":              "Gain 10 block.",
+        "radio_call":              "Gain 7 block.",
         "breath_test":             "Reduce his next attack by 5 (min 1).",
         "procedural_kick":         "Deal 5 damage. Gain 5 block.",
         "riot_shield":             "Gain 14 block. +4 starting block next turn.",
@@ -160,8 +160,9 @@ init python:
     @register_effect("production_push")
     def _eff_production_push(state, source, target):
         ## Bootcamp graduation reward — versatile rare attack.
-        ## 14 damage + 1 draw, with a hand-mix bonus that rewards tempo decks.
-        dmg = 14
+        ## 10 base + Skill-in-hand scaling (was 14 base — audit nerf:
+        ## 14 base for 1e exceeded rare-tier DPE before the bonus).
+        dmg = 10
         ## Bonus: if any Skill is in hand, add +6 (rewards mixed hands, the
         ## "I shipped a feature" feeling — block + attack thinking together).
         try:
@@ -202,7 +203,7 @@ init python:
 
     @register_effect("gain_block_12")
     def _eff_iron_will(state, source, target):
-        state.gain_block(source, 12)
+        state.gain_block(source, 9)
 
     @register_effect("deal_damage_double_next")
     def _eff_personal_record(state, source, target):
@@ -256,7 +257,7 @@ init python:
 
     @register_effect("gain_block_15")
     def _eff_backup(state, source, target):
-        state.gain_block(source, 15)
+        state.gain_block(source, 10)
 
     @register_effect("procedural_defense")
     def _eff_procedural_defense(state, source, target):
@@ -327,9 +328,12 @@ init python:
 
     @register_effect("stoic_anchor")
     def _eff_stoic_anchor(state, source, target):
-        ## Power: persistent buff. Engine applies starting_block_+3 and heal_after_attack at runtime.
-        state.buff(source, "stoic_anchor_block", 3)
-        state.buff(source, "stoic_anchor_heal", 3)
+        ## Power: persistent buff. Engine applies starting_block_+2 and
+        ## heal_after_attack at runtime. Audit nerf: was +3/heal 3 — a power
+        ## that paid back its cost in one turn AND kept compounding. Down to
+        ## +2/heal 2: still a strong rare-tier engine, no longer free value.
+        state.buff(source, "stoic_anchor_block", 2)
+        state.buff(source, "stoic_anchor_heal", 2)
 
     ## ---------------------------------------------------------------------------
     ## Additional cards
@@ -577,8 +581,9 @@ init python:
 
     @register_effect("radio_call")
     def _eff_radio_call(state, source, target):
-        ## Peek mechanic removed; block bumped 6 → 10 to compensate.
-        state.gain_block(source, 10)
+        ## Peek mechanic removed (block 6 → 10 was compensation); then
+        ## audit-nerfed 10 → 7 since 2× Defend at common is still strong.
+        state.gain_block(source, 7)
 
     @register_effect("breath_test")
     def _eff_breath_test(state, source, target):

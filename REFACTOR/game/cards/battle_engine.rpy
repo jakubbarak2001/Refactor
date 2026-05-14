@@ -505,10 +505,14 @@ init python:
         ## ladder enemies use their ENEMY_LIBRARY deck_template.
         bs.intent_queue = build_enemy_deck(enemy_id)
 
-        ## Enemy HP. Colonel is a flat 100 HP — short, cinematic. Ladder
-        ## enemies use ENEMY_LIBRARY max_hp.
+        ## Enemy HP. Colonel = 150 HP — capstone tier, must out-bulk medium
+        ## ladder enemies (the boss can't be HP-weaker than the patsies he
+        ## sends). Was 100, then 140; bumped again per balance-judge: at 140,
+        ## BB-capped (115 + 30 gym cap = 145) still won at ~110 HP remaining.
+        ## 150 forces real preparation — Colonel matches or exceeds player max.
+        ## Ladder enemies use ENEMY_LIBRARY max_hp.
         if enemy_id == "colonel":
-            bs.enemy_max_hp = 100
+            bs.enemy_max_hp = 150
         else:
             bs.enemy_max_hp = _enemy.get("max_hp") or 80
         bs.enemy_hp = bs.enemy_max_hp
@@ -954,10 +958,13 @@ init python:
         if bs.buffs.get("stoic_anchor_heal") and bs.last_damage_to_player > 0:
             bs.heal("player", bs.buffs["stoic_anchor_heal"])
 
-        ## Iron Stance retaliate-on-hit (BB) — scales with turn count.
-        ## Turn 1: 4 dmg. Turn 5: 12. Turn 10: 22. Rewards surviving longer.
+        ## Iron Stance retaliate-on-hit (BB) — scales with turn count, capped.
+        ## Turn 1: 4 dmg. Turn 5: 12 (cap). Turn 10+: 12. Audit nerf: was
+        ## uncapped (turn 10 = 22), interacting with multi-hit enemy intents
+        ## (baton_combo, tag_team) to deal 60+ free damage per turn at long
+        ## fights. Cap at 12 keeps the scaling identity, stops the runaway.
         if bs.buffs.get("iron_stance_active") and bs.last_damage_to_player > 0:
-            _retaliate = 4 + (max(1, bs.turn) - 1) * 2
+            _retaliate = min(12, 4 + (max(1, bs.turn) - 1) * 2)
             bs.deal_damage("enemy", _retaliate)
             bs.add_log("[[Iron Stance]: retaliated for {} dmg (turn {}).".format(_retaliate, bs.turn))
 
