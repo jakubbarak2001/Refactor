@@ -1,0 +1,41 @@
+Stylized cinematic close-up portrait of JB — the Czech police officer in the attached JB reference images. Match his face EXACTLY across the references: same face shape, slicked-back short dark hair with a clean fade, defined jaw, straight nose, brown eyes under heavy dark brows, light stubble (rendered stylized), warm-neutral skin tone. Black tactical plate carrier vest with "POLICIE" patches (rectangular yellow-on-black on left chest, yellow shield on right shoulder), black t-shirt underneath. JB looks like JB — do NOT shift his identity or face.
+
+STYLE — match the attached screenshot references EXACTLY:
+- Stylized 3D painterly game-cinematic rendering — the same render style as the screenshots.
+- Smooth simplified skin — no visible pores, no hyperreal micro-wrinkles, no photographed skin texture.
+- Stubble is a soft suggested shadow on the jaw, not individual hairs.
+- Hair painted with clean broad strands and glossy highlights.
+- Soft subsurface skin glow under rim light, matte and stylized.
+- Clean shading transitions with slight cel-shaded edges where strobe meets shadow.
+- "Animated film / game cinematic" aesthetic.
+- NOT photoreal. NOT live-action. NOT anime. If it looks like a photo of a real human, it is wrong.
+
+MANDATORY PHYSICAL DETAILS — JB HAS BEEN IN A FIGHT:
+
+1. **NOSE BANDAGE — MUST BE VISIBLE on the bridge of his nose.** A beige medical tape patch across the bridge: one vertical strip running down the bridge from between the brows to the nose tip, with two short horizontal cross-strips overlapping it forming a clear "+" or "T" shape. Slightly creased. A small dark stylized blood spot near the lower-right of the bandage. The bandage is the single most important visual detail — it must be prominent and unmistakable.
+
+2. **INJURIES.** Small scrape/cut on the forehead near the hairline. Faint purple-red bruise on the right cheekbone, rendered as a soft mottled painted patch. Small split on the right side of the lower lip. Light dried blood under the right nostril and beside the bandage. All injuries rendered stylized (flat painted color), matching the rest of the skin shading — not photoreal.
+
+3. **WET HAIR.** Hair dark, damp, plastered down against the scalp, with one or two stylized painted strands falling onto the forehead. Skin slightly sheened from rain.
+
+POSE AND EXPRESSION: head turned slightly to his left (camera-right) in a 3/4 angle, like the JB angle reference. Eyes looking off-frame past the camera, distant, unfocused. Quiet melancholy — exhausted, beaten, withdrawn. Lips slightly parted from heavy breathing. Jaw relaxed.
+
+COMPOSITION: tight head-and-shoulders cinematic close-up. Anamorphic 2.35:1 framing. Shallow depth of field. Atmospheric haze and light rain in the air as soft painted streaks. Faint film grain.
+
+LIGHTING: police strobe wash. RED dominant — saturated harsh red light bathes most of the face and the bandage from camera-right. BLUE rim light kicks in from camera-left, catching cheekbone, jaw, hair edge, and shoulder. Red and blue MUST stay separate — NO pink, NO magenta, NO purple blend on the face. Red dominant, blue rim only. Clean hard color separation, the way street lights catch the character in the night-street screenshot reference.
+
+BACKGROUND: out-of-focus Czech socialist-era concrete panelák housing block at night, looming behind him, soft focus, a few warm-lit windows, light mist. Bottom-right of frame: stylized soft glowing red and blue bokeh from off-frame police lights, painted as glowing circles like the night street bokeh in the screenshot reference.
+
+MOOD: melancholy, beaten, withdrawn. A cop standing in the rain after a fight, lit by the strobes of the squad car he came in.
+
+CHECKLIST:
+- JB looks like JB (face matches the JB references).
+- Stylized painterly render matching the screenshots — not photoreal.
+- Cross-pattern nose bandage CLEARLY VISIBLE on the bridge of the nose.
+- Forehead cut, cheek bruise, lip split, blood under nose.
+- Wet plastered hair.
+- 3/4 turn, melancholy gaze off-frame, lips parted.
+- Red dominant + blue rim, no purple blend.
+- POLICIE vest visible.
+- Panelák background, soft bokeh.
+- 2.35:1 anamorphic.

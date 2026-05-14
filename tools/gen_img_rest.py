@@ -26,6 +26,8 @@ def main() -> int:
     p.add_argument("--ref", action="append", type=Path, default=[])
     p.add_argument("--sprites", action="store_true")
     p.add_argument("--model", default=MODEL)
+    p.add_argument("--aspect-ratio", default=None,
+                   help='Gemini aspect ratio: "1:1", "16:9", "9:16", "4:3", "3:4", "21:9", etc.')
     args = p.parse_args()
 
     key = os.environ.get("GEMINI_API_KEY")
@@ -42,7 +44,10 @@ def main() -> int:
         mt = mimetypes.guess_type(str(ref))[0] or "image/png"
         parts.append({"inlineData": {"mimeType": mt, "data": base64.b64encode(ref.read_bytes()).decode()}})
 
-    body = json.dumps({"contents": [{"parts": parts}]}).encode()
+    request_obj = {"contents": [{"parts": parts}]}
+    if args.aspect_ratio:
+        request_obj["generationConfig"] = {"imageConfig": {"aspectRatio": args.aspect_ratio}}
+    body = json.dumps(request_obj).encode()
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{args.model}:generateContent?key={key}"
     req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
     try:

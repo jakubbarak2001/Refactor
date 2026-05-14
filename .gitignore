@@ -53,7 +53,13 @@ REFACTOR-*-dists/
 # --- Claude per-user / scratch
 .claude/settings.local.json
 .claude/*_diff.txt
+.claude/worktrees/
 .tmp_*
+# Leaked temp diff files (shell redirect with unexpanded Windows path)
+*UsersUSERAppDataLocalTemp*.txt
+
+# --- Image-gen logs (tools/gen_img_rest.py output)
+tools/logs/
 
 # --- Pre-Ren'Py pygame relic (kept on disk, not in git)
 /game/
