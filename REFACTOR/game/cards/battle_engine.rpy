@@ -233,7 +233,9 @@ init python:
                 ## non-interaction contexts (battle_init, Power auto-fire).
                 if actual > 0:
                     self.last_enemy_hit_time = self._now()
-                    _play_battle_sfx("hit_thud")
+                    ## SFX deferred to popup screen via timer so multi-hit
+                    ## compounds get one thud per popup (staggered), not
+                    ## five at once. See damage_popup_*_inner.
                     try:
                         ## UNIQUE _tag per hit so Ren'Py mounts a brand-new
                         ## screen instance with its own ATL. Multi-hit compounds
@@ -281,7 +283,8 @@ init python:
                 ## for enemy-attack impact feedback.
                 if actual > 0:
                     self.last_player_hit_time = self._now()
-                    _play_battle_sfx("enemy_hit")
+                    ## SFX deferred to popup screen via timer — see comment
+                    ## on the enemy-target branch above.
                     try:
                         ## Same unique-tag pattern as the enemy branch — see
                         ## that comment for the multi-hit coexistence reason.
@@ -928,6 +931,16 @@ init python:
             bs.buffs["next_attack_reduction"] = 0
             bs.add_log("[[Frame Trap]: attack softened.")
 
+        ## Per-card SFX — fire once at the start of the intent resolve so the
+        ## sound layers under (not behind) the per-hit popup thuds. Only mapped
+        ## cards play; everything else stays silent.
+        _card_sfx = {
+            "gas_throw":   "audio/sfx/gas_throw.mp3",
+            "flare_throw": "audio/sfx/flare_throw.mp3",
+        }.get(ic.get("id", ""))
+        if _card_sfx:
+            renpy.sound.play(_card_sfx)
+
         ## Resolve intent by type
         intent_type = ic.get("intent", "attack")
         bs.last_intent_resolved = ic["id"]
@@ -983,7 +996,7 @@ init python:
                 ## five collapsing into one frame. The delay is consumed by
                 ## the popup screen's transform, NOT renpy.pause — pausing
                 ## from a screen-action callback silently fails.
-                bs.deal_damage("player", per_hit, source_kind="intent", popup_delay=_i * 0.14)
+                bs.deal_damage("player", per_hit, source_kind="intent", popup_delay=_i * 0.25)
         elif intent_type == "block":
             bs.gain_block("enemy", ic.get("value", 0))
         elif intent_type == "buff":

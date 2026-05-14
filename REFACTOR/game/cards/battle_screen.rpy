@@ -335,6 +335,9 @@ screen damage_popup_enemy_inner(damage, delay=0.0):
     ## tests because the console opens at a higher zorder). This was the actual
     ## root cause of the "popups never show in fights" bug.
     zorder 800
+    ## Per-popup thud — fires AT the visible-popup moment, not when damage is
+    ## dealt. Multi-hit compounds now get one thud per number, staggered.
+    timer (delay if delay > 0 else 0.01) action Function(_play_battle_sfx, "hit_thud") repeat False
     text "-[damage]":
         xalign 0.5
         ypos 195
@@ -347,6 +350,7 @@ screen damage_popup_enemy_inner(damage, delay=0.0):
 
 screen damage_popup_player_inner(damage, delay=0.0):
     zorder 800
+    timer (delay if delay > 0 else 0.01) action Function(_play_battle_sfx, "enemy_hit") repeat False
     text "-[damage]":
         xpos 130
         ypos 500
