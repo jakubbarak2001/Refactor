@@ -113,6 +113,17 @@ init python:
             self._popup_enemy_seq = 0
             self._popup_player_seq = 0
 
+            ## Permanent strength buff for the enemy (StS Strength analog).
+            ## Adds to every attack/compound hit. Granted by 'strength' intent
+            ## type. Persists for the fight; does NOT decay across turns.
+            self.enemy_strength = 0
+
+            ## Card-play restriction. None = no cap (default). When an intent
+            ## sets cards_cap_next_turn, the start-of-turn handler latches it
+            ## into current_turn_max_cards and resets cards_played_this_turn.
+            self.cards_played_this_turn = 0
+            self.current_turn_max_cards = None
+
         def __setstate__(self, state):
             """Restore from pickle. Backfill juice fields if missing so saves
             taken DURING a battle on an older build don't AttributeError
@@ -144,6 +155,12 @@ init python:
                 self.enemy_sprite_id = "colonel"
             if not hasattr(self, 'enemy_log_name'):
                 self.enemy_log_name = "Colonel"
+            if not hasattr(self, 'enemy_strength'):
+                self.enemy_strength = 0
+            if not hasattr(self, 'cards_played_this_turn'):
+                self.cards_played_this_turn = 0
+            if not hasattr(self, 'current_turn_max_cards'):
+                self.current_turn_max_cards = None
             if not hasattr(self, '_popup_enemy_seq'):
                 self._popup_enemy_seq = 0
             if not hasattr(self, '_popup_player_seq'):
@@ -166,7 +183,7 @@ init python:
                 self.log = self.log[-12:]
 
         ## ---------------- DAMAGE / BLOCK ----------------
-        def deal_damage(self, target, amount, source_kind="effect", bypass_block=False):
+        def deal_damage(self, target, amount, source_kind="effect", bypass_block=False, popup_delay=0.0):
             """target: 'player' | 'enemy' (or string aliases).
 
             source_kind: 'effect' (card-played effect) | 'intent' (colonel's
@@ -181,6 +198,12 @@ init python:
             the incoming damage. Used by self-harm cards whose text reads
             'Lose N HP' — your block stops enemies, not your own outburst
             or the syringe you just stabbed yourself with.
+
+            popup_delay: seconds to delay the damage-popup render. Multi-hit
+            compound attacks pass _i * 0.14 so the -N popups stagger across
+            time instead of all collapsing into the last frame. The popup
+            screen's transform consumes the delay (renpy.pause from a screen
+            action would silently fail).
             """
             if amount <= 0:
                 return
@@ -212,18 +235,18 @@ init python:
                     self.last_enemy_hit_time = self._now()
                     _play_battle_sfx("hit_thud")
                     try:
-                        ## UNIQUE _tag per hit forces Ren'Py to mount a brand-new
-                        ## screen instance with a clean ATL state. hide+show with
-                        ## the same name gets optimized away (Ren'Py batches them
-                        ## and sees "ends up shown either way"). Unique tags
-                        ## guarantee a fresh mount every time. Previous-tag hide
-                        ## keeps the layer from accumulating zombie popups.
-                        if self._popup_enemy_seq > 0:
-                            renpy.hide_screen("dmg_popup_enemy_{}".format(self._popup_enemy_seq))
+                        ## UNIQUE _tag per hit so Ren'Py mounts a brand-new
+                        ## screen instance with its own ATL. Multi-hit compounds
+                        ## now COEXIST (previously the hide-previous-tag call
+                        ## killed earlier popups when several hits resolved in
+                        ## the same frame — only the last one ever rendered).
+                        ## Lifetime is bounded by the transform's alpha-out at
+                        ## ~1.2s; lingering zero-alpha screens don't draw.
                         self._popup_enemy_seq += 1
                         renpy.show_screen(
                             "damage_popup_enemy_inner",
                             damage=actual,
+                            delay=popup_delay,
                             _tag="dmg_popup_enemy_{}".format(self._popup_enemy_seq),
                         )
                         renpy.restart_interaction()
@@ -261,14 +284,12 @@ init python:
                     _play_battle_sfx("enemy_hit")
                     try:
                         ## Same unique-tag pattern as the enemy branch — see
-                        ## the comment there for the Ren'Py batch-optimization
-                        ## that forced this design.
-                        if self._popup_player_seq > 0:
-                            renpy.hide_screen("dmg_popup_player_{}".format(self._popup_player_seq))
+                        ## that comment for the multi-hit coexistence reason.
                         self._popup_player_seq += 1
                         renpy.show_screen(
                             "damage_popup_player_inner",
                             damage=actual,
+                            delay=popup_delay,
                             _tag="dmg_popup_player_{}".format(self._popup_player_seq),
                         )
                         renpy.restart_interaction()
@@ -397,6 +418,11 @@ init python:
             ## check so a 0-cost Compromise still reports as unplayable.
             if c.get("unplayable"):
                 return False, "Unplayable. Dead weight."
+            ## Card-play restriction (boss-style "only N cards this turn").
+            ## Gate before energy so it shows even on 0-cost cards.
+            if self.current_turn_max_cards is not None:
+                if self.cards_played_this_turn >= self.current_turn_max_cards:
+                    return False, "Restricted: {} card(s) max this turn.".format(self.current_turn_max_cards)
             cost = c.get("cost", 0)
             if isinstance(cost, int) and cost > self.energy:
                 return False, "Not enough energy."
@@ -541,6 +567,15 @@ init python:
         bs.turn += 1
         bs.player_block = bs.starting_block
 
+        ## Card-play counter resets every turn. If a 'restrict' intent set
+        ## cards_cap_next_turn, latch that into the live cap and consume.
+        bs.cards_played_this_turn = 0
+        if bs.buffs.get("cards_cap_next_turn"):
+            bs.current_turn_max_cards = bs.buffs["cards_cap_next_turn"]
+            bs.buffs["cards_cap_next_turn"] = 0
+        else:
+            bs.current_turn_max_cards = None
+
         ## Phase C juice — timestamp the turn start so the screen can render
         ## a sliding TURN N banner that auto-fades after 1.4s.
         try:
@@ -669,6 +704,9 @@ init python:
         cost = c.get("cost", 0)
         if isinstance(cost, int):
             bs.spend_energy(cost)
+
+        ## Tick the per-turn card counter — feeds the 'restrict' intent gate.
+        bs.cards_played_this_turn += 1
 
         ## Phase A juice — play card-type sfx immediately on click,
         ## before the effect resolves, so the audio feedback feels snappy.
@@ -907,6 +945,9 @@ init python:
 
         if intent_type == "attack":
             dmg = max(1 if ic.get("value", 0) > 0 else 0, ic.get("value", 0) - damage_reduction)
+            ## Permanent enemy Strength buff (StS analog) — adds to every
+            ## attack/compound hit. Granted by 'strength' intent type.
+            dmg += bs.enemy_strength
             ## --- Sprejeri tag stack spend: +tags dmg on attack when stack >= 3 ---
             if bs.enemy_id == "sprejeri":
                 _tags = bs.buffs.get("sprejeri_tags", 0)
@@ -926,6 +967,9 @@ init python:
         elif intent_type == "compound":
             hits = ic.get("value2", 1)
             per_hit = max(1 if ic.get("value", 0) > 0 else 0, ic.get("value", 0) - (damage_reduction // max(1, hits)))
+            ## Strength applies PER HIT (StS rule) — compound attacks scale
+            ## sharply with strength stacks.
+            per_hit += bs.enemy_strength
             if _paragraph_fires:
                 _bonus = ENEMY_LIBRARY.get("lawyer", {}).get("wrinkle_data", {}).get("bonus_dmg", 6)
                 per_hit += max(1, _bonus // max(1, hits))
@@ -934,12 +978,31 @@ init python:
             for _i in range(hits):
                 if bs.is_over():
                     break
-                bs.deal_damage("player", per_hit, source_kind="intent")
+                ## popup_delay staggers the damage popup render so multi-hit
+                ## compounds show as -N, -N, -N consecutively instead of all
+                ## five collapsing into one frame. The delay is consumed by
+                ## the popup screen's transform, NOT renpy.pause — pausing
+                ## from a screen-action callback silently fails.
+                bs.deal_damage("player", per_hit, source_kind="intent", popup_delay=_i * 0.14)
         elif intent_type == "block":
             bs.gain_block("enemy", ic.get("value", 0))
         elif intent_type == "buff":
-            ## Cold Stare — add to a self-attack-bonus stack
+            ## Cold Stare — add to a self-attack-bonus stack (one-shot bonus
+            ## that fires + decays after the next attack lands).
             bs.buffs["enemy_attack_bonus"] = bs.buffs.get("enemy_attack_bonus", 0) + ic.get("value", 0)
+        elif intent_type == "strength":
+            ## Permanent +N strength for the rest of the fight (StS Strength).
+            ## Used by ramp enemies (Inspekce case_review, Colonel cold_stare
+            ## v2) — every subsequent attack hits harder.
+            _gain = ic.get("value", 0)
+            bs.enemy_strength += _gain
+            bs.add_log("{} gains +{} Strength (now {}).".format(bs.enemy_log_name, _gain, bs.enemy_strength))
+        elif intent_type == "restrict":
+            ## Limit how many cards the player can play on their NEXT turn.
+            ## Latched in battle_start_player_turn into current_turn_max_cards.
+            _cap = ic.get("value", 1)
+            bs.buffs["cards_cap_next_turn"] = _cap
+            bs.add_log("{} restricts you to {} card(s) next turn.".format(bs.enemy_log_name, _cap))
         elif intent_type == "debuff":
             ## Default debuff_key is player_draw_penalty (Colonel + Easy enemies).
             ## Medium/Hard enemies override via ic["debuff_key"] (e.g.

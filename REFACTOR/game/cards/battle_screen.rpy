@@ -306,6 +306,21 @@ transform damage_popup_atl:
         pause 0.5
         linear 0.35 alpha 0.0
 
+## Parameterized variant — multi-hit compound attacks pass a per-hit delay
+## so the -N popups stagger in time (StS-style hit-by-hit visual feedback)
+## instead of all five collapsing into the last frame. delay=0 behaves
+## identically to damage_popup_atl above.
+transform damage_popup_atl_delayed(delay=0.0):
+    alpha 0.0
+    pause delay
+    alpha 1.0
+    yoffset 0
+    parallel:
+        linear 0.85 yoffset -70
+    parallel:
+        pause 0.5
+        linear 0.35 alpha 0.0
+
 
 ## Inner screens for damage popups. Wrapped via `use damage_popup_<x>_inner(
 ## damage=N) id "<x>_dmg_popup_<hit_time>"` from battle_screen — same proven
@@ -313,7 +328,7 @@ transform damage_popup_atl:
 ## the hit timestamp), so Ren'Py mounts a fresh displayable + fires the ATL
 ## from frame 0 every time. Pure animation, no transform-function timing
 ## races. This is what replaces the long-standing flaky popup pipeline.
-screen damage_popup_enemy_inner(damage):
+screen damage_popup_enemy_inner(damage, delay=0.0):
     ## zorder 800 — must render ABOVE battle_screen (zorder 600). Without this
     ## explicit zorder the popup mounts but draws BEHIND battle_screen's full-
     ## screen background, so it's invisible in-fight (but visible from console
@@ -328,9 +343,9 @@ screen damage_popup_enemy_inner(damage):
         bold True
         outlines [(4, "#000000", 0, 0)]
         font "fonts/RobotoMono-Regular.ttf"
-        at damage_popup_atl
+        at damage_popup_atl_delayed(delay)
 
-screen damage_popup_player_inner(damage):
+screen damage_popup_player_inner(damage, delay=0.0):
     zorder 800
     text "-[damage]":
         xpos 130
@@ -340,7 +355,7 @@ screen damage_popup_player_inner(damage):
         bold True
         outlines [(4, "#000000", 0, 0)]
         font "fonts/RobotoMono-Regular.ttf"
-        at damage_popup_atl
+        at damage_popup_atl_delayed(delay)
 
 ## Phase B juice — card hover lift. Cards in hand scale up + lift slightly
 ## on mouse-hover, settle on idle. Smooth ease so the cursor's-on-this-card
@@ -766,6 +781,15 @@ screen battle_screen():
                             color "#88aaff"
                             size 18
 
+                    ## Permanent Strength badge — flags the ramp boss intent.
+                    ## Reads "STR +N" in red-orange, only visible when stacked.
+                    if bs.enemy_strength > 0:
+                        text "💪 +[bs.enemy_strength]":
+                            color "#ff8822"
+                            size 18
+                            bold True
+                            font "fonts/RobotoMono-Regular.ttf"
+
                 ## ── INTENT INFOGRAPHICS ───────────────────────────────────────
                 ## Each peeked intent renders as a small icon+value panel with
                 ## the intent name in italic gray below. Type → glyph + color:
@@ -830,6 +854,19 @@ screen battle_screen():
                                         _icon = "↑"
                                         _ic_color = "#ffaa44"
                                         _val_text = "+{} dmg next".format(_intent.get("value", 0))
+                                        _dmg_for_threat = 0
+                                    elif _itype == "strength":
+                                        ## Permanent attack bump for the rest of the fight.
+                                        ## Red-orange to read as "more dangerous over time."
+                                        _icon = "💪"
+                                        _ic_color = "#ff8822"
+                                        _val_text = "+{} STR perm.".format(_intent.get("value", 0))
+                                        _dmg_for_threat = 0
+                                    elif _itype == "restrict":
+                                        ## Card-play cap on your next turn — purple, sharp glyph.
+                                        _icon = "⊘"
+                                        _ic_color = "#cc44cc"
+                                        _val_text = "Max {} card(s)".format(_intent.get("value", 1))
                                         _dmg_for_threat = 0
                                     elif _itype == "debuff":
                                         _ic_color = "#aa44cc"
@@ -938,6 +975,18 @@ screen battle_screen():
                         size 16
                         bold True
                         at block_gain_pulse
+
+                ## Card-play restriction banner — appears when a 'restrict'
+                ## intent has capped the player's plays this turn. Shows the
+                ## remaining budget so the player can plan the one card that
+                ## matters most.
+                if bs.current_turn_max_cards is not None:
+                    $ _restrict_left = max(0, bs.current_turn_max_cards - bs.cards_played_this_turn)
+                    text "⊘ RESTRICTED: [_restrict_left]/[bs.current_turn_max_cards] cards":
+                        color ("#ff5555" if _restrict_left == 0 else "#cc44cc")
+                        size 16
+                        bold True
+                        font "fonts/RobotoMono-Regular.ttf"
 
                 ## Active buffs — human-readable label + a hover tooltip that
                 ## says what each one actually does. Player could see the buffs

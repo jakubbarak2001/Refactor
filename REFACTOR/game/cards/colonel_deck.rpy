@@ -145,10 +145,19 @@ init python:
     register_enemy_card(
         "cold_stare",
         name     = "Cold Stare",
-        intent   = "buff",
-        value    = 6,
-        dialogue = "He stares at you. He sips his coffee. He says nothing.",
-        threat   = 1,
+        intent   = "strength",
+        value    = 2,
+        dialogue = "He stares at you. He sips his coffee. He says nothing. The room cools by two degrees.",
+        threat   = 2,
+    )
+
+    register_enemy_card(
+        "the_doctrine",
+        name     = "The Doctrine",
+        intent   = "restrict",
+        value    = 1,
+        dialogue = "'There is a rule, JB. One word from you per topic. Choose carefully.'",
+        threat   = 3,
     )
 
     register_enemy_card(
@@ -521,9 +530,9 @@ init python:
     register_enemy_card(
         "quote_regulation",
         name     = "Quote Regulation",
-        intent   = "attack",
-        value    = 13,
-        dialogue = "She names the paragraph. The number lands harder than the words.",
+        intent   = "strength",
+        value    = 2,
+        dialogue = "She names the paragraph. Each citation makes the next argument hit harder. +2 STR.",
         threat   = 2,
     )
     register_enemy_card(
@@ -629,12 +638,16 @@ init python:
 
 
     COLONEL_DECK_TEMPLATES = {
-        ## Easy: 5 cards — drop two of the 7 (Brotherhood, Debt — guilt-heavy ones)
-        5:  ["training_debt", "why_quit", "civilian_void", "safety_net", "blacklist"],
-        ## Hard: 7 cards — full base set
-        7:  ["training_debt", "why_quit", "civilian_void", "brotherhood", "safety_net", "debt_of_honor", "blacklist"],
-        ## Insane: 9 cards — base + 2 fillers
-        9:  ["training_debt", "why_quit", "civilian_void", "brotherhood", "safety_net", "debt_of_honor", "blacklist", "cold_stare", "compounding_pressure"],
+        ## Every difficulty includes cold_stare (permanent +2 STR ramp) AND
+        ## the_doctrine (card-play restriction) — the boss has to bring more
+        ## than raw damage to feel like a capstone. Damage cards get cycled
+        ## into harder tiers.
+        ## Easy: 5 cards — 3 attacks + ramp + restrict.
+        5:  ["training_debt", "why_quit", "civilian_void", "cold_stare", "the_doctrine"],
+        ## Hard: 7 cards — full base set + new mechanics.
+        7:  ["training_debt", "why_quit", "civilian_void", "safety_net", "blacklist", "cold_stare", "the_doctrine"],
+        ## Insane: 9 cards — adds guilt-tier attacks + compound.
+        9:  ["training_debt", "why_quit", "civilian_void", "brotherhood", "safety_net", "debt_of_honor", "blacklist", "cold_stare", "the_doctrine"],
     }
 
     def build_colonel_deck():
