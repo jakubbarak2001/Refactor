@@ -119,17 +119,72 @@ label colonel_round_two:
 
     show colonel smug at char_right with dissolve
 
-    if stats.player_class == "bodybuilder":
-        colonel "'So you really did it.' He looks you over, unhurried. 'All that iron in the body. None of it in the spine.'"
-    elif stats.player_class == "dark_empath":
-        colonel "'So you really did it.' A thin smile. 'You walked in here reading the room like it owes you something. You always did mistake watching people for understanding them.'"
-    elif stats.player_class == "biohacker":
-        colonel "'So you really did it.' He almost laughs. 'Pupils like dinner plates. You optimized yourself right out of a pension. Cute.'"
+    voice "audio/voice/col_01_so_you_really_did_it.ogg"
+    colonel "So. You really did it."
 
-    show colonel normal at char_right with dissolve
+    show jb neutral at char_left with dissolve
+
+    voice "audio/voice/col_02_sit_down_jb.ogg"
+    colonel "Sit down, JB."
+
+    voice "audio/voice/jb_01_ill_stand.ogg"
+    jb "I'll stand."
+
+    voice "audio/voice/col_03_i_said_sit_down.ogg"
+    colonel "I said. Sit. Down."
+
+    show colonel angry at char_right with dissolve
+
+    voice "audio/voice/col_04_out_of_your_mind.ogg"
+    colonel "ARE YOU OUT OF YOUR FUCKING MIND?!"
+
+    voice "audio/voice/col_05_six_thirty_morning.ogg"
+    colonel "Six-thirty in the morning. A grown ass adult. And you put your bumper through MY grille — do you remember that, JB? Do you remember what should have happened to you that day?"
+
+    voice "audio/voice/col_06_parking_tickets.ogg"
+    colonel "You should have been writing parking tickets in some backwater village for the next five years. You should have been the joke at every briefing in this country."
+
+    voice "audio/voice/col_07_made_that_go_away.ogg"
+    colonel "I made that go away. I put my ass on the fucking LINE for you—"
+
+    voice "audio/voice/col_08_get_from_you.ogg"
+    colonel "AND THIS IS WHAT I GET FROM YOU?!"
+
+    voice "audio/voice/col_09_computers_jb.ogg"
+    colonel "This. A piece of paper. {i}Computers{/i}. {i}Computers{/i}, JB?"
+
+    voice "audio/voice/col_10_matcha_prestige.ogg"
+    colonel "You're going to throw all of that away to drink a fucking matcha latte in some office in Prague? Is that what you want? What about the PRESTIGE of this job? The badge? The uniform?"
+
+    voice "audio/voice/col_11_think_jb_thirty_years.ogg"
+    colonel "THINK, JB! What will you have in thirty years? A pension? Stability? The kind of respect you've earned in this uniform?"
+
+    voice "audio/voice/col_12_youll_be_back.ogg"
+    colonel "You'll be back. You hear me? One week. Two, tops. You'll come crawling back through that door and you'll {i}beg{/i} me to tear this letter up. And maybe — maybe — if I'm in a good mood, I will."
+
+    show colonel disappointed at char_right with dissolve
+
+    voice "audio/voice/col_13_got_you_this_job.ogg"
+    colonel "I got you this job. I got you into the academy. I gave you the cases nobody else trusted you with. When half the squad wanted you transferred, I was the one who stood up for you."
+
+    voice "audio/voice/col_14_resignation.ogg"
+    colonel "And this is how you repay me. You walk in here with a fucking RESIGNATION."
+
+    show colonel smug at char_right with dissolve
+
+    voice "audio/voice/col_15_no_not_from_me.ogg"
+    colonel "No. No, you don't get to leave like this. Not on paper. Not from me."
+
+    voice "audio/voice/col_16_you_earn_it.ogg"
+    colonel "You want out? You earn it. The way everything in this building gets earned."
+
+    voice "audio/voice/col_17_sit_down_final.ogg"
+    colonel "Sit. Down."
+
     show jb determined at char_left with dissolve
 
-    jb "'Quit the chatter, Colonel. Sit down. Deal the cards.'"
+    voice "audio/voice/jb_02_get_this_over_with.ogg"
+    jb "Let's get this over with."
 
     return
 
