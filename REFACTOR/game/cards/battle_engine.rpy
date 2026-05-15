@@ -871,12 +871,15 @@ init python:
             if bs.is_over():
                 return
 
-        ## Skip attacks if "Algorithm" was played
-        if bs.skip_attack_count > 0:
+        ## Skip attacks if "Algorithm" / "Cuff 'Em" was played. Card text
+        ## promises "Skip his next attack", so only consume the charge on
+        ## attack/compound intents — block/buff/debuff/strength/restrict
+        ## intents resolve normally with the skip still armed.
+        _ic_pre_skip = bs.current_intent()
+        if bs.skip_attack_count > 0 and _ic_pre_skip and \
+                _ic_pre_skip.get("intent") in ("attack", "compound"):
             bs.skip_attack_count -= 1
-            ic = bs.current_intent()
-            if ic:
-                bs.add_log("[[Algorithm]: skipped {}'s '{}'.".format(bs.enemy_log_name.lower(), ic.get("name", "?")))
+            bs.add_log("[[Algorithm]: skipped {}'s '{}'.".format(bs.enemy_log_name.lower(), _ic_pre_skip.get("name", "?")))
             bs.advance_intent()
             if _debug:
                 bs.add_log("[[DBG]: branch=algorithm_skip")
@@ -908,8 +911,12 @@ init python:
         if ic is None:
             return
 
-        ## Cancellation check
-        if bs.cancel_next_attack:
+        ## Cancellation check. Card text on every cancel source (refactor /
+        ## ghost_secret / paid_review / internal_review / the_dossier) reads
+        ## "Cancel his next attack" — only consume the charge on attack/
+        ## compound intents. Non-attack intents resolve normally with the
+        ## cancel still armed for a later attack.
+        if bs.cancel_next_attack and ic.get("intent") in ("attack", "compound"):
             bs.cancel_next_attack = False
             bs.add_log("[[Refactor]: cancelled {}'s '{}'.".format(bs.enemy_log_name.lower(), ic.get("name", "?")))
             bs.advance_intent()

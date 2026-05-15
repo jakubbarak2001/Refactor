@@ -50,8 +50,8 @@ init python:
         dialogue = "'You know you have to return the money for your training, JB?'",
         threat   = 3,
         counter  = {
-            "card_paragraph_4b": {"damage_to_self": 10, "negate": True},
-            "money_gte_200000":  {"reduce_damage": 10},
+            "buff_paragraph_4b_armed": {"damage_to_self": 10, "negate": True},
+            "money_gte_200000":        {"reduce_damage": 10},
         },
     )
 
@@ -74,8 +74,8 @@ init python:
         dialogue = "'Without the badge, you are nobody. Out there you are just another civilian.'",
         threat   = 3,
         counter  = {
-            "card_mirror":          {"damage_to_self": 56, "negate": True},
-            "coding_skill_gte_100": {"reduce_damage": 14},
+            "buff_mirror_armed_for_counter": {"damage_to_self": 56, "negate": True},
+            "coding_skill_gte_100":          {"reduce_damage": 14},
         },
     )
 
@@ -89,8 +89,13 @@ init python:
         immunity = ["bodybuilder"],
         threat   = 2,
         counter  = {
-            "buff_stoic_anchor":   {"reduce_damage": 12},
-            "buff_stoic_refactor": {"reduce_damage": 9},
+            ## stoic_anchor power writes stoic_anchor_block/_heal (not the
+            ## bare key); stoic_refactor power writes mental_dr_50. Counter
+            ## keys must match the actual buff names — earlier versions
+            ## checked buff_stoic_anchor / buff_stoic_refactor and silently
+            ## did nothing.
+            "buff_stoic_anchor_block": {"reduce_damage": 12},
+            "buff_mental_dr_50":       {"reduce_damage": 9},
         },
     )
 
@@ -118,9 +123,11 @@ init python:
         threat   = 2,
         counter  = {
             ## Repointed from card_ghost_secret (now unobtainable post-Phase 4
-            ## Martin trim) to card_took_the_heat (always granted on Day 1).
+            ## Martin trim) to took_the_heat (always granted on Day 1).
             ## Owning the receipt for the OG car incident counters his guilt.
-            "card_took_the_heat": {"damage_to_self": 25, "negate": True},
+            ## Buff-based so the counter survives subsequent card plays and
+            ## upgrade to took_the_heat_plus.
+            "buff_took_the_heat_armed": {"damage_to_self": 25, "negate": True},
         },
     )
 
@@ -133,8 +140,11 @@ init python:
         dialogue = "'I will make calls. I will ruin you. You will never work in this town again.'",
         threat   = 3,
         counter  = {
-            "card_job_offer":      {"damage_to_self": 15, "negate": True},
-            "coding_skill_gte_50": {"reduce_damage": 10},
+            ## job_offer is a Power, auto-fired at battle_init — that path
+            ## doesn't update last_card_played, so the old card_-prefixed
+            ## check never matched. Buff is set inside _eff_job_offer/_plus.
+            "buff_job_offer_armed": {"damage_to_self": 15, "negate": True},
+            "coding_skill_gte_50":  {"reduce_damage": 10},
         },
     )
 

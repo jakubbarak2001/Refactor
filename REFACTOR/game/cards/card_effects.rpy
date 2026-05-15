@@ -49,7 +49,7 @@ init python:
         "vip_treatment":           "Deal 30 damage. Lose 10 HP. Exhausts.",
         "refactor":                "Cancel the enemy's next attack. Exhausts.",
         "compile":                 "Draw 2 cards.",
-        "production_push":         "Deal 10 damage. Draw 1 card. +6 damage per Skill in hand.",
+        "production_push":         "Deal 10 damage. Draw 1 card. +6 damage if your hand contains a Skill.",
         "gain_block_15":           "Gain 10 block.",
         "procedural_defense":      "Block all damage from the enemy's next attack turn.",
         "racetam_burst":           "Gain +1 energy. Draw 1 card.",
@@ -57,7 +57,7 @@ init python:
         "mirror":                  "The enemy's next attack hits THEM at 2x damage. 2-turn cooldown.",
         "algorithm":               "Skip the enemy's next 2 attacks. Exhausts.",
         "snitch_info":             "Deal 18 damage. Exhausts.",
-        "paragraph_4b":            "Deal 40 damage. Auto-counters 'Training Debt'. Exhausts.",
+        "paragraph_4b":            "Deal 40 damage. Voids 'Training Debt' for the fight. Exhausts.",
         "ghost_secret":            "Cancel the enemy's next attack. Deal 15 damage. Exhausts.",
         "job_offer":               "Power: +5 max HP. +1 starting block per turn.",
         "stoic_refactor":          "Power: take 50% damage from Mental-typed attacks.",
@@ -67,7 +67,7 @@ init python:
         "paid_review":             "Pay 10,000 CZK to cancel the enemy's next attack and draw 2. (No funds = no effect.) Exhausts.",
         "chain_of_command":        "Gain 10 block. Draw 1 card.",
         "vigil":                   "Gain 4 block now. +4 starting block next turn.",
-        "iron_stance":             "Power: +20 block. Retaliate min(12, 4 + 2×turn) damage when you're hit.",
+        "iron_stance":             "Power: +20 block. Retaliate 4 damage on turn 1, +2 per turn after, capped at 12.",
         "spotter":                 "Gain 6 block. Draw 1 card.",
         "brawl":                   "Deal 10 damage. Apply 3-turn bleed (3 dmg/turn) to the enemy.",
         "empaths_insight":         "Power: +5 starting block per turn for the first 3 turns.",
@@ -80,7 +80,7 @@ init python:
         "hrv_spike":               "Gain +2 energy. Lose 5 HP.",
         "cognitive_stack":         "Draw 3 cards. Exhausts.",
         "override":                "Deal 40 damage. -2 max energy next turn. Exhausts.",
-        "the_dossier":             "Cancel one incoming attack. Deal 25 damage. Exhausts.",
+        "the_dossier":             "Deal 25 damage. Cancel the next attack if it's tagged emotional or guilt. Exhausts.",
         "the_compound":            "Deal (current energy × 10) damage. Lose 8 HP. Exhausts.",
         ## Battle ladder basic pool — Body / Tech / Authority
         "gut_punch":               "Deal 8 damage.",
@@ -132,17 +132,17 @@ init python:
         "side_income_plus":         "Deal damage equal to (Money / 8,000), rounded down.",
         "vip_treatment_plus":       "Deal 34 damage. Lose 10 HP. Exhausts.",
         "compile_plus":             "Draw 3 cards.",
-        "production_push_plus":     "Deal 12 damage. Draw 1 card. +8 damage per Skill in hand.",
+        "production_push_plus":     "Deal 12 damage. Draw 1 card. +8 damage if your hand contains a Skill.",
         "backup_plus":              "Gain 14 block.",
         "racetam_plus":             "Gain +1 energy. Draw 2 cards.",
         "flmodafinil_plus":         "Deal 32 damage. 50%: -1 max energy next turn. Exhausts.",
         "mirror_plus":              "The enemy's next attack hits THEM at 2x damage. Gain 5 block. 2-turn cooldown.",
         "algorithm_plus":           "Skip the enemy's next 3 attacks. Exhausts.",
         "snitch_info_plus":         "Deal 22 damage. Exhausts.",
-        "paragraph_4b_plus":        "Deal 48 damage. Auto-counters 'Training Debt'. Exhausts.",
+        "paragraph_4b_plus":        "Deal 48 damage. Voids 'Training Debt' for the fight. Exhausts.",
         "ghost_secret_plus":        "Cancel the enemy's next attack. Deal 20 damage. Exhausts.",
         "job_offer_plus":           "Power: +8 max HP. +1 starting block per turn.",
-        "stoic_refactor_plus":      "Power: take 50% damage from Mental AND Special attacks.",
+        "stoic_refactor_plus":      "Power: take 50% damage from Mental-typed attacks.",
         "stoic_anchor_plus":        "Power: +3 starting block per turn. Heal 2 HP after each enemy attack.",
         "quick_jab_plus":           "Deal 10 damage.",
         "loan_sharks_plus":         "Pay 5,000 CZK to deal 36 damage. (No funds = no damage.) Exhausts.",
@@ -162,7 +162,7 @@ init python:
         "hrv_spike_plus":           "Gain +2 energy. Lose 3 HP.",
         "cognitive_stack_plus":     "Draw 4 cards. Exhausts.",
         "override_plus":            "Deal 44 damage. -2 max energy next turn. Exhausts.",
-        "the_dossier_plus":         "Cancel one incoming attack. Deal 30 damage. Exhausts.",
+        "the_dossier_plus":         "Deal 30 damage. Cancel the next attack if it's tagged emotional or guilt. Exhausts.",
         "the_compound_plus":        "Deal (current energy × 12) damage. Lose 12 HP. Exhausts.",
         "took_the_heat_plus":       "Gain 13 block. Draw 1.",
         "gut_punch_plus":           "Deal 11 damage.",
@@ -362,6 +362,10 @@ init python:
             state.add_log("Mirror is on cooldown ({} turns).".format(state.buffs["mirror_cooldown"]))
             return
         state.buff(source, "mirror_next", True)
+        ## Fight-long flag for civilian_void's special counter. Separate from
+        ## mirror_next (which gets consumed by the reflect itself) so the
+        ## counter survives across multiple mirror plays / cooldowns.
+        state.buff(source, "mirror_armed_for_counter", True)
 
     ## ---------------------------------------------------------------------------
     ## Event drops
@@ -380,6 +384,11 @@ init python:
     @register_effect("paragraph_4b")
     def _eff_paragraph_4b(state, source, target):
         state.deal_damage(target, 40)
+        ## Arm the fight-long flag that training_debt's counter checks.
+        ## Buff-based (not last_card_played) so the counter still fires if
+        ## the player plays any card after this one in the same turn, and
+        ## still fires on the upgraded variant.
+        state.buff(source, "paragraph_4b_armed", True)
 
     @register_effect("ghost_secret")
     def _eff_ghost_secret(state, source, target):
@@ -391,6 +400,10 @@ init python:
         state.player_max_hp += 5
         state.player_hp += 5
         state.buff(source, "starting_block_+1", True)
+        ## Fight-long flag for blacklist's counter. Powers auto-fire at
+        ## battle_init (which doesn't set last_card_played), so the buff is
+        ## the only reliable way to detect "this Power is in play".
+        state.buff(source, "job_offer_armed", True)
 
     @register_effect("stoic_refactor")
     def _eff_stoic_refactor(state, source, target):
@@ -925,6 +938,7 @@ init python:
         ## +5 immediate block — so the card has defensive value on the turn
         ## you play it, not just on the bounce.
         state.buff(source, "mirror_next", True)
+        state.buff(source, "mirror_armed_for_counter", True)
         state.gain_block(source, 5)
 
     @register_effect("algorithm_plus")
@@ -938,6 +952,7 @@ init python:
     @register_effect("paragraph_4b_plus")
     def _eff_paragraph_4b_plus(state, source, target):
         state.deal_damage(target, 48)
+        state.buff(source, "paragraph_4b_armed", True)
 
     @register_effect("ghost_secret_plus")
     def _eff_ghost_secret_plus(state, source, target):
@@ -949,6 +964,7 @@ init python:
         state.player_max_hp += 8
         state.player_hp += 8
         state.buff(source, "starting_block_+1", True)
+        state.buff(source, "job_offer_armed", True)
 
     @register_effect("stoic_refactor_plus")
     def _eff_stoic_refactor_plus(state, source, target):
@@ -1076,10 +1092,21 @@ init python:
         state.deal_damage(source, 12, bypass_block=True)
         state.add_log("[[The Compound+]: {}E spent → {} dmg, -12 HP.".format(_e, _e * 12))
 
+    @register_effect("took_the_heat")
+    def _eff_took_the_heat(state, source, target):
+        ## Dedicated effect (was sharing chain_of_command). The shared
+        ## handler couldn't set a took_the_heat-specific flag without also
+        ## firing on chain_of_command plays. Arms the fight-long buff that
+        ## debt_of_honor's counter checks.
+        state.gain_block(source, 10)
+        state.draw_cards(1)
+        state.buff(source, "took_the_heat_armed", True)
+
     @register_effect("took_the_heat_plus")
     def _eff_took_the_heat_plus(state, source, target):
         state.gain_block(source, 13)
         state.draw_cards(1)
+        state.buff(source, "took_the_heat_armed", True)
 
     @register_effect("gut_punch_plus")
     def _eff_gut_punch_plus(state, source, target):

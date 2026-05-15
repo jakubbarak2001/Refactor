@@ -865,7 +865,7 @@ screen battle_screen():
                                         ## Red-orange to read as "more dangerous over time."
                                         _icon = "💪"
                                         _ic_color = "#ff8822"
-                                        _val_text = "+{} STR perm.".format(_intent.get("value", 0))
+                                        _val_text = "+{} STR".format(_intent.get("value", 0))
                                         _dmg_for_threat = 0
                                     elif _itype == "restrict":
                                         ## Card-play cap on your next turn — purple, sharp glyph.

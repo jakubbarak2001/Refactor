@@ -327,7 +327,7 @@ init python:
         cost    = 1,
         rarity  = "uncommon",
         effect  = "stoic_anchor",
-        flavor  = "Power: +3 starting block per turn. Heal 3 HP after each enemy attack.",
+        flavor  = "Power: +2 starting block per turn. Heal 2 HP after each enemy attack.",
     )
 
     ## ---------------------------------------------------------------------------
@@ -608,7 +608,7 @@ init python:
         color   = "Police",
         cost    = 1,
         rarity  = "uncommon",
-        effect  = "chain_of_command",
+        effect  = "took_the_heat",
         exhaust = True,
         flavor  = "Gain 10 block. Draw 1. You owned it. The next hit lands soft.",
     )
@@ -1046,7 +1046,7 @@ init python:
     register_upgrade("paragraph_4b",          effect="paragraph_4b_plus",          flavor="Deal 48. The 80k debt is dust.")
     register_upgrade("ghost_secret",          effect="ghost_secret_plus",          flavor="Cancel one incoming attack. Deal 20. Leverage compounds.")
     register_upgrade("job_offer",             effect="job_offer_plus",             flavor="+8 max HP at start. +1 starting block per turn.")
-    register_upgrade("stoic_refactor",        effect="stoic_refactor_plus",        flavor="Power: take 50%% damage from Mental AND Special attacks.")
+    register_upgrade("stoic_refactor",        effect="stoic_refactor_plus",        flavor="Power: take 50%% damage from Mental-typed attacks.")
     register_upgrade("stoic_anchor",          effect="stoic_anchor_plus",          flavor="Power: +3 starting block per turn. Heal 2 HP after each enemy attack.")
 
     ## Additional cards
