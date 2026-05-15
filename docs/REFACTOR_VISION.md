@@ -83,7 +83,26 @@ Meta-progression / roguelite unlocks · additional acts/campaigns · coding mini
 
 ---
 
-## 6. Open questions (decide before Phase C)
+## 6. Adding a card — checklist
+
+A card is not "added" until the player can see it AND it surfaces in every UI that lists deck contents. Forgetting any of these makes the card invisible to the player even though it functions in battle (this happened to the Rage set in May 2026).
+
+When introducing a new card (or a new card **color**):
+
+1. **Register it** in `cards/card_library.rpy` via `register_card(...)`.
+2. **Register its effect** in `cards/card_effects.rpy` via `@register_effect(...)`, plus a one-line entry in `EFFECT_DESCRIPTIONS`.
+3. **If it's upgradeable** — add a `register_upgrade(...)` row at the bottom of `card_library.rpy`, plus a `<id>_plus` effect + description. Status / rage / compromise cards are intentionally NOT upgradeable; the helper refuses them.
+4. **Grant path** — wire the card into a real activity / event / arc so it can actually enter a deck. A card with no grant path is dead code.
+5. **Your Deck visibility** — if the card uses a NEW color string, add it to **both**:
+   - `screens.rpy::deck_viewer._COLOR_HEX` + `_color_order`
+   - `screens.rpy::deck_upgrade_picker._DUP_COLOR_HEX` + `_dup_color_order`
+   Otherwise the card silently won't appear in the deck viewer or the gym upgrade picker, even though it's in `player_deck.cards`.
+6. **Fixer / Snap protection** — if it's a class signature, add it to `CLASS_SIGNATURE_CARDS` (both base AND `_plus` ids) so Snap can't permanently shred it.
+7. **Playtest visibility check** — open Your Deck after granting the card; confirm it renders under the expected color row.
+
+---
+
+## 7. Open questions (decide before Phase C)
 - **DE / BH classes.** Currently locked, BB-only playable. Options: (a) BB-only permanently, remove the locked previews; (b) ship BB-only, DE/BH as post-1.0/DLC; (c) all three at parity for v1. **Undecided — needs a call before content build-out commits.**
 - **Hatred's in-battle role** — resolve in Phase A prototype.
 - **How far stats reach into in-battle state** vs. deck-construction only — resolve in Phase A.

@@ -112,7 +112,7 @@ init python:
         ## next threshold faster.
         "outburst":                "Deal 12.\nLose 9 HP.\n+2 Hatred.",
         "tunnel_vision":           "Deal 14.\nDiscard 1 random card from hand or draw pile.\n+2 Hatred.",
-        "snap":                    "Deal 8.\nExhaust 1 random hand card — and remove it from your deck.\n+2 Hatred.",
+        "snap":                    "Deal 8.\nExhaust 1 random card from your hand (this fight only).\n+2 Hatred.",
         ## Compromise card (injected by forced_detour on 2nd+ loss; unplayable)
         "compromise":              "Unplayable.\nDead weight in hand.",
         ## Combat-reward rares (ladder-fight drops)
@@ -120,6 +120,73 @@ init python:
         "tactical_read":           "Gain 2 energy this turn. Exhausts.",
         "iron_drill":              "Gain 12 block + 4 per Skill in hand (capped at +12).",
         "last_stand":              "Deal 16. If you're below half HP, draw 2. Exhausts.",
+        ## ─── Upgraded variants (`_plus`) — paired with register_upgrade table ───
+        "strike_plus":              "Deal 9 damage.",
+        "defend_plus":              "Gain 8 block.",
+        "heavy_set_plus":           "Deal 6 + (Hatred / 10) damage. Scales with how much you hate this job.",
+        "read_him_plus":            "Gain 9 block. Draw 2 cards.",
+        "stack_up_plus":            "Gain +2 energy this turn. Draw 1. Crash next turn (-2 energy).",
+        "iron_will_plus":           "Gain 13 block.",
+        "personal_record_plus":     "Your next attack this turn fires twice.",
+        "boundary_plus":            "Deal 6 damage. Heal 6 HP.",
+        "side_income_plus":         "Deal damage equal to (Money / 8,000), rounded down.",
+        "vip_treatment_plus":       "Deal 34 damage. Lose 10 HP. Exhausts.",
+        "compile_plus":             "Draw 3 cards.",
+        "production_push_plus":     "Deal 12 damage. Draw 1 card. +8 damage per Skill in hand.",
+        "backup_plus":              "Gain 14 block.",
+        "racetam_plus":             "Gain +1 energy. Draw 2 cards.",
+        "flmodafinil_plus":         "Deal 32 damage. 50%: -1 max energy next turn. Exhausts.",
+        "mirror_plus":              "The enemy's next attack hits THEM at 2x damage. Gain 5 block. 2-turn cooldown.",
+        "algorithm_plus":           "Skip the enemy's next 3 attacks. Exhausts.",
+        "snitch_info_plus":         "Deal 22 damage. Exhausts.",
+        "paragraph_4b_plus":        "Deal 48 damage. Auto-counters 'Training Debt'. Exhausts.",
+        "ghost_secret_plus":        "Cancel the enemy's next attack. Deal 20 damage. Exhausts.",
+        "job_offer_plus":           "Power: +8 max HP. +1 starting block per turn.",
+        "stoic_refactor_plus":      "Power: take 50% damage from Mental AND Special attacks.",
+        "stoic_anchor_plus":        "Power: +3 starting block per turn. Heal 2 HP after each enemy attack.",
+        "quick_jab_plus":           "Deal 10 damage.",
+        "loan_sharks_plus":         "Pay 5,000 CZK to deal 36 damage. (No funds = no damage.) Exhausts.",
+        "paid_review_plus":         "Pay 8,000 CZK to cancel the enemy's next attack and draw 2. (No funds = no effect.) Exhausts.",
+        "chain_of_command_plus":    "Gain 13 block. Draw 1 card.",
+        "vigil_plus":               "Gain 6 block now. +6 starting block next turn.",
+        "iron_stance_plus":         "Power: +24 block. Retaliate scales with turn — early small, late lethal.",
+        "spotter_plus":             "Gain 9 block. Draw 1 card.",
+        "brawl_plus":               "Deal 12 damage. Apply 3-turn bleed (4 dmg/turn) to the enemy.",
+        "empaths_insight_plus":     "Power: +6 starting block per turn for the first 4 turns.",
+        "iron_body_plus":           "Gain 8 block. Retaliate 6 damage on the next hit.",
+        "pump_plus":                "Gain +2 energy this turn. +3 Hatred.",
+        "strongman_plus":           "Gain 28 block. Draw 2. Exhausts.",
+        "tell_plus":                "Gain 11 block. Free.",
+        "frame_trap_plus":          "Reduce the enemy's next attack by 11 (min 1).",
+        "charm_plus":               "Heal 10 HP. Gain 5 block.",
+        "hrv_spike_plus":           "Gain +2 energy. Lose 3 HP.",
+        "cognitive_stack_plus":     "Draw 4 cards. Exhausts.",
+        "override_plus":            "Deal 44 damage. -2 max energy next turn. Exhausts.",
+        "the_dossier_plus":         "Cancel one incoming attack. Deal 30 damage. Exhausts.",
+        "the_compound_plus":        "Deal (current energy × 12) damage. Lose 12 HP. Exhausts.",
+        "took_the_heat_plus":       "Gain 13 block. Draw 1.",
+        "gut_punch_plus":           "Deal 11 damage.",
+        "bracing_plus":             "Gain 11 block.",
+        "second_wind_plus":         "Heal 8 HP. Gain 10 block.",
+        "body_check_plus":          "Deal 17 damage.",
+        "payday_plus":              "Deal damage equal to (Money / 4,000), capped at 20.",
+        "bouncer_door_plus":        "Gain 22 block. Retaliate 10 damage on the next hit.",
+        "quick_compile_plus":       "Draw 2 cards. Free.",
+        "lint_pass_plus":           "Exhaust a random card from hand. Draw 2.",
+        "stack_trace_plus":         "Draw 3 cards.",
+        "unit_test_plus":           "Gain 8 block for every Skill in your hand.",
+        "merge_conflict_plus":      "Deal 13 damage. Draw 1.",
+        "kernel_patch_plus":        "Gain 1 energy. Draw 3. Exhausts.",
+        "pair_program_plus":        "Gain 5 block. Draw 1 card. Free.",
+        "radio_call_plus":          "Gain 10 block.",
+        "breath_test_plus":         "Reduce his next attack by 8 (min 1).",
+        "procedural_kick_plus":     "Deal 7 damage. Gain 7 block.",
+        "riot_shield_plus":         "Gain 17 block. +6 starting block next turn.",
+        "internal_review_plus":     "Cancel his next attack. Deal 12 damage. Exhausts.",
+        "killing_blow_plus":        "Deal 16. If enemy is below half HP: deal 16 more.",
+        "tactical_read_plus":       "Gain 2 energy this turn. Draw 1. Exhausts.",
+        "iron_drill_plus":          "Gain 15 block + 4 per Skill in hand (capped at +16).",
+        "last_stand_plus":          "Deal 19. If you're below half HP, draw 2. Exhausts.",
     }
 
     ## ---------------------------------------------------------------------------
@@ -138,6 +205,9 @@ init python:
         h = stats.pcr_hatred if stats else 0
         if effect_id == "heavy_set":
             dmg = 4 + (h // 10)
+            return "Deal {} damage.\nScales with Hatred.".format(dmg)
+        if effect_id == "heavy_set_plus":
+            dmg = 6 + (h // 10)
             return "Deal {} damage.\nScales with Hatred.".format(dmg)
         return EFFECT_DESCRIPTIONS.get(effect_id, "")
 
@@ -684,12 +754,14 @@ init python:
 
     @register_effect("snap")
     def _eff_snap(state, source, target):
-        ## Threshold-80 Rage. Free 8 dmg — but a random hand card is exhausted
-        ## for the fight AND removed from the run-deck permanently. Class
-        ## signature cards (heavy_set / read_him / stack_up), other Rage cards,
-        ## and Compromise cards are NOT permanent-removed (the first because
-        ## class identity is sacred; the latter two because removing your own
-        ## corruption mid-fight would be a free heal — corruption is sticky).
+        ## Threshold-80 Rage. Free 8 dmg — a random card from hand is
+        ## exhausted FOR THIS FIGHT (no run-deck removal). The old version
+        ## permanently shredded a card from the player's run-deck and the
+        ## designer judged that "felt awful" — losing a Strongman to a Rage
+        ## RNG roll could brick a run. Now it's a single-fight exhaust:
+        ## still corrupting (a key card gone for this combat) but not
+        ## run-ruining. Rage stays in the deck — corruption is sticky, but
+        ## it doesn't delete the rest of your kit on its way through.
         state.deal_damage(target, 8)
         _others = _other_cards_in_hand(state, "snap")
         if _others:
@@ -697,19 +769,7 @@ init python:
             state.exhaust(_victim)
             _vc = CARD_LIBRARY.get(_victim, {})
             _name = _vc.get("name", _victim)
-            _protected = (
-                _victim in CLASS_SIGNATURE_CARDS
-                or bool(_vc.get("is_rage"))
-                or bool(_vc.get("is_compromise"))
-            )
-            if not _protected and player_deck is not None:
-                try:
-                    player_deck.remove(_victim)
-                    state.add_log("Snap: exhausted {} AND removed from deck.".format(_name))
-                except Exception:
-                    state.add_log("Snap: exhausted {}.".format(_name))
-            else:
-                state.add_log("Snap: exhausted {} (protected from deck removal).".format(_name))
+            state.add_log("Snap: exhausted {} for this fight.".format(_name))
         if stats:
             stats.increment_stats_pcr_hatred(2)
 
@@ -763,3 +823,385 @@ init python:
         if state.player_max_hp > 0 and state.player_hp * 2 < state.player_max_hp:
             state.draw_cards(2)
             state.add_log("[[Last Stand]: low HP — draw 2.")
+
+    ## ---------------------------------------------------------------------------
+    ## UPGRADED (`_plus`) EFFECTS — paired with `register_upgrade` table at the
+    ## end of card_library.rpy. Effect-id convention is `<base>_plus`. Most
+    ## upgrades are scalar bumps; a few add a small extra leg (draw, bleed
+    ## duration, second-hit threshold). Status / rage / compromise cards are
+    ## not upgradeable so they have no _plus effects here.
+    ## ---------------------------------------------------------------------------
+
+    @register_effect("strike_plus")
+    def _eff_strike_plus(state, source, target):
+        state.deal_damage(target, 9)
+
+    @register_effect("defend_plus")
+    def _eff_defend_plus(state, source, target):
+        state.gain_block(source, 8)
+
+    @register_effect("heavy_set_plus")
+    def _eff_heavy_set_plus(state, source, target):
+        dmg = 6 + (stats.pcr_hatred // 10) if stats else 6
+        state.deal_damage(target, dmg)
+        state.add_log("Heavy Set+: {} damage (scaled by hatred).".format(dmg))
+
+    @register_effect("read_him_plus")
+    def _eff_read_him_plus(state, source, target):
+        state.gain_block(source, 9)
+        state.draw_cards(2)
+
+    @register_effect("stack_up_plus")
+    def _eff_stack_up_plus(state, source, target):
+        state.gain_energy(2)
+        state.draw_cards(1)
+        state.buff(source, "crash_next_turn", True)
+
+    @register_effect("iron_will_plus")
+    def _eff_iron_will_plus(state, source, target):
+        state.gain_block(source, 13)
+
+    @register_effect("personal_record_plus")
+    def _eff_personal_record_plus(state, source, target):
+        ## Same effect as base — the upgrade benefit comes from `exhaust=False`
+        ## on the plus card (set via register_upgrade overrides).
+        state.buff(source, "double_next_attack", True)
+
+    @register_effect("boundary_plus")
+    def _eff_boundary_plus(state, source, target):
+        state.deal_damage(target, 6)
+        state.heal(source, 6)
+
+    @register_effect("side_income_plus")
+    def _eff_side_income_plus(state, source, target):
+        dmg = (stats.available_money // 8000) if stats else 0
+        state.deal_damage(target, dmg)
+        state.add_log("Side Income+: {} damage (savings / 8k).".format(dmg))
+
+    @register_effect("vip_treatment_plus")
+    def _eff_vip_treatment_plus(state, source, target):
+        state.deal_damage(target, 34)
+        state.deal_damage(source, 10, bypass_block=True)
+
+    @register_effect("compile_plus")
+    def _eff_compile_plus(state, source, target):
+        state.draw_cards(3)
+
+    @register_effect("production_push_plus")
+    def _eff_production_push_plus(state, source, target):
+        dmg = 12
+        try:
+            for cid in state.hand:
+                c = CARD_LIBRARY.get(cid, {})
+                if c.get("type") == "Skill":
+                    dmg += 8
+                    break
+        except Exception:
+            pass
+        state.deal_damage(target, dmg)
+        state.draw_cards(1)
+        state.add_log("Production Push+: {} damage + draw.".format(dmg))
+
+    @register_effect("backup_plus")
+    def _eff_backup_plus(state, source, target):
+        state.gain_block(source, 14)
+
+    @register_effect("racetam_plus")
+    def _eff_racetam_plus(state, source, target):
+        state.gain_energy(1)
+        state.draw_cards(2)
+
+    @register_effect("flmodafinil_plus")
+    def _eff_flmodafinil_plus(state, source, target):
+        state.deal_damage(target, 32)
+        if __import__('random').random() < 0.5:
+            state.buff(source, "max_energy_penalty_next_turn", 1)
+            state.add_log("FLModafinil+: peak ebbs — -1 max energy next turn.")
+
+    @register_effect("mirror_plus")
+    def _eff_mirror_plus(state, source, target):
+        ## Mirror+ keeps the 2-turn cooldown (50% uptime change is too strong
+        ## for a 2x-bounce card per the balance-judge audit). Upgrade leg is
+        ## +5 immediate block — so the card has defensive value on the turn
+        ## you play it, not just on the bounce.
+        state.buff(source, "mirror_next", True)
+        state.gain_block(source, 5)
+
+    @register_effect("algorithm_plus")
+    def _eff_algorithm_plus(state, source, target):
+        state.skip_attacks(3)
+
+    @register_effect("snitch_info_plus")
+    def _eff_snitch_info_plus(state, source, target):
+        state.deal_damage(target, 22)
+
+    @register_effect("paragraph_4b_plus")
+    def _eff_paragraph_4b_plus(state, source, target):
+        state.deal_damage(target, 48)
+
+    @register_effect("ghost_secret_plus")
+    def _eff_ghost_secret_plus(state, source, target):
+        state.cancel_next_attack_set()
+        state.deal_damage(target, 20)
+
+    @register_effect("job_offer_plus")
+    def _eff_job_offer_plus(state, source, target):
+        state.player_max_hp += 8
+        state.player_hp += 8
+        state.buff(source, "starting_block_+1", True)
+
+    @register_effect("stoic_refactor_plus")
+    def _eff_stoic_refactor_plus(state, source, target):
+        ## Base: 50% DR vs Mental only. Plus: same DR but also Special-typed.
+        state.buff(source, "mental_dr_50", True)
+        state.buff(source, "special_dr_50", True)
+
+    @register_effect("stoic_anchor_plus")
+    def _eff_stoic_anchor_plus(state, source, target):
+        state.buff(source, "stoic_anchor_block", 3)
+        state.buff(source, "stoic_anchor_heal", 2)
+
+    @register_effect("quick_jab_plus")
+    def _eff_quick_jab_plus(state, source, target):
+        state.deal_damage(target, 10)
+
+    @register_effect("loan_sharks_plus")
+    def _eff_loan_sharks_plus(state, source, target):
+        if stats and stats.try_spend_money(5000):
+            state.deal_damage(target, 36)
+            state.add_log("Loan Sharks+: 5000 CZK spent. 36 damage.")
+        else:
+            state.add_log("Loan Sharks+: card fizzles — no 5,000 CZK on hand.")
+
+    @register_effect("paid_review_plus")
+    def _eff_paid_review_plus(state, source, target):
+        if stats and stats.try_spend_money(8000):
+            state.cancel_next_attack_set()
+            state.draw_cards(2)
+            state.add_log("Paid Review+: 8000 CZK spent. Attack cancelled. +2 cards.")
+        else:
+            state.add_log("Paid Review+: phone goes to voicemail. No funds.")
+
+    @register_effect("chain_of_command_plus")
+    def _eff_chain_of_command_plus(state, source, target):
+        state.gain_block(source, 13)
+        state.draw_cards(1)
+
+    @register_effect("vigil_plus")
+    def _eff_vigil_plus(state, source, target):
+        state.gain_block(source, 6)
+        state.buff(source, "vigil_next_turn_block", 6)
+
+    @register_effect("iron_stance_plus")
+    def _eff_iron_stance_plus(state, source, target):
+        state.gain_block(source, 24)
+        state.buff(source, "iron_stance_active", True)
+
+    @register_effect("spotter_plus")
+    def _eff_spotter_plus(state, source, target):
+        state.gain_block(source, 9)
+        state.draw_cards(1)
+
+    @register_effect("brawl_plus")
+    def _eff_brawl_plus(state, source, target):
+        state.deal_damage(target, 12)
+        state.buff(source, "bleed_dmg", 4)
+        state.buff(source, "bleed_turns", 3)
+
+    @register_effect("empaths_insight_plus")
+    def _eff_empaths_insight_plus(state, source, target):
+        state.buff(source, "insight_block", 6)
+        state.buff(source, "insight_turns_left", 4)
+
+    @register_effect("iron_body_plus")
+    def _eff_iron_body_plus(state, source, target):
+        state.gain_block(source, 8)
+        state.buff(source, "single_retaliate_dmg", 6)
+
+    @register_effect("pump_plus")
+    def _eff_pump_plus(state, source, target):
+        state.gain_energy(2)
+        if stats:
+            stats.increment_stats_pcr_hatred(3)
+        state.add_log("Pump+: +2 energy. The room shrinks. Hatred bumps less.")
+
+    @register_effect("strongman_plus")
+    def _eff_strongman_plus(state, source, target):
+        state.gain_block(source, 28)
+        state.draw_cards(2)
+
+    @register_effect("tell_plus")
+    def _eff_tell_plus(state, source, target):
+        state.gain_block(source, 11)
+
+    @register_effect("frame_trap_plus")
+    def _eff_frame_trap_plus(state, source, target):
+        state.buff(source, "next_attack_reduction", 11)
+
+    @register_effect("charm_plus")
+    def _eff_charm_plus(state, source, target):
+        state.heal(source, 10)
+        state.gain_block(source, 5)
+
+    @register_effect("hrv_spike_plus")
+    def _eff_hrv_spike_plus(state, source, target):
+        state.gain_energy(2)
+        state.deal_damage(source, 3, bypass_block=True)
+        state.add_log("HRV Spike+: +2 energy, -3 HP. Recorded.")
+
+    @register_effect("cognitive_stack_plus")
+    def _eff_cognitive_stack_plus(state, source, target):
+        state.draw_cards(4)
+
+    @register_effect("override_plus")
+    def _eff_override_plus(state, source, target):
+        state.deal_damage(target, 44)
+        state.buff(source, "max_energy_penalty_next_turn", 2)
+
+    @register_effect("the_dossier_plus")
+    def _eff_the_dossier_plus(state, source, target):
+        ic = state.current_intent()
+        if ic and any(t in ic.get("tags", []) for t in ("emotional", "guilt")):
+            state.cancel_next_attack_set()
+            state.add_log("[[The Dossier+]: 'emotional' attack disabled by leverage.")
+        state.deal_damage(target, 30)
+
+    @register_effect("the_compound_plus")
+    def _eff_the_compound_plus(state, source, target):
+        ## Self-cost scaled 8 → 12 to preserve the dmg/self-HP ratio.
+        ## Without this, at 4E the card was 60 dmg for 8 HP — ratio doubled
+        ## from base. Now 60 dmg for 12 HP keeps the bargain honest.
+        _e = state.energy + 1
+        state.deal_damage(target, _e * 12)
+        state.deal_damage(source, 12, bypass_block=True)
+        state.add_log("[[The Compound+]: {}E spent → {} dmg, -12 HP.".format(_e, _e * 12))
+
+    @register_effect("took_the_heat_plus")
+    def _eff_took_the_heat_plus(state, source, target):
+        state.gain_block(source, 13)
+        state.draw_cards(1)
+
+    @register_effect("gut_punch_plus")
+    def _eff_gut_punch_plus(state, source, target):
+        state.deal_damage(target, 11)
+
+    @register_effect("bracing_plus")
+    def _eff_bracing_plus(state, source, target):
+        state.gain_block(source, 11)
+
+    @register_effect("second_wind_plus")
+    def _eff_second_wind_plus(state, source, target):
+        state.heal(source, 8)
+        state.gain_block(source, 10)
+
+    @register_effect("body_check_plus")
+    def _eff_body_check_plus(state, source, target):
+        state.deal_damage(target, 17)
+
+    @register_effect("payday_plus")
+    def _eff_payday_plus(state, source, target):
+        ## Tightens ratio (5k → 4k per damage) instead of raising the cap.
+        ## At 80k CZK base capped to 20; plus hits the cap at 80k earlier
+        ## (saves ~16k vs. base) but never exceeds 20 — caps the meta.
+        dmg = min(20, (stats.available_money // 4000) if stats else 0)
+        state.deal_damage(target, dmg)
+        state.add_log("Payday+: {} damage (savings/4k, cap 20).".format(dmg))
+
+    @register_effect("bouncer_door_plus")
+    def _eff_bouncer_door_plus(state, source, target):
+        state.gain_block(source, 22)
+        state.buff(source, "single_retaliate_dmg", 10)
+
+    @register_effect("quick_compile_plus")
+    def _eff_quick_compile_plus(state, source, target):
+        state.draw_cards(2)
+
+    @register_effect("lint_pass_plus")
+    def _eff_lint_pass_plus(state, source, target):
+        _pool = [c for c in state.hand if c != "lint_pass_plus"]
+        if _pool:
+            _victim = __import__('random').choice(_pool)
+            state.exhaust(_victim)
+            state.add_log("Lint Pass+: exhausted {}.".format(_victim))
+        state.draw_cards(2)
+
+    @register_effect("stack_trace_plus")
+    def _eff_stack_trace_plus(state, source, target):
+        state.draw_cards(3)
+
+    @register_effect("unit_test_plus")
+    def _eff_unit_test_plus(state, source, target):
+        _skills = sum(
+            1 for cid in state.hand
+            if cid != "unit_test_plus" and CARD_LIBRARY.get(cid, {}).get("type") == "Skill"
+        )
+        _skills = min(_skills, 4)
+        state.gain_block(source, 8 * _skills)
+        state.add_log("Unit Test+: {} Skills in hand → {} block.".format(_skills, 8 * _skills))
+
+    @register_effect("merge_conflict_plus")
+    def _eff_merge_conflict_plus(state, source, target):
+        state.deal_damage(target, 13)
+        state.draw_cards(1)
+
+    @register_effect("kernel_patch_plus")
+    def _eff_kernel_patch_plus(state, source, target):
+        state.gain_energy(1)
+        state.draw_cards(3)
+
+    @register_effect("pair_program_plus")
+    def _eff_pair_program_plus(state, source, target):
+        state.gain_block(source, 5)
+        state.draw_cards(1)
+
+    @register_effect("radio_call_plus")
+    def _eff_radio_call_plus(state, source, target):
+        state.gain_block(source, 10)
+
+    @register_effect("breath_test_plus")
+    def _eff_breath_test_plus(state, source, target):
+        state.buff(source, "next_attack_reduction", 8)
+
+    @register_effect("procedural_kick_plus")
+    def _eff_procedural_kick_plus(state, source, target):
+        state.deal_damage(target, 7)
+        state.gain_block(source, 7)
+
+    @register_effect("riot_shield_plus")
+    def _eff_riot_shield_plus(state, source, target):
+        state.gain_block(source, 17)
+        state.buff(source, "vigil_next_turn_block", 6)
+
+    @register_effect("internal_review_plus")
+    def _eff_internal_review_plus(state, source, target):
+        state.cancel_next_attack_set()
+        state.deal_damage(target, 12)
+
+    @register_effect("killing_blow_plus")
+    def _eff_killing_blow_plus(state, source, target):
+        state.deal_damage(target, 16)
+        if state.enemy_max_hp > 0 and state.enemy_hp > 0 and state.enemy_hp * 2 < state.enemy_max_hp:
+            state.deal_damage(target, 16)
+            state.add_log("[[Killing Blow+]: execution — second hit lands.")
+
+    @register_effect("tactical_read_plus")
+    def _eff_tactical_read_plus(state, source, target):
+        state.gain_energy(2)
+        state.draw_cards(1)
+
+    @register_effect("iron_drill_plus")
+    def _eff_iron_drill_plus(state, source, target):
+        _skills = sum(
+            1 for cid in state.hand
+            if cid != "iron_drill_plus" and CARD_LIBRARY.get(cid, {}).get("type") == "Skill"
+        )
+        _bonus = min(16, 4 * _skills)
+        state.gain_block(source, 15 + _bonus)
+        state.add_log("[[Iron Drill+]: 15 + {} (per skill) = {} block.".format(_bonus, 15 + _bonus))
+
+    @register_effect("last_stand_plus")
+    def _eff_last_stand_plus(state, source, target):
+        state.deal_damage(target, 19)
+        if state.player_max_hp > 0 and state.player_hp * 2 < state.player_max_hp:
+            state.draw_cards(2)
+            state.add_log("[[Last Stand+]: low HP — draw 2.")

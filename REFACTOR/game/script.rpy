@@ -394,25 +394,12 @@ label daily_menu:
             renpy.jump("homeless_ending")
 
     show screen stats_bar
-    show screen day_calendar
 
     ## Custom hub screen — buttons use Jump() actions to route to existing labels.
     call screen daily_hub_screen
 
 
-label show_deck:
-    hide screen day_calendar
-    call screen deck_viewer
-    show screen day_calendar
-    ## Return to whatever called us — was `jump daily_menu` which let
-    ## players escape mid-event by clicking the stats-bar Deck button.
-    ## Now reachable only via Call() from the stats bar.
-    return
-
-
 label select_activity:
-    hide screen day_calendar
-
     python:
         if activity_selected:
             renpy.jump("daily_menu")
@@ -458,50 +445,42 @@ label activity_gym:
 
             python:
                 _bb_bonus = 5 if stats.player_class == "bodybuilder" else 0
-                ## Always-apply progression (you completed the session — TAKE or PASS):
+                ## Always-apply progression (you completed the session — UPGRADE or HEAL):
                 store.gym_streak += 1
-                ## BB-only common: spotter granted at the 3-day streak (intermediate milestone)
-                ## Streak-milestone cards are NOT the per-session reward — they're cumulative
-                ## attendance unlocks, so they remain unconditional.
+                ## BB-only common: spotter granted at the 3-day streak.
                 if store.gym_streak == 3 and stats.player_class == "bodybuilder":
                     grant_card("spotter", silent=True)
                 if store.gym_streak >= 5:
                     _newly_unlocked = unlock_achievement("gym_rat")
-                    ## BB-only rare: iron_stance dropped on first 5-day streak unlock
                     if _newly_unlocked and stats.player_class == "bodybuilder":
                         grant_card("iron_stance", silent=True)
                 _streak_add = min(store.gym_streak * 3, 15)
-                ## Pending reward — applied only if the player PASSes the card offer.
+                ## Three narrative flavors per session — cosmetic only now that
+                ## card grants are gone (replaced by the upgrade choice).
                 if _roll == 1:
                     _total_red = 25 + _bb_bonus + _streak_add
-                    _gym_card = "personal_record"
                     _gym_text = "Personal record. The bar tells the truth. The Colonel doesn't exist for 90 minutes."
                 elif _roll == 2:
                     _total_red = 15 + _bb_bonus + _streak_add
-                    _gym_card = "iron_will"
                     _gym_text = "Solid session. Head's quieter than this morning."
                 else:
                     _total_red = 10 + _bb_bonus + _streak_add
-                    _gym_card = "quick_jab"
                     _gym_text = "Heavy day. You finish anyway. Slightly less likely to flip a desk today."
-                _gym_outcome = "- {} CZK, -{} PCR HATRED{}{}".format(_gym_cost, _total_red, " [BODYBUILDER]" if _bb_bonus else "", " [STREAK x{}]".format(store.gym_streak) if _streak_add else "")
 
             "[_gym_text]"
 
             ## SOMA always lands for BB — gym session is "I trained the body."
             $ add_soma(1)
-            ## Persistent +5 max HP per session + heal for 25% of (new) max HP.
-            ## Max bonus accrues across the run and is folded into battle_init
-            ## via gym_max_hp_bonus. Lazy-inits run_hp on day-1 gyms (before any
-            ## battle has set up the persistent-HP fields).
+
+            ## Pre-compute the HEAL payload so the choice screen can preview
+            ## the numbers. Apply nothing yet — heal block runs only if the
+            ## player picks HEAL.
             python:
-                ## Cap the persistent gym HP bonus at +30 (6 sessions worth).
-                ## Without a cap a 10-session run pushed BB to 165 HP vs a
-                ## 100 HP boss — trivializing the capstone. With the cap +
-                ## Colonel HP 140, BB tops out at ~145 vs 140: real fight.
                 _GYM_HP_BONUS_CAP = 30
                 _gym_max_bump = max(0, min(5, _GYM_HP_BONUS_CAP - getattr(store, 'gym_max_hp_bonus', 0)))
-                store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + _gym_max_bump
+                ## Lazy-init run_hp_max BEFORE choice so the heal preview is
+                ## accurate. The init itself is non-destructive (it doesn't
+                ## change current HP unless run_hp_max was None).
                 if store.run_hp_max is None:
                     if stats.player_class == "bodybuilder":
                         _class_base = 115
@@ -511,37 +490,48 @@ label activity_gym:
                         _class_base = 80
                     else:
                         _class_base = 80
-                    store.run_hp_max = _class_base + store.gym_max_hp_bonus - _gym_max_bump
+                    store.run_hp_max = _class_base + store.gym_max_hp_bonus
                     store.run_hp = store.run_hp_max
-                store.run_hp_max += _gym_max_bump
-                _gym_heal = int(round(store.run_hp_max * 0.25))
-                store.run_hp = min(store.run_hp_max, store.run_hp + _gym_heal)
+                _heal_max_future = store.run_hp_max + _gym_max_bump
+                _gym_heal = int(round(_heal_max_future * 0.25))
+                _heal_parts = ["- {:,} CZK".format(_gym_cost), "-{} PCR HATRED".format(_total_red)]
                 if _gym_max_bump > 0:
-                    _gym_outcome = _gym_outcome + ", +{} MAX HP, +{} HP".format(_gym_max_bump, _gym_heal)
+                    _heal_parts.append("+{} MAX HP".format(_gym_max_bump))
                 else:
-                    _gym_outcome = _gym_outcome + ", MAX HP capped, +{} HP".format(_gym_heal)
-            ## Compute card-offer eligibility in python (no UI), THEN do the
-            ## modal at script level via `call screen`. Avoids the transient-
-            ## layer leak that came from `renpy.call_screen` inside python.
-            $ _gym_card_data = can_offer_card(_gym_card)
+                    _heal_parts.append("MAX HP capped")
+                _heal_parts.append("+{} HP".format(_gym_heal))
+                if _bb_bonus:
+                    _heal_parts.append("[BODYBUILDER]")
+                if _streak_add:
+                    _heal_parts.append("[STREAK x{}]".format(store.gym_streak))
+                _gym_heal_text = ", ".join(_heal_parts)
 
-            if _gym_card_data is not None:
-                window hide
-                call screen card_offer_screen(card=_gym_card_data, source_label="GYM", pass_stats_text=_gym_outcome)
-                $ _took_gym = commit_card(_gym_card, _return == "take")
+            label .choice_loop:
+                pass
+
+            window hide
+            call screen gym_choice_screen(heal_stats_text=_gym_heal_text)
+            $ _gym_choice = _return
+
+            if _gym_choice == "upgrade":
+                call _run_card_upgrade_flow
+                if _return:
+                    python:
+                        _plus_id = _return
+                        _c = CARD_LIBRARY.get(_plus_id, {})
+                        _soma_suffix = "  ·  +1 SOMA" if stats.player_class == "bodybuilder" else ""
+                        _gym_outcome_final = "[CARD UPGRADED] " + _c.get("name", _plus_id) + _soma_suffix
+                else:
+                    jump activity_gym.choice_loop
             else:
-                $ _took_gym = False
-
-            python:
-                ## Hatred relief still gates on PASS (TAKE traded the relief for a card).
-                if not _took_gym:
+                python:
+                    ## HEAL path — apply hatred relief, max HP bump, and HP heal.
                     stats.increment_stats_pcr_hatred(-_total_red)
-                _soma_suffix = "  ·  +1 SOMA" if stats.player_class == "bodybuilder" else ""
-                if _took_gym:
-                    _c = CARD_LIBRARY.get(_gym_card, {})
-                    _gym_outcome_final = "[CARD TAKEN] " + _c.get("name", _gym_card) + _soma_suffix
-                else:
-                    _gym_outcome_final = _gym_outcome + _soma_suffix
+                    store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + _gym_max_bump
+                    store.run_hp_max += _gym_max_bump
+                    store.run_hp = min(store.run_hp_max, store.run_hp + _gym_heal)
+                    _soma_suffix = "  ·  +1 SOMA" if stats.player_class == "bodybuilder" else ""
+                    _gym_outcome_final = _gym_heal_text + _soma_suffix
 
             window hide
             show screen outcome_panel(_gym_outcome_final)
@@ -559,9 +549,11 @@ label activity_gym:
 
 ## ---------------------------------------------------------------------------
 ## ACTIVITY: HEAVY SESSION (BODYBUILDER ONLY)
-## Class-specific relief replacing the old universal therapy.
-## Deeper hatred drop than regular gym, smaller card-or-stat lottery —
-## you train for the body, the body trains you back.
+## Class-specific relief replacing the old universal therapy. Same post-
+## session UPGRADE-vs-HEAL choice as regular gym, but the HEAL side is
+## deeper (-30 hatred, +15 HP, no Max HP bump — that's the regular gym's
+## job). The UPGRADE side is unchanged from regular gym: pick one card,
+## bank +1 SOMA, lose the heal.
 ## ---------------------------------------------------------------------------
 
 label activity_gym_heavy:
@@ -593,15 +585,37 @@ label activity_gym_heavy:
             _newly_unlocked = unlock_achievement("gym_rat")
             if _newly_unlocked and stats.player_class == "bodybuilder":
                 grant_card("iron_stance", silent=True)
-        ## Pure relief — no card offer here. The trade is "deeper relief instead of card lottery."
-        stats.increment_stats_pcr_hatred(-30)
-        ## Persistent-HP heal: heavy session is the bigger valve. +15 HP.
+        ## Pre-compute heavy-session HEAL payload (heavier than regular gym:
+        ## -30 hatred + +15 HP, but no Max HP bump — that's the regular gym's
+        ## job). Numbers only applied if the player picks HEAL.
         _heavy_heal = 15
-        _rh = getattr(store, 'run_hp', None)
-        _rhm = getattr(store, 'run_hp_max', None)
-        if _rh is not None and _rhm is not None:
-            store.run_hp = min(_rhm, _rh + _heavy_heal)
-        _heavy_outcome = "- {:,} CZK, -30 PCR HATRED, +1 SOMA, +{} HP".format(_heavy_cost, _heavy_heal)
+        _heavy_heal_text = "- {:,} CZK, -30 PCR HATRED, +1 SOMA, +{} HP".format(_heavy_cost, _heavy_heal)
+
+    label .choice_loop:
+        pass
+
+    window hide
+    call screen gym_choice_screen(heal_stats_text=_heavy_heal_text)
+    $ _heavy_choice = _return
+
+    if _heavy_choice == "upgrade":
+        call _run_card_upgrade_flow
+        if _return:
+            python:
+                _plus_id = _return
+                _c = CARD_LIBRARY.get(_plus_id, {})
+                _heavy_outcome = "[CARD UPGRADED] " + _c.get("name", _plus_id) + "  ·  +1 SOMA"
+        else:
+            jump activity_gym_heavy.choice_loop
+    else:
+        python:
+            ## HEAL path — apply hatred relief + HP heal.
+            stats.increment_stats_pcr_hatred(-30)
+            _rh = getattr(store, 'run_hp', None)
+            _rhm = getattr(store, 'run_hp_max', None)
+            if _rh is not None and _rhm is not None:
+                store.run_hp = min(_rhm, _rh + _heavy_heal)
+            _heavy_outcome = _heavy_heal_text
 
     window hide
     show screen outcome_panel(_heavy_outcome)
@@ -612,6 +626,42 @@ label activity_gym_heavy:
         activity_selected = True
         store.gym_day = True
     jump end_day
+
+
+## ---------------------------------------------------------------------------
+## Shared upgrade flow — picker → preview → reveal. Returns the new plus_id
+## on confirm, or None if the player cancelled all the way out of the picker
+## (caller loops back to gym_choice_screen). Used by activity_gym and
+## activity_gym_heavy.
+## ---------------------------------------------------------------------------
+
+label _run_card_upgrade_flow:
+
+    label .picker:
+        window hide
+        call screen deck_upgrade_picker
+        $ _ucf_result = _return
+
+        if _ucf_result == "cancel":
+            return None
+
+        $ _ucf_base = _ucf_result
+        call screen card_upgrade_preview(base_id=_ucf_base)
+
+        if _return == "cancel":
+            jump _run_card_upgrade_flow.picker
+
+        $ _ucf_plus = upgrade_card_in_deck(_ucf_base)
+
+        if _ucf_plus is None:
+            ## Defensive — shouldn't happen since picker only surfaces upgradeable
+            ## cards, but if it does (race / save-load weirdness), bail back to
+            ## the picker rather than crash.
+            jump _run_card_upgrade_flow.picker
+
+        play sound "audio/achivement_unlocked.mp3"
+        call screen upgrade_reveal_screen(plus_id=_ucf_plus)
+        return _ucf_plus
 
 
 ## ---------------------------------------------------------------------------
@@ -1160,7 +1210,9 @@ label activity_fixer:
         ## (thinning basic attacks/blocks is half the point of a card-removal
         ## shop — see Slay-the-Spire). Player starts with 4 of each, so
         ## scrubbing one or two is strategic, not run-ending.
-        _FIXER_STARTER_LOCKED = {"heavy_set", "read_him", "stack_up"}
+        ## CLASS_SIGNATURE_CARDS (defined in card_data.rpy) is the canonical
+        ## set — it includes both base ids AND `_plus` upgraded variants so
+        ## upgrading your signature doesn't make it Fixer-eligible.
 
         ## One flat price per visit — every card costs the same right now.
         ## After a shred, _fixer_removals bumps and the NEXT visit costs more.
@@ -1172,7 +1224,7 @@ label activity_fixer:
         _fixer_entries = []
         if player_deck is not None:
             for _cid in player_deck.cards:
-                if _cid in _FIXER_STARTER_LOCKED:
+                if _cid in CLASS_SIGNATURE_CARDS:
                     continue
                 _fixer_entries.append(_cid)
 
@@ -1223,8 +1275,6 @@ label activity_fixer:
 ## ---------------------------------------------------------------------------
 
 label end_day:
-    hide screen day_calendar
-
     python:
         if activity_selected:
             renpy.jump("do_end_day")

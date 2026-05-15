@@ -66,31 +66,36 @@ screen class_color_frame(thickness=3, alpha_suffix=""):
 ## Stats Bar — displayed during gameplay via "show screen stats_bar"
 ## ---------------------------------------------------------------------------
 
+## Dossier HUD strip — the always-on top band. Three zones (class identity |
+## day countdown + 4-day strip | resource gauges), bracketed by class-color
+## hairlines. Folds the former separate day_calendar screen into the center
+## zone so the player reads one HUD, not two stacked widgets.
 screen stats_bar():
     layer "screens"
     zorder 100
 
     python:
-        ## Class-specific tracker text appended to the badge
+        ## ── Class identity ────────────────────────────────────────────────
         _class_track = ""
-        _coding_tt = None
-        _hatred_tt = None
         _class_color = class_accent_color()
         if stats.player_class == "bodybuilder":
             _soma = getattr(store, 'bb_soma', 0)
             if _soma > 0:
-                _class_track = "  ·  SOMA {}/10".format(_soma)
+                _class_track = "SOMA {}/10".format(_soma)
         elif stats.player_class == "dark_empath":
             _profs = getattr(store, 'de_profiles', {})
             _deep = sum(1 for n, c in _profs.items() if c >= 3)
             _total = sum(_profs.values()) if _profs else 0
             if _total > 0:
-                _class_track = "  ·  PROFILES {} ({} deep)".format(_total, _deep)
+                _class_track = "PROFILES {} ({} deep)".format(_total, _deep)
         elif stats.player_class == "biohacker":
             _proto = getattr(store, 'bh_protocol', None)
             if _proto:
-                _class_track = "  ·  STACK {}".format(_proto)
+                _class_track = "STACK {}".format(_proto)
 
+        ## ── Tooltips (threshold-gated) ────────────────────────────────────
+        _coding_tt = None
+        _hatred_tt = None
         if stats.coding_skill < 70 and stats.available_money < 25000:
             _coding_tt = "Low coding + low cash = forced back to the uniform. Build one or both fast."
         elif stats.coding_skill < 70:
@@ -100,12 +105,10 @@ screen stats_bar():
 
         _deck_count_bar = len(player_deck.cards) if player_deck is not None else 0
 
-        ## Persistent run HP — carries across ladder battles + into the Colonel.
-        ## None before the first battle; show class-max in that case.
+        ## ── Run HP — persists across ladder + Colonel ────────────────────
         _run_hp_show = getattr(store, 'run_hp', None)
         _run_hp_max_show = getattr(store, 'run_hp_max', None)
         if _run_hp_show is None or _run_hp_max_show is None:
-            ## Pre-first-battle default — class max from python_logic.
             _run_hp_max_show = 115 if (stats and stats.player_class == "bodybuilder") else (75 if (stats and stats.player_class == "dark_empath") else 80)
             _run_hp_show = _run_hp_max_show
         _hp_ratio = (_run_hp_show / float(_run_hp_max_show)) if _run_hp_max_show > 0 else 1.0
@@ -119,202 +122,372 @@ screen stats_bar():
             _hp_color = "#ff4444"
         _hp_tt = "Your body. Carries between fights. +5/night, +8 gym, +15 heavy gym. Hospital after a loss costs HP. 0 HP mid-fight = forced detour."
 
-    frame:
-        xalign 0.0
-        yalign 0.0
-        xoffset 10
-        yoffset 10
-        padding (10, 6)
-        background Frame("#00000099", 4, 4)
+        ## ── Hatred — bar color ramps by severity ─────────────────────────
+        _hatred_ratio = min(1.0, stats.pcr_hatred / 100.0)
+        if stats.pcr_hatred < 30:
+            _hatred_bar_color = "#88ff88"
+        elif stats.pcr_hatred < 60:
+            _hatred_bar_color = "#ffdd44"
+        elif stats.pcr_hatred < 90:
+            _hatred_bar_color = "#ff8844"
+        else:
+            _hatred_bar_color = "#ff4444"
 
-        vbox:
-            spacing 4
+        ## ── Day countdown + 4-day strip (folded in from day_calendar) ────
+        _today = day_cycle.current_day if day_cycle is not None else 1
+        _events = get_key_event_days()
+        _colonel_day = stats.colonel_day if stats is not None else 30
+        _days_to_colonel = max(0, _colonel_day - _today)
+        _strip_end = min(_today + 3, 30)
+        _strip_days = list(range(_today, _strip_end + 1))
+
+        _money_str = "{:,} CZK".format(stats.available_money)
+        _day_subhead = "day {:02d} / 30".format(_today)
+
+    vbox:
+        xpos 0
+        ypos 0
+        xfill True
+
+        ## ▔▔▔ Top class-color hairline ▔▔▔
+        frame:
+            xfill True
+            ysize 2
+            background Frame(_class_color, 0, 0)
+
+        ## ═══ Main strip ═══
+        frame:
+            xfill True
+            padding (20, 8)
+            background Frame(DOSSIER_BG_BAR, 0, 0)
 
             hbox:
-                spacing 18
-                yalign 0.5
+                xfill True
+                spacing 0
 
-                ## Class color glyph — small filled circle in the class accent.
-                ## Pre-attention to "this is YOUR identity" before reading text.
+                ## ── LEFT ZONE — class identity (xsize 320) ────────────────
                 frame:
-                    xsize 14
-                    ysize 14
+                    xsize 320
                     yalign 0.5
-                    background Frame(_class_color, 0, 0)
+                    background None
+                    padding (0, 0)
 
-                ## Class badge — name only; tracker (SOMA/PROFILES/STACK)
-                ## moves to the secondary line below for visual hierarchy.
-                if stats.player_class == "bodybuilder":
-                    button:
-                        action NullAction()
-                        tooltip "Greek for body. Every rep is one more piece of you that takes up space in the room. The right amount means the Colonel still has to look at you across the desk."
-                        text "[[BODYBUILDER]":
-                            color _class_color
-                            size 16
+                    hbox:
+                        spacing 12
+                        yalign 0.5
+
+                        frame:
+                            xsize 14
+                            ysize 14
+                            yalign 0.5
+                            background Frame(_class_color, 0, 0)
+
+                        vbox:
+                            spacing 2
+                            yalign 0.5
+
+                            if stats.player_class == "bodybuilder":
+                                button:
+                                    action NullAction()
+                                    tooltip "Greek for body. Every rep is one more piece of you that takes up space in the room. The right amount means the Colonel still has to look at you across the desk."
+                                    background None
+                                    padding (0, 0)
+                                    text "[[BODYBUILDER]":
+                                        color _class_color
+                                        size 16
+                                        bold True
+                                        font DOSSIER_FONT
+                            elif stats.player_class == "dark_empath":
+                                button:
+                                    action NullAction()
+                                    tooltip "A working theory of someone, built from small things they don't know they're showing you. The deeper the profile, the more predictable they get. You used to do this for suspects. Now you do it for everyone."
+                                    background None
+                                    padding (0, 0)
+                                    text "[[DARK EMPATH]":
+                                        color _class_color
+                                        size 16
+                                        bold True
+                                        font DOSSIER_FONT
+                            elif stats.player_class == "biohacker":
+                                button:
+                                    action NullAction()
+                                    tooltip "The clinical word for the stack — exact compound, exact dose, exact timing. Started with caffeine. The right one buys you a turn the others don't get."
+                                    background None
+                                    padding (0, 0)
+                                    text "[[BIOHACKER]":
+                                        color _class_color
+                                        size 16
+                                        bold True
+                                        font DOSSIER_FONT
+                            else:
+                                text "[[ROOKIE]":
+                                    color _class_color
+                                    size 16
+                                    bold True
+                                    font DOSSIER_FONT
+
+                            if _class_track:
+                                text _class_track:
+                                    color _class_color
+                                    size 11
+                                    italic True
+                                    font DOSSIER_FONT
+
+                ## ── Divider ───────────────────────────────────────────────
+                add Solid("#333333") xysize (1, 80) yalign 0.5
+
+                null width 18
+
+                ## ── CENTER ZONE — countdown headline + 4-day strip ────────
+                ## Explicit xsize because xfill True on a vbox inside an hbox
+                ## only fills height, not horizontal slack — so without an
+                ## explicit width, the right zone slid off-screen.
+                ## Math: 1920 screen − 40 strip padding − 320 left − 38
+                ## (divider/null padding) − 640 right = 882, rounded to 880.
+                vbox:
+                    xsize 880
+                    yalign 0.5
+                    spacing 3
+
+                    if _days_to_colonel > 0:
+                        text "{stshl=[_days_to_colonel]} DAYS UNTIL THE COLONEL":
+                            color "#f5f0e0"
+                            size 22
                             bold True
-                elif stats.player_class == "dark_empath":
-                    button:
-                        action NullAction()
-                        tooltip "A working theory of someone, built from small things they don't know they're showing you. The deeper the profile, the more predictable they get. You used to do this for suspects. Now you do it for everyone."
-                        text "[[DARK EMPATH]":
-                            color _class_color
-                            size 16
+                            xalign 0.5
+                            font DOSSIER_FONT
+                    else:
+                        text "{stshl=TODAY} · CONFRONTATION":
+                            color "#f5f0e0"
+                            size 22
                             bold True
-                elif stats.player_class == "biohacker":
-                    button:
-                        action NullAction()
-                        tooltip "The clinical word for the stack — exact compound, exact dose, exact timing. Started with caffeine. The right one buys you a turn the others don't get."
-                        text "[[BIOHACKER]":
-                            color _class_color
-                            size 16
-                            bold True
-                else:
-                    text "[[ROOKIE]":
-                        color _class_color
-                        size 16
-                        bold True
+                            xalign 0.5
+                            font DOSSIER_FONT
 
-                text "|":
-                    color "#555555"
-                    size 18
+                    text _day_subhead:
+                        color DOSSIER_INK_DIM
+                        size 11
+                        italic True
+                        xalign 0.5
+                        font DOSSIER_FONT
 
-                ## Money — loss condition at 0. Larger weight than coding/day.
-                text "Money: [stats.available_money] CZK":
-                    color "#ffd700"
-                    size 20
-                    bold True
+                    null height 2
 
-                text "|":
-                    color "#555555"
-                    size 18
+                    hbox:
+                        spacing 6
+                        xalign 0.5
 
-                ## Hatred — loss condition at 100. Same weight as money.
-                if _hatred_tt:
-                    button:
-                        action NullAction()
-                        tooltip _hatred_tt
-                        background "#00000000"
-                        padding (0, 0)
-                        text "Hatred: [stats.pcr_hatred]/100":
-                            color "#ff4444"
+                        for _d in _strip_days:
+                            $ _is_today = (_d == _today)
+                            $ _ev       = _events.get(_d)
+
+                            if _is_today:
+                                $ _cell_bg   = _class_color
+                                $ _cell_text = "#ffffff"
+                            elif _ev is not None:
+                                $ _cell_bg   = _ev[1]
+                                $ _cell_text = "#ffffff"
+                            else:
+                                $ _cell_bg   = "#222222"
+                                $ _cell_text = "#aaaaaa"
+
+                            vbox:
+                                spacing 0
+
+                                if _is_today:
+                                    text "▼":
+                                        color _class_color
+                                        size 11
+                                        xalign 0.5
+                                        bold True
+                                else:
+                                    null height 13
+
+                                frame:
+                                    xsize 96
+                                    ysize 32
+                                    background Frame(_cell_bg, 3, 3)
+
+                                    vbox:
+                                        xalign 0.5
+                                        yalign 0.5
+                                        spacing 0
+
+                                        text "DAY [_d]":
+                                            color _cell_text
+                                            size 12
+                                            bold _is_today
+                                            xalign 0.5
+                                            font DOSSIER_FONT
+
+                                        if _ev is not None:
+                                            text "[_ev[0]]":
+                                                color _cell_text
+                                                size 10
+                                                xalign 0.5
+                                                font DOSSIER_FONT
+
+                null width 18
+
+                ## ── Divider ───────────────────────────────────────────────
+                add Solid("#333333") xysize (1, 80) yalign 0.5
+
+                ## ── RIGHT ZONE — resource gauges (xsize 640) ─────────────
+                frame:
+                    xsize 640
+                    yalign 0.5
+                    background None
+                    padding (0, 0)
+
+                    hbox:
+                        spacing 14
+                        yalign 0.5
+                        xalign 1.0
+
+                        ## Money — gold; no bar (no cap to gauge against).
+                        text _money_str:
+                            color "#ffd700"
                             size 20
                             bold True
+                            yalign 0.5
+                            font DOSSIER_FONT
+
+                        add Solid("#333333") xysize (1, 36) yalign 0.5
+
+                        ## HP — number + 4px progress bar.
+                        vbox:
+                            spacing 3
+                            yalign 0.5
+
+                            button:
+                                action NullAction()
+                                tooltip _hp_tt
+                                background None
+                                padding (0, 0)
+                                text "HP [_run_hp_show]/[_run_hp_max_show]":
+                                    color _hp_color
+                                    size 16
+                                    bold True
+                                    font DOSSIER_FONT
+
+                            frame:
+                                xsize 120
+                                ysize 4
+                                background Frame("#1a1a1a", 0, 0)
+                                padding (0, 0)
+                                add Solid(_hp_color) xysize (int(120 * _hp_ratio), 4)
+
+                        add Solid("#333333") xysize (1, 36) yalign 0.5
+
+                        ## Hatred — number + 4px progress bar.
+                        vbox:
+                            spacing 3
+                            yalign 0.5
+
+                            if _hatred_tt:
+                                button:
+                                    action NullAction()
+                                    tooltip _hatred_tt
+                                    background None
+                                    padding (0, 0)
+                                    text "Hatred [stats.pcr_hatred]/100":
+                                        color "#ff4444"
+                                        size 16
+                                        bold True
+                                        font DOSSIER_FONT
+                            else:
+                                text "Hatred [stats.pcr_hatred]/100":
+                                    color "#ff4444"
+                                    size 16
+                                    bold True
+                                    font DOSSIER_FONT
+
+                            frame:
+                                xsize 120
+                                ysize 4
+                                background Frame("#1a1a1a", 0, 0)
+                                padding (0, 0)
+                                add Solid(_hatred_bar_color) xysize (int(120 * _hatred_ratio), 4)
+
+                        add Solid("#333333") xysize (1, 36) yalign 0.5
+
+                        ## Coding — open-ended; no bar.
+                        if _coding_tt:
+                            button:
+                                action NullAction()
+                                tooltip _coding_tt
+                                background None
+                                padding (0, 0)
+                                yalign 0.5
+                                text "Coding [stats.coding_skill]":
+                                    color "#00ccff"
+                                    size 15
+                                    font DOSSIER_FONT
+                        else:
+                            text "Coding [stats.coding_skill]":
+                                color "#00ccff"
+                                size 15
+                                yalign 0.5
+                                font DOSSIER_FONT
+
+                        add Solid("#333333") xysize (1, 36) yalign 0.5
+
+                        ## Deck — overlay, not Call(label). Strip is always-on,
+                        ## so a pure Show()/Hide() pair around the deck viewer
+                        ## keeps script flow intact (Call returned out of
+                        ## daily_menu and dumped the player to main menu).
+                        textbutton "Deck · [_deck_count_bar]":
+                            yalign 0.5
+                            action Show("deck_viewer")
+                            tooltip "Click to view your deck."
+                            text_color "#00cc88"
+                            text_hover_color "#ffffff"
+                            text_size 15
+                            text_bold True
+                            text_font DOSSIER_FONT
+                            background None
+                            hover_background None
+                            padding (0, 0)
+
+        ## ── Hatred warning chip (>= 60) — pulses at 90+ ─────────────────
+        if stats.pcr_hatred >= 60:
+            python:
+                if stats.pcr_hatred >= 90:
+                    _hw_color = "#ff2222"
+                    _hw_bg    = "#400000ee"
+                    _hw_label = "⚠ HATRED CRITICAL — collapse at 100"
+                elif stats.pcr_hatred >= 75:
+                    _hw_color = "#ff8833"
+                    _hw_bg    = "#3a1a00ee"
+                    _hw_label = "⚠ HATRED HIGH — collapse at 100"
                 else:
-                    text "Hatred: [stats.pcr_hatred]/100":
-                        color "#ff4444"
-                        size 20
-                        bold True
-
-                text "|":
-                    color "#555555"
-                    size 18
-
-                ## HP — persists across battles; recovers via gym + nightly.
-                button:
-                    action NullAction()
-                    tooltip _hp_tt
-                    background "#00000000"
-                    padding (0, 0)
-                    text "HP: [_run_hp_show]/[_run_hp_max_show]":
-                        color _hp_color
-                        size 20
-                        bold True
-
-                text "|":
-                    color "#555555"
-                    size 18
-
-                if _coding_tt:
-                    button:
-                        action NullAction()
-                        tooltip _coding_tt
-                        background "#00000000"
-                        padding (0, 0)
-                        text "Coding: [stats.coding_skill]":
-                            color "#00ccff"
-                            size 16
-                else:
-                    text "Coding: [stats.coding_skill]":
-                        color "#00ccff"
-                        size 16
-
-                text "|":
-                    color "#555555"
-                    size 18
-
-                text "Day: [day_cycle.current_day]/30":
-                    color "#aaaaaa"
-                    size 16
-
-                text "|":
-                    color "#555555"
-                    size 18
-
-                textbutton "Deck: [_deck_count_bar]":
-                    ## Call (push/return) instead of Jump so the deck viewer
-                    ## doesn't tear out of mid-event flow. Was Jump → forced
-                    ## an unconditional `jump daily_menu` at the end of
-                    ## show_deck, which let players skip Martin Meeting and
-                    ## any random event by clicking this button.
-                    action Call("show_deck")
-                    tooltip "Click to view your deck."
-                    text_color "#00cc88"
-                    text_hover_color "#ffffff"
-                    text_size 16
-                    text_bold True
-                    background "#00000000"
-                    hover_background "#00000000"
-                    padding (0, 0)
-
-            ## Class progression tracker — secondary line, smaller text.
-            ## Only renders when the class has earned tracker progress.
-            if _class_track:
-                text _class_track.lstrip(" ·"):
-                    color _class_color
-                    size 12
-                    italic True
-                    yalign 0.5
-
-            ## Class-color underline — sits below the row so it spans the row width.
+                    _hw_color = "#ffcc44"
+                    _hw_bg    = "#2a1f00ee"
+                    _hw_label = "⚠ HATRED RISING — collapse at 100"
             frame:
-                xfill True
-                ysize 2
-                background Frame(_class_color, 0, 0)
+                xalign 0.5
+                padding (12, 4)
+                background Frame(_hw_bg, 4, 4)
+                if stats.pcr_hatred >= 90:
+                    at _hatred_warn_pulse
+                text _hw_label:
+                    color _hw_color
+                    size 13
+                    bold True
+                    font DOSSIER_FONT
 
-            ## Hatred warning chip — visible from 60+, color ramps with severity.
-            ## Replaces the tooltip-only warning that no playtester ever hovered.
-            ## Pulses at 90+ to make the impending loss-condition unmissable.
-            if stats.pcr_hatred >= 60:
-                python:
-                    if stats.pcr_hatred >= 90:
-                        _hw_color = "#ff2222"
-                        _hw_bg    = "#400000ee"
-                        _hw_label = "⚠ HATRED CRITICAL — collapse at 100"
-                    elif stats.pcr_hatred >= 75:
-                        _hw_color = "#ff8833"
-                        _hw_bg    = "#3a1a00ee"
-                        _hw_label = "⚠ HATRED HIGH — collapse at 100"
-                    else:
-                        _hw_color = "#ffcc44"
-                        _hw_bg    = "#2a1f00ee"
-                        _hw_label = "⚠ HATRED RISING — collapse at 100"
-                frame:
-                    xalign 0.0
-                    padding (10, 4)
-                    background Frame(_hw_bg, 4, 4)
-                    if stats.pcr_hatred >= 90:
-                        at _hatred_warn_pulse
-                    text _hw_label:
-                        color _hw_color
-                        size 13
-                        bold True
-                        font "fonts/RobotoMono-Regular.ttf"
+        ## ▁▁▁ Bottom class-color hairline ▁▁▁
+        frame:
+            xfill True
+            ysize 2
+            background Frame(_class_color, 0, 0)
 
+    ## ── Tooltip relay — anchored below the strip (~120px tall). ────────
     $ _stats_tt = GetTooltip()
     if _stats_tt:
         frame:
             xalign 0.5
-            ypos 60
+            ypos 128
             padding (12, 8)
             background Frame("#0d1018ee", 4, 4)
             text "[_stats_tt]":
@@ -323,6 +496,7 @@ screen stats_bar():
                 xalign 0.5
                 xmaximum 800
                 text_align 0.5
+                font DOSSIER_FONT
 
 
 ## ---------------------------------------------------------------------------
@@ -339,13 +513,21 @@ screen deck_viewer():
     add "#0d0d11ee"
 
     python:
+        ## Per-color accent. KEEP IN SYNC with deck_upgrade_picker and any new
+        ## color introduced in card_library — see VISION.md "Adding a Card"
+        ## checklist. Cards whose color isn't in this dict still render (fall
+        ## through `_col_hex` default below), but stack at the bottom under
+        ## the last row.
         _COLOR_HEX = {
-            "Physical": "#ff6633",
-            "Mental":   "#9944cc",
-            "Money":    "#ffd700",
-            "Logic":    "#00ccff",
-            "Police":   "#3388cc",
-            "Special":  "#00cc88",
+            "Physical":   "#ff6633",
+            "Mental":     "#9944cc",
+            "Money":      "#ffd700",
+            "Logic":      "#00ccff",
+            "Tech":       "#66ddff",
+            "Police":     "#3388cc",
+            "Special":    "#00cc88",
+            "Rage":       "#cc2200",
+            "Compromise": "#7a7060",
         }
         _deck_cards = player_deck.cards if player_deck is not None else []
         _deck_count = len(_deck_cards)
@@ -357,8 +539,9 @@ screen deck_viewer():
                 continue
             _col = _c.get("color", "Special")
             _deck_by_color.setdefault(_col, []).append(_cid)
-        ## For consistent ordering
-        _color_order = ["Physical", "Mental", "Money", "Logic", "Police", "Special"]
+        ## Display order — corruption rows (Rage, Compromise) anchored at the
+        ## bottom so the player's clean kit reads top-of-screen.
+        _color_order = ["Physical", "Mental", "Money", "Logic", "Tech", "Police", "Special", "Rage", "Compromise"]
 
     ## Class-color outer frame — "this is YOUR deck" without overriding per-card colors.
     use class_color_frame(thickness=3, alpha_suffix="aa")
@@ -469,7 +652,7 @@ screen deck_viewer():
                                                             size 14
                                                             bold True
                                                         text _c.get("name", _cid):
-                                                            color "#ffffff"
+                                                            color card_name_color(_c, "#ffffff")
                                                             size 16
                                                             bold True
 
@@ -573,7 +756,11 @@ screen deck_viewer():
 
         textbutton "[[ CLOSE ]":
             xalign 0.5
-            action Return()
+            ## Hide self — the Dossier HUD strip (zorder 100) renders above
+            ## this modal anyway, so no other layer needs restoring. No
+            ## Return() — Return is what triggered the "back to main menu"
+            ## bug when called outside a label.
+            action Hide("deck_viewer")
             text_style "class_select_btn"
             background "#220000"
             hover_background "#440000"
@@ -665,12 +852,12 @@ default _ACT_DEFAULT_GLYPHS = {
     "VISIT FIXER": "✂",
 }
 
-screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effect_chips=None, locked=False, lock_text="", class_relevant=False, flavor_text="", art_glyph=""):
+screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effect_chips=None, locked=False, lock_text="", class_relevant=False, flavor_text="", art_glyph="", cost_unaffordable=False):
     ## Layered construction mirrors the StS card render:
     ##   L2: drop shadow
     ##   L3: accent-colored border
     ##   L4: warm-dark inner panel (#1a1410)
-    ##   L5: zoned content (title banner → glyph zone → cost → chips → flavor)
+    ##   L5: zoned content (title banner → underline → glyph zone → cost → chips → flavor)
     python:
         if locked:
             _at_title_color   = "#554434"
@@ -685,6 +872,13 @@ screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effe
             _at_glyph_color   = accent
             _at_border_color  = accent
         _at_glyph = art_glyph or _ACT_DEFAULT_GLYPHS.get(title, "★")
+        ## Cost line color — red preempts the click when funds are short.
+        if locked:
+            _at_cost_color = "#3a3a3a"
+        elif cost_unaffordable:
+            _at_cost_color = "#ff4444"
+        else:
+            _at_cost_color = "#ffd700"
 
     button:
         xsize 340
@@ -732,6 +926,15 @@ screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effe
                             text_align 0.5
                             font "fonts/RobotoMono-Regular.ttf"
 
+                    ## CLASS-RELEVANT UNDERLINE — 2px gold hairline. Visual
+                    ## cue beyond the title color that this tile is the one
+                    ## the current class is built around.
+                    if class_relevant and not locked:
+                        frame:
+                            xfill True
+                            ysize 2
+                            background Frame("#e8c878", 0, 0)
+
                     ## GLYPH ZONE — accent-tinted backdrop with a large symbol.
                     frame:
                         xfill True
@@ -745,9 +948,10 @@ screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effe
                             bold True
                             outlines [(2, "#000000", 0, 0)]
 
-                    ## COST — gold accent on the financial line.
+                    ## COST — gold by default, red when player can't afford,
+                    ## dim grey when the tile is class-locked.
                     text cost_text:
-                        color ("#ffd700" if not locked else "#3a3a3a")
+                        color _at_cost_color
                         size 16
                         bold True
                         xalign 0.5
@@ -809,7 +1013,7 @@ screen activity_submenu(title, options, subtitle="", back_label="daily_menu"):
 
     vbox:
         xalign 0.5
-        ypos 64
+        ypos 140
         spacing 6
 
         text title:
@@ -848,15 +1052,16 @@ screen activity_submenu(title, options, subtitle="", back_label="daily_menu"):
 
                 for _opt in _row:
                     use _activity_tile(
-                        label_name     = _opt.get("label_name", back_label),
-                        title          = _opt.get("title", "?"),
-                        accent         = _opt.get("accent", "#cccccc"),
-                        cost_text      = _opt.get("cost_text", ""),
-                        effect_text    = _opt.get("effect_text", ""),
-                        locked         = _opt.get("locked", False),
-                        lock_text      = _opt.get("lock_text", ""),
-                        class_relevant = _opt.get("class_relevant", False),
-                        flavor_text    = _opt.get("flavor_text", ""),
+                        label_name        = _opt.get("label_name", back_label),
+                        title             = _opt.get("title", "?"),
+                        accent            = _opt.get("accent", "#cccccc"),
+                        cost_text         = _opt.get("cost_text", ""),
+                        cost_unaffordable = _opt.get("cost_unaffordable", False),
+                        effect_text       = _opt.get("effect_text", ""),
+                        locked            = _opt.get("locked", False),
+                        lock_text         = _opt.get("lock_text", ""),
+                        class_relevant    = _opt.get("class_relevant", False),
+                        flavor_text       = _opt.get("flavor_text", ""),
                     )
 
     ## Floating BACK button - same spot as the parent screen for muscle memory.
@@ -885,10 +1090,16 @@ screen activity_select_screen():
         _is_bb = (_pc == "bodybuilder")
         _is_de = (_pc == "dark_empath")
         _is_bh = (_pc == "biohacker")
+        ## Precomputed paid-tile affordability — drives the red cost text
+        ## on the tile preempting an "insufficient funds" outcome.
+        _gym_cost      = adjusted_cost(400)
+        _recovery_cost = adjusted_cost(500)
+        _gym_short     = (stats is not None) and (stats.available_money < _gym_cost)
+        _recovery_short= (stats is not None) and (stats.available_money < _recovery_cost)
 
     vbox:
         xalign 0.5
-        ypos 64
+        ypos 140
         spacing 6
 
         text "PICK TODAY'S MOVE":
@@ -916,13 +1127,14 @@ screen activity_select_screen():
         ## Slot 1 - CLASS-LOCKED relief activity. Each class sees only their own.
         if _is_bb:
             use _activity_tile(
-                label_name     = "activity_gym",
-                title          = "GYM",
-                accent         = class_accent_color("bodybuilder"),
-                cost_text      = "{:,} CZK".format(adjusted_cost(400)),
-                effect_chips   = [("Hatred", -10), ("Muscle", +1)],
-                flavor_text    = "An hour where the bar tells the truth.",
-                class_relevant = True,
+                label_name        = "activity_gym",
+                title             = "GYM",
+                accent            = class_accent_color("bodybuilder"),
+                cost_text         = "{:,} CZK".format(_gym_cost),
+                cost_unaffordable = _gym_short,
+                effect_chips      = [("Hatred", -10), ("Muscle", +1)],
+                flavor_text       = "An hour where the bar tells the truth.",
+                class_relevant    = True,
             )
         elif _is_de:
             use _activity_tile(
@@ -936,13 +1148,14 @@ screen activity_select_screen():
             )
         elif _is_bh:
             use _activity_tile(
-                label_name     = "activity_recovery",
-                title          = "RECOVERY",
-                accent         = class_accent_color("biohacker"),
-                cost_text      = "{:,} CZK".format(adjusted_cost(500)),
-                effect_chips   = [("Hatred", -30)],
-                flavor_text    = "Red light. Sauna. Cold plunge. Data clean.",
-                class_relevant = True,
+                label_name        = "activity_recovery",
+                title             = "RECOVERY",
+                accent            = class_accent_color("biohacker"),
+                cost_text         = "{:,} CZK".format(_recovery_cost),
+                cost_unaffordable = _recovery_short,
+                effect_chips      = [("Hatred", -30)],
+                flavor_text       = "Red light. Sauna. Cold plunge. Data clean.",
+                class_relevant    = True,
             )
 
         ## BOUNCER - money path, neutral for every class.
@@ -1024,6 +1237,19 @@ transform _whey_gym_in:
     pause 0.10
     easeout 0.20 alpha 1.0 xoffset 0
 
+## TODAY marquee hover lift — small pop on the CTA, smaller than the
+## activity-tile lift so the hub doesn't feel jumpy on idle hover.
+transform _today_cta_lift:
+    on hover:
+        ease 0.18 zoom 1.04 yoffset -6
+    on idle:
+        ease 0.18 zoom 1.0 yoffset 0
+
+## TODAY marquee entry fade — the panel rises into focus on each daily reset.
+transform _today_panel_in:
+    alpha 0.0 yoffset 20
+    easeout 0.55 alpha 1.0 yoffset 0
+
 screen daily_hub_screen():
     modal True
     zorder 50
@@ -1033,24 +1259,33 @@ screen daily_hub_screen():
         _phone_msgs   = getattr(store, '_phone_notifications', [])
         _phone_count  = len(_phone_msgs)
         _hub_class_color = class_accent_color()
+        ## Brackets render dimmer than the word so the verb (TRAIN/READ/STACK)
+        ## reads as the hot focal point and the brackets frame it without
+        ## competing for attention.
+        _hub_cta_dim   = _hub_class_color + "aa"
+        ## Dossier tag — case-file stamp on the day's marquee. Precomputed
+        ## as a plain string so we don't lean on Ren'Py format-spec syntax
+        ## inside the displayable.
+        _dossier_tag       = "JBKZ-{:02d}".format(_today)
+        _dossier_tag_closed = _dossier_tag + " · CLOSED"
 
         if stats and stats.player_class == "bodybuilder":
-            _hub_cta_text  = "[[ TRAIN ]"
+            _hub_cta_word  = "TRAIN"
             _hub_cta_sub   = "The body is the argument. Pick the rep."
             _hub_cta_color = _hub_class_color
             _hub_cta_hover = "#ff8855"
         elif stats and stats.player_class == "dark_empath":
-            _hub_cta_text  = "[[ READ ]"
+            _hub_cta_word  = "READ"
             _hub_cta_sub   = "The room is the data. Pick what you watch."
             _hub_cta_color = _hub_class_color
             _hub_cta_hover = "#bb66dd"
         elif stats and stats.player_class == "biohacker":
-            _hub_cta_text  = "[[ STACK ]"
+            _hub_cta_word  = "STACK"
             _hub_cta_sub   = "The protocol is the answer. Pick the input."
             _hub_cta_color = _hub_class_color
             _hub_cta_hover = "#55ee88"
         else:
-            _hub_cta_text  = "[[ PICK YOUR MOVE ]"
+            _hub_cta_word  = "PICK YOUR MOVE"
             _hub_cta_sub   = "One choice. Earn cards. Build the deck."
             _hub_cta_color = "#cc2200"
             _hub_cta_hover = "#ff4422"
@@ -1159,150 +1394,157 @@ screen daily_hub_screen():
                     font "fonts/RobotoMono-Regular.ttf"
 
     ## ── Center stage — the dominant action ──────────────────────────────────
+    ## Banner pattern (class-color hairline → dark plate → hairline) mirrors
+    ## the Dossier HUD strip's signature so the day's centerpiece reads as
+    ## part of the same case-file aesthetic.
     if not activity_selected:
-        frame:
+        vbox:
             xalign 0.5
             yalign 0.58
-            padding (60, 36)
-            background Frame("#0a0a0aee", 6, 6)
+            xsize 760
+            spacing 0
+            at _today_panel_in
 
-            vbox:
-                spacing 12
-                xalign 0.5
+            ## Top class-color hairline
+            frame:
+                xfill True
+                ysize 2
+                background Frame(_hub_class_color, 0, 0)
 
-                text "TODAY":
-                    color "#666666"
-                    size 16
-                    bold True
+            frame:
+                xfill True
+                padding (60, 28)
+                background Frame(DOSSIER_BG_SOLID, 0, 0)
+
+                vbox:
+                    spacing 10
                     xalign 0.5
-                    font "fonts/RobotoMono-Regular.ttf"
 
-                textbutton _hub_cta_text:
-                    xalign 0.5
-                    action Jump("select_activity")
-                    text_color _hub_cta_color
-                    text_hover_color _hub_cta_hover
-                    text_size 64
-                    text_bold True
-                    text_font "fonts/RobotoMono-Regular.ttf"
-                    background "#00000000"
-                    hover_background "#00000000"
-                    padding (24, 12)
+                    text "TODAY · DAY [_today] / 30":
+                        color _hub_class_color
+                        size 14
+                        bold True
+                        xalign 0.5
+                        font DOSSIER_FONT
 
-                text _hub_cta_sub:
-                    color "#888888"
-                    size 16
-                    italic True
-                    xalign 0.5
-                    font "fonts/RobotoMono-Regular.ttf"
+                    ## Split-bracket CTA — dim brackets frame the bright verb.
+                    hbox:
+                        xalign 0.5
+                        spacing 8
+
+                        text "[[":
+                            color _hub_cta_dim
+                            size 64
+                            bold True
+                            yalign 0.5
+                            font DOSSIER_FONT
+
+                        textbutton _hub_cta_word:
+                            yalign 0.5
+                            action Jump("select_activity")
+                            text_color _hub_cta_color
+                            text_hover_color _hub_cta_hover
+                            text_size 64
+                            text_bold True
+                            text_font DOSSIER_FONT
+                            text_outlines [(3, "#000000", 0, 0)]
+                            background "#00000000"
+                            hover_background "#00000000"
+                            padding (12, 6)
+                            at _today_cta_lift
+
+                        text "]":
+                            color _hub_cta_dim
+                            size 64
+                            bold True
+                            yalign 0.5
+                            font DOSSIER_FONT
+
+                    text _hub_cta_sub:
+                        color "#a0a0a0"
+                        size 17
+                        italic True
+                        xalign 0.5
+                        font DOSSIER_FONT
+
+                    null height 2
+
+                    text "[DOSSIER_GLYPH] DOSSIER · [_dossier_tag]":
+                        color DOSSIER_INK_DIM
+                        size 11
+                        xalign 0.5
+                        font DOSSIER_FONT
+
+            ## Bottom class-color hairline
+            frame:
+                xfill True
+                ysize 2
+                background Frame(_hub_class_color, 0, 0)
 
     else:
-        ## Lock-in state — class-coloured, distinct from the pick-state.
-        frame:
+        ## Lock-in state — class-coloured, same banner pattern as pick state
+        ## so the only thing that changes is the message itself.
+        vbox:
             xalign 0.5
             yalign 0.58
-            padding (60, 36)
-            background Frame("#0a0a0aee", 6, 6)
+            xsize 760
+            spacing 0
+            at _today_panel_in
 
-            vbox:
-                spacing 10
-                xalign 0.5
+            frame:
+                xfill True
+                ysize 2
+                background Frame(_hub_class_color, 0, 0)
 
-                text "DAY [_today] — MOVE COMPLETE":
-                    color _hub_cta_color
-                    size 40
-                    bold True
+            frame:
+                xfill True
+                padding (60, 28)
+                background Frame(DOSSIER_BG_SOLID, 0, 0)
+
+                vbox:
+                    spacing 10
                     xalign 0.5
-                    font "fonts/RobotoMono-Regular.ttf"
 
-                text "Sleep on it.":
-                    color "#888888"
-                    size 16
-                    italic True
-                    xalign 0.5
-                    font "fonts/RobotoMono-Regular.ttf"
+                    text "DAY [_today] / 30":
+                        color _hub_class_color
+                        size 14
+                        bold True
+                        xalign 0.5
+                        font DOSSIER_FONT
+
+                    text "MOVE COMPLETE":
+                        color _hub_cta_color
+                        size 40
+                        bold True
+                        xalign 0.5
+                        font DOSSIER_FONT
+                        outlines [(3, "#000000", 0, 0)]
+
+                    text "Sleep on it.":
+                        color "#a0a0a0"
+                        size 17
+                        italic True
+                        xalign 0.5
+                        font DOSSIER_FONT
+
+                    null height 2
+
+                    text "[DOSSIER_GLYPH] DOSSIER · [_dossier_tag_closed]":
+                        color DOSSIER_INK_DIM
+                        size 11
+                        xalign 0.5
+                        font DOSSIER_FONT
+
+            frame:
+                xfill True
+                ysize 2
+                background Frame(_hub_class_color, 0, 0)
 
 
 ## ---------------------------------------------------------------------------
-## Day Calendar — mini 4-day strip (today + next 3) for the hub. Full 30-day
-## view lives in phone_screen. Shown persistently during daily_menu via
-## "show screen day_calendar".
+## (day_calendar removed — its content lives in the Dossier HUD strip's
+## center zone now. Phone screen still has the full 30-day grid.)
 ## ---------------------------------------------------------------------------
-
-screen day_calendar():
-    layer "screens"
-    zorder 90
-
-    python:
-        _today = day_cycle.current_day if day_cycle is not None else 1
-        _events = get_key_event_days()
-        _colonel_day = stats.colonel_day if stats is not None else 30
-        _days_to_colonel = max(0, _colonel_day - _today)
-        _strip_end = min(_today + 3, 30)
-        _strip_days = list(range(_today, _strip_end + 1))
-
-    frame:
-        xalign 0.5
-        yalign 0.0
-        ## yoffset clears the stat bar even when the class tracker (SOMA /
-        ## PROFILES / STACK) is rendering its secondary line.
-        yoffset 82
-        padding (16, 10)
-        background Frame("#0a0a0aee", 4, 4)
-
-        vbox:
-            spacing 6
-            xalign 0.5
-
-            text "DAY [_today] / 30   —   [_days_to_colonel] DAYS UNTIL CONFRONTATION":
-                color "#cccccc"
-                size 14
-                bold True
-                xalign 0.5
-                font "fonts/RobotoMono-Regular.ttf"
-
-            ## 4-day strip — today + the next three. Full 30-day grid is in phone_screen.
-            hbox:
-                spacing 6
-                xalign 0.5
-
-                for _d in _strip_days:
-                    $ _is_today = (_d == _today)
-                    $ _ev       = _events.get(_d)
-
-                    if _is_today:
-                        $ _cell_bg   = "#cc2200"
-                        $ _cell_text = "#ffffff"
-                    elif _ev is not None:
-                        $ _cell_bg   = _ev[1]
-                        $ _cell_text = "#ffffff"
-                    else:
-                        $ _cell_bg   = "#222222"
-                        $ _cell_text = "#aaaaaa"
-
-                    frame:
-                        xsize 110
-                        ysize 44
-                        background Frame(_cell_bg, 3, 3)
-
-                        vbox:
-                            xalign 0.5
-                            yalign 0.5
-                            spacing 0
-
-                            text "DAY [_d]":
-                                color _cell_text
-                                size 13
-                                bold _is_today
-                                xalign 0.5
-                                font "fonts/RobotoMono-Regular.ttf"
-
-                            if _ev is not None:
-                                text "[_ev[0]]":
-                                    color _cell_text
-                                    size 11
-                                    xalign 0.5
-                                    font "fonts/RobotoMono-Regular.ttf"
 
 
 ## ---------------------------------------------------------------------------
@@ -1693,7 +1935,7 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
                 null height 2
 
                 text _co_name substitute False:
-                    color "#ffffff"
+                    color card_name_color(card, "#ffffff")
                     size 30
                     bold True
                     xalign 0.5
@@ -1993,7 +2235,7 @@ screen card_solo_offer_screen(card, source_label=""):
             null height 2
 
             text _co_name substitute False:
-                color "#ffffff"
+                color card_name_color(card, "#ffffff")
                 size 32
                 bold True
                 xalign 0.5
@@ -2182,7 +2424,7 @@ screen card_reward_trio_screen(cards):
                                 ysize 44
                                 background Frame("#0a0806", 4, 4)
                                 text _name substitute False:
-                                    color "#e8c878"
+                                    color card_name_color(_c, "#e8c878")
                                     size 24
                                     bold True
                                     xalign 0.5
@@ -2422,9 +2664,13 @@ screen fixer_removal_screen(entries, price, next_price):
                                 font "fonts/RobotoMono-Regular.ttf"
                                 xsize 60
 
-                            ## Name with corruption prefix
+                            ## Name with corruption prefix. Upgraded cards
+                            ## (not corruption — register_upgrade refuses
+                            ## status/rage/compromise) render the name green
+                            ## so the shred decision sees "you'd be paying
+                            ## to nuke an upgrade" at a glance.
                             text "[_fglyph][_fname]":
-                                color "#ffffff"
+                                color card_name_color(_fc, "#ffffff")
                                 size 18
                                 bold True
                                 font "fonts/RobotoMono-Regular.ttf"
@@ -2463,6 +2709,745 @@ screen fixer_removal_screen(entries, price, next_price):
             padding (24, 10)
 
     key "K_ESCAPE" action Return(("leave", None))
+
+
+## ---------------------------------------------------------------------------
+## Gym Choice — post-session binary: UPGRADE a card vs HEAL+MAX HP.
+## Mirrors the card_offer_screen visual language (side-by-side panels) so the
+## player recognizes the "two paths" pattern. Returns "upgrade" or "heal".
+## ---------------------------------------------------------------------------
+
+screen gym_choice_screen(heal_stats_text=""):
+    modal True
+    zorder 700
+
+    add "#0a0a0aee"
+
+    use class_color_frame(thickness=3, alpha_suffix="aa")
+
+    python:
+        _gc_class_accent = class_accent_color()
+        _gc_upgrade_accent = "#ffaa44"  ## gold-orange for "improvement"
+        _gc_heal_lines = [s.strip() for s in heal_stats_text.split(",") if s.strip()] if heal_stats_text else []
+
+    vbox:
+        xalign 0.5
+        yalign 0.04
+        spacing 6
+
+        text "AFTER THE SESSION":
+            xalign 0.5
+            color "#ffffff"
+            size 28
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+
+        text "Body's quiet. Head's quieter. Pick what stays.":
+            xalign 0.5
+            color "#666666"
+            size 14
+            italic True
+            font "fonts/RobotoMono-Regular.ttf"
+
+    hbox:
+        xalign 0.5
+        yalign 0.46
+        spacing 50
+
+        ## ─────────────── LEFT: UPGRADE a card ───────────────
+        frame:
+            xsize 420
+            ysize 540
+            background Frame("#0d0d0dee", 4, 4)
+            padding (22, 18)
+
+            vbox:
+                spacing 12
+                xalign 0.5
+
+                frame:
+                    xalign 0.5
+                    xsize 360
+                    ysize 5
+                    background Frame(_gc_upgrade_accent, 0, 0)
+
+                null height 6
+
+                frame:
+                    xsize 56
+                    ysize 56
+                    background Frame(_gc_upgrade_accent, 4, 4)
+                    xalign 0.5
+                    text "↑":
+                        color "#000000"
+                        size 36
+                        bold True
+                        xalign 0.5
+                        yalign 0.5
+
+                null height 2
+
+                text "UPGRADE A CARD":
+                    color "#ffffff"
+                    size 30
+                    bold True
+                    xalign 0.5
+                    font "fonts/RobotoMono-Regular.ttf"
+
+                text "Sharpen the kit · permanent":
+                    color _gc_upgrade_accent
+                    size 13
+                    xalign 0.5
+                    font "fonts/RobotoMono-Regular.ttf"
+
+                null height 10
+
+                text "─────────────────────────":
+                    color "#222222"
+                    size 12
+                    xalign 0.5
+
+                null height 6
+
+                text "Pick one card from your deck. It becomes its '+' version for the rest of the run.":
+                    color "#ffffff"
+                    size 16
+                    bold True
+                    xalign 0.5
+                    xmaximum 360
+                    text_align 0.5
+                    line_spacing 3
+
+                null height 8
+
+                text "Basic cards barely change. Rares get sharper. The good cards stay good for longer.":
+                    color "#888888"
+                    size 13
+                    italic True
+                    xalign 0.5
+                    xmaximum 360
+                    text_align 0.5
+
+        ## ─────────────── Thin vertical rule ───────────────
+        frame:
+            yalign 0.5
+            xsize 1
+            ysize 460
+            background Frame("#2a2a2a", 0, 0)
+
+        ## ─────────────── RIGHT: HEAL + MAX HP (the existing reward) ───────────────
+        frame:
+            xsize 420
+            ysize 540
+            background Frame("#0d0d0dee", 4, 4)
+            padding (22, 18)
+
+            vbox:
+                spacing 12
+                xalign 0.5
+
+                frame:
+                    xalign 0.5
+                    xsize 360
+                    ysize 5
+                    background Frame(_gc_class_accent, 0, 0)
+
+                null height 6
+
+                frame:
+                    xsize 56
+                    ysize 56
+                    background Frame(_gc_class_accent, 4, 4)
+                    xalign 0.5
+                    text "+":
+                        color "#000000"
+                        size 36
+                        bold True
+                        xalign 0.5
+                        yalign 0.5
+
+                null height 2
+
+                text "HEAL + MAX HP":
+                    color "#ffffff"
+                    size 30
+                    bold True
+                    xalign 0.5
+                    font "fonts/RobotoMono-Regular.ttf"
+
+                text "Body · Hatred · Stat lift":
+                    color _gc_class_accent
+                    size 13
+                    xalign 0.5
+                    font "fonts/RobotoMono-Regular.ttf"
+
+                null height 10
+
+                text "─────────────────────────":
+                    color "#222222"
+                    size 12
+                    xalign 0.5
+
+                null height 6
+
+                if _gc_heal_lines:
+                    vbox:
+                        spacing 6
+                        xalign 0.5
+                        for _hl in _gc_heal_lines:
+                            text _hl substitute False:
+                                color "#ffcc66"
+                                size 18
+                                bold True
+                                xalign 0.5
+                                xmaximum 360
+                                text_align 0.5
+                else:
+                    text "Keep the day's stat changes.":
+                        color "#cccccc"
+                        size 15
+                        xalign 0.5
+                        xmaximum 360
+                        text_align 0.5
+
+    hbox:
+        xalign 0.5
+        yalign 0.93
+        spacing 50
+
+        textbutton "[[ UPGRADE A CARD ]":
+            xsize 420
+            xalign 0.5
+            action Return("upgrade")
+            text_color "#ffffff"
+            text_hover_color _gc_upgrade_accent
+            text_size 24
+            text_bold True
+            text_font "fonts/RobotoMono-Regular.ttf"
+            text_xalign 0.5
+            background Frame("#1a1a1aee", 4, 4)
+            hover_background Frame("#2a2a2aee", 4, 4)
+            padding (20, 14)
+
+        null width 1
+
+        textbutton "[[ HEAL + MAX HP ]":
+            xsize 420
+            xalign 0.5
+            action Return("heal")
+            text_color "#ffffff"
+            text_hover_color _gc_class_accent
+            text_size 24
+            text_bold True
+            text_font "fonts/RobotoMono-Regular.ttf"
+            text_xalign 0.5
+            background Frame("#1a1a1aee", 4, 4)
+            hover_background Frame("#2a2a2aee", 4, 4)
+            padding (20, 14)
+
+    text "U = upgrade   ·   H = heal   ·   ESC = heal":
+        xalign 0.5
+        yalign 0.985
+        color "#444444"
+        size 12
+        font "fonts/RobotoMono-Regular.ttf"
+
+    key "K_u" action Return("upgrade")
+    key "K_h" action Return("heal")
+    key "K_RETURN" action Return("heal")
+    key "K_ESCAPE" action Return("heal")
+
+
+## ---------------------------------------------------------------------------
+## Deck Upgrade Picker — click any card in your deck to preview its '+' form.
+## Non-upgradeable cards (status / rage / compromise / already-upgraded) are
+## greyed out and non-clickable. Returns the chosen card_id, or "cancel" to
+## back out to the gym-choice screen.
+## ---------------------------------------------------------------------------
+
+screen deck_upgrade_picker():
+    modal True
+    zorder 700
+
+    default _dup_tab = "deck"
+
+    add "#0d0d11ee"
+
+    python:
+        ## Keep in sync with deck_viewer's _COLOR_HEX (and VISION.md card-add checklist).
+        _DUP_COLOR_HEX = {
+            "Physical":   "#ff6633",
+            "Mental":     "#9944cc",
+            "Money":      "#ffd700",
+            "Logic":      "#00ccff",
+            "Tech":       "#66ddff",
+            "Police":     "#3388cc",
+            "Special":    "#00cc88",
+            "Rage":       "#cc2200",
+            "Compromise": "#7a7060",
+        }
+        _dup_cards = player_deck.cards if player_deck is not None else []
+        _dup_count = len(_dup_cards)
+        _dup_by_color = {}
+        for _cid in _dup_cards:
+            _c = CARD_LIBRARY.get(_cid)
+            if _c is None:
+                continue
+            _col = _c.get("color", "Special")
+            _dup_by_color.setdefault(_col, []).append(_cid)
+        _dup_color_order = ["Physical", "Mental", "Money", "Logic", "Tech", "Police", "Special", "Rage", "Compromise"]
+        _dup_eligible_count = sum(1 for _cid in _dup_cards if is_upgradeable(_cid))
+
+    use class_color_frame(thickness=3, alpha_suffix="aa")
+
+    vbox:
+        xalign 0.5
+        yalign 0.5
+        spacing 14
+
+        text "> UPGRADE A CARD <":
+            xalign 0.5
+            color "#ffaa44"
+            size 36
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+
+        text "[_dup_eligible_count] of [_dup_count] cards can be upgraded. Click one to preview.":
+            xalign 0.5
+            color "#888888"
+            size 16
+
+        viewport:
+            xsize 1500
+            ysize 640
+            scrollbars "vertical"
+            mousewheel True
+            draggable True
+
+            vbox:
+                spacing 14
+
+                for _col in _dup_color_order:
+                    if _dup_by_color.get(_col):
+                        $ _col_hex = _DUP_COLOR_HEX.get(_col, "#888888")
+                        $ _col_cards = _dup_by_color[_col]
+
+                        hbox:
+                            spacing 10
+                            text "{} ({})".format(_col.upper(), len(_col_cards)):
+                                color _col_hex
+                                size 18
+                                bold True
+                                font "fonts/RobotoMono-Regular.ttf"
+
+                        $ _rows = [_col_cards[i:i+4] for i in range(0, len(_col_cards), 4)]
+                        vbox:
+                            spacing 8
+                            for _row in _rows:
+                                hbox:
+                                    spacing 8
+                                    for _cid in _row:
+                                        $ _c = CARD_LIBRARY.get(_cid, {})
+                                        $ _can_up = is_upgradeable(_cid)
+                                        $ _bg_color = "#0d0d0dee" if _can_up else "#0a0a0a99"
+                                        ## Already-upgraded cards render their name green
+                                        ## here too — the picker won't let you pick them
+                                        ## (they're non-upgradeable), but the green tells
+                                        ## you why they're locked.
+                                        $ _name_color = card_name_color(_c, "#ffffff" if _can_up else "#555555")
+                                        $ _flavor_color = "#aaaaaa" if _can_up else "#3a3a3a"
+
+                                        button:
+                                            xsize 350
+                                            ysize 130
+                                            background Frame(_bg_color, 4, 4)
+                                            hover_background (Frame("#2a1a00ee", 4, 4) if _can_up else Frame(_bg_color, 4, 4))
+                                            sensitive _can_up
+                                            action Return(_cid)
+                                            padding (12, 10)
+
+                                            vbox:
+                                                spacing 4
+
+                                                hbox:
+                                                    spacing 6
+                                                    text "[[ {} ]".format(_c.get("cost", 0)):
+                                                        color _col_hex
+                                                        size 14
+                                                        bold True
+                                                    text _c.get("name", _cid) substitute False:
+                                                        color _name_color
+                                                        size 16
+                                                        bold True
+                                                    if not _can_up:
+                                                        text "·":
+                                                            color "#3a3a3a"
+                                                            size 14
+                                                        text "can't upgrade":
+                                                            color "#555533"
+                                                            size 11
+                                                            italic True
+
+                                                text "{} · {} · {}".format(_c.get("type", ""), _c.get("rarity", ""), _c.get("color", "")):
+                                                    color "#666666"
+                                                    size 11
+
+                                                text _c.get("flavor", "") substitute False:
+                                                    color _flavor_color
+                                                    size 13
+                                                    xmaximum 326
+
+                if not _dup_cards:
+                    text "Your deck is empty.":
+                        color "#666666"
+                        size 16
+                        italic True
+                        xalign 0.5
+                        text_align 0.5
+
+        textbutton "[[ ← BACK TO GYM ]":
+            xalign 0.5
+            action Return("cancel")
+            text_color "#aaaaaa"
+            text_hover_color "#ffffff"
+            text_size 20
+            text_bold True
+            text_font "fonts/RobotoMono-Regular.ttf"
+            background Frame("#1a1a1aee", 4, 4)
+            hover_background Frame("#2a2a2aee", 4, 4)
+            padding (24, 10)
+
+    key "K_ESCAPE" action Return("cancel")
+
+
+## ---------------------------------------------------------------------------
+## Card Upgrade Preview — side-by-side BASE → PLUS, with CONFIRM / CANCEL.
+## Reuses the card-frame visual from card_offer_screen for both panels so
+## the player reads the comparison instantly.
+## ---------------------------------------------------------------------------
+
+screen card_upgrade_preview(base_id):
+    modal True
+    zorder 710
+
+    add "#0a0a0aee"
+
+    use class_color_frame(thickness=3, alpha_suffix="aa")
+
+    python:
+        _CUP_COLORS = {
+            "Physical": "#ff6633",
+            "Mental":   "#9944cc",
+            "Money":    "#ffd700",
+            "Logic":    "#00ccff",
+            "Police":   "#3388cc",
+            "Special":  "#00cc88",
+        }
+        _cup_base = CARD_LIBRARY.get(base_id, {})
+        _cup_plus_id = get_upgraded_id(base_id)
+        _cup_plus = CARD_LIBRARY.get(_cup_plus_id, {}) if _cup_plus_id else {}
+        _cup_color = _CUP_COLORS.get(_cup_base.get("color", "Special"), "#888888")
+        _cup_upg_accent = "#ffaa44"
+
+    vbox:
+        xalign 0.5
+        yalign 0.04
+        spacing 6
+
+        text "CONFIRM UPGRADE":
+            xalign 0.5
+            color "#ffffff"
+            size 28
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+
+        text "[_cup_base.get('name', base_id)]   →   [_cup_plus.get('name', '?')]" substitute False:
+            xalign 0.5
+            color _cup_upg_accent
+            size 16
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+
+    hbox:
+        xalign 0.5
+        yalign 0.46
+        spacing 30
+
+        ## LEFT — base card
+        use _upgrade_card_panel(card=_cup_base, accent_color=_cup_color, label="CURRENT")
+
+        ## Arrow glyph
+        vbox:
+            yalign 0.5
+            xsize 80
+            text "→":
+                xalign 0.5
+                yalign 0.5
+                color _cup_upg_accent
+                size 80
+                bold True
+
+        ## RIGHT — upgraded card
+        use _upgrade_card_panel(card=_cup_plus, accent_color=_cup_upg_accent, label="UPGRADED")
+
+    hbox:
+        xalign 0.5
+        yalign 0.93
+        spacing 50
+
+        textbutton "[[ CANCEL ]":
+            xsize 320
+            xalign 0.5
+            action Return("cancel")
+            text_color "#aaaaaa"
+            text_hover_color "#ffffff"
+            text_size 24
+            text_bold True
+            text_font "fonts/RobotoMono-Regular.ttf"
+            text_xalign 0.5
+            background Frame("#1a1a1aee", 4, 4)
+            hover_background Frame("#2a2a2aee", 4, 4)
+            padding (20, 14)
+
+        null width 1
+
+        textbutton "[[ CONFIRM ]":
+            xsize 320
+            xalign 0.5
+            action Return("confirm")
+            text_color "#ffffff"
+            text_hover_color _cup_upg_accent
+            text_size 24
+            text_bold True
+            text_font "fonts/RobotoMono-Regular.ttf"
+            text_xalign 0.5
+            background Frame("#1a1a1aee", 4, 4)
+            hover_background Frame("#2a2a2aee", 4, 4)
+            padding (20, 14)
+
+    text "ENTER = confirm   ·   ESC = cancel":
+        xalign 0.5
+        yalign 0.985
+        color "#444444"
+        size 12
+        font "fonts/RobotoMono-Regular.ttf"
+
+    key "K_RETURN" action Return("confirm")
+    key "K_KP_ENTER" action Return("confirm")
+    key "K_ESCAPE" action Return("cancel")
+
+
+screen _upgrade_card_panel(card, accent_color, label):
+    ## Shared card preview tile for card_upgrade_preview. Same shape as the
+    ## TAKE panel in card_offer_screen so the eye recognizes "this is a card".
+    frame:
+        xsize 420
+        ysize 540
+        background Frame("#0d0d0dee", 4, 4)
+        padding (22, 18)
+
+        vbox:
+            spacing 12
+            xalign 0.5
+
+            frame:
+                xalign 0.5
+                xsize 360
+                ysize 5
+                background Frame(accent_color, 0, 0)
+
+            text label:
+                color accent_color
+                size 13
+                xalign 0.5
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
+
+            null height 4
+
+            frame:
+                xsize 56
+                ysize 56
+                background Frame(accent_color, 4, 4)
+                xalign 0.5
+                text "[card.get('cost', 0)]":
+                    color "#000000"
+                    size 32
+                    bold True
+                    xalign 0.5
+                    yalign 0.5
+
+            null height 2
+
+            text card.get("name", "?") substitute False:
+                color card_name_color(card, "#ffffff")
+                size 28
+                bold True
+                xalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
+
+            text "{} · {} · {}".format(card.get("type", ""), card.get("rarity", "").upper(), card.get("color", "")) substitute False:
+                color accent_color
+                size 13
+                xalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
+
+            null height 10
+
+            text "─────────────────────────":
+                color "#222222"
+                size 12
+                xalign 0.5
+
+            null height 6
+
+            $ _cup_eff = effect_description(card.get("effect"))
+            if _cup_eff:
+                text _cup_eff substitute False:
+                    color "#ffffff"
+                    size 16
+                    bold True
+                    xalign 0.5
+                    xmaximum 360
+                    text_align 0.5
+                    line_spacing 3
+
+                null height 8
+
+            text card.get("flavor", "") substitute False:
+                color "#888888"
+                size 13
+                italic True
+                xalign 0.5
+                xmaximum 360
+                text_align 0.5
+
+            if card.get("exhaust"):
+                null height 6
+                text "[[EXHAUST]":
+                    color "#cc4444"
+                    size 13
+                    bold True
+                    xalign 0.5
+
+
+## ---------------------------------------------------------------------------
+## Upgrade Reveal — fade-in, big card centered, 1s pause, fade-out. Used
+## right after a confirmed upgrade, before end_day.
+## ---------------------------------------------------------------------------
+
+transform _upgrade_reveal_anim:
+    alpha 0.0 zoom 0.85
+    on show:
+        parallel:
+            ease 0.35 alpha 1.0
+        parallel:
+            ease 0.35 zoom 1.0
+
+screen upgrade_reveal_screen(plus_id):
+    modal True
+    zorder 720
+
+    add "#000000ff"
+
+    python:
+        _UR_COLORS = {
+            "Physical": "#ff6633",
+            "Mental":   "#9944cc",
+            "Money":    "#ffd700",
+            "Logic":    "#00ccff",
+            "Police":   "#3388cc",
+            "Special":  "#00cc88",
+        }
+        _ur_card = CARD_LIBRARY.get(plus_id, {})
+        _ur_color = _UR_COLORS.get(_ur_card.get("color", "Special"), "#ffaa44")
+        _ur_accent = "#ffaa44"
+
+    frame at _upgrade_reveal_anim:
+        xalign 0.5
+        yalign 0.5
+        xsize 480
+        ysize 600
+        background Frame("#0d0d0dee", 4, 4)
+        padding (24, 20)
+
+        vbox:
+            spacing 14
+            xalign 0.5
+
+            text "UPGRADED":
+                color _ur_accent
+                size 18
+                bold True
+                xalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
+
+            frame:
+                xalign 0.5
+                xsize 400
+                ysize 5
+                background Frame(_ur_accent, 0, 0)
+
+            null height 6
+
+            frame:
+                xsize 64
+                ysize 64
+                background Frame(_ur_color, 4, 4)
+                xalign 0.5
+                text "[_ur_card.get('cost', 0)]":
+                    color "#000000"
+                    size 36
+                    bold True
+                    xalign 0.5
+                    yalign 0.5
+
+            null height 4
+
+            text _ur_card.get("name", "?") substitute False:
+                color card_name_color(_ur_card, "#ffffff")
+                size 36
+                bold True
+                xalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
+
+            text "{} · {} · {}".format(_ur_card.get("type", ""), _ur_card.get("rarity", "").upper(), _ur_card.get("color", "")) substitute False:
+                color _ur_color
+                size 14
+                xalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
+
+            null height 12
+
+            text "─────────────────────────":
+                color "#222222"
+                size 12
+                xalign 0.5
+
+            null height 6
+
+            $ _ur_eff = effect_description(_ur_card.get("effect"))
+            if _ur_eff:
+                text _ur_eff substitute False:
+                    color "#ffffff"
+                    size 18
+                    bold True
+                    xalign 0.5
+                    xmaximum 420
+                    text_align 0.5
+                    line_spacing 3
+
+            null height 10
+
+            text _ur_card.get("flavor", "") substitute False:
+                color "#aaaaaa"
+                size 14
+                italic True
+                xalign 0.5
+                xmaximum 420
+                text_align 0.5
+
+    timer 1.0 action Return(True)
 
 
 ## ---------------------------------------------------------------------------
@@ -2531,7 +3516,7 @@ screen card_acquired_toast(card):
                 size 12
 
             text card.get("name", ""):
-                color "#ffffff"
+                color card_name_color(card, "#ffffff")
                 size 18
                 bold True
 

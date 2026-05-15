@@ -912,7 +912,7 @@ init python:
         effect        = "snap",
         is_rage       = True,
         pool_excluded = True,
-        flavor        = "Free swing. Something in the deck breaks for good.",
+        flavor        = "Free swing. A card in your hand burns out for the rest of the fight.",
     )
 
     ## ---------------------------------------------------------------------------
@@ -984,3 +984,127 @@ init python:
         exhaust = True,
         flavor  = "Deal 16. If you're under half HP, draw 2. Exhausts.",
     )
+
+    ## ---------------------------------------------------------------------------
+    ## UPGRADE TABLE — back-fill `_plus` variants for every upgradeable base
+    ## card. Status / rage / compromise cards are intentionally absent (they're
+    ## dead-weight by design — can't sand off corruption with a gym session).
+    ##
+    ## Balance philosophy (see plan thread):
+    ##   - Commons: tiny bumps (Strike 6→9, Defend 5→8). "Don't upgrade these,
+    ##     remove them." The lesson is deck-thinning, not deck-buffing.
+    ##   - Uncommons: ~25–30% bump on the main number, or one quality-of-life
+    ##     toggle (exhaust off, cost down).
+    ##   - Rares: conservative scalar bump. Already strong; don't break them.
+    ##   - Powers: small (compounds across turns).
+    ##   - Money / stat scalers: tighten the ratio, not the cap.
+    ##
+    ## Effect-id convention: `<base_id>_plus` for everything, even pure scalar
+    ## bumps. Verbose but unambiguous — no shared numeric ids between cards.
+    ## ---------------------------------------------------------------------------
+
+    ## Universal starters
+    register_upgrade("strike",                effect="strike_plus",                flavor="The simplest argument: hit harder. Then a little harder.")
+    register_upgrade("defend",                effect="defend_plus",                flavor="Don't take the bait. Don't take the punch.")
+
+    ## Class starters
+    register_upgrade("heavy_set",             effect="heavy_set_plus",             flavor="Every plate you've ever loaded. Aimed at him. Plus one more.")
+    register_upgrade("read_him",              effect="read_him_plus",              flavor="You hold for a half-second longer. He swings at empty air.")
+    register_upgrade("stack_up",              effect="stack_up_plus",              flavor="+2 energy this turn. Draw a card while the room blurs.")
+
+    ## Gym
+    register_upgrade("iron_will",             effect="iron_will_plus",             flavor="You stop flinching. You stop apologizing for not flinching.")
+    register_upgrade("personal_record",       effect="personal_record_plus",       exhaust=False, flavor="Doubles your next attack. The bar tells the truth, repeatedly.")
+
+    ## Therapy
+    register_upgrade("boundary",              effect="boundary_plus",              flavor="Deal 6 and heal 6. Saying no costs even less than you thought.")
+    register_upgrade("reframe",               effect="reframe",                    cost=0, flavor="Convert the enemy's next attack into block for you. Free now.")
+
+    ## Bouncer
+    register_upgrade("side_income",           effect="side_income_plus",           flavor="Damage equal to (savings / 8,000). Cash works harder.")
+    register_upgrade("vip_treatment",         effect="vip_treatment_plus",         flavor="Deal 34. Lose 10 HP. Still worth it.")
+
+    ## Coding
+    register_upgrade("refactor",              effect="refactor",                   cost=1, flavor="Cancel the enemy's next attack. Cheaper now. Exhausts.")
+    register_upgrade("compile",               effect="compile_plus",               flavor="Draw 3 cards.")
+    register_upgrade("production_push",       effect="production_push_plus",       flavor="Tests pass. Lint passes. Push to main while looking him in the eye.")
+
+    ## Night Shift
+    register_upgrade("backup",                effect="backup_plus",                flavor="+14 block. Kovář has your six. For real this time.")
+    register_upgrade("procedural_defense",    effect="procedural_defense",         cost=1, flavor="Block all damage from his next attack turn. Cheaper. Exhausts.")
+
+    ## Nootropics (BH)
+    register_upgrade("racetam",               effect="racetam_plus",               flavor="+1 energy. Draw 2.")
+    register_upgrade("flmodafinil",           effect="flmodafinil_plus",           flavor="Deal 32. 50%%: lose self for 1 turn. Exhausts.")
+
+    ## Cold Read (DE)
+    register_upgrade("mirror",                effect="mirror_plus",                flavor="Return the enemy's next attack at 2x. +5 block on play. 2-turn cooldown.")
+
+    ## Event drops
+    register_upgrade("algorithm",             effect="algorithm_plus",             flavor="Skip the enemy's next 3 attacks. Exhausts.")
+    register_upgrade("snitch_info",           effect="snitch_info_plus",           flavor="The voicemail was clean. The next swings aren't.")
+    register_upgrade("paragraph_4b",          effect="paragraph_4b_plus",          flavor="Deal 48. The 80k debt is dust.")
+    register_upgrade("ghost_secret",          effect="ghost_secret_plus",          flavor="Cancel one incoming attack. Deal 20. Leverage compounds.")
+    register_upgrade("job_offer",             effect="job_offer_plus",             flavor="+8 max HP at start. +1 starting block per turn.")
+    register_upgrade("stoic_refactor",        effect="stoic_refactor_plus",        flavor="Power: take 50%% damage from Mental AND Special attacks.")
+    register_upgrade("stoic_anchor",          effect="stoic_anchor_plus",          flavor="Power: +3 starting block per turn. Heal 2 HP after each enemy attack.")
+
+    ## Additional cards
+    register_upgrade("quick_jab",             effect="quick_jab_plus",             flavor="Deal 10. Still no setup. Still no follow-through.")
+    register_upgrade("loan_sharks",           effect="loan_sharks_plus",           flavor="Pay 5,000 CZK to deal 36 damage. Exhausts.")
+    register_upgrade("chain_of_command",      effect="chain_of_command_plus",      flavor="Gain 13 block and draw 1. The chain is shorter than it was.")
+    register_upgrade("vigil",                 effect="vigil_plus",                 flavor="Gain 6 block now. +6 starting block next turn.")
+    register_upgrade("iron_stance",           effect="iron_stance_plus",           flavor="+24 block. Retaliate scales with turn — late game is lethal.")
+    register_upgrade("spotter",               effect="spotter_plus",               flavor="Gain 9 block. Draw 1. The trainer counts louder.")
+    register_upgrade("brawl",                 effect="brawl_plus",                 flavor="Deal 12 + 4-turn bleed (4 dmg/turn). It IS personal.")
+    register_upgrade("paid_review",           effect="paid_review_plus",           flavor="The senior charges 8,000 now. He's still awake. He still answers.")
+    register_upgrade("empaths_insight",       effect="empaths_insight_plus",       flavor="Their first move tells you their last four. Block stacks.")
+
+    ## GOTY v2 class identity
+    register_upgrade("iron_body",             effect="iron_body_plus",             flavor="Gain 8 block. Retaliate 6 dmg the next time you're hit.")
+    register_upgrade("pump",                  effect="pump_plus",                  flavor="Gain 2 energy this turn. +3 Hatred. Less roar, more aim.")
+    register_upgrade("strongman",             effect="strongman_plus",             flavor="Gain 28 block + draw 2. The bar doesn't survive this one.")
+    register_upgrade("tell",                  effect="tell_plus",                  flavor="You see his shoulders set, his eyes flick. Free 11 block.")
+    register_upgrade("frame_trap",            effect="frame_trap_plus",            flavor="Reduce the enemy's next attack by 11 (minimum 1).")
+    register_upgrade("charm",                 effect="charm_plus",                 flavor="Heal 10 HP and gain 5 block. You own the room now.")
+    register_upgrade("hrv_spike",             effect="hrv_spike_plus",             flavor="Gain 2 energy. Lose 3 HP. Smaller crash, same lift.")
+    register_upgrade("cognitive_stack",       effect="cognitive_stack_plus",       flavor="Draw 4 cards. Exhausts. The compound is dialed in.")
+    register_upgrade("override",              effect="override_plus",              flavor="Deal 44 damage. -2 max energy next turn. Exhausts.")
+
+    ## Arc rewards
+    register_upgrade("the_dossier",           effect="the_dossier_plus",           flavor="Cancel one incoming attack. Deal 30. They know what you have.")
+    register_upgrade("the_compound",          effect="the_compound_plus",          flavor="Deal damage equal to current energy ×12. Lose 12 HP. Trial doubled.")
+
+    ## Story grants
+    register_upgrade("took_the_heat",         effect="took_the_heat_plus",         flavor="Gain 13 block. Draw 1. You owned it, twice.")
+
+    ## Battle ladder basics — Body
+    register_upgrade("gut_punch",             effect="gut_punch_plus",             flavor="Deal 11. Below the ribs. He folds harder.")
+    register_upgrade("bracing",               effect="bracing_plus",               flavor="Gain 11 block. Square your stance, lower your center.")
+    register_upgrade("second_wind",           effect="second_wind_plus",           flavor="Heal 8. Gain 10 block. The lungs come back deeper.")
+    register_upgrade("body_check",            effect="body_check_plus",            flavor="Deal 17. Drop your full weight through them.")
+    register_upgrade("payday",                effect="payday_plus",                flavor="Deal damage = Money / 4,000, max 20. Cash hits sharper.")
+    register_upgrade("bouncer_door",          effect="bouncer_door_plus",          flavor="Gain 22 block. Retaliate 10 dmg on the next hit.")
+
+    ## Battle ladder basics — Tech
+    register_upgrade("quick_compile",         effect="quick_compile_plus",         flavor="Draw 2. The build is green.")
+    register_upgrade("lint_pass",             effect="lint_pass_plus",             flavor="Exhaust a random card from hand. Draw 2.")
+    register_upgrade("stack_trace",           effect="stack_trace_plus",           flavor="Walk the call up. Three more swings ready.")
+    register_upgrade("unit_test",             effect="unit_test_plus",             flavor="Gain 8 block per Skill in your hand (cap 32).")
+    register_upgrade("merge_conflict",        effect="merge_conflict_plus",        flavor="Deal 13. Draw 1. Resolve theirs harder.")
+    register_upgrade("kernel_patch",          effect="kernel_patch_plus",          flavor="Gain 1 energy. Draw 3. Exhausts.")
+    register_upgrade("pair_program",          effect="pair_program_plus",          flavor="Gain 5 block. Draw 1. Free.")
+
+    ## Battle ladder basics — Authority
+    register_upgrade("radio_call",            effect="radio_call_plus",            flavor="Dispatch holds the whole block.")
+    register_upgrade("breath_test",           effect="breath_test_plus",           flavor="Reduce his next attack by 8 (min 1).")
+    register_upgrade("procedural_kick",       effect="procedural_kick_plus",       flavor="Deal 7. Gain 7 block. By the book, harder boot.")
+    register_upgrade("riot_shield",           effect="riot_shield_plus",           flavor="Gain 17 block. +6 starting block next turn.")
+    register_upgrade("cuff_em",               effect="cuff_em",                    cost=1, flavor="Skip his next attack. Cheaper now. Exhausts.")
+    register_upgrade("internal_review",       effect="internal_review_plus",       flavor="Cancel his next attack. Deal 12 damage. Exhausts.")
+
+    ## Combat-reward rares
+    register_upgrade("killing_blow",          effect="killing_blow_plus",          flavor="Deal 16. If they're below half HP: deal 16 more.")
+    register_upgrade("tactical_read",         effect="tactical_read_plus",         flavor="Gain 2 energy AND draw 1. Exhausts.")
+    register_upgrade("iron_drill",            effect="iron_drill_plus",            flavor="Gain 15 block + 4 per Skill in hand (cap +16). Reps compound.")
+    register_upgrade("last_stand",            effect="last_stand_plus",            flavor="Deal 19. If you're under half HP, draw 2. Exhausts.")

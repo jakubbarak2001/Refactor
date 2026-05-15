@@ -38,7 +38,14 @@ init -1 python:
     card_effects = {}
 
     def register_card(card_id, **fields):
-        """Register a card definition. Idempotent — last registration wins."""
+        """Register a card definition. Idempotent — last registration wins.
+
+        If `upgrade={...}` is supplied, a sibling `<card_id>_plus` is auto-
+        registered with the base fields plus the overrides. Name auto-suffixes
+        with `+`, `is_upgraded=True`, and `upgrade_to` is unset on the plus
+        (can't upgrade twice). The base card's `upgrade_to` points at the
+        plus id, signaling it's upgradeable.
+        """
         defaults = {
             "id":         card_id,
             "name":       card_id,
@@ -55,9 +62,25 @@ init -1 python:
             "is_rage":       False,
             "is_compromise": False,
             "unplayable":    False,
+            "is_upgraded":   False,
+            "upgrade_to":    None,
         }
+        upgrade_overrides = fields.pop("upgrade", None)
         defaults.update(fields)
         defaults["id"] = card_id
+
+        if upgrade_overrides is not None:
+            plus_id = "{}_plus".format(card_id)
+            plus = dict(defaults)
+            plus.update(upgrade_overrides)
+            plus["id"] = plus_id
+            plus["name"] = "{}+".format(defaults.get("name", card_id))
+            plus["is_upgraded"] = True
+            plus["upgrade_to"] = None
+            plus["pool_excluded"] = True
+            CARD_LIBRARY[plus_id] = plus
+            defaults["upgrade_to"] = plus_id
+
         CARD_LIBRARY[card_id] = defaults
         return defaults
 
@@ -119,11 +142,15 @@ init -1 python:
     ## Module-level deck — initialised in init_game alongside stats/day_cycle.
     player_deck = None
 
-    ## Class-signature cards — protected from permanent-removal effects
-    ## (Snap's deck-shred, future Fixer logic, anything else that nukes
-    ## cards out of the run-deck). One copy of each per class; the card
-    ## IS the class fantasy.
-    CLASS_SIGNATURE_CARDS = {"heavy_set", "read_him", "stack_up"}
+    ## Class-signature cards — protected from permanent-removal effects.
+    ## Canonical set; the Fixer (`script.rpy::fixer_meet`) reads this when
+    ## filtering shred-eligible cards. Both base and `_plus` upgraded ids
+    ## are included so upgrading your signature doesn't unlock it for
+    ## removal. One copy of each per class; the card IS the class fantasy.
+    CLASS_SIGNATURE_CARDS = {
+        "heavy_set", "read_him", "stack_up",
+        "heavy_set_plus", "read_him_plus", "stack_up_plus",
+    }
 
     ## ---------------------------------------------------------------------------
     ## Fixer pricing — flat current price for ANY removal, escalates per shred.
@@ -158,6 +185,86 @@ init -1 python:
     ## price ignoring the per-card argument.
     def _fixer_price_for(card_id=None):
         return fixer_current_price()
+
+
+    def register_upgrade(base_id, **overrides):
+        """Register a `<base_id>_plus` variant for an existing base card,
+        mirroring what `register_card(upgrade={...})` does inline. Use this
+        when retro-fitting upgrades onto cards that were already registered
+        without an `upgrade=` kwarg.
+
+        Refuses to upgrade corruption (rage / compromise / status_*) — these
+        are intentionally dead-weight and must not be sandable via gym."""
+        base = CARD_LIBRARY.get(base_id)
+        if base is None:
+            return None
+        if base.get("is_rage") or base.get("is_compromise"):
+            return None
+        if (base.get("effect") or "").startswith("status_"):
+            return None
+        plus_id = "{}_plus".format(base_id)
+        plus = dict(base)
+        plus.update(overrides)
+        plus["id"] = plus_id
+        plus["name"] = "{}+".format(base.get("name", base_id))
+        plus["is_upgraded"] = True
+        plus["upgrade_to"] = None
+        plus["pool_excluded"] = True
+        CARD_LIBRARY[plus_id] = plus
+        base["upgrade_to"] = plus_id
+        return plus
+
+    def is_upgraded(card_id):
+        c = CARD_LIBRARY.get(card_id)
+        return bool(c and c.get("is_upgraded"))
+
+    ## Bright green for upgraded card names everywhere they render — single
+    ## visual signal across reward / deck / hand / fixer screens. The "+"
+    ## suffix from register_upgrade stays in the name itself.
+    UPGRADE_NAME_COLOR = "#44ee77"
+
+    def card_name_color(card_or_id, fallback="#ffffff"):
+        """Return UPGRADE_NAME_COLOR if the card is `_plus`-upgraded, else
+        `fallback`. Accepts either a card_id string or a card dict. Use
+        from any screen that renders an upgradeable card's name."""
+        c = card_or_id
+        if isinstance(c, str):
+            c = CARD_LIBRARY.get(c)
+        if c and c.get("is_upgraded"):
+            return UPGRADE_NAME_COLOR
+        return fallback
+
+    def get_upgraded_id(card_id):
+        c = CARD_LIBRARY.get(card_id)
+        return c.get("upgrade_to") if c else None
+
+    def is_upgradeable(card_id):
+        """A card is upgradeable if it has an `upgrade_to` target. Rage,
+        compromise, status, and already-upgraded `_plus` cards have no
+        upgrade target by construction."""
+        c = CARD_LIBRARY.get(card_id)
+        if not c:
+            return False
+        if c.get("is_rage") or c.get("is_compromise"):
+            return False
+        if (c.get("effect") or "").startswith("status_"):
+            return False
+        return bool(c.get("upgrade_to"))
+
+    def upgrade_card_in_deck(card_id):
+        """Swap the FIRST occurrence of `card_id` in player_deck for its
+        `_plus` variant. Returns the new id on success, None otherwise."""
+        global player_deck
+        if player_deck is None:
+            return None
+        plus_id = get_upgraded_id(card_id)
+        if plus_id is None or plus_id not in CARD_LIBRARY:
+            return None
+        if card_id not in player_deck.cards:
+            return None
+        idx = player_deck.cards.index(card_id)
+        player_deck.cards[idx] = plus_id
+        return plus_id
 
 
     def grant_card(card_id, silent=False):
@@ -217,6 +324,25 @@ init -1 python:
         "hard":   {"common": 0.00, "uncommon": 0.30, "rare": 0.70},
     }
 
+    ## Day-banded upgrade-roll for combat-reward cards. Each rolled reward
+    ## checks `_plus` promotion AFTER the base rarity roll, with chance
+    ## ramping over the 30-day run. Early run: an upgraded reward is a
+    ## happy accident. Late run: a real possibility, never a guarantee.
+    ## Tuning lever for balance-judge: edit these three rows.
+    _LADDER_UPGRADE_DAY_CHANCE = (
+        ## (max_day_inclusive, base_chance)
+        (10,  0.03),  ## days 1-10  → 3%
+        (20,  0.12),  ## days 11-20 → 12%
+        (30,  0.25),  ## days 21-30 → 25%
+    )
+    _LADDER_UPGRADE_TIER_MULT = {
+        ## Hard fights bias toward upgrades on top of biasing toward rares.
+        "easy":   1.0,
+        "medium": 1.25,
+        "hard":   2.0,
+    }
+    _LADDER_UPGRADE_CHANCE_CAP = 0.50  ## even a Day-30 Hard fight tops out here
+
 
     def _ladder_pool_eligible(c):
         """Filter for the basic-reward pool: no class-lock, not boss-rarity,
@@ -245,6 +371,26 @@ init -1 python:
         return last
 
 
+    def _ladder_upgrade_chance(tier):
+        """Compute the per-card upgrade-promotion probability for the
+        current run-day and ladder tier. Reads day_cycle.current_day so
+        late-run rewards lean upgraded; pure RNG below the cap."""
+        try:
+            _day = day_cycle.current_day if day_cycle is not None else 1
+        except Exception:
+            _day = 1
+        _base = 0.0
+        for _max_day, _chance in _LADDER_UPGRADE_DAY_CHANCE:
+            if _day <= _max_day:
+                _base = _chance
+                break
+        else:
+            ## Past the last band — clamp to the highest tier's base chance.
+            _base = _LADDER_UPGRADE_DAY_CHANCE[-1][1]
+        _mult = _LADDER_UPGRADE_TIER_MULT.get(tier, 1.0)
+        return min(_LADDER_UPGRADE_CHANCE_CAP, _base * _mult)
+
+
     def pick_battle_rewards(tier):
         """Pick 3 unique card_ids from the basic pool, weighted by tier.
 
@@ -252,6 +398,13 @@ init -1 python:
         uncommon/rare. Returns up to 3 ids; fewer only if the pool is too
         small for the requested rarities (won't happen in practice once
         Slice 3's cards ship).
+
+        Each rolled reward then gets an independent shot at being
+        PROMOTED to its `_plus` upgraded variant. Probability scales
+        with `day_cycle.current_day` and `tier` — see _LADDER_UPGRADE_*
+        constants. Cards without an `upgrade_to` (e.g. status / rage /
+        compromise, though those never appear in the basic pool anyway)
+        simply skip the roll and stay base.
         """
         import random as _r
         weights = _LADDER_REWARD_WEIGHTS.get(tier, _LADDER_REWARD_WEIGHTS["easy"])
@@ -279,6 +432,21 @@ init -1 python:
             cid = _r.choice(buckets[r])
             if cid not in rolled:
                 rolled.append(cid)
+
+        ## Promotion pass — independent per-card roll. Roll AFTER rarity
+        ## picks so the upgrade chance compounds with the existing rare-
+        ## bias on Hard fights (a Hard Day-25 fight rolls a rare AND has
+        ## a 50% shot at upgrading it = the "this is the prize" feeling).
+        _up_chance = _ladder_upgrade_chance(tier)
+        if _up_chance > 0.0:
+            promoted = []
+            for cid in rolled:
+                plus_id = get_upgraded_id(cid)
+                if plus_id and plus_id in CARD_LIBRARY and _r.random() < _up_chance:
+                    promoted.append(plus_id)
+                else:
+                    promoted.append(cid)
+            rolled = promoted
         return rolled
 
 

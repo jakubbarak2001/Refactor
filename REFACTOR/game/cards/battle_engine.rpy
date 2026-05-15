@@ -26,23 +26,38 @@
 ## battle log. Default off — never ships true.
 default persistent.debug_battle = False
 
+## Dedicated audio channel for per-card SFX (rvac_swing, paper_wall, gas_throw,
+## flare_throw, etc.). MUST be its own channel — the default "sound" channel
+## gets stomped a few frames later by the per-popup hit_thud / enemy_hit
+## punches that fire when deal_damage resolves. Without a separate channel
+## the swing/wall sounds were cut off before the player heard them.
+init python:
+    try:
+        renpy.music.register_channel("battle_card_sfx", mixer="sfx", loop=False)
+    except Exception:
+        pass
+
 init python:
 
     import random as _battle_rand
 
-    def _play_battle_sfx(name):
+    def _play_battle_sfx(name, channel="sound"):
         """Phase A juice — play a battle SFX from audio/sfx/<name>.<ext>.
 
         Tries .ogg, then .mp3, then .wav. Silently skips if no matching
         file is present, so the engine works with or without the SFX
-        library installed. The user can drop any supported format and
-        it'll auto-wire.
+        library installed.
+
+        `channel` defaults to "sound" (Ren'Py's built-in SFX channel).
+        Per-card intent SFX should pass `channel="battle_card_sfx"` so
+        they don't get cut off by the hit_thud / enemy_hit punches that
+        also play on the default channel during the deal_damage popup.
         """
         for _ext in (".ogg", ".mp3", ".wav"):
             path = "audio/sfx/{}{}".format(name, _ext)
             if renpy.loadable(path):
                 try:
-                    renpy.sound.play(path)
+                    renpy.sound.play(path, channel=channel)
                 except Exception:
                     pass
                 return
@@ -258,6 +273,9 @@ init python:
                 ## Apply mental damage reduction if buff active
                 if self.buffs.get("mental_dr_50") and self._intent_has_tag("mental"):
                     amount = max(1, amount // 2)
+                ## Stoic Refactor+ extends the 50% DR to Special-typed attacks too.
+                if self.buffs.get("special_dr_50") and self._intent_has_tag("special"):
+                    amount = max(1, amount // 2)
                 if bypass_block:
                     absorbed = 0
                 else:
@@ -430,7 +448,7 @@ init python:
             if isinstance(cost, int) and cost > self.energy:
                 return False, "Not enough energy."
             ## Mirror has a per-fight cooldown after each use
-            if card_id == "mirror" and self.buffs.get("mirror_cooldown", 0) > 0:
+            if card_id in ("mirror", "mirror_plus") and self.buffs.get("mirror_cooldown", 0) > 0:
                 return False, "Mirror on cooldown ({} turns).".format(self.buffs["mirror_cooldown"])
             return True, ""
 
@@ -578,6 +596,24 @@ init python:
             bs.buffs["cards_cap_next_turn"] = 0
         else:
             bs.current_turn_max_cards = None
+
+        ## The Doctrine — telegraph-as-debuff. When the Colonel's UPCOMING
+        ## intent (the one the player is about to see this turn) is
+        ## the_doctrine, the card-play cap applies THIS player turn, not
+        ## the next one. Mechanically: by the time the player reads "There
+        ## is a rule, JB", the rule is already on them. The 15-dmg attack
+        ## leg still resolves at end-of-turn via the normal attack path.
+        try:
+            _next_ic = bs.intent_queue[bs.intent_index] if bs.intent_queue else None
+        except Exception:
+            _next_ic = None
+        if _next_ic == "the_doctrine":
+            ## Take the tightest cap if another restrict is already latched
+            ## (defensive — no current enemy stacks restricts, but the
+            ## generic `restrict` path lives on for future cards).
+            _existing = bs.current_turn_max_cards
+            bs.current_turn_max_cards = 1 if _existing is None else min(_existing, 1)
+            bs.add_log("[[The Doctrine]: one card this turn.")
 
         ## Phase C juice — timestamp the turn start so the screen can render
         ## a sliding TURN N banner that auto-fades after 1.4s.
@@ -931,12 +967,13 @@ init python:
             bs.buffs["next_attack_reduction"] = 0
             bs.add_log("[[Frame Trap]: attack softened.")
 
-        ## Per-card SFX — fire once at the start of the intent resolve so the
-        ## sound layers under (not behind) the per-hit popup thuds. Card_id ==
-        ## the basename in audio/sfx/<id>.{ogg,mp3,wav}; _play_battle_sfx does
-        ## the loadable check + try/except + auto-extension lookup.
+        ## Per-card SFX — fire once at the start of the intent resolve.
+        ## Routed to the dedicated "battle_card_sfx" channel so the swing /
+        ## wall / throw sound LAYERS UNDER the per-hit punch thuds (which
+        ## play on the default "sound" channel a few frames later). Card_id
+        ## == basename in audio/sfx/<id>.{ogg,mp3,wav}.
         if ic.get("id") in ("gas_throw", "flare_throw", "paper_wall", "rvac_swing"):
-            _play_battle_sfx(ic["id"])
+            _play_battle_sfx(ic["id"], channel="battle_card_sfx")
 
         ## Resolve intent by type
         intent_type = ic.get("intent", "attack")

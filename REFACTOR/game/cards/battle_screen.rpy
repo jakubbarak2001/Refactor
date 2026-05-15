@@ -615,7 +615,8 @@ screen battle_pile_peek():
                                     else:
                                         $ _ccol = _PEEK_COLORS.get(_c.get("color", "Special"), "#888888")
                                         $ _c_prefix = ""
-                                        $ _c_name_color = "#ffffff"
+                                        ## Upgraded cards (clean — never corruption) → green name.
+                                        $ _c_name_color = card_name_color(_c, "#ffffff")
                                     frame:
                                         xsize 340
                                         background Frame("#0d0d0dee", 3, 3)
@@ -1212,6 +1213,16 @@ screen battle_screen():
                     $ _is_status     = (_card.get("effect") or "").startswith("status_")
                     $ _is_rage       = bool(_card.get("is_rage"))
                     $ _is_compromise = bool(_card.get("is_compromise"))
+                    ## Upgraded cards (`_plus` variants) — single signal: the
+                    ## name text flips to bright green. The "+" suffix on
+                    ## name (auto-emitted by register_upgrade) stays. No
+                    ## extra borders / halos / ribbons — they cluttered the
+                    ## card without adding readability. Green-on-dark reads
+                    ## from any zoom level. Upgrades and corruption never
+                    ## co-occur (register_upgrade refuses status / rage /
+                    ## compromise) so this branch is clean-cards only.
+                    $ _is_upgraded   = bool(_card.get("is_upgraded"))
+                    $ _UPGRADE_GREEN = "#44ee77"
                     ## Type-driven palette: Attack=red, Skill=blue, Power=purple.
                     ## Card "color" taxonomy (Physical/Mental/Money/...) reads as
                     ## random tinting to playtesters; type is unambiguous.
@@ -1282,13 +1293,15 @@ screen battle_screen():
                                     xfill True
                                     spacing 4
 
-                                    ## ── TITLE BANNER — gold serif on dark ribbon ──
+                                    ## ── TITLE BANNER — gold serif on dark ribbon.
+                                    ## Upgraded cards flip the name to bright green
+                                    ## (sole upgrade signal — keeps the layout clean).
                                     frame:
                                         xfill True
                                         ysize 28
                                         background Frame("#0a0806", 4, 4)
                                         text _card.get("name", _cid):
-                                            color ("#e8c878" if _ok else "#554434")
+                                            color (_UPGRADE_GREEN if (_is_upgraded and _ok) else ("#e8c878" if _ok else "#554434"))
                                             size 14
                                             bold True
                                             xalign 0.5

@@ -154,9 +154,10 @@ init python:
     register_enemy_card(
         "the_doctrine",
         name     = "The Doctrine",
-        intent   = "restrict",
-        value    = 1,
-        dialogue = "'There is a rule, JB. One word from you per topic. Choose carefully.'",
+        intent   = "attack",
+        value    = 15,
+        tags     = ["mental"],
+        dialogue = "'There is a rule, JB. One word per topic. The room enforces it.'",
         threat   = 3,
     )
 
