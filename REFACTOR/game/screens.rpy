@@ -3830,12 +3830,11 @@ screen say_dossier(who, what):
         xalign 0.5
         xfill True
         yalign gui.textbox_yalign
-        ## Height bounds: the spine's `yfill True` propagates up to push
-        ## the hbox toward `ymaximum`, so the practical knob for window
-        ## height is ymaximum (not yminimum). Keep it tight so character
-        ## art above the textbox stays unobstructed.
+        ## Window auto-sizes to its content (1–3 body lines + reserved
+        ## 28px name slot + padding). ymaximum 260 caps it so a runaway
+        ## line can't blow past the quick_menu strip.
         yminimum 0
-        ymaximum 230
+        ymaximum 260
         bottom_margin 44
 
         hbox:
@@ -3863,29 +3862,38 @@ screen say_dossier(who, what):
                     spacing 6
                     xfill True
 
-                    ## ALL-CAPS RobotoMono speaker + 1px slate underline.
-                    ## Skipped on narrator lines (who=None).
-                    if who is not None:
-                        vbox:
-                            spacing 3
-                            xalign 0.0
+                    ## Name slot — always 28px tall whether a speaker is
+                    ## present or not. Reserving the slot keeps the body
+                    ## text's Y position consistent between narrator and
+                    ## character lines (the user-requested invariant).
+                    ## When narrator: just blank space. When character:
+                    ## name + 1px slate underline.
+                    fixed:
+                        xfill True
+                        ysize 28
 
-                            ## No inline `color` — let each Character(color=...)
-                            ## drive the namebox tint (colonel blue, martin
-                            ## green, inspector yellow, jb white). The slate
-                            ## underline below + RobotoMono uppercase keep
-                            ## the dossier vocabulary regardless of color.
-                            text _dossier_who id "who":
-                                font DOSSIER_FONT
-                                size 20
-                                kerning 2
-                                outlines [(1, "#000000aa", 0, 0)]
+                        if who is not None:
+                            vbox:
+                                spacing 3
+                                xalign 0.0
+                                yalign 0.0
 
-                            frame:
-                                xsize 140
-                                ysize 1
-                                background Solid(DOSSIER_INK_DIM)
-                                padding (0, 0)
+                                ## No inline `color` — let each Character(color=...)
+                                ## drive the namebox tint (colonel blue, martin
+                                ## green, inspector yellow, jb white). The slate
+                                ## underline below + RobotoMono uppercase keep
+                                ## the dossier vocabulary regardless of color.
+                                text _dossier_who id "who":
+                                    font DOSSIER_FONT
+                                    size 20
+                                    kerning 2
+                                    outlines [(1, "#000000aa", 0, 0)]
+
+                                frame:
+                                    xsize 140
+                                    ysize 1
+                                    background Solid(DOSSIER_INK_DIM)
+                                    padding (0, 0)
 
                     ## Body — preserve `id "what"` for Character() styling.
                     text what id "what"
@@ -4004,18 +4012,21 @@ screen quick_menu():
 
     if quick_menu:
 
-        hbox:
-            style_prefix "quick"
-            style "quick_menu"
+        frame:
+            style "quick_menu_frame"
 
-            textbutton _("Back") action Rollback()
-            textbutton _("History") action ShowMenu('history')
-            textbutton _("Skip") action Skip() alternate Skip(fast=True, confirm=True)
-            textbutton _("Auto") action Preference("auto-forward", "toggle")
-            textbutton _("Save") action ShowMenu('save')
-            textbutton _("Q.Save") action QuickSave()
-            textbutton _("Q.Load") action QuickLoad()
-            textbutton _("Prefs") action ShowMenu('preferences')
+            hbox:
+                style_prefix "quick"
+                style "quick_menu"
+
+                textbutton _("back") action Rollback()
+                textbutton _("history") action ShowMenu('history')
+                textbutton _("skip") action Skip() alternate Skip(fast=True, confirm=True)
+                textbutton _("auto") action Preference("auto-forward", "toggle")
+                textbutton _("save") action ShowMenu('save')
+                textbutton _("q.save") action QuickSave()
+                textbutton _("q.load") action QuickLoad()
+                textbutton _("prefs") action ShowMenu('preferences')
 
 
 ## This code ensures that the quick_menu screen is displayed in-game, whenever
@@ -4026,18 +4037,30 @@ init python:
 default quick_menu = True
 
 style quick_menu is hbox
+style quick_menu_frame is frame
 style quick_button is default
 style quick_button_text is button_text
 
-style quick_menu:
+style quick_menu_frame:
     xalign 0.5
     yalign 1.0
+    background Solid("#0a0a0acc")
+    padding (16, 6)
+
+style quick_menu:
+    spacing 18
 
 style quick_button:
-    properties gui.button_properties("quick_button")
+    padding (8, 2)
 
 style quick_button_text:
-    properties gui.text_properties("quick_button")
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#667788"
+    hover_color "#ff4422"
+    selected_color "#cc2200"
+    insensitive_color "#334455"
+    size 18
+    kerning 1
 
 
 ################################################################################
@@ -4054,60 +4077,61 @@ screen navigation():
     vbox:
         style_prefix "navigation"
 
-        xpos gui.navigation_xpos
-        yalign 0.5
+        xpos 90
+        ypos 230
+        yanchor 0.0
 
         spacing gui.navigation_spacing
 
         if main_menu:
 
-            textbutton _("Start") action Start()
+            textbutton _("►  start") action Start()
 
         else:
 
-            textbutton _("History") action ShowMenu("history")
+            textbutton _("►  history") action ShowMenu("history")
 
-            textbutton _("Save") action ShowMenu("save")
+            textbutton _("►  save") action ShowMenu("save")
 
-        textbutton _("Load") action ShowMenu("load")
+        textbutton _("►  load") action ShowMenu("load")
 
-        textbutton _("Preferences") action ShowMenu("preferences")
+        textbutton _("►  preferences") action ShowMenu("preferences")
 
         if stats is not None:
 
-            textbutton _("Trophies") action [Hide("phone_screen"), ShowMenu("trophies_menu")]
+            textbutton _("►  trophies") action [Hide("phone_screen"), ShowMenu("trophies_menu")]
 
         if _in_replay:
 
-            textbutton _("End Replay") action EndReplay(confirm=True)
+            textbutton _("►  end replay") action EndReplay(confirm=True)
 
         elif not main_menu:
 
-            textbutton _("Main Menu") action MainMenu()
+            textbutton _("►  main menu") action MainMenu()
 
-        textbutton _("About") action ShowMenu("about")
+        textbutton _("►  about") action ShowMenu("about")
 
         if renpy.variant("pc") or (renpy.variant("web") and not renpy.variant("mobile")):
 
             ## Help isn't necessary or relevant to mobile devices.
-            textbutton _("Help") action ShowMenu("help")
+            textbutton _("►  help") action ShowMenu("help")
 
         if renpy.variant("pc"):
 
             ## The quit button is banned on iOS and unnecessary on Android and
             ## Web.
-            textbutton _("Quit") action Quit(confirm=not main_menu)
+            textbutton _("►  quit") action Quit(confirm=not main_menu)
 
 
-style navigation_button is gui_button
-style navigation_button_text is gui_button_text
+style navigation_button is mm_button
+style navigation_button_text is mm_button_text
 
 style navigation_button:
     size_group "navigation"
-    properties gui.button_properties("navigation_button")
+    xsize 360
 
 style navigation_button_text:
-    properties gui.text_properties("navigation_button")
+    size 26
 
 
 ## Main Menu screen ############################################################
@@ -4163,7 +4187,7 @@ screen main_menu():
             padding (10, 6)
 
 
-screen main_menu_top_bar():
+screen dossier_top_bar(left_text="REFACTOR  //  case-file-jb", right_text=None):
     frame:
         xfill True
         ysize 36
@@ -4172,19 +4196,19 @@ screen main_menu_top_bar():
         padding (0, 0)
         has fixed
 
-        text "REFACTOR  //  case-file-jb":
+        text left_text:
             style "mm_status"
             xpos 28
             yalign 0.5
 
-        text "v[config.version]  //  northern bohemia":
+        text (right_text if right_text is not None else "v[config.version]  //  northern bohemia"):
             style "mm_status"
             xalign 1.0
             xoffset -28
             yalign 0.5
 
 
-screen main_menu_bottom_bar():
+screen dossier_bottom_bar(left_text="STATE POLICE  //  INTERNAL USE ONLY", right_text="[[esc] back   [[enter] confirm"):
     frame:
         xfill True
         ysize 36
@@ -4193,16 +4217,24 @@ screen main_menu_bottom_bar():
         padding (0, 0)
         has fixed
 
-        text "STATE POLICE  //  INTERNAL USE ONLY":
+        text left_text:
             style "mm_status"
             xpos 28
             yalign 0.5
 
-        text "[[esc] exit   [[enter] go":
+        text right_text:
             style "mm_status"
             xalign 1.0
             xoffset -28
             yalign 0.5
+
+
+screen main_menu_top_bar():
+    use dossier_top_bar
+
+
+screen main_menu_bottom_bar():
+    use dossier_bottom_bar(right_text="[[esc] exit   [[enter] go")
 
 
 screen main_menu_navigation():
@@ -4279,6 +4311,92 @@ style mm_button_text is button_text:
     outlines [(2, "#000000cc", 0, 0)]
 
 
+style dossier_section_label is gui_text:
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#cc2200"
+    size 22
+    kerning 2
+
+style dossier_subtitle is gui_text:
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#667788"
+    size 18
+    kerning 1
+
+style dossier_body_text is gui_text:
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#c0d0e0"
+    size 22
+
+style dossier_body_text_dim is gui_text:
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#667788"
+    size 18
+
+style dossier_pref_button is mm_button:
+    background None
+    hover_background Frame("#1a0000dd", 4, 4)
+    selected_background Frame("#1a0000dd", 4, 4)
+    padding (10, 4)
+    xsize 320
+    activate_sound "audio/sfx/ui_click.mp3"
+
+style dossier_pref_button_text is mm_button_text:
+    size 22
+    color "#8899aa"
+    hover_color "#ff4422"
+    selected_color "#cc2200"
+    insensitive_color "#334455"
+
+style dossier_slot_button is button:
+    background Frame("#0d0d11ee", 4, 4)
+    hover_background Frame("#1a0000dd", 4, 4)
+    padding (12, 12)
+    activate_sound "audio/sfx/ui_click.mp3"
+
+style dossier_slot_time_text is gui_text:
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#667788"
+    size 16
+
+style dossier_slot_name_text is gui_text:
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#c0d0e0"
+    size 18
+
+style dossier_page_button is mm_button:
+    background None
+    hover_background Frame("#1a0000dd", 4, 4)
+    selected_background Frame("#1a0000dd", 4, 4)
+    padding (10, 4)
+    xsize None
+    activate_sound "audio/sfx/ui_click.mp3"
+
+style dossier_page_button_text is mm_button_text:
+    size 18
+    color "#8899aa"
+    hover_color "#ff4422"
+    selected_color "#cc2200"
+
+style dossier_help_label is gui_label:
+    xsize 280
+    right_padding 24
+
+style dossier_help_label_text is gui_label_text:
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#cc2200"
+    size 22
+    kerning 2
+    xalign 1.0
+    textalign 1.0
+
+style dossier_help_text is gui_text:
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#c0d0e0"
+    size 22
+    xsize 1000
+
+
 style main_menu_frame is empty
 style main_menu_vbox is vbox
 style main_menu_text is gui_text
@@ -4322,65 +4440,72 @@ screen game_menu(title, scroll=None, yinitial=0.0, spacing=0):
     if main_menu:
         add gui.main_menu_background
     else:
-        add gui.game_menu_background
+        add Solid("#0a0a0aee")
+
+    use dossier_top_bar(left_text="REFACTOR  //  case-file: " + title.lower())
+    use dossier_bottom_bar()
+
+    add Solid("#cc2200"):
+        xpos 72
+        ypos 130
+        xsize 4
+        ysize 615
+        at mm_fade_in
+
+    text title.upper():
+        style "mm_title"
+        size 64
+        kerning 3
+        xpos 90
+        ypos 120
+        at mm_fade_in
+
+    use navigation
 
     frame:
         style "game_menu_outer_frame"
 
-        hbox:
+        if scroll == "viewport":
 
-            ## Reserve space for the navigation section.
-            frame:
-                style "game_menu_navigation_frame"
+            viewport:
+                yinitial yinitial
+                scrollbars "vertical"
+                mousewheel True
+                draggable True
+                pagekeys True
 
-            frame:
-                style "game_menu_content_frame"
+                side_yfill True
 
-                if scroll == "viewport":
-
-                    viewport:
-                        yinitial yinitial
-                        scrollbars "vertical"
-                        mousewheel True
-                        draggable True
-                        pagekeys True
-
-                        side_yfill True
-
-                        vbox:
-                            spacing spacing
-
-                            transclude
-
-                elif scroll == "vpgrid":
-
-                    vpgrid:
-                        cols 1
-                        yinitial yinitial
-
-                        scrollbars "vertical"
-                        mousewheel True
-                        draggable True
-                        pagekeys True
-
-                        side_yfill True
-
-                        spacing spacing
-
-                        transclude
-
-                else:
+                vbox:
+                    spacing spacing
 
                     transclude
 
-    use navigation
+        elif scroll == "vpgrid":
 
-    textbutton _("Return"):
+            vpgrid:
+                cols 1
+                yinitial yinitial
+
+                scrollbars "vertical"
+                mousewheel True
+                draggable True
+                pagekeys True
+
+                side_yfill True
+
+                spacing spacing
+
+                transclude
+
+        else:
+
+            transclude
+
+    $ _return_label = "►  back to main menu" if main_menu else "►  back to dossier"
+    textbutton _(_return_label):
         style "return_button"
-
         action Return()
-
-    label title
 
     if main_menu:
         key "game_menu" action ShowMenu("main_menu")
@@ -4396,46 +4521,44 @@ style game_menu_scrollbar is gui_vscrollbar
 style game_menu_label is gui_label
 style game_menu_label_text is gui_label_text
 
-style return_button is navigation_button
-style return_button_text is navigation_button_text
+style return_button is mm_button
+style return_button_text is mm_button_text
 
 style game_menu_outer_frame:
-    bottom_padding 45
-    top_padding 180
-
-    background "gui/overlay/game_menu.png"
+    xpos 480
+    ypos 235
+    xsize 1380
+    ysize 800
+    background None
+    padding (0, 0)
 
 style game_menu_navigation_frame:
-    xsize 420
-    yfill True
+    xsize 360
+    yfill False
 
 style game_menu_content_frame:
-    left_margin 60
-    right_margin 30
-    top_margin 15
+    padding (0, 0)
 
 style game_menu_viewport:
     xsize 1380
 
 style game_menu_vscrollbar:
     unscrollable gui.unscrollable
+    base_bar Solid("#1a2a3a")
+    thumb Solid("#cc2200")
+    xsize 6
 
 style game_menu_side:
-    spacing 15
-
-style game_menu_label:
-    xpos 75
-    ysize 180
-
-style game_menu_label_text:
-    size 75
-    color gui.accent_color
-    yalign 0.5
+    spacing 12
 
 style return_button:
-    xpos gui.navigation_xpos
+    xpos 90
     yalign 1.0
-    yoffset -45
+    yoffset -330
+    xsize 360
+
+style return_button_text:
+    size 26
 
 
 ## About screen ################################################################
@@ -4449,31 +4572,73 @@ screen about():
 
     tag menu
 
-    ## This use statement includes the game_menu screen inside this one. The
-    ## vbox child is then included inside the viewport inside the game_menu
-    ## screen.
     use game_menu(_("About"), scroll="viewport"):
 
-        style_prefix "about"
-
         vbox:
+            spacing 24
+            xsize 1320
 
-            label "[config.name!t]"
-            text _("Version [config.version!t]\n")
+            frame:
+                background Frame("#0d0d11ee", 4, 4)
+                padding (28, 22)
+                xfill True
 
-            ## gui.about is usually set in options.rpy.
+                vbox:
+                    spacing 8
+                    text "CASE FILE //" style "dossier_section_label"
+                    null height 6
+                    text "[config.name!t]":
+                        font "fonts/RobotoMono-Regular.ttf"
+                        color "#e8e8e8"
+                        size 44
+                        kerning 2
+                    text "Version [config.version!t]":
+                        font "fonts/RobotoMono-Regular.ttf"
+                        color "#c0d0e0"
+                        size 22
+                    text "Northern Bohemia  ·  State Police  ·  Internal Use Only":
+                        font "fonts/RobotoMono-Regular.ttf"
+                        color "#667788"
+                        size 18
+
             if gui.about:
-                text "[gui.about!t]\n"
 
-            text _("Made with {a=https://www.renpy.org/}Ren'Py{/a} [renpy.version_only].\n\n[renpy.license!t]")
+                frame:
+                    background Frame("#0d0d11ee", 4, 4)
+                    padding (28, 22)
+                    xfill True
+
+                    vbox:
+                        spacing 8
+                        text "SUBJECT //" style "dossier_section_label"
+                        null height 6
+                        text "[gui.about!t]":
+                            font "fonts/RobotoMono-Regular.ttf"
+                            color "#c0d0e0"
+                            size 20
+
+            frame:
+                background Frame("#0d0d11ee", 4, 4)
+                padding (28, 22)
+                xfill True
+
+                vbox:
+                    spacing 8
+                    text "TOOLING //" style "dossier_section_label"
+                    null height 6
+                    text _("Made with {a=https://www.renpy.org/}Ren'Py{/a} [renpy.version_only]"):
+                        font "fonts/RobotoMono-Regular.ttf"
+                        color "#c0d0e0"
+                        size 20
+                    text "[renpy.license!t]":
+                        font "fonts/RobotoMono-Regular.ttf"
+                        color "#667788"
+                        size 16
 
 
 style about_label is gui_label
 style about_label_text is gui_label_text
 style about_text is gui_text
-
-style about_label_text:
-    size gui.label_text_size
 
 
 ## Load and Save screens #######################################################
@@ -4501,7 +4666,7 @@ screen load():
 
 screen file_slots(title):
 
-    default page_name_value = FilePageNameInputValue(pattern=_("Page {}"), auto=_("Automatic saves"), quick=_("Quick saves"))
+    default page_name_value = FilePageNameInputValue(pattern=_("FILE :: {}"), auto=_("AUTO-LOG"), quick=_("QUICK-CACHE"))
 
     use game_menu(title):
 
@@ -4517,6 +4682,7 @@ screen file_slots(title):
 
                 key_events True
                 xalign 0.5
+                ypos 0
                 action page_name_value.Toggle()
 
                 input:
@@ -4528,7 +4694,7 @@ screen file_slots(title):
                 style_prefix "slot"
 
                 xalign 0.5
-                yalign 0.5
+                ypos 56
 
                 spacing gui.slot_spacing
 
@@ -4543,7 +4709,9 @@ screen file_slots(title):
 
                         add FileScreenshot(slot) xalign 0.5
 
-                        text FileTime(slot, format=_("{#file_time}%A, %B %d %Y, %H:%M"), empty=_("empty slot")):
+                        null height 6
+
+                        text FileTime(slot, format=_("%Y-%m-%d  //  %H:%M"), empty=_("[[ empty slot ]")):
                             style "slot_time_text"
 
                         text FileSaveName(slot):
@@ -4558,69 +4726,69 @@ screen file_slots(title):
                 xalign 0.5
                 yalign 1.0
 
-                hbox:
+                frame:
+                    background Solid("#0a0a0a88")
+                    padding (16, 8)
                     xalign 0.5
 
-                    spacing gui.page_spacing
+                    hbox:
+                        xalign 0.5
 
-                    textbutton _("<") action FilePagePrevious()
-                    key "save_page_prev" action FilePagePrevious()
+                        spacing 6
 
-                    if config.has_autosave:
-                        textbutton _("{#auto_page}A") action FilePage("auto")
+                        textbutton _("[[ prev ]") action FilePagePrevious()
+                        key "save_page_prev" action FilePagePrevious()
 
-                    if config.has_quicksave:
-                        textbutton _("{#quick_page}Q") action FilePage("quick")
+                        if config.has_autosave:
+                            textbutton _("[[ A ]") action FilePage("auto")
 
-                    ## range(1, 10) gives the numbers from 1 to 9.
-                    for page in range(1, 10):
-                        textbutton "[page]" action FilePage(page)
+                        if config.has_quicksave:
+                            textbutton _("[[ Q ]") action FilePage("quick")
 
-                    textbutton _(">") action FilePageNext()
-                    key "save_page_next" action FilePageNext()
+                        ## range(1, 10) gives the numbers from 1 to 9.
+                        for page in range(1, 10):
+                            textbutton "[[ [page] ]" action FilePage(page)
+
+                        textbutton _("[[ next ]") action FilePageNext()
+                        key "save_page_next" action FilePageNext()
+
+                null height 8
 
                 if config.has_sync:
                     if CurrentScreenName() == "save":
-                        textbutton _("Upload Sync"):
+                        textbutton _("►  upload sync"):
                             action UploadSync()
                             xalign 0.5
                     else:
-                        textbutton _("Download Sync"):
+                        textbutton _("►  download sync"):
                             action DownloadSync()
                             xalign 0.5
 
 
 style page_label is gui_label
 style page_label_text is gui_label_text
-style page_button is gui_button
-style page_button_text is gui_button_text
+style page_button is dossier_page_button
+style page_button_text is dossier_page_button_text
 
-style slot_button is gui_button
-style slot_button_text is gui_button_text
-style slot_time_text is slot_button_text
-style slot_name_text is slot_button_text
+style slot_button is dossier_slot_button
+style slot_button_text is dossier_slot_name_text
+style slot_time_text is dossier_slot_time_text
+style slot_name_text is dossier_slot_name_text
 
 style page_label:
-    xpadding 75
-    ypadding 5
+    xpadding 28
+    ypadding 6
     xalign 0.5
 
 style page_label_text:
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#c0d0e0"
+    hover_color "#ff4422"
+    size 22
+    kerning 2
     textalign 0.5
     layout "subtitle"
-    hover_color gui.hover_color
-
-style page_button:
-    properties gui.button_properties("page_button")
-
-style page_button_text:
-    properties gui.text_properties("page_button")
-
-style slot_button:
-    properties gui.button_properties("slot_button")
-
-style slot_button_text:
-    properties gui.text_properties("slot_button")
+    caret Solid("#cc2200")
 
 
 ## Preferences screen ##########################################################
@@ -4637,76 +4805,88 @@ screen preferences():
     use game_menu(_("Preferences"), scroll="viewport"):
 
         vbox:
+            spacing 14
 
             hbox:
                 box_wrap True
+                spacing 60
 
                 if renpy.variant("pc") or renpy.variant("web"):
 
                     vbox:
                         style_prefix "radio"
-                        label _("Display")
+                        spacing 4
+                        text "DISPLAY //" style "dossier_section_label"
+                        null height 6
                         textbutton _("Window") action Preference("display", "window")
                         textbutton _("Fullscreen") action Preference("display", "fullscreen")
 
                 vbox:
                     style_prefix "check"
-                    label _("Skip")
+                    spacing 4
+                    text "SKIP //" style "dossier_section_label"
+                    null height 6
                     textbutton _("Unseen Text") action Preference("skip", "toggle")
                     textbutton _("After Choices") action Preference("after choices", "toggle")
                     textbutton _("Transitions") action InvertSelected(Preference("transitions", "toggle"))
 
-                ## Additional vboxes of type "radio_pref" or "check_pref" can be
-                ## added here, to add additional creator-defined preferences.
-
-            null height (4 * gui.pref_spacing)
+            null height (3 * gui.pref_spacing)
 
             hbox:
                 style_prefix "slider"
                 box_wrap True
+                spacing 60
 
                 vbox:
+                    spacing 6
+                    text "PLAYBACK //" style "dossier_section_label"
+                    null height 6
 
-                    label _("Text Speed")
-
+                    text "text speed" style "dossier_subtitle"
                     bar value Preference("text speed")
 
-                    label _("Auto-Forward Time")
+                    null height 8
 
+                    text "auto-forward time" style "dossier_subtitle"
                     bar value Preference("auto-forward time")
 
                 vbox:
+                    spacing 6
+                    text "AUDIO //" style "dossier_section_label"
+                    null height 6
 
                     if config.has_music:
-                        label _("Music Volume")
+                        text "music volume" style "dossier_subtitle"
 
                         hbox:
                             bar value Preference("music volume")
 
                     if config.has_sound:
 
-                        label _("Sound Volume")
+                        text "sound volume" style "dossier_subtitle"
 
                         hbox:
+                            spacing 12
                             bar value Preference("sound volume")
 
                             if config.sample_sound:
-                                textbutton _("Test") action Play("sound", config.sample_sound)
+                                textbutton _("[[ test ]") action Play("sound", config.sample_sound)
 
 
                     if config.has_voice:
-                        label _("Voice Volume")
+                        text "voice volume" style "dossier_subtitle"
 
                         hbox:
+                            spacing 12
                             bar value Preference("voice volume")
 
                             if config.sample_voice:
-                                textbutton _("Test") action Play("voice", config.sample_voice)
+                                textbutton _("[[ test ]") action Play("voice", config.sample_voice)
 
                     if config.has_music or config.has_sound or config.has_voice:
                         null height gui.pref_spacing
 
-                        textbutton _("Mute All"):
+                        textbutton _("►  mute all"):
                             action Preference("all mute", "toggle")
                             style "mute_all_button"
 
@@ -4717,69 +4897,76 @@ style pref_vbox is vbox
 
 style radio_label is pref_label
 style radio_label_text is pref_label_text
-style radio_button is gui_button
-style radio_button_text is gui_button_text
+style radio_button is dossier_pref_button
+style radio_button_text is dossier_pref_button_text
 style radio_vbox is pref_vbox
 
 style check_label is pref_label
 style check_label_text is pref_label_text
-style check_button is gui_button
-style check_button_text is gui_button_text
+style check_button is dossier_pref_button
+style check_button_text is dossier_pref_button_text
 style check_vbox is pref_vbox
 
 style slider_label is pref_label
 style slider_label_text is pref_label_text
 style slider_slider is gui_slider
-style slider_button is gui_button
-style slider_button_text is gui_button_text
+style slider_button is dossier_pref_button
+style slider_button_text is dossier_pref_button_text
 style slider_pref_vbox is pref_vbox
 
-style mute_all_button is check_button
-style mute_all_button_text is check_button_text
+style mute_all_button is dossier_pref_button
+style mute_all_button_text is dossier_pref_button_text
 
 style pref_label:
     top_margin gui.pref_spacing
     bottom_margin 3
 
 style pref_label_text:
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#667788"
+    size 22
     yalign 1.0
 
 style pref_vbox:
-    xsize 338
+    xsize 360
 
 style radio_vbox:
-    spacing gui.pref_button_spacing
-
-style radio_button:
-    properties gui.button_properties("radio_button")
-    foreground "gui/button/radio_[prefix_]foreground.png"
-
-style radio_button_text:
-    properties gui.text_properties("radio_button")
+    spacing 4
 
 style check_vbox:
-    spacing gui.pref_button_spacing
-
-style check_button:
-    properties gui.button_properties("check_button")
-    foreground "gui/button/check_[prefix_]foreground.png"
-
-style check_button_text:
-    properties gui.text_properties("check_button")
+    spacing 4
 
 style slider_slider:
-    xsize 525
+    xsize 480
+    ysize 20
+    base_bar Solid("#1a2a3a")
+    thumb Solid("#cc2200")
+    thumb_offset 0
 
 style slider_button:
-    properties gui.button_properties("slider_button")
     yalign 0.5
-    left_margin 15
-
-style slider_button_text:
-    properties gui.text_properties("slider_button")
+    left_margin 12
 
 style slider_vbox:
-    xsize 675
+    xsize 580
+    spacing 4
+
+style bar:
+    ysize 20
+    left_bar Solid("#cc2200")
+    right_bar Solid("#1a2a3a")
+    thumb None
+    bar_resizing True
+
+style scrollbar:
+    ysize 6
+    base_bar Solid("#1a2a3a")
+    thumb Solid("#cc2200")
+
+style vscrollbar:
+    xsize 6
+    base_bar Solid("#1a2a3a")
+    thumb Solid("#cc2200")
 
 
 ## History screen ##############################################################
@@ -4855,6 +5042,10 @@ style history_name:
 style history_name_text:
     min_width gui.history_name_width
     textalign gui.history_name_xalign
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#cc2200"
+    size 20
+    kerning 2
 
 style history_text:
     xpos gui.history_text_xpos
@@ -4864,6 +5055,9 @@ style history_text:
     min_width gui.history_text_width
     textalign gui.history_text_xalign
     layout ("subtitle" if gui.history_text_xalign else "tex")
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#c0d0e0"
+    size 20
 
 style history_label:
     xfill True
@@ -4889,15 +5083,27 @@ screen help():
         style_prefix "help"
 
         vbox:
-            spacing 23
+            spacing 18
+
+            text "INPUT DEVICE //" style "dossier_section_label"
 
             hbox:
+                spacing 32
 
-                textbutton _("Keyboard") action SetScreenVariable("device", "keyboard")
-                textbutton _("Mouse") action SetScreenVariable("device", "mouse")
+                textbutton ("▶  keyboard" if device == "keyboard" else "►  keyboard"):
+                    action SetScreenVariable("device", "keyboard")
+                textbutton ("▶  mouse" if device == "mouse" else "►  mouse"):
+                    action SetScreenVariable("device", "mouse")
 
                 if GamepadExists():
-                    textbutton _("Gamepad") action SetScreenVariable("device", "gamepad")
+                    textbutton ("▶  gamepad" if device == "gamepad" else "►  gamepad"):
+                        action SetScreenVariable("device", "gamepad")
+
+            null height 12
+
+            text "BINDINGS //" style "dossier_section_label"
+
+            null height 4
 
             if device == "keyboard":
                 use keyboard_help
@@ -5010,27 +5216,34 @@ screen gamepad_help():
     textbutton _("Calibrate") action GamepadCalibrate()
 
 
-style help_button is gui_button
-style help_button_text is gui_button_text
+style help_button is dossier_pref_button
+style help_button_text is dossier_pref_button_text
 style help_label is gui_label
 style help_label_text is gui_label_text
 style help_text is gui_text
 
 style help_button:
-    properties gui.button_properties("help_button")
-    xmargin 12
+    xmargin 0
 
 style help_button_text:
-    properties gui.text_properties("help_button")
+    size 22
 
 style help_label:
-    xsize 375
-    right_padding 30
+    xsize 280
+    right_padding 24
 
 style help_label_text:
-    size gui.text_size
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#cc2200"
+    size 22
+    kerning 2
     xalign 1.0
     textalign 1.0
+
+style help_text:
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#c0d0e0"
+    size 22
 
 
 
@@ -5055,25 +5268,33 @@ screen confirm(message, yes_action, no_action):
 
     style_prefix "confirm"
 
-    add "gui/overlay/confirm.png"
+    add Solid("#000000bb")
 
     frame:
 
         vbox:
             xalign .5
             yalign .5
-            spacing 45
+            spacing 28
+
+            text "►  CONFIRMATION":
+                style "confirm_header"
+                xalign 0.5
+
+            null height 8
 
             label _(message):
                 style "confirm_prompt"
                 xalign 0.5
 
+            null height 12
+
             hbox:
                 xalign 0.5
-                spacing 150
+                spacing 80
 
-                textbutton _("Yes") action yes_action
-                textbutton _("No") action no_action
+                textbutton _("►  yes") action yes_action
+                textbutton _("◄  no") action no_action
 
     ## Right-click and escape answer "no".
     key "game_menu" action no_action
@@ -5082,24 +5303,34 @@ screen confirm(message, yes_action, no_action):
 style confirm_frame is gui_frame
 style confirm_prompt is gui_prompt
 style confirm_prompt_text is gui_prompt_text
-style confirm_button is gui_medium_button
-style confirm_button_text is gui_medium_button_text
+style confirm_button is mm_button
+style confirm_button_text is mm_button_text
+style confirm_header is gui_text
 
 style confirm_frame:
-    background Frame([ "gui/confirm_frame.png", "gui/frame.png"], gui.confirm_frame_borders, tile=gui.frame_tile)
-    padding gui.confirm_frame_borders.padding
+    background Frame("#0d0d11ee", 4, 4)
+    padding (60, 48, 60, 48)
     xalign .5
     yalign .5
 
+style confirm_header:
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#cc2200"
+    size 22
+    kerning 3
+
 style confirm_prompt_text:
+    font "fonts/RobotoMono-Regular.ttf"
+    color "#c0d0e0"
+    size 26
     textalign 0.5
     layout "subtitle"
 
 style confirm_button:
-    properties gui.button_properties("confirm_button")
+    xsize 240
 
 style confirm_button_text:
-    properties gui.text_properties("confirm_button")
+    size 28
 
 
 ## Skip indicator screen #######################################################
@@ -5440,14 +5671,6 @@ style window:
     variant "small"
     background "gui/phone/textbox.png"
 
-style radio_button:
-    variant "small"
-    foreground "gui/phone/button/radio_[prefix_]foreground.png"
-
-style check_button:
-    variant "small"
-    foreground "gui/phone/button/check_[prefix_]foreground.png"
-
 style nvl_window:
     variant "small"
     background "gui/phone/nvl.png"
@@ -5458,19 +5681,21 @@ style main_menu_frame:
 
 style game_menu_outer_frame:
     variant "small"
-    background "gui/phone/overlay/game_menu.png"
+    xpos 540
+    xsize 1320
+    background None
 
 style game_menu_navigation_frame:
     variant "small"
-    xsize 510
+    xsize 480
 
 style game_menu_content_frame:
     variant "small"
-    top_margin 0
+    padding (0, 0)
 
 style game_menu_viewport:
     variant "small"
-    xsize 1305
+    xsize 1320
 
 style pref_vbox:
     variant "small"
@@ -5478,39 +5703,39 @@ style pref_vbox:
 
 style bar:
     variant "small"
-    ysize gui.bar_size
-    left_bar Frame("gui/phone/bar/left.png", gui.bar_borders, tile=gui.bar_tile)
-    right_bar Frame("gui/phone/bar/right.png", gui.bar_borders, tile=gui.bar_tile)
+    ysize 28
+    left_bar Solid("#cc2200")
+    right_bar Solid("#1a2a3a")
 
 style vbar:
     variant "small"
-    xsize gui.bar_size
-    top_bar Frame("gui/phone/bar/top.png", gui.vbar_borders, tile=gui.bar_tile)
-    bottom_bar Frame("gui/phone/bar/bottom.png", gui.vbar_borders, tile=gui.bar_tile)
+    xsize 28
+    top_bar Solid("#cc2200")
+    bottom_bar Solid("#1a2a3a")
 
 style scrollbar:
     variant "small"
-    ysize gui.scrollbar_size
-    base_bar Frame("gui/phone/scrollbar/horizontal_[prefix_]bar.png", gui.scrollbar_borders, tile=gui.scrollbar_tile)
-    thumb Frame("gui/phone/scrollbar/horizontal_[prefix_]thumb.png", gui.scrollbar_borders, tile=gui.scrollbar_tile)
+    ysize 12
+    base_bar Solid("#1a2a3a")
+    thumb Solid("#cc2200")
 
 style vscrollbar:
     variant "small"
-    xsize gui.scrollbar_size
-    base_bar Frame("gui/phone/scrollbar/vertical_[prefix_]bar.png", gui.vscrollbar_borders, tile=gui.scrollbar_tile)
-    thumb Frame("gui/phone/scrollbar/vertical_[prefix_]thumb.png", gui.vscrollbar_borders, tile=gui.scrollbar_tile)
+    xsize 12
+    base_bar Solid("#1a2a3a")
+    thumb Solid("#cc2200")
 
 style slider:
     variant "small"
-    ysize gui.slider_size
-    base_bar Frame("gui/phone/slider/horizontal_[prefix_]bar.png", gui.slider_borders, tile=gui.slider_tile)
-    thumb "gui/phone/slider/horizontal_[prefix_]thumb.png"
+    ysize 28
+    base_bar Solid("#1a2a3a")
+    thumb Solid("#cc2200")
 
 style vslider:
     variant "small"
-    xsize gui.slider_size
-    base_bar Frame("gui/phone/slider/vertical_[prefix_]bar.png", gui.vslider_borders, tile=gui.slider_tile)
-    thumb "gui/phone/slider/vertical_[prefix_]thumb.png"
+    xsize 28
+    base_bar Solid("#1a2a3a")
+    thumb Solid("#cc2200")
 
 style slider_vbox:
     variant "small"
