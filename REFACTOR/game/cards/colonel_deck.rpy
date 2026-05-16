@@ -480,25 +480,26 @@ init python:
         "priority_call",
         name     = "Priority Call",
         intent   = "attack",
-        value    = 15,
+        value    = 16,
         dialogue = "The radio crackles. 'All units, your location.'",
         threat   = 2,
     )
     register_enemy_card(
-        "radio_static",
-        name     = "Static Burst",
-        intent   = "debuff",
-        value    = 1,
-        dialogue = "Static fills the channel. You miss the next dispatch.",
+        "all_units",
+        name     = "All Units",
+        intent   = "buff",
+        value    = 3,
+        dialogue = "He keys the mic. 'All units on this freq.' The next hit lands sharper.",
         threat   = 2,
     )
     register_enemy_card(
         "false_alarm",
-        name     = "False Alarm",
-        intent   = "attack",
-        value    = 14,
-        dialogue = "A false call routes you across town. Wasted breath.",
-        threat   = 1,
+        name     = "Crossed Wires",
+        intent   = "compound",
+        value    = 4,
+        value2   = 3,
+        dialogue = "Three false calls in a row. Wasted breath, wasted breath, wasted breath.",
+        threat   = 2,
     )
     register_enemy_card(
         "silence",

@@ -9,14 +9,6 @@
 ## class identity reads through.
 ## ---------------------------------------------------------------------------
 
-## Slow alpha pulse for the hatred-critical warning chip (>= 90).
-transform _hatred_warn_pulse:
-    alpha 1.0
-    linear 0.6 alpha 0.55
-    linear 0.6 alpha 1.0
-    repeat
-
-
 ## ---------------------------------------------------------------------------
 ## Dossier design tokens — shared by the main menu chrome, the prologue HUD
 ## strips, and the prologue say-window restyle. Treat as the single source
@@ -449,33 +441,6 @@ screen stats_bar():
                             hover_background None
                             padding (0, 0)
 
-        ## ── Hatred warning chip (>= 60) — pulses at 90+ ─────────────────
-        if stats.pcr_hatred >= 60:
-            python:
-                if stats.pcr_hatred >= 90:
-                    _hw_color = "#ff2222"
-                    _hw_bg    = "#400000ee"
-                    _hw_label = "⚠ HATRED CRITICAL — collapse at 100"
-                elif stats.pcr_hatred >= 75:
-                    _hw_color = "#ff8833"
-                    _hw_bg    = "#3a1a00ee"
-                    _hw_label = "⚠ HATRED HIGH — collapse at 100"
-                else:
-                    _hw_color = "#ffcc44"
-                    _hw_bg    = "#2a1f00ee"
-                    _hw_label = "⚠ HATRED RISING — collapse at 100"
-            frame:
-                xalign 0.5
-                padding (12, 4)
-                background Frame(_hw_bg, 4, 4)
-                if stats.pcr_hatred >= 90:
-                    at _hatred_warn_pulse
-                text _hw_label:
-                    color _hw_color
-                    size 13
-                    bold True
-                    font DOSSIER_FONT
-
         ## ▁▁▁ Bottom class-color hairline ▁▁▁
         frame:
             xfill True
@@ -660,8 +625,8 @@ screen deck_viewer():
                                                         color "#666666"
                                                         size 11
 
-                                                    text _c.get("flavor", ""):
-                                                        color "#aaaaaa"
+                                                    text effect_description(_c.get("effect", "")):
+                                                        color "#cccccc"
                                                         size 13
                                                         xmaximum 326
 
@@ -781,11 +746,16 @@ init python:
         "Coding":  "#00ccff",
         "Muscle":  "#ff6633",
         "Card":    "#00cc88",
+        "Upgrade": "#ffd700",
+        "sep":     "#666666",
         "?":       "#888888",
     }
 
     def _act_chip_label(stat, delta):
-        """Format a chip label. delta=None renders as '?' (volatile / variable)."""
+        """Format a chip label. delta=None renders as '?' (volatile / variable).
+        delta as a string is treated as a literal label (stat field still drives chip color)."""
+        if isinstance(delta, str):
+            return delta
         if delta is None:
             return "? {}".format(stat)
         sign = "+" if delta >= 0 else "-"
@@ -799,6 +769,8 @@ init python:
 screen _activity_chip_row(chips):
     ## Render a horizontal row of colored stat-change chips. Each chip is a
     ## small pill: color from the stat, label "+N STAT" or "-N STAT".
+    ## `_stat == "sep"` renders a plain text divider (no pill frame) — used to
+    ## visually break a chip row into an "A / B" choice.
     hbox:
         spacing 4
         xalign 0.5
@@ -807,14 +779,22 @@ screen _activity_chip_row(chips):
             ## palette entry — visually distinguishes "guaranteed +X" chips
             ## from "depends on the day" chips at a glance.
             $ _chip_color = _ACT_CHIP_COLORS.get("?" if _delta is None else _stat, "#cccccc")
-            frame:
-                padding (5, 2)
-                background Frame("#1a1a1aee", 3, 3)
+            if _stat == "sep":
                 text _act_chip_label(_stat, _delta):
                     color _chip_color
-                    size 12
+                    size 14
                     bold True
                     font "fonts/RobotoMono-Regular.ttf"
+                    yalign 0.5
+            else:
+                frame:
+                    padding (5, 2)
+                    background Frame("#1a1a1aee", 3, 3)
+                    text _act_chip_label(_stat, _delta):
+                        color _chip_color
+                        size 12
+                        bold True
+                        font "fonts/RobotoMono-Regular.ttf"
 
 
 ## ---------------------------------------------------------------------------
@@ -840,7 +820,7 @@ transform activity_hover_lift:
 ## Default glyph per activity title — keeps the icon zone meaningful without
 ## requiring every call site to pass an art_glyph. Falls through to ★.
 default _ACT_DEFAULT_GLYPHS = {
-    "GYM": "▲",
+    "GYM": "🏋",
     "COLD READ": "◊",
     "RECOVERY": "❋",
     "BOUNCER": "$",
@@ -1079,6 +1059,72 @@ screen activity_submenu(title, options, subtitle="", back_label="daily_menu"):
         padding (18, 10)
 
 
+## ---------------------------------------------------------------------------
+## Hatred intro popup — fires once per run the first time PCR Hatred crosses
+## 40 (the first Rage-injection threshold). State the mechanic, click to
+## dismiss. Gated by store._hatred_intro_shown so it never fires twice.
+## ---------------------------------------------------------------------------
+
+screen hatred_intro_popup():
+    modal True
+    zorder 800
+
+    add "#000000aa"
+
+    frame:
+        xalign 0.5
+        yalign 0.5
+        xsize 680
+        background Frame("#0d0d11ee", 4, 4)
+        padding (32, 24)
+
+        vbox:
+            spacing 12
+
+            text "PCR HATRED":
+                color "#ff4422"
+                size 28
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
+
+            frame:
+                xfill True
+                ysize 2
+                background Frame("#cc2200", 0, 0)
+
+            text "Police-Citizen-Relations. The job's corruption stat. Rises from confrontations and bad events. Drops from gym, recovery, and relief activities.":
+                color "#cccccc"
+                size 16
+                xmaximum 620
+                font "fonts/RobotoMono-Regular.ttf"
+
+            text "At 40, 60, and 80 — a Rage card is forced into your deck. Permanent for the run. Rage cards deal damage but cost HP, a card, or +2 Hatred.":
+                color "#cccccc"
+                size 16
+                xmaximum 620
+                font "fonts/RobotoMono-Regular.ttf"
+
+            text "At 100 — collapse. The run ends.":
+                color "#ff6655"
+                size 16
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
+
+            null height 6
+
+            textbutton "GOT IT":
+                xalign 0.5
+                action Return()
+                text_color "#ffdd44"
+                text_hover_color "#ffffff"
+                text_size 18
+                text_bold True
+                text_font "fonts/RobotoMono-Regular.ttf"
+                background Frame("#1a1410", 3, 3)
+                hover_background Frame("#332b00ee", 3, 3)
+                padding (24, 8)
+
+
 screen activity_select_screen():
     modal True
     zorder 50
@@ -1099,7 +1145,7 @@ screen activity_select_screen():
 
     vbox:
         xalign 0.5
-        ypos 140
+        ypos 270
         spacing 6
 
         text "PICK TODAY'S MOVE":
@@ -1132,7 +1178,7 @@ screen activity_select_screen():
                 accent            = class_accent_color("bodybuilder"),
                 cost_text         = "{:,} CZK".format(_gym_cost),
                 cost_unaffordable = _gym_short,
-                effect_chips      = [("Hatred", -10), ("Muscle", +1)],
+                effect_chips      = [("Upgrade", "Upgrade a card"), ("sep", "/"), ("Card", "Heal + Max HP")],
                 flavor_text       = "An hour where the bar tells the truth.",
                 class_relevant    = True,
             )
@@ -1165,7 +1211,7 @@ screen activity_select_screen():
             accent         = "#ffd700",
             cost_text      = "FREE",
             effect_chips   = [("CZK", None), ("Hatred", None)],
-            flavor_text    = "Nightclub safe. Strip bar volatile.",
+            flavor_text    = "Moonlighting pays well, but it's dangerous for cops.",
             class_relevant = False,
         )
 
@@ -1176,7 +1222,7 @@ screen activity_select_screen():
             accent         = "#00ccff",
             cost_text      = "FREE",
             effect_chips   = [("Coding", None), ("CZK", None)],
-            flavor_text    = "Practice / Coach / Bootcamp / Puzzle.",
+            flavor_text    = "Freelance / Coach / Bootcamp.",
             class_relevant = False,
         )
 
@@ -3092,7 +3138,7 @@ screen deck_upgrade_picker():
                                                     color "#666666"
                                                     size 11
 
-                                                text _c.get("flavor", "") substitute False:
+                                                text effect_description(_c.get("effect", "")) substitute False:
                                                     color _flavor_color
                                                     size 13
                                                     xmaximum 326
@@ -5101,6 +5147,8 @@ screen navigation():
             ## Help isn't necessary or relevant to mobile devices.
             textbutton _("►  help") action ShowMenu("help")
 
+        textbutton _("►  back to main menu" if main_menu else "►  back to game") action Return()
+
         if renpy.variant("pc"):
 
             ## The quit button is banned on iOS and unnecessary on Android and
@@ -5434,7 +5482,7 @@ screen game_menu(title, scroll=None, yinitial=0.0, spacing=0):
         xpos 72
         ypos 130
         xsize 4
-        ysize 615
+        ysize 680
         at mm_fade_in
 
     text title.upper():
@@ -5487,11 +5535,6 @@ screen game_menu(title, scroll=None, yinitial=0.0, spacing=0):
 
             transclude
 
-    $ _return_label = "►  back to main menu" if main_menu else "►  back to dossier"
-    textbutton _(_return_label):
-        style "return_button"
-        action Return()
-
     if main_menu:
         key "game_menu" action ShowMenu("main_menu")
 
@@ -5505,9 +5548,6 @@ style game_menu_scrollbar is gui_vscrollbar
 
 style game_menu_label is gui_label
 style game_menu_label_text is gui_label_text
-
-style return_button is mm_button
-style return_button_text is mm_button_text
 
 style game_menu_outer_frame:
     xpos 480
@@ -5535,16 +5575,6 @@ style game_menu_vscrollbar:
 
 style game_menu_side:
     spacing 12
-
-style return_button:
-    xpos 90
-    yalign 1.0
-    yoffset -330
-    xsize 360
-
-style return_button_text:
-    size 26
-
 
 ## About screen ################################################################
 ##

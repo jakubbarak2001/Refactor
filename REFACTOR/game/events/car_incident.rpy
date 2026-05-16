@@ -81,9 +81,7 @@ label car_incident_admit:
     "He calls the Colonel. The Colonel gets in his car anyway."
 
     stop music fadeout 1.5
-    scene bg_black with fade
     hide screen dossier_hud
-    pause 0.4
     play music "audio/you_failed_me_son.mp3" fadein 1.0
 
     scene bg_police_office with fade

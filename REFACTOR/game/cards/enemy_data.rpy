@@ -136,6 +136,8 @@ init -1 python:
         tier         = "easy",
         max_hp       = 70,
         deck_template = ["chant", "flare_throw", "pile_in"],
+        wrinkle      = "crew_rage",
+        wrinkle_data = {"hp_threshold": 0.5, "bonus_dmg": 3},
         detour_lines = [
             "His crew finds you behind the bus station. They take turns on your kidneys.",
             "You file the report from the ER. The match was a draw, they tell each other.",
@@ -217,7 +219,7 @@ init -1 python:
         log_name     = "Dispatch",
         tier         = "medium",
         max_hp       = 110,
-        deck_template = ["priority_call", "radio_static", "false_alarm", "silence", "frequency_jam"],
+        deck_template = ["priority_call", "all_units", "false_alarm", "silence", "frequency_jam"],
         wrinkle      = "priority_change",
         detour_lines = [
             "Your case is reassigned to someone who won't read it. Three priority changes before lunch.",

@@ -481,7 +481,7 @@ screen battle_help():
                     color "#cc2200"
                     size 18
                     bold True
-                text "Power-type cards activate at battle start (job_offer, stoic_anchor, iron_stance, etc.). They're persistent buffs for the rest of the fight.":
+                text "Power cards (job_offer, stoic_anchor, iron_stance, etc.) cost energy to play. Once played, the buff lasts the rest of the fight. The card exhausts on play and the buff resets every combat.":
                     color "#cccccc"
                     size 14
                     xmaximum 940
@@ -795,6 +795,38 @@ screen battle_screen():
                             bold True
                             font "fonts/RobotoMono-Regular.ttf"
 
+                    ## Hooligan CREW RAGE badge — visible on fanousek fights at
+                    ## all times so the threshold mechanic is explicit from
+                    ## turn 1. Dim grey + "armed" tooltip when above threshold,
+                    ## bright red + "active" tooltip once HP drops below it.
+                    ## Hover tooltip surfaces via GetTooltip() below the hand.
+                    if bs.enemy_id == "fanousek":
+                        python:
+                            _crew_wd     = ENEMY_LIBRARY.get("fanousek", {}).get("wrinkle_data", {})
+                            _crew_thr    = _crew_wd.get("hp_threshold", 0.5)
+                            _crew_bonus  = _crew_wd.get("bonus_dmg", 4)
+                            _crew_thr_hp = int(bs.enemy_max_hp * _crew_thr)
+                            _crew_armed  = bs.enemy_hp <= _crew_thr_hp
+                            if _crew_armed:
+                                _crew_color = "#ff5522"
+                                _crew_hover_bg = Frame("#330011cc", 4, 4)
+                                _crew_tip = "Crew Rage: attacks +{} damage per hit.".format(_crew_bonus)
+                            else:
+                                _crew_color = "#886655"
+                                _crew_hover_bg = Frame("#1a0a05cc", 4, 4)
+                                _crew_tip = "Crew Rage: attacks gain +{} damage per hit at or below {} HP.".format(_crew_bonus, _crew_thr_hp)
+                        textbutton "🔥 RAGE":
+                            action NullAction()
+                            tooltip _crew_tip
+                            text_color _crew_color
+                            text_hover_color "#ffffff"
+                            text_size 18
+                            text_bold True
+                            text_font "fonts/RobotoMono-Regular.ttf"
+                            background None
+                            hover_background _crew_hover_bg
+                            padding (6, 1)
+
                 ## ── INTENT INFOGRAPHICS ───────────────────────────────────────
                 ## Each peeked intent renders as a small icon+value panel with
                 ## the intent name in italic gray below. Type → glyph + color:
@@ -820,6 +852,17 @@ screen battle_screen():
                         if 0 <= idx < len(bs.intent_queue):
                             _peek.append(ENEMY_DECK_LIBRARY.get(bs.intent_queue[idx]))
                     _enemy_atk_bonus = bs.buffs.get("enemy_attack_bonus", 0)
+                    ## Wrinkle damage bonuses that the display must reflect to
+                    ## stay honest with the engine. Mirror the engine math from
+                    ## _resolve_intent. Hooligan crew rage at low HP is the
+                    ## only current case (garda formation is +above-50%, not a
+                    ## per-hit bump on a single intent — applied silently).
+                    _wrinkle_bonus = 0
+                    if bs.enemy_id == "fanousek":
+                        _fwd = ENEMY_LIBRARY.get("fanousek", {}).get("wrinkle_data", {})
+                        _fthr = _fwd.get("hp_threshold", 0.5)
+                        if bs.enemy_hp <= int(bs.enemy_max_hp * _fthr):
+                            _wrinkle_bonus = _fwd.get("bonus_dmg", 4)
 
                 if _peek:
                     hbox:
@@ -836,7 +879,7 @@ screen battle_screen():
                                     if _itype == "attack":
                                         _icon = "🗡"
                                         _ic_color = "#ff4422"
-                                        _base = _intent.get("value", 0)
+                                        _base = _intent.get("value", 0) + _wrinkle_bonus
                                         _dmg_for_threat = _base
                                         if _is_current and _enemy_atk_bonus > 0:
                                             _val_text = "{} (+{})".format(_base, _enemy_atk_bonus)
@@ -846,7 +889,7 @@ screen battle_screen():
                                     elif _itype == "compound":
                                         _icon = "⚔"
                                         _ic_color = "#ff6644"
-                                        _per_hit = _intent.get("value", 0)
+                                        _per_hit = _intent.get("value", 0) + _wrinkle_bonus
                                         _hits = _intent.get("value2", 1)
                                         _val_text = "{}×{}".format(_per_hit, _hits)
                                         _dmg_for_threat = _per_hit * _hits
@@ -975,9 +1018,9 @@ screen battle_screen():
                 if bs.player_block > 0:
                     ## Phase E — block_gain_pulse pumps zoom 1.0 -> 1.3 -> 1.0
                     ## over 0.4s after gain_block fires. No-op when no recent gain.
-                    text "■ BLOCK [bs.player_block]":
+                    text "🛡 [bs.player_block]":
                         color "#88aaff"
-                        size 16
+                        size 18
                         bold True
                         at block_gain_pulse
 
@@ -993,14 +1036,59 @@ screen battle_screen():
                         bold True
                         font "fonts/RobotoMono-Regular.ttf"
 
-                ## Active buffs — human-readable label + a hover tooltip that
-                ## says what each one actually does. Player could see the buffs
-                ## but had no idea what they meant; the tooltip closes that gap.
+                ## Active buffs — icon grid. Each buff renders as a small icon
+                ## chip with the stack count; hover surfaces the mechanic via
+                ## the global GetTooltip() consumer below the hand.
                 python:
+                    ## Internal state flags that live on bs.buffs but aren't
+                    ## meaningful player-facing buffs. Filtered out of the
+                    ## chip row so they don't render as "✦"/"[?]" tofu.
+                    _BUFF_HIDDEN = {
+                        "rvac_doubled",
+                        "grundza_detonated",
+                        "mirror_armed_for_counter",
+                        "paragraph_4b_armed",
+                        "job_offer_armed",
+                        "took_the_heat_armed",
+                        "sprejeri_tags",
+                    }
+                    _BUFF_ICONS = {
+                        "starting_block_+1":           "🛡",
+                        "stoic_anchor_block":          "🛡",
+                        "stoic_anchor_heal":           "❤",
+                        "soma_starting_block":         "💪",
+                        "presence_charges":            "🛡",
+                        "read_charges":                "👁",
+                        "kick_charges":                "🃏",
+                        "mental_dr_50":                "🧠",
+                        "special_dr_50":               "🧠",
+                        "iron_stance_active":          "⚔",
+                        "single_retaliate_dmg":        "⚔",
+                        "vigil_next_turn_block":       "🛡",
+                        "insight_block":               "🛡",
+                        "insight_turns_left":          "⏳",
+                        "block_next_turn":             "🛡",
+                        "double_next_attack":          "⚡",
+                        "mirror_next":                 "🪞",
+                        "mirror_cooldown":             "⏳",
+                        "reframe_next":                "🔄",
+                        "next_attack_reduction":       "🛡",
+                        "bleed_dmg":                   "🩸",
+                        "bleed_turns":                 "⏳",
+                        "crash_next_turn":             "💥",
+                        "max_energy_penalty_next_turn":"⚡",
+                        "skip_next_turn":              "💤",
+                        "cards_cap_next_turn":         "⊘",
+                        "enemy_attack_bonus":          "🔥",
+                        "player_draw_penalty":         "🃏",
+                    }
                     _BUFF_LABELS = {
                         "starting_block_+1":   "+1 Starting Block",
                         "stoic_anchor_block":  "Stoic Anchor (block)",
                         "stoic_anchor_heal":   "Stoic Anchor (heal)",
+                        "soma_starting_block": "SOMA",
+                        "cards_cap_next_turn": "Card Restriction (next turn)",
+                        "special_dr_50":       "Special DR",
                         "presence_charges":    "Presence",
                         "read_charges":        "Read",
                         "kick_charges":        "Kick",
@@ -1027,37 +1115,47 @@ screen battle_screen():
                     _BUFF_TIPS = {
                         "starting_block_+1":    "Gain +1 block at the start of every turn.",
                         "stoic_anchor_block":   "Stoic Anchor: gain {v} extra block at the start of every turn.",
-                        "stoic_anchor_heal":    "Stoic Anchor: heal {v} HP each time the Colonel damages you.",
+                        "stoic_anchor_heal":    "Stoic Anchor: heal {v} HP each time you take damage.",
+                        "soma_starting_block":  "SOMA: +{v} starting block per turn (Bodybuilder stack bonus).",
                         "presence_charges":     "Presence (Bodybuilder): +3 free block at the start of each of your next {v} turn(s).",
-                        "read_charges":         "Read (Dark Empath): see one extra upcoming Colonel intent at the start of each of your next {v} turn(s).",
+                        "read_charges":         "Read (Dark Empath): see one extra upcoming enemy intent at the start of each of your next {v} turn(s).",
                         "kick_charges":         "Kick (Biohacker): draw 1 extra card at the start of each of your next {v} turn(s).",
-                        "mental_dr_50":         "Stoic Refactor: the Colonel's MENTAL attacks deal half damage to you.",
-                        "iron_stance_active":   "Iron Stance: when the Colonel hits you, retaliate for damage that grows each round (4 on round 1, +2 per round after).",
-                        "single_retaliate_dmg": "Iron Body: the next time the Colonel hits you, retaliate for {v} damage (one use).",
+                        "mental_dr_50":         "Stoic Refactor: MENTAL-typed enemy attacks deal half damage to you.",
+                        "iron_stance_active":   "Iron Stance: when you take damage, retaliate for damage that grows each round (4 on round 1, +2 per round after).",
+                        "single_retaliate_dmg": "Iron Body: the next time you take damage, retaliate for {v} damage (one use).",
                         "vigil_next_turn_block":"Vigil: gain +{v} block at the start of your next turn.",
                         "insight_block":        "Insight: gain bonus block at the start of your turn.",
                         "insight_turns_left":   "Insight: {v} more turn(s) of bonus block.",
                         "block_next_turn":      "Procedural Defense: block ALL damage on your next turn.",
                         "double_next_attack":   "Personal Record: your next Attack card hits twice.",
-                        "mirror_next":          "Mirror (armed): reflect the Colonel's next attack back at DOUBLE damage instead of taking it.",
+                        "mirror_next":          "Mirror (armed): reflect the enemy's next attack back at DOUBLE damage instead of taking it.",
                         "mirror_cooldown":      "Mirror: recharging — {v} more turn(s) until it can be armed again.",
-                        "reframe_next":         "Reframe (armed): the Colonel's next attack becomes block for you instead of damage.",
-                        "next_attack_reduction":"Frame Trap: the Colonel's next attack is reduced by {v} damage.",
-                        "bleed_dmg":            "Bleed: the Colonel takes {v} damage at the start of each of his turns.",
-                        "bleed_turns":          "Bleed: {v} more turn(s) of bleed on the Colonel.",
+                        "reframe_next":         "Reframe (armed): the enemy's next attack becomes block for you instead of damage.",
+                        "next_attack_reduction":"Frame Trap: the enemy's next attack is reduced by {v} damage.",
+                        "bleed_dmg":            "Bleed: the enemy takes {v} damage at the start of each of their turns.",
+                        "bleed_turns":          "Bleed: {v} more turn(s) of bleed on the enemy.",
                         "crash_next_turn":      "Stack-Up Crash: you lose 2 energy next turn (the stim wearing off).",
                         "max_energy_penalty_next_turn":"FLMod Ebb: {v} less max energy next turn.",
                         "skip_next_turn":       "FLMod Crash: you lose your entire next turn.",
-                        "enemy_attack_bonus":   "Pressure: the Colonel's next attack deals +{v} extra damage to you.",
+                        "enemy_attack_bonus":   "Pressure: the enemy's next attack deals +{v} extra damage to you.",
                         "player_draw_penalty":  "Authority Display: you draw {v} fewer card(s) at the start of your next turn.",
+                        "cards_cap_next_turn":  "Card Restriction: you can only play {v} card(s) on your next turn.",
+                        "special_dr_50":        "Special DR: SPECIAL-typed enemy attacks deal half damage to you.",
                     }
                     _active_buffs = []
                     for _k, _v in bs.buffs.items():
                         if not _v:
                             continue
-                        _label = _BUFF_LABELS.get(_k, _k)
-                        if isinstance(_v, int) and not isinstance(_v, bool) and _v > 1:
-                            _label = "{} x{}".format(_label, _v)
+                        ## Skip internal state flags — they're not player-facing buffs.
+                        if _k in _BUFF_HIDDEN:
+                            continue
+                        _label = _BUFF_LABELS.get(_k, _k.replace("_", " ").title())
+                        _icon  = _BUFF_ICONS.get(_k, "✦")
+                        _count = _v if (isinstance(_v, int) and not isinstance(_v, bool) and _v > 1) else None
+                        _chip  = "{} {}".format(_icon, _count) if _count is not None else _icon
+                        ## Tooltip fallback: when no canonical tip is registered,
+                        ## surface the readable label so the player at least sees
+                        ## "Something Happening x3" instead of an empty hover.
                         _tip = _BUFF_TIPS.get(_k, _label)
                         if "{v}" in _tip:
                             _vv = "" if isinstance(_v, bool) else _v
@@ -1065,29 +1163,24 @@ screen battle_screen():
                                 _tip = _tip.format(v=_vv)
                             except Exception:
                                 _tip = _tip.replace("{v}", str(_vv))
-                        _active_buffs.append((_label, _tip))
-                ## BUFFS — one hoverable chip per active buff. Hover any chip
-                ## to read what it does (tooltip renders just above the hand).
+                        _active_buffs.append((_chip, _tip))
                 if _active_buffs:
-                    text "BUFFS — hover for details":
-                        color "#ffaa00"
-                        size 11
-                        bold True
-                    vbox:
-                        spacing 1
-                        for _bl, _bt in _active_buffs:
-                            textbutton "- [_bl]":
+                    hbox:
+                        spacing 4
+                        box_wrap True
+                        xmaximum 330
+                        for _chip, _bt in _active_buffs:
+                            textbutton _chip:
                                 action NullAction()
                                 tooltip _bt
-                                xmaximum 330
                                 text_color "#ffdd44"
                                 text_hover_color "#ffffff"
-                                text_size 13
+                                text_size 18
                                 text_bold True
                                 text_font "fonts/RobotoMono-Regular.ttf"
-                                background None
-                                hover_background Frame("#332b00cc", 4, 4)
-                                padding (4, 1)
+                                background Frame("#1a1410cc", 3, 3)
+                                hover_background Frame("#332b00ee", 3, 3)
+                                padding (6, 3)
 
         ## ── ENERGY (right side) ───────────────────────────────────────────────
         frame:

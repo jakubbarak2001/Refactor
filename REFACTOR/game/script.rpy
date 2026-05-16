@@ -393,6 +393,11 @@ label daily_menu:
         if stats.available_money <= 0:
             renpy.jump("homeless_ending")
 
+    # Hatred intro popup — fires once per run at first ≥40 crossing.
+    if stats.pcr_hatred >= 40 and not getattr(store, '_hatred_intro_shown', False):
+        $ store._hatred_intro_shown = True
+        call screen hatred_intro_popup
+
     show screen stats_bar
 
     ## Custom hub screen — buttons use Jump() actions to route to existing labels.
@@ -476,6 +481,11 @@ label activity_gym:
             ## the numbers. Apply nothing yet — heal block runs only if the
             ## player picks HEAL.
             python:
+                ## Hatred relief is unconditional now — you completed the session,
+                ## you get the head-clear whether you bank it as a card upgrade or
+                ## a heal. Removed from the choice preview accordingly.
+                stats.increment_stats_pcr_hatred(-_total_red)
+
                 _GYM_HP_BONUS_CAP = 30
                 _gym_max_bump = max(0, min(5, _GYM_HP_BONUS_CAP - getattr(store, 'gym_max_hp_bonus', 0)))
                 ## Lazy-init run_hp_max BEFORE choice so the heal preview is
@@ -494,14 +504,12 @@ label activity_gym:
                     store.run_hp = store.run_hp_max
                 _heal_max_future = store.run_hp_max + _gym_max_bump
                 _gym_heal = int(round(_heal_max_future * 0.25))
-                _heal_parts = ["- {:,} CZK".format(_gym_cost), "-{} PCR HATRED".format(_total_red)]
+                _heal_parts = ["- {:,} CZK".format(_gym_cost)]
                 if _gym_max_bump > 0:
-                    _heal_parts.append("+{} MAX HP".format(_gym_max_bump))
+                    _heal_parts.append("{{color=#00cc88}}+{} MAX HP{{/color}}".format(_gym_max_bump))
                 else:
                     _heal_parts.append("MAX HP capped")
-                _heal_parts.append("+{} HP".format(_gym_heal))
-                if _bb_bonus:
-                    _heal_parts.append("[BODYBUILDER]")
+                _heal_parts.append("{{color=#00cc88}}+{} HP{{/color}}".format(_gym_heal))
                 if _streak_add:
                     _heal_parts.append("[STREAK x{}]".format(store.gym_streak))
                 _gym_heal_text = ", ".join(_heal_parts)
@@ -525,8 +533,8 @@ label activity_gym:
                     jump activity_gym.choice_loop
             else:
                 python:
-                    ## HEAL path — apply hatred relief, max HP bump, and HP heal.
-                    stats.increment_stats_pcr_hatred(-_total_red)
+                    ## HEAL path — apply max HP bump and HP heal. Hatred already
+                    ## dropped above (unconditional).
                     store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + _gym_max_bump
                     store.run_hp_max += _gym_max_bump
                     store.run_hp = min(store.run_hp_max, store.run_hp + _gym_heal)
@@ -754,7 +762,7 @@ label bouncer_night_club:
             _pending_money = 4000 + _bb_cash
             _pending_hatred = 10
             _bouncer_card = "side_income"
-            _btext = "Uneventful. You stand in a doorway for six hours, nodding at people who are happier than you.\nA man in a pink shirt calls you 'big guy'. You do not react.\nAt 3 AM you calculate exactly how many more shifts like this you'd need to quit forever.\nThe number is getting smaller."
+            _btext = "Uneventful. Six hours in a doorway, nodding at people happier than you.\nBy 3 AM you're calculating how many more shifts like this to quit forever. The number is getting smaller."
             _boutcome = "+ {} CZK, +10 PCR HATRED{}".format(4000 + _bb_cash, " [BODYBUILDER BONUS]" if _bb_cash else "")
         elif _roll <= 90:
             _pending_money = 9000 + _bb_cash
@@ -763,13 +771,13 @@ label bouncer_night_club:
             ## paid_review is a skill-purchase card — still useful even without a
             ## hard coding cap (it's faster than studying). Others: side_income.
             _bouncer_card = "paid_review" if stats.player_class == "bodybuilder" else "side_income"
-            _btext = "Rare night. A group of regulars tips heavy, the manager actually notices your work, and nobody throws up on anyone.\nDriving home at 4 AM, windows down, you think: 'If this was my real job I would hate it slightly less.'\nThat is the closest thing to joy you have felt all week."
+            _btext = "Rare night. Regulars tip heavy, the manager notices your work, and nobody throws up on anyone.\nDriving home at 4 AM, windows down: 'If this was my real job I would hate it slightly less.' Closest thing to joy you've felt all week."
             _boutcome = "+ {} CZK, -10 PCR HATRED{}".format(9000 + _bb_cash, " [BODYBUILDER BONUS]" if _bb_cash else "")
         else:
             ## Bad outcome — no card offered; stats apply unconditionally below.
             _pending_money = 4000 + _bb_cash
             _pending_hatred = 20
-            _btext = "Two drunk idiots fight over the same woman who is clearly interested in neither of them.\nYou step in. One of them recognizes you — 'TO JE PŘECE POLDA!' — and now his phone is out.\nYour colleagues see the video the next morning. The group chat has not stopped since.\nLieutenant Kovář sends you a thumbs up emoji. You want to die."
+            _btext = "Two drunks fight over a woman interested in neither. You step in — one recognizes you. 'TO JE PŘECE POLDA!'\nPhone out. The group chat hasn't stopped since. You want to die."
             _boutcome = "+ {} CZK, +20 PCR HATRED{}".format(4000 + _bb_cash, " [BODYBUILDER BONUS]" if _bb_cash else "")
 
     "[_btext]"
@@ -813,13 +821,13 @@ label bouncer_strip_bar:
             _pending_money = 35000 + _bb_cash
             _pending_hatred = -15
             _strip_card = "vip_treatment"
-            _btext = "A famous regular shows up drunk and paranoid. Two guys try to drag him outside, but you intervene with textbook precision.\nYour boss calls you to the office and slides an envelope across the table.\n'Not many can do what you did tonight.'"
+            _btext = "A famous regular shows up drunk and paranoid. Two guys try to drag him outside; you intervene with textbook precision.\nYour boss slides an envelope across the table. 'Not many can do what you did tonight.'"
             _boutcome = "+{} CZK, -15 PCR HATRED{}".format(35000 + _bb_cash, _bb_tag)
         elif _roll <= 25:
             ## No card — stats apply unconditionally.
             _pending_money = 12500 + _bb_cash
             _pending_coding = 2
-            _btext = "Steady crowds, few arguments, no real threats. You handle everything with routine precision.\nYou even use downtime to mentally rehearse OOP concepts and class hierarchies — weirdly effective."
+            _btext = "Steady crowds, few arguments, no real threats. Routine precision all night.\nYou use downtime to mentally rehearse OOP and class hierarchies — weirdly effective."
             _boutcome = "+{} CZK, +2 CODING SKILLS{}".format(12500 + _bb_cash, _bb_tag)
         elif _roll <= 75:
             _pending_money = 6500 + _bb_cash
@@ -827,13 +835,13 @@ label bouncer_strip_bar:
             ## BB-only: brawl prompt fires only for bodybuilder (class_lock filter).
             ## Non-BB players: offer_card returns False, stats apply (effectively no choice).
             _strip_card = "brawl"
-            _btext = "You stand in a corridor that smells like vodka Red Bull and bad decisions for four hours.\nNothing interesting happens. One person cries in the bathroom. You pretend not to notice.\nYou pretend not to notice a lot of things in this job.\nAt least the envelope is solid."
+            _btext = "Four hours in a corridor that smells like vodka Red Bull and bad decisions. Nothing happens.\nOne person cries in the bathroom; you pretend not to notice. At least the envelope is solid."
             _boutcome = "+{} CZK, +5 PCR HATRED{}".format(6500 + _bb_cash, _bb_tag)
         elif _roll <= 95:
             ## No card — stats apply unconditionally.
             _pending_money = 1000 + _bb_cash
             _pending_hatred = 25
-            _btext = "A fight breaks out inside. You break it up, but one participant recognizes your face from the force.\n'Ty vole, to je POLDA!' Your boss gives you only a partial payout."
+            _btext = "A fight breaks out. You break it up — one participant recognizes you. 'Ty vole, to je POLDA!'\nYour boss only gives you a partial payout."
             _boutcome = "+{} CZK, +25 PCR HATRED{}".format(1000 + _bb_cash, _bb_tag)
         else:
             ## Worst-case strip bar outcome — pure beat-up, no debt. The old
@@ -843,7 +851,7 @@ label bouncer_strip_bar:
             ## risk, not getting put in actual debt.
             _pending_money = _bb_cash
             _pending_hatred = 30
-            _btext = "You turn your back for one second — enough for a coked-up idiot to drive a vodka bottle into your skull.\nThe ambulance is faster than the cops. The boss doesn't pay you for the night — but he doesn't fire you either.\nThe headache lasts three days. The stitches itch worse."
+            _btext = "You turn your back for one second — enough for a coked-up idiot to drive a vodka bottle into your skull.\nThe boss doesn't pay you for the night, but he doesn't fire you either. The headache lasts three days."
             if _bb_cash:
                 _boutcome = "+{} CZK [BB BONUS], +30 PCR HATRED".format(_bb_cash)
             else:
@@ -984,27 +992,10 @@ label coding_fiverr:
             renpy.jump("activity_coding")
 
     python:
-        ## BIOHACKER perk: always gets the top-tier tutor
-        if stats.player_class == "biohacker":
-            _roll = 100
-        else:
-            _roll = __import__('random').randint(1, 100)
-        ## Pending coding gain — applied only on PASS.
-        if _roll <= 65:
-            _fiverr_gain = 10
-            _fiverr_card = "compile"
-            _ftext = "Mid-level coach. Practical. Cleans up your file structure and bad habits."
-            _foutcome = "- {} CZK, +10 CODING SKILL.".format(_fiverr_cost)
-        elif _roll <= 90:
-            _fiverr_gain = 15
-            _fiverr_card = "compile"
-            _ftext = "Sharp coach. OOP finally clicks."
-            _foutcome = "- {} CZK, +15 CODING SKILL.".format(_fiverr_cost)
-        else:
-            _fiverr_gain = 25
-            _fiverr_card = "refactor"
-            _ftext = "Senior dev. Ten years in. Code review, patterns, mental models. Paradigm shift."
-            _foutcome = "- {} CZK, +25 CODING SKILL{}.".format(_fiverr_cost, " [BIOHACKER PERK]" if stats.player_class == "biohacker" else "")
+        _fiverr_gain = 25
+        _fiverr_card = "refactor"
+        _ftext = "Senior dev. Ten years in. Code review, patterns, mental models. Paradigm shift."
+        _foutcome = "- {} CZK, +25 CODING SKILL.".format(_fiverr_cost)
 
     "[_ftext]"
 

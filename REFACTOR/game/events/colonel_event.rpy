@@ -112,6 +112,8 @@ label colonel_round_one:
 
 label colonel_round_two:
 
+    $ renpy.music.set_volume(1.25, 0, channel="voice")
+
     scene bg_police_office with glitch_transition
     show colonel normal at char_right
 
@@ -185,6 +187,8 @@ label colonel_round_two:
 
     voice "audio/voice/jb_02_get_this_over_with.ogg"
     jb "Let's get this over with."
+
+    $ renpy.music.set_volume(1.0, 0, channel="voice")
 
     return
 

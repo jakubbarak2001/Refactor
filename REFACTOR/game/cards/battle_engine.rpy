@@ -41,7 +41,7 @@ init python:
 
     import random as _battle_rand
 
-    def _play_battle_sfx(name, channel="sound"):
+    def _play_battle_sfx(name, channel="sound", volume=1.0):
         """Phase A juice — play a battle SFX from audio/sfx/<name>.<ext>.
 
         Tries .ogg, then .mp3, then .wav. Silently skips if no matching
@@ -52,11 +52,16 @@ init python:
         Per-card intent SFX should pass `channel="battle_card_sfx"` so
         they don't get cut off by the hit_thud / enemy_hit punches that
         also play on the default channel during the deal_damage popup.
+
+        `volume` is a secondary multiplier (1.0 = normal) applied to the
+        channel before playback. Set each call so a louder boost on one
+        SFX self-resets on the next normal call.
         """
         for _ext in (".ogg", ".mp3", ".wav"):
             path = "audio/sfx/{}{}".format(name, _ext)
             if renpy.loadable(path):
                 try:
+                    renpy.music.set_volume(volume, 0, channel=channel)
                     renpy.sound.play(path, channel=channel)
                 except Exception:
                     pass
@@ -480,9 +485,11 @@ init python:
             bs.player_hp = 115 + _gym_b
             ## SOMA bonus: +1 starting block per turn for every 3 SOMA stacks
             ## (was every 2 — nerfed so ladder fights actually test the player).
+            ## Lives on its own buff key (`soma_starting_block`) so it doesn't
+            ## piggyback on the Stoic Anchor key and mislabel the player's UI.
             _soma = getattr(store, 'bb_soma', 0)
             if _soma >= 3:
-                bs.buffs["stoic_anchor_block"] = bs.buffs.get("stoic_anchor_block", 0) + (_soma // 3)
+                bs.buffs["soma_starting_block"] = bs.buffs.get("soma_starting_block", 0) + (_soma // 3)
                 bs.add_log("[[SOMA x{}]: +{} starting block per turn.".format(_soma, _soma // 3))
             ## Presence: 1 charge (was 3). One free +3 starting block on turn 1
             ## only, then the player has to play actual block cards.
@@ -533,20 +540,11 @@ init python:
             bs.draw_pile = list(player_deck.cards)
             _battle_rand.shuffle(bs.draw_pile)
 
-        ## Apply Power-card pre-fight buffs from collected deck
-        ## (job_offer, stoic_refactor are Powers — they activate at battle start)
-        for cid in list(bs.draw_pile):
-            c = CARD_LIBRARY.get(cid, {})
-            if c.get("type") == "Power":
-                ## Power cards activate immediately and are removed from the deck
-                eff_id = c.get("effect")
-                if eff_id and eff_id in card_effects:
-                    try:
-                        card_effects[eff_id](bs, "player", "enemy")
-                    except Exception:
-                        pass
-                bs.exhaust_pile.append(cid)
-                bs.draw_pile.remove(cid)
+        ## Powers no longer auto-fire at battle start — they live in the deck
+        ## like any other card and must be played each combat for their buff
+        ## to land. Per-combat effect, not run-permanent. The exhaust-on-play
+        ## branch in battle_play_card handles cleanup (Powers leave a buff and
+        ## are removed from the fight; they reset for the next battle).
 
         ## Build enemy deck — Colonel uses build_colonel_deck() (difficulty-scaled);
         ## ladder enemies use their ENEMY_LIBRARY deck_template.
@@ -627,6 +625,8 @@ init python:
             bs.player_block += 1
         if bs.buffs.get("stoic_anchor_block"):
             bs.player_block += bs.buffs["stoic_anchor_block"]
+        if bs.buffs.get("soma_starting_block"):
+            bs.player_block += bs.buffs["soma_starting_block"]
         if bs.buffs.get("presence_charges", 0) > 0:
             bs.player_block += 3
             bs.buffs["presence_charges"] -= 1
@@ -690,8 +690,8 @@ init python:
 
         ## Draw 5 cards — minus any pending draw penalty from the previous
         ## enemy turn's debuff intents (authority_display, spray_blind,
-        ## file_swap, gas_release, radio_static, audit). Floor at 1 so
-        ## stacked penalties can't soft-lock the player to zero cards.
+        ## file_swap, gas_release, audit). Floor at 1 so stacked penalties
+        ## can't soft-lock the player to zero cards.
         _draw_count = 5
         _dp = bs.buffs.get("player_draw_penalty", 0)
         if _dp > 0:
@@ -705,9 +705,12 @@ init python:
             bs.buffs["kick_charges"] -= 1
 
         ## --- Post-draw wrinkles: must run AFTER draw_cards(5) so hand exists ---
-        if _eid == "dispatcher" and bs.turn >= 3 and bs.turn % 3 == 0 and bs.hand:
-            ## Priority change: every 3rd turn, discard one random card from the
-            ## freshly-drawn hand and replace it — the case got reassigned mid-shift.
+        if _eid == "dispatcher" and bs.hand and bs.turn in (4, 8):
+            ## Priority change: turn 4 and turn 8 only (capped at 2 fires per
+            ## fight). Was every 3rd turn from turn 3 — too punishing early,
+            ## hit hardest when the player's deck was thinnest. Spacing the
+            ## two fires out gives the player time to recover and time to
+            ## anticipate the next one.
             _victim = _battle_rand.choice(bs.hand)
             bs.discard(_victim)
             bs.draw_cards(1)
@@ -762,8 +765,9 @@ init python:
 
         bs.last_card_played = card_id
 
-        ## Move to discard or exhaust
-        if c.get("exhaust"):
+        ## Move to discard or exhaust. Power cards always exhaust on play
+        ## (StS rule) — they leave a buff for the fight and don't recycle.
+        if c.get("exhaust") or c.get("type") == "Power":
             bs.exhaust(card_id)
         else:
             bs.discard(card_id)
@@ -979,8 +983,10 @@ init python:
         ## wall / throw sound LAYERS UNDER the per-hit punch thuds (which
         ## play on the default "sound" channel a few frames later). Card_id
         ## == basename in audio/sfx/<id>.{ogg,mp3,wav}.
-        if ic.get("id") in ("gas_throw", "flare_throw", "paper_wall", "rvac_swing"):
+        if ic.get("id") in ("gas_throw", "flare_throw", "paper_wall", "spray_blind"):
             _play_battle_sfx(ic["id"], channel="battle_card_sfx")
+        elif ic.get("id") == "rvac_swing":
+            _play_battle_sfx(ic["id"], channel="battle_card_sfx", volume=1.25)
 
         ## Resolve intent by type
         intent_type = ic.get("intent", "attack")
@@ -1012,6 +1018,14 @@ init python:
             ## --- Garda formation strength: +3 dmg while above 50% HP ---
             if bs.enemy_id == "garda" and bs.enemy_hp > bs.enemy_max_hp // 2:
                 dmg += 3
+            ## --- Hooligan crew rage: +bonus_dmg while at/below threshold HP.
+            ## Bloodied → the crew piles in. Surfaced in the UI as the CREW
+            ## RAGE badge near the enemy HP bar (hover tooltip explains).
+            if bs.enemy_id == "fanousek":
+                _wd = ENEMY_LIBRARY.get("fanousek", {}).get("wrinkle_data", {})
+                _thr = _wd.get("hp_threshold", 0.5)
+                if bs.enemy_hp <= int(bs.enemy_max_hp * _thr):
+                    dmg += _wd.get("bonus_dmg", 4)
             if _paragraph_fires:
                 _bonus = ENEMY_LIBRARY.get("lawyer", {}).get("wrinkle_data", {}).get("bonus_dmg", 6)
                 dmg += _bonus
@@ -1024,6 +1038,14 @@ init python:
             ## Strength applies PER HIT (StS rule) — compound attacks scale
             ## sharply with strength stacks.
             per_hit += bs.enemy_strength
+            ## --- Hooligan crew rage on compound (pile_in): +bonus_dmg per
+            ## hit when bloodied. Compound is the spike — pile_in goes from
+            ## 3×4 to 7×4 at low HP. This is the threat tell.
+            if bs.enemy_id == "fanousek":
+                _wd = ENEMY_LIBRARY.get("fanousek", {}).get("wrinkle_data", {})
+                _thr = _wd.get("hp_threshold", 0.5)
+                if bs.enemy_hp <= int(bs.enemy_max_hp * _thr):
+                    per_hit += _wd.get("bonus_dmg", 4)
             if _paragraph_fires:
                 _bonus = ENEMY_LIBRARY.get("lawyer", {}).get("wrinkle_data", {}).get("bonus_dmg", 6)
                 per_hit += max(1, _bonus // max(1, hits))
