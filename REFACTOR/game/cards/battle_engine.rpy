@@ -43,7 +43,7 @@ init python:
 
     ## Hatred-archetype battle constants (tunable). See Red walls up block on
     ## each in-fight Hatred gain; Thick Skull catches the first gain that would
-    ## reach 100, pinning Hatred at the floor and walling up instead.
+    ## break the player, pinning Hatred at the floor and walling up instead.
     SEE_RED_BLOCK     = 2
     THICK_SKULL_FLOOR = 80
     THICK_SKULL_BLOCK = 20
@@ -414,7 +414,7 @@ init python:
             ## Thick Skull — the first gain that WOULD reach 100 this fight is
             ## intercepted: Hatred is pinned at the floor and you wall up.
             if self.buffs.get("thick_skull") and not self.buffs.get("thick_skull_used"):
-                if stats.pcr_hatred + n >= 100:
+                if stats.pcr_hatred + n >= hatred_cap():
                     self.buffs["thick_skull_used"] = True
                     stats.increment_stats_pcr_hatred(THICK_SKULL_FLOOR - stats.pcr_hatred)
                     self.gain_block("player", THICK_SKULL_BLOCK)
@@ -514,6 +514,15 @@ init python:
 
     ## ---------------- ENGINE FUNCTIONS ----------------
 
+    def vlk_add_buyin(bs, n):
+        """Raise Vlk's Buy-In counter, clamped to the buyin_cap from
+        wrinkle_data. Shared by the moneydrain / dividend / referral intents
+        and the guaranteed_returns card so the cap holds at every entry point.
+        Returns the new counter value."""
+        _cap = ENEMY_LIBRARY.get("vlk", {}).get("wrinkle_data", {}).get("buyin_cap", 10)
+        bs.buffs["vlk_buyin"] = min(_cap, bs.buffs.get("vlk_buyin", 0) + n)
+        return bs.buffs["vlk_buyin"]
+
     def battle_init(enemy_id="colonel"):
         """Build a fresh BattleState for a battle against enemy_id. Reads
         stats / player_deck / difficulty. Colonel defaults preserve the
@@ -611,6 +620,11 @@ init python:
         else:
             bs.enemy_max_hp = _enemy.get("max_hp") or 80
         bs.enemy_hp = bs.enemy_max_hp
+
+        ## Vlk — Buy-In counter starts at 0. It drives Margin Call's damage
+        ## and is surfaced as the BUY-IN badge in battle_screen.
+        if enemy_id == "vlk":
+            bs.buffs["vlk_buyin"] = 0
 
         ## Sanity guard — ensure player HP is never <= 0 at battle start.
         ## Power-card auto-fire effects + BH withdrawal could in theory push
@@ -741,6 +755,15 @@ init python:
         if _eid == "garda" and bs.turn in (3, 6):
             bs.draw_pile.insert(0, "tear_gas")
             bs.add_log("[[Tear gas]: a canister rolls onto your stack.")
+        if _eid == "vlk":
+            ## Snapshot enemy HP at turn start — the call-the-bluff check in
+            ## battle_resolve_enemy compares against it to see if the player
+            ## got real damage through Vlk's block this turn.
+            bs.buffs["vlk_hp_snapshot"] = bs.enemy_hp
+            _vlk_inject = ENEMY_LIBRARY.get("vlk", {}).get("wrinkle_data", {}).get("returns_inject_turn", 2)
+            if bs.turn == _vlk_inject:
+                bs.draw_pile.insert(0, "guaranteed_returns")
+                bs.add_log("[[Guaranteed Returns]: a sure thing slides onto your stack.")
 
         ## Draw 5 cards — minus any pending draw penalty from the previous
         ## enemy turn's debuff intents (authority_display, spray_blind,
@@ -876,6 +899,20 @@ init python:
         ## Reset damage trackers — fresh intent, fresh accounting
         bs.last_damage_to_player = 0
         bs.last_damage_to_enemy = 0
+
+        ## Vlk — call the bluff. Sebejistota (vlk_confidence) is his only real
+        ## defence and it is pure front: if the player punched real damage
+        ## through it on the turn it stood, the Buy-In counter takes a hit.
+        ## Gating on Sebejistota (1 of 6 intents) makes this a meaty, skill-
+        ## gated relief valve rather than a per-turn freebie that pins the
+        ## counter at 0 — and bluff_drop is less than the per-cycle feed, so
+        ## calling the bluff slows the grift without ever reversing it.
+        if bs.enemy_id == "vlk" and bs.last_intent_resolved == "vlk_confidence":
+            _vlk_snap = bs.buffs.get("vlk_hp_snapshot", bs.enemy_hp)
+            if bs.enemy_hp < _vlk_snap and bs.buffs.get("vlk_buyin", 0) > 0:
+                _drop = ENEMY_LIBRARY.get("vlk", {}).get("wrinkle_data", {}).get("bluff_drop", 2)
+                bs.buffs["vlk_buyin"] = max(0, bs.buffs["vlk_buyin"] - _drop)
+                bs.add_log("[[Bluff called]: you broke his Sebejistota. Buy-In down to {}.".format(bs.buffs["vlk_buyin"]))
 
         ## Phase 1A diagnostic — track which branch handled this intent so the
         ## end-of-function safety-net knows whether a 0-damage attack is bug or
@@ -1088,6 +1125,14 @@ init python:
                 dmg += _bonus
                 bs.buffs["max_energy_penalty_next_turn"] = max(bs.buffs.get("max_energy_penalty_next_turn", 0), 1)
                 bs.add_log("[[Paragraf cite]: +{} dmg, your next turn loses 1 energy.".format(_bonus))
+            ## --- Vlk Margin Call: base + Buy-In x margin_per_buyin. The whole
+            ## fight's exposure cashes out in this single hit.
+            if bs.enemy_id == "vlk" and ic.get("id") == "vlk_margin_call":
+                _vlk_per = ENEMY_LIBRARY.get("vlk", {}).get("wrinkle_data", {}).get("margin_per_buyin", 5)
+                _vlk_buyin = bs.buffs.get("vlk_buyin", 0)
+                if _vlk_buyin > 0:
+                    dmg += _vlk_per * _vlk_buyin
+                    bs.add_log("[[Margin Call]: Buy-In {} -> +{} damage.".format(_vlk_buyin, _vlk_per * _vlk_buyin))
             bs.deal_damage("player", dmg, source_kind="intent")
         elif intent_type == "compound":
             hits = ic.get("value2", 1)
@@ -1142,6 +1187,33 @@ init python:
             ## "max_energy_penalty_next_turn" for energy-suppress intents).
             _dbuff_key = ic.get("debuff_key", "player_draw_penalty")
             bs.buffs[_dbuff_key] = bs.buffs.get(_dbuff_key, 0) + ic.get("value", 1)
+        elif intent_type == "moneydrain":
+            ## Vlk Buy-In — drains run-economy money through the stat helper.
+            ## Pay it and the Buy-In counter rises. If paying would bankrupt
+            ## the player (homeless_ending fires at <= 0 money) OR they are
+            ## already too broke, he takes the fee in HP instead — winning the
+            ## fight must never silently lose the run on the next daily menu.
+            _md_amt = ic.get("value", 0)
+            if stats is not None and stats.available_money > _md_amt and stats.try_spend_money(_md_amt):
+                vlk_add_buyin(bs, 1)
+                bs.add_log("[[Buy-In]: he takes {} Kc. Counter at {}.".format(_md_amt, bs.buffs["vlk_buyin"]))
+            else:
+                _md_fb = ic.get("value2", 12)
+                bs.deal_damage("player", _md_fb, source_kind="intent")
+                bs.add_log("[[Buy-In]: you can't pay. He takes it out of your hide.")
+        elif intent_type == "dividend":
+            ## Vlk Dividend — heals the player (the bait). If the heal lands,
+            ## the Buy-In counter rises: you took his money, you're invested.
+            _div_before = bs.player_hp
+            bs.heal("player", ic.get("value", 0))
+            if bs.player_hp > _div_before:
+                vlk_add_buyin(bs, 1)
+                bs.add_log("[[Dividend]: you took the payout. Buy-In at {}.".format(bs.buffs["vlk_buyin"]))
+
+        ## Vlk Referral — his client network grows: +1 Buy-In on resolve.
+        if bs.enemy_id == "vlk" and ic.get("id") == "vlk_referral":
+            vlk_add_buyin(bs, 1)
+            bs.add_log("[[Referral]: more clients signed. Buy-In at {}.".format(bs.buffs["vlk_buyin"]))
 
         ## Apply enemy_attack_bonus to attacks
         if intent_type == "attack" and bs.buffs.get("enemy_attack_bonus"):

@@ -827,6 +827,34 @@ screen battle_screen():
                             hover_background _crew_hover_bg
                             padding (6, 1)
 
+                    ## Vlk BUY-IN badge — the Margin Call exposure counter.
+                    ## Visible from turn 1 so the scaling mechanic is explicit;
+                    ## colour climbs grey → orange → red as exposure builds.
+                    if bs.enemy_id == "vlk":
+                        python:
+                            _buyin      = bs.buffs.get("vlk_buyin", 0)
+                            _vlk_wd     = ENEMY_LIBRARY.get("vlk", {}).get("wrinkle_data", {})
+                            _buyin_per  = _vlk_wd.get("margin_per_buyin", 5)
+                            _buyin_drop = _vlk_wd.get("bluff_drop", 2)
+                            if _buyin >= 6:
+                                _buyin_color = "#ff3322"
+                            elif _buyin >= 3:
+                                _buyin_color = "#ffaa33"
+                            else:
+                                _buyin_color = "#887766"
+                            _buyin_tip = "Buy-In {}: Margin Call deals +{} damage. Breaking his Sebejistota block drops it by {}.".format(_buyin, _buyin * _buyin_per, _buyin_drop)
+                        textbutton "📈 BUY-IN [_buyin]":
+                            action NullAction()
+                            tooltip _buyin_tip
+                            text_color _buyin_color
+                            text_hover_color "#ffffff"
+                            text_size 18
+                            text_bold True
+                            text_font "fonts/RobotoMono-Regular.ttf"
+                            background None
+                            hover_background Frame("#0a1430cc", 4, 4)
+                            padding (6, 1)
+
                 ## ── INTENT INFOGRAPHICS ───────────────────────────────────────
                 ## Each peeked intent renders as a small icon+value panel with
                 ## the intent name in italic gray below. Type → glyph + color:
@@ -880,6 +908,13 @@ screen battle_screen():
                                         _icon = "🗡"
                                         _ic_color = "#ff4422"
                                         _base = _intent.get("value", 0) + _wrinkle_bonus
+                                        ## Vlk Margin Call — gated on THIS peeked
+                                        ## intent so the Buy-In scaling never
+                                        ## leaks onto a peeked vlk_hard_sell.
+                                        ## Mirrors battle_engine.rpy resolve math.
+                                        if bs.enemy_id == "vlk" and _intent.get("id") == "vlk_margin_call":
+                                            _mc_per = ENEMY_LIBRARY.get("vlk", {}).get("wrinkle_data", {}).get("margin_per_buyin", 5)
+                                            _base += _mc_per * bs.buffs.get("vlk_buyin", 0)
                                         _dmg_for_threat = _base
                                         if _is_current and _enemy_atk_bonus > 0:
                                             _val_text = "{} (+{})".format(_base, _enemy_atk_bonus)
@@ -925,6 +960,18 @@ screen battle_screen():
                                         else:
                                             _icon = "🃏↓"
                                             _val_text = "-{} draw".format(_intent.get("value", 1))
+                                        _dmg_for_threat = 0
+                                    elif _itype == "moneydrain":
+                                        ## Vlk Buy-In — drains run money, not HP.
+                                        _icon = "💸"
+                                        _ic_color = "#cc66cc"
+                                        _val_text = "-{} Kč".format(_intent.get("value", 0))
+                                        _dmg_for_threat = 0
+                                    elif _itype == "dividend":
+                                        ## Vlk Dividend — heals you. The bait.
+                                        _icon = "🎁"
+                                        _ic_color = "#66cc88"
+                                        _val_text = "+{} HP".format(_intent.get("value", 0))
                                         _dmg_for_threat = 0
                                     else:
                                         _icon = "?"
@@ -1016,16 +1063,18 @@ screen battle_screen():
                         size 14
 
                 ## Hatred readout — the run stat the Hatred archetype juggles.
-                ## Climbs toward 100 = breakdown; colour escalates as a warning.
+                ## Climbs toward the breakdown cap; colour escalates as a warning.
                 python:
                     _hat_val = stats.pcr_hatred if stats else 0
-                    if _hat_val >= 85:
+                    _hat_cap = hatred_cap()
+                    _hat_r   = (_hat_val / float(_hat_cap)) if _hat_cap else 0.0
+                    if _hat_r >= 0.85:
                         _hat_col = "#ff3322"
-                    elif _hat_val >= 60:
+                    elif _hat_r >= 0.6:
                         _hat_col = "#ffaa22"
                     else:
                         _hat_col = "#cc8866"
-                text "HATRED [_hat_val] / 100":
+                text "HATRED [_hat_val] / [_hat_cap]":
                     color _hat_col
                     size 16
                     bold True
@@ -1163,7 +1212,7 @@ screen battle_screen():
                         "cards_cap_next_turn":  "Card Restriction: you can only play {v} card(s) on your next turn.",
                         "special_dr_50":        "Special DR: SPECIAL-typed enemy attacks deal half damage to you.",
                         "see_red":              "See Red: each time you gain Hatred this fight, gain block.",
-                        "thick_skull":          "Thick Skull: the first Hatred gain that would reach 100 this fight is held at 80 — you wall up instead.",
+                        "thick_skull":          "Thick Skull: the first Hatred gain that would break you this fight is caught — Hatred held at 80, you wall up.",
                         "iron_posture":         "Iron Posture: at the start of each turn you keep half your block instead of losing all of it.",
                         "roid_rage":            "Roid Rage: each time you gain Hatred this fight, the enemy takes 3 damage.",
                     }

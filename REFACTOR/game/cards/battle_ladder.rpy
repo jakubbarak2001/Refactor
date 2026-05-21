@@ -6,7 +6,7 @@
 ## narrative random-event pool. Ladder pool drains as battles fire
 ## (no repeats per run) and is keyed by day band:
 ##     easy (d3-9)   = rvac / sprejeri / fanousek / spis
-##     medium (d9-18)= nguyen / grundza / lawyer / dispatcher
+##     medium (d9-18)= nguyen / grundza / lawyer / dispatcher / vlk
 ##     hard (d19-30) = inspekce / garda
 ## The Colonel (Day 30) stays on his own colonel_event label — his
 ## multi-phase resolution and ending-jump logic are NOT routed through
@@ -33,7 +33,7 @@ init python:
         if not hasattr(store, 'battle_ladder_pool') or store.battle_ladder_pool is None:
             store.battle_ladder_pool = {
                 "easy":   ["rvac", "sprejeri", "fanousek", "spis"],
-                "medium": ["nguyen", "grundza", "lawyer", "dispatcher"],
+                "medium": ["nguyen", "grundza", "lawyer", "dispatcher", "vlk"],
                 "hard":   ["inspekce", "garda"],
             }
 

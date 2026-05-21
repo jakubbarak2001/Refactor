@@ -32,7 +32,7 @@ init python:
         "knuckle_down":            "Deal 14 damage. Gain 6 Hatred.",
         "red_mist":                "Deal 8 damage twice. Gain 4 Hatred.",
         "see_red":                 "Power: each time you gain Hatred this fight, gain 2 block.",
-        "thick_skull":             "Power: the first time a Hatred gain would reach 100 this fight, Hatred is held at 80 and you gain 20 block.",
+        "thick_skull":             "Power: the first Hatred gain that would break you this fight is caught — Hatred is held at 80 and you gain 20 block.",
         "adrenaline_dump":         "Lose 10 Hatred. Gain 2 energy.",
         "last_nerve":              "Deal 4 damage.",
         "embrace_it":              "Exhaust a Rage card in your hand: gain 15 block and draw 2 cards.",
@@ -95,6 +95,7 @@ init python:
         "status_counterfeit":      "Status. Deal 4. Take 8. Exhausts.",
         "status_fumes":            "Status. Take 2. Exhausts.",
         "status_tear_gas":         "Status. Take 3. Exhausts.",
+        "status_guaranteed_returns": "Status. Deal 16. Vlk heals 16. Buy-In +2. Exhausts.",
         ## Compromise
         "compromise":              "Unplayable.\nDead weight in hand.",
         ## SOMA capstone
@@ -668,6 +669,15 @@ init python:
     @register_effect("status_tear_gas")
     def _eff_status_tear_gas(state, source, target):
         state.deal_damage(source, 3)
+
+    @register_effect("status_guaranteed_returns")
+    def _eff_status_guaranteed_returns(state, source, target):
+        ## Vlk's fake card. It looks like free tempo — 0 cost, 16 damage —
+        ## but he hands it straight back and the Buy-In counter jumps.
+        state.deal_damage(target, 16)
+        state.heal(target, 16)
+        vlk_add_buyin(state, 2)
+        state.add_log("[[Buy-In]: +2. The numbers go up.")
 
     ## ---------------------------------------------------------------------------
     ## UPGRADED (`_plus`) EFFECTS — paired with the register_upgrade table in

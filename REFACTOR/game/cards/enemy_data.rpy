@@ -227,6 +227,22 @@ init -1 python:
         ],
     )
 
+    register_enemy(
+        "vlk",
+        display_name = "Vlk z Mostu",
+        sprite_id    = "vlk",
+        log_name     = "Vlk",
+        tier         = "medium",
+        max_hp       = 105,
+        deck_template = ["vlk_buyin", "vlk_dividend", "vlk_referral", "vlk_confidence", "vlk_hard_sell", "vlk_margin_call"],
+        wrinkle      = "ponzi",
+        wrinkle_data = {"margin_per_buyin": 5, "returns_inject_turn": 2, "bluff_drop": 2, "buyin_cap": 10},
+        detour_lines = [
+            "He shakes your hand on the way out. Your account is lighter and you can't say exactly when that happened.",
+            "The case closes itself. He's already three towns over, in another rented room, in front of people who haven't met him yet.",
+        ],
+    )
+
     ## ---------------------------------------------------------------------------
     ## HARD tier (days 19-28)
     ## ---------------------------------------------------------------------------

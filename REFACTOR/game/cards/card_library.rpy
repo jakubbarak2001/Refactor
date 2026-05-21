@@ -830,6 +830,18 @@ init python:
         pool_excluded = True,
         flavor        = "Status. Take 3. Eyes go first.",
     )
+    register_card(
+        "guaranteed_returns",
+        name          = "Guaranteed Returns",
+        type          = "Attack",
+        color         = "Special",
+        cost          = 0,
+        rarity        = "common",
+        effect        = "status_guaranteed_returns",
+        exhaust       = True,
+        pool_excluded = True,
+        flavor        = "Status. Deal 16. He hands every koruna back. Buy-In +2.",
+    )
 
     ## ---------------------------------------------------------------------------
     ## ARCHETYPE: CORRUPTION — Rage cards forced into the deck on crossing a

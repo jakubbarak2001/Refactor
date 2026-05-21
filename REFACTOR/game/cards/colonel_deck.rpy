@@ -520,6 +520,67 @@ init python:
     )
 
     ## ---------------------------------------------------------------------------
+    ## Vlk z Mostu — the Wolf of Most (forex/crypto Ponzi grifter).
+    ## He barely throws a punch. Almost every intent feeds the Buy-In counter;
+    ## Margin Call cashes it. Buy-In falls on any turn the player damages his
+    ## health — calling the bluff. Wrinkle logic lives in battle_engine.rpy
+    ## (keyed on enemy_id == "vlk"); moneydrain/dividend are vlk-only intents.
+    ## ---------------------------------------------------------------------------
+
+    register_enemy_card(
+        "vlk_buyin",
+        name     = "Vstupní poplatek",
+        intent   = "moneydrain",
+        value    = 5000,     ## CZK drained from the run economy on a successful pay
+        value2   = 13,       ## HP damage instead, if the player is too broke to pay
+        tags     = ["money"],
+        dialogue = "'Small registration fee, pane policisto. Everyone pays it. It is how I know you are serious.'",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "vlk_dividend",
+        name     = "Dividenda",
+        intent   = "dividend",
+        value    = 12,       ## HP healed back to the player — the bait
+        dialogue = "'See? First payout, right on time. Told you it was real. Bring a friend next week.'",
+        threat   = 1,
+    )
+    register_enemy_card(
+        "vlk_referral",
+        name     = "Doporučení",
+        intent   = "block",
+        value    = 11,
+        dialogue = "'My clients send their cousins. Their cousins send theirs. The room is never empty for long.'",
+        threat   = 1,
+    )
+    register_enemy_card(
+        "vlk_confidence",
+        name     = "Sebejistota",
+        intent   = "block",
+        value    = 18,
+        dialogue = "He does not look up from his phone. 'I don't argue with people who don't have the numbers.'",
+        threat   = 1,
+    )
+    register_enemy_card(
+        "vlk_hard_sell",
+        name     = "Tvrdý prodej",
+        intent   = "attack",
+        value    = 13,
+        tags     = ["money", "mental"],
+        dialogue = "'You're going to feel stupid, you know. In a year. When you see where this went without you.'",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "vlk_margin_call",
+        name     = "Margin Call",
+        intent   = "attack",
+        value    = 5,        ## base only; engine adds Buy-In x margin_per_buyin
+        tags     = ["money", "fear"],
+        dialogue = "'Okay. You want out? Fine. Here is the exit fee.' He finally takes the glasses off.",
+        threat   = 3,
+    )
+
+    ## ---------------------------------------------------------------------------
     ## Hard tier intents
     ## ---------------------------------------------------------------------------
 
