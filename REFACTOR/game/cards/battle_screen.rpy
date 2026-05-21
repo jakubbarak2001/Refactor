@@ -1296,7 +1296,7 @@ screen battle_screen():
 
         ## ── HAND ──────────────────────────────────────────────────────────────
         ## Multi-layer card construction per slot (220×316 each):
-        ##   L1: glow halo (playable only, pulsing alpha)
+        ##   L1: combo glow (only a card with a live bonus; pulsing gold)
         ##   L2: drop shadow (offset solid behind border)
         ##   L3: type-colored border (red=Attack/blue=Skill/purple=Power)
         ##   L4: warm-dark inner panel (#1a1410 — card-stock tone)
@@ -1354,9 +1354,10 @@ screen battle_screen():
                         $ _color = {"Attack": "#cc4422", "Skill": "#3388cc", "Power": "#aa44cc"}.get(_ctype, "#888888")
                     $ _ok, _reason = bs.hand_playable(_cid)
                     $ _border = _color if _ok else "#3a2020"
-                    ## Gold glow when a card's bonus condition is live right now.
+                    ## A card whose bonus is LIVE right now (Production Push
+                    ## after a Skill, Hotfix as the 3rd+ card) gets the only
+                    ## glow in the hand — so it actually stands out.
                     $ _combo_live = (_cid in ("production_push", "production_push_plus") and bs.skill_played_this_turn) or (_cid in ("hotfix", "hotfix_plus") and bs.cards_played_this_turn >= 2)
-                    $ _glow_col = "#ffcc33" if (_combo_live and _ok) else _color
                     $ _effect_text = effect_description(_card.get("effect")) or _card.get("flavor", "")
                     if _is_compromise:
                         $ _subtitle = "COMPROMISE · DEAD WEIGHT"
@@ -1386,11 +1387,13 @@ screen battle_screen():
                         action [Function(battle_play_card, _cid), Function(renpy.restart_interaction)]
                         at card_hover_lift
 
-                        ## L1: glow halo — two alpha layers approximate falloff.
-                        ## Pulses gently on playable cards; invisible when locked.
-                        if _ok:
-                            add Solid(_glow_col + "44") xpos 0 ypos 0 xysize (220, 316) at card_glow_pulse
-                            add Solid(_glow_col + "77") xpos 4 ypos 4 xysize (212, 308) at card_glow_pulse
+                        ## L1: combo glow — ONLY a card with a live bonus gets a
+                        ## halo. Playability is already shown by the border and
+                        ## the dimmed content, so a glow on every card was just
+                        ## redundant noise that drowned this one out.
+                        if _combo_live and _ok:
+                            add Solid("#ffcc3344") xpos 0 ypos 0 xysize (220, 316) at card_glow_pulse
+                            add Solid("#ffcc3377") xpos 4 ypos 4 xysize (212, 308) at card_glow_pulse
 
                         ## L2: drop shadow — offset solid behind the card body.
                         add Solid("#000000aa") xpos 16 ypos 14 xysize (200, 300)
