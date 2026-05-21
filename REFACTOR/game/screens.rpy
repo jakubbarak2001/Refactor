@@ -93,7 +93,7 @@ screen stats_bar():
         elif stats.coding_skill < 70:
             _coding_tt = "Coding is your way out. Higher = more cash from gigs and stronger endings."
         if stats.pcr_hatred >= 60:
-            _hatred_tt = "Stay below 100. High hatred = breakdown ending."
+            _hatred_tt = "Stay below {}. High hatred = breakdown ending.".format(hatred_cap())
 
         _deck_count_bar = len(player_deck.cards) if player_deck is not None else 0
 
@@ -115,12 +115,13 @@ screen stats_bar():
         _hp_tt = "Your body. Carries between fights. +5/night, +8 gym, +15 heavy gym. Hospital after a loss costs HP. 0 HP mid-fight = forced detour."
 
         ## ── Hatred — bar color ramps by severity ─────────────────────────
-        _hatred_ratio = min(1.0, stats.pcr_hatred / 100.0)
-        if stats.pcr_hatred < 30:
+        _hatred_cap = hatred_cap()
+        _hatred_ratio = min(1.0, stats.pcr_hatred / float(_hatred_cap))
+        if _hatred_ratio < 0.3:
             _hatred_bar_color = "#88ff88"
-        elif stats.pcr_hatred < 60:
+        elif _hatred_ratio < 0.6:
             _hatred_bar_color = "#ffdd44"
-        elif stats.pcr_hatred < 90:
+        elif _hatred_ratio < 0.9:
             _hatred_bar_color = "#ff8844"
         else:
             _hatred_bar_color = "#ff4444"
@@ -382,13 +383,13 @@ screen stats_bar():
                                     tooltip _hatred_tt
                                     background None
                                     padding (0, 0)
-                                    text "Hatred [stats.pcr_hatred]/100":
+                                    text "Hatred [stats.pcr_hatred]/[_hatred_cap]":
                                         color "#ff4444"
                                         size 16
                                         bold True
                                         font DOSSIER_FONT
                             else:
-                                text "Hatred [stats.pcr_hatred]/100":
+                                text "Hatred [stats.pcr_hatred]/[_hatred_cap]":
                                     color "#ff4444"
                                     size 16
                                     bold True

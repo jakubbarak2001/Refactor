@@ -283,7 +283,7 @@ label day_start:
 
     python:
         # Check loss conditions
-        if stats.pcr_hatred >= 100:
+        if stats.pcr_hatred >= hatred_cap():
             renpy.jump("hatred_collapse_ending")
         if stats.available_money <= 0:
             renpy.jump("homeless_ending")
@@ -389,7 +389,7 @@ label daily_menu:
 
     python:
         # Check loss conditions at start of each menu loop
-        if stats.pcr_hatred >= 100:
+        if stats.pcr_hatred >= hatred_cap():
             renpy.jump("hatred_collapse_ending")
         if stats.available_money <= 0:
             renpy.jump("homeless_ending")
@@ -929,6 +929,15 @@ label activity_coding:
         _bh_accent = class_accent_color("biohacker")
         _coding_options = [
             {
+                "label_name":     "coding_refactor",
+                "title":          "REFACTOR THE DECK",
+                "accent":         _bh_accent,
+                "cost_text":      "FREE",
+                "effect_text":    "Upgrade cards (scales with Coding)",
+                "flavor_text":    "Open the deck like a codebase. Make it sharper.",
+                "class_relevant": False,
+            },
+            {
                 "label_name":     "coding_work_for_money",
                 "title":          "CODE FOR MONEY",
                 "accent":         _bh_accent,
@@ -979,6 +988,54 @@ label activity_coding:
         options     = _coding_options,
         back_label  = "select_activity",
     )
+
+
+## ---------------------------------------------------------------------------
+## CODING — REFACTOR THE DECK
+## The coding activity as a deck operation: open the deck like a codebase and
+## upgrade cards in place. How many refactor passes you get scales with Coding
+## Skill (1 / 2 / 3 at the 0-49 / 50-99 / 100 bands) — that is what grinding
+## Coding, and the bootcamp, actually buy.
+## ---------------------------------------------------------------------------
+
+label coding_refactor:
+
+    python:
+        _refac_max  = min(3, 1 + stats.coding_skill // 50)
+        _refac_done = 0
+
+    "You open the deck like a codebase — dead weight, loose logic, lines that could be tighter. Time to refactor."
+
+    label .loop:
+        python:
+            _refac_has_targets = any(
+                is_upgradeable(_c) for _c in (player_deck.cards if player_deck is not None else [])
+            )
+        if _refac_done >= _refac_max or not _refac_has_targets:
+            jump coding_refactor.finish
+
+        menu:
+            "Refactor a card.  ([_refac_done] / [_refac_max] done)":
+                call _run_card_upgrade_flow from _call_coding_refactor_flow
+                $ _refac_done += (1 if _return else 0)
+                jump coding_refactor.loop
+
+            "Stop here.":
+                jump coding_refactor.finish
+
+    label .finish:
+        python:
+            stats.increment_stats_coding_skill(5)
+            activity_selected = True
+            if _refac_done > 0:
+                _refac_msg = "Refactored {} card(s).  +5 CODING SKILL.".format(_refac_done)
+            else:
+                _refac_msg = "Nothing to refactor — the deck is already sharp.  +5 CODING SKILL."
+        window hide
+        show screen outcome_panel(_refac_msg)
+        pause
+        hide screen outcome_panel
+        jump end_day
 
 
 label coding_work_for_money:
@@ -1335,7 +1392,7 @@ label do_end_day:
 
     python:
         # Check loss conditions after passives
-        if stats.pcr_hatred >= 100:
+        if stats.pcr_hatred >= hatred_cap():
             renpy.jump("hatred_collapse_ending")
         if stats.available_money <= 0:
             renpy.jump("homeless_ending")
