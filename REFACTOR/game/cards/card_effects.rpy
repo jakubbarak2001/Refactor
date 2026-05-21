@@ -174,26 +174,26 @@ init python:
             return ""
         h = stats.pcr_hatred if stats else 0
         if effect_id == "heavy_set":
-            return "Deal {} damage.\n6 + 1 per 5 Hatred.".format(6 + h // 5)
+            return "Deal {} damage.".format(6 + h // 5)
         if effect_id == "heavy_set_plus":
-            return "Deal {} damage.\n8 + 1 per 5 Hatred.".format(8 + h // 5)
+            return "Deal {} damage.".format(8 + h // 5)
         if effect_id == "breaking_point":
-            return "Deal {} damage.\n10 + 1 per 4 Hatred.".format(10 + h // 4)
+            return "Deal {} damage.".format(10 + h // 4)
         if effect_id == "bottled_rage":
-            return "Deal {} damage (Hatred / 2).\nThen lose 25 Hatred.".format(h // 2)
+            return "Deal {} damage. Lose 25 Hatred.".format(h // 2)
         if effect_id == "snap_decision":
-            return "Deal {} damage.\n18 if Hatred is 60 or more.".format(18 if h >= 60 else 9)
+            return "Deal {} damage.".format(18 if h >= 60 else 9)
         if effect_id == "counterweight":
             if battle_state is not None:
                 return "Deal {} damage (your block, max {}).".format(
                     min(battle_state.player_block, COUNTERWEIGHT_CAP), COUNTERWEIGHT_CAP)
             return "Deal damage equal to your current block (max {}).".format(COUNTERWEIGHT_CAP)
         if effect_id == "breaking_point_plus":
-            return "Deal {} damage.\n13 + 1 per 3 Hatred.".format(13 + h // 3)
+            return "Deal {} damage.".format(13 + h // 3)
         if effect_id == "bottled_rage_plus":
-            return "Deal {} damage (Hatred / 2 + 6).\nThen lose 25 Hatred.".format(h // 2 + 6)
+            return "Deal {} damage. Lose 25 Hatred.".format(h // 2 + 6)
         if effect_id == "snap_decision_plus":
-            return "Deal {} damage.\n24 if Hatred is 60 or more.".format(24 if h >= 60 else 12)
+            return "Deal {} damage.".format(24 if h >= 60 else 12)
         if effect_id == "counterweight_plus":
             if battle_state is not None:
                 return "Deal {} damage (your block + 4).".format(
