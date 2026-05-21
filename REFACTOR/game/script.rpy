@@ -1143,7 +1143,16 @@ label activity_night_shift:
             python:
                 stats.increment_stats_value_money(5000)
                 stats.increment_stats_pcr_hatred(15)
+                _ot_event = _roll_overtime_event()
 
+            if _ot_event:
+                call expression _ot_event from _call_overtime_event
+                python:
+                    offer_card("backup", "NIGHT SHIFT")
+                    activity_selected = True
+                jump end_day
+
+            python:
                 ## Random chance for a coding opportunity or incident during night shift
                 _ns_roll = __import__('random').randint(1, 100)
 
@@ -1800,14 +1809,14 @@ label crisis_event_biohacker:
 label random_event_check:
 
     ## Narrative-event pool — events removed once triggered (drains per run).
-    ## Trimmed from 20 to 7 keepers (the "deck IS your 30 days" pivot — fewer
+    ## Trimmed from 20 to 6 keepers (the "deck IS your 30 days" pivot — fewer
     ## but stronger narrative beats; remaining slots roll battle ladder rungs).
     ## Cut event bodies stay defined in events/random_events.rpy; they're just
-    ## unreferenced now.
+    ## unreferenced now (re_overtime_offer superseded by the overtime "?" pool
+    ## in events/overtime_events.rpy).
     python:
         if not hasattr(store, 'random_event_pool'):
             store.random_event_pool = [
-                "re_overtime_offer",
                 "re_corpse_in_care_home",
                 "re_paperwork_overload",
                 "re_dispatch_blue_screen",
