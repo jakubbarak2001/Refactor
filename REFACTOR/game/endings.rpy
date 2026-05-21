@@ -191,7 +191,7 @@ label good_ending:
         diff_name=_diff_name
     )
 
-    call post_credits_singapore
+    call post_credits_singapore from _call_post_credits_singapore
 
     $ renpy.full_restart()
 

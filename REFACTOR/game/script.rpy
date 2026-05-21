@@ -144,7 +144,7 @@ label dev_ladder_test:
 
     "[_ladder_summary]"
 
-    call battle_with(_picked_enemy, _picked_tier)
+    call battle_with(_picked_enemy, _picked_tier) from _call_battle_with
 
     return
 
@@ -522,7 +522,7 @@ label activity_gym:
             $ _gym_choice = _return
 
             if _gym_choice == "upgrade":
-                call _run_card_upgrade_flow
+                call _run_card_upgrade_flow from _call__run_card_upgrade_flow
                 if _return:
                     python:
                         _plus_id = _return
@@ -607,7 +607,7 @@ label activity_gym_heavy:
     $ _heavy_choice = _return
 
     if _heavy_choice == "upgrade":
-        call _run_card_upgrade_flow
+        call _run_card_upgrade_flow from _call__run_card_upgrade_flow_1
         if _return:
             python:
                 _plus_id = _return
@@ -1880,7 +1880,7 @@ label random_event_check:
     $ _slot_kind, _slot_eid, _slot_tier = roll_ladder_or_event(day_cycle.current_day)
 
     if _slot_kind == "battle":
-        call battle_with(_slot_eid, _slot_tier)
+        call battle_with(_slot_eid, _slot_tier) from _call_battle_with_1
         python:
             if stats.pcr_hatred >= 75:
                 renpy.music.play("audio/tension_theme.mp3", fadein=1.5)

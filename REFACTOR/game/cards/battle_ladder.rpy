@@ -98,7 +98,7 @@ label battle_with(enemy_id, tier):
         battle_finish()
 
     if _outcome == "defeat":
-        call forced_detour(enemy_id, tier)
+        call forced_detour(enemy_id, tier) from _call_forced_detour
         return
 
     python:
