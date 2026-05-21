@@ -346,13 +346,17 @@ init -1 python:
 
 
     def _ladder_pool_eligible(c):
-        """Filter for the basic-reward pool: no class-lock, not boss-rarity,
-        and not explicitly pool-excluded (status/curse cards opt out)."""
+        """Filter for the battle-reward pool: no class-lock, not boss-rarity,
+        not pool-excluded (status / rage / compromise opt out), and not a
+        basic starter — Strike / Defend / Heavy Set are never worth offering
+        as a fight prize."""
         if c.get("class_lock"):
             return False
         if c.get("rarity") == "boss":
             return False
         if c.get("pool_excluded"):
+            return False
+        if c.get("archetype") == "basic":
             return False
         return True
 
@@ -392,52 +396,137 @@ init -1 python:
         return min(_LADDER_UPGRADE_CHANCE_CAP, _base * _mult)
 
 
+    ## ── Archetype-aware draft ────────────────────────────────────────────────
+    ## DRAFT_ARCHETYPES are the four reward lanes. Every 3-card offer spans at
+    ## least two of them (always a real choice) and is weighted toward the lane
+    ## the player already owns the most of, so a build can come online.
+    DRAFT_ARCHETYPES = ("hatred", "stoic", "tech", "neutral")
+
+    ## Archetype-pick weights. Each available lane gets a base weight; the
+    ## player's most-owned lane gets the bias added on top. Neutral is a
+    ## smaller flex lane (7 cards, not a build) so it draws at a lower base.
+    ## Tunable.
+    _LADDER_ARCHETYPE_BASE_WEIGHT   = 1.0
+    _LADDER_NEUTRAL_WEIGHT          = 0.5   ## neutral flex lane — under-weighted vs builds
+    _LADDER_DOMINANT_ARCHETYPE_BIAS = 1.0   ## dominant build lane ends up ~2x as likely
+
+
+    def _card_draft_archetype(c):
+        """Reward-bucket key for a card. Cards with no archetype tag — only the
+        lone untouched story card took_the_heat reaches the pool untagged —
+        fall into neutral: draftable and flexible, never anchoring a build."""
+        a = c.get("archetype")
+        return a if a in DRAFT_ARCHETYPES else "neutral"
+
+
+    def _ladder_dominant_archetype():
+        """The archetype the player owns the most cards of (hatred / stoic /
+        tech / neutral only — basic starters and corruption don't count).
+        Returns None on an empty or tied count so early rewards roll unbiased."""
+        if player_deck is None:
+            return None
+        counts = {}
+        for cid in player_deck.cards:
+            a = CARD_LIBRARY.get(cid, {}).get("archetype")
+            if a in DRAFT_ARCHETYPES:
+                counts[a] = counts.get(a, 0) + 1
+        if not counts:
+            return None
+        _best = max(counts.values())
+        _leaders = [a for a, n in counts.items() if n == _best]
+        return _leaders[0] if len(_leaders) == 1 else None
+
+
     def pick_battle_rewards(tier):
-        """Pick 3 unique card_ids from the basic pool, weighted by tier.
+        """Pick up to 3 unique card_ids for the choose-1-of-3 battle reward.
 
-        tier: 'easy' / 'medium' / 'hard' — Easy biases common, Hard biases
-        uncommon/rare. Returns up to 3 ids; fewer only if the pool is too
-        small for the requested rarities (won't happen in practice once
-        Slice 3's cards ship).
+        tier ('easy' / 'medium' / 'hard') sets the rarity weighting. The trio
+        is built archetype-first: each slot rolls a lane (biased toward the
+        player's dominant lane), then a rarity within it. The trio always
+        spans >= 2 archetypes — never all three from one lane — so there is
+        always a real build decision.
 
-        Each rolled reward then gets an independent shot at being
-        PROMOTED to its `_plus` upgraded variant. Probability scales
-        with `day_cycle.current_day` and `tier` — see _LADDER_UPGRADE_*
-        constants. Cards without an `upgrade_to` (e.g. status / rage /
-        compromise, though those never appear in the basic pool anyway)
-        simply skip the roll and stay base.
+        Each rolled card then gets an independent shot at `_plus` promotion,
+        scaling with day / tier (see _LADDER_UPGRADE_* constants).
         """
         import random as _r
         weights = _LADDER_REWARD_WEIGHTS.get(tier, _LADDER_REWARD_WEIGHTS["easy"])
 
+        ## Bucket the eligible pool by draft-archetype.
         pool = [cid for cid, c in CARD_LIBRARY.items() if _ladder_pool_eligible(c)]
-        buckets = {
-            "common":   [c for c in pool if CARD_LIBRARY[c].get("rarity") == "common"],
-            "uncommon": [c for c in pool if CARD_LIBRARY[c].get("rarity") == "uncommon"],
-            "rare":     [c for c in pool if CARD_LIBRARY[c].get("rarity") == "rare"],
-        }
+        arch_buckets = {}
+        for cid in pool:
+            arch_buckets.setdefault(_card_draft_archetype(CARD_LIBRARY[cid]), []).append(cid)
+        available = [a for a in DRAFT_ARCHETYPES if arch_buckets.get(a)]
 
+        ## Archetype-pick weights — bias toward the player's dominant lane.
+        dominant = _ladder_dominant_archetype()
+        arch_weights = {}
+        for a in available:
+            _base = _LADDER_NEUTRAL_WEIGHT if a == "neutral" else _LADDER_ARCHETYPE_BASE_WEIGHT
+            arch_weights[a] = _base + (
+                _LADDER_DOMINANT_ARCHETYPE_BIAS if a == dominant else 0.0)
+
+        def _pick_archetype(exclude=None):
+            opts = {a: w for a, w in arch_weights.items() if a != exclude}
+            if not opts:
+                opts = dict(arch_weights)
+            _tot = sum(opts.values()) or 1.0
+            return _weighted_choice({a: w / _tot for a, w in opts.items()}, _r)
+
+        def _pick_card(archetype, rolled):
+            """Roll a rarity within the archetype, walk the rarity ladder for
+            an unused card. Returns a card id or None if the lane is dry."""
+            cards = arch_buckets.get(archetype, [])
+            by_rarity = {
+                "common":   [c for c in cards if CARD_LIBRARY[c].get("rarity") == "common"],
+                "uncommon": [c for c in cards if CARD_LIBRARY[c].get("rarity") == "uncommon"],
+                "rare":     [c for c in cards if CARD_LIBRARY[c].get("rarity") == "rare"],
+            }
+            _start = _weighted_choice(weights, _r)
+            _ladder = {
+                "rare":     ("rare", "uncommon", "common"),
+                "uncommon": ("uncommon", "common", "rare"),
+                "common":   ("common", "uncommon", "rare"),
+            }[_start]
+            for _rar in _ladder:
+                _choices = [c for c in by_rarity[_rar] if c not in rolled]
+                if _choices:
+                    return _r.choice(_choices)
+            return None
+
+        ## Assign archetypes to the 3 slots, forcing slot 3 off the shared lane
+        ## when slots 1 & 2 match — guarantees >= 2 distinct archetypes.
+        slot_archs = []
+        if available:
+            slot_archs.append(_pick_archetype())
+            slot_archs.append(_pick_archetype())
+            if len(available) >= 2 and slot_archs[0] == slot_archs[1]:
+                slot_archs.append(_pick_archetype(exclude=slot_archs[0]))
+            else:
+                slot_archs.append(_pick_archetype())
+
+        ## Resolve each slot to a unique card; fall back to any unused card if a
+        ## lane runs dry (only possible on a pathologically tiny pool).
         rolled = []
+        for a in slot_archs:
+            cid = _pick_card(a, rolled)
+            if cid is None:
+                _leftover = [c for c in pool if c not in rolled]
+                cid = _r.choice(_leftover) if _leftover else None
+            if cid is not None and cid not in rolled:
+                rolled.append(cid)
         attempts = 0
         while len(rolled) < 3 and attempts < 30:
             attempts += 1
-            r = _weighted_choice(weights, _r)
-            if not buckets.get(r):
-                ## Fallback ladder: rare -> uncommon -> common
-                for fallback in ("uncommon", "common"):
-                    if buckets.get(fallback):
-                        r = fallback
-                        break
-                else:
-                    break
-            cid = _r.choice(buckets[r])
-            if cid not in rolled:
-                rolled.append(cid)
+            _leftover = [c for c in pool if c not in rolled]
+            if not _leftover:
+                break
+            rolled.append(_r.choice(_leftover))
 
-        ## Promotion pass — independent per-card roll. Roll AFTER rarity
-        ## picks so the upgrade chance compounds with the existing rare-
-        ## bias on Hard fights (a Hard Day-25 fight rolls a rare AND has
-        ## a 50% shot at upgrading it = the "this is the prize" feeling).
+        ## Promotion pass — independent per-card `_plus` upgrade roll, AFTER
+        ## the rarity picks so the upgrade chance compounds with the rare-bias
+        ## on Hard fights (a Hard Day-25 rare with a 50% upgrade shot).
         _up_chance = _ladder_upgrade_chance(tier)
         if _up_chance > 0.0:
             promoted = []
