@@ -41,6 +41,13 @@ init python:
 
     import random as _battle_rand
 
+    ## Hatred-archetype battle constants (tunable). See Red walls up block on
+    ## each in-fight Hatred gain; Thick Skull catches the first gain that would
+    ## reach 100, pinning Hatred at the floor and walling up instead.
+    SEE_RED_BLOCK     = 2
+    THICK_SKULL_FLOOR = 80
+    THICK_SKULL_BLOCK = 20
+
     def _play_battle_sfx(name, channel="sound", volume=1.0):
         """Phase A juice — play a battle SFX from audio/sfx/<name>.<ext>.
 
@@ -144,6 +151,10 @@ init python:
             self.cards_played_this_turn = 0
             self.current_turn_max_cards = None
 
+            ## Per-turn flag — set when a Skill is played, read by Production
+            ## Push. Reset each turn in battle_start_player_turn.
+            self.skill_played_this_turn = False
+
         def __setstate__(self, state):
             """Restore from pickle. Backfill juice fields if missing so saves
             taken DURING a battle on an older build don't AttributeError
@@ -181,6 +192,8 @@ init python:
                 self.cards_played_this_turn = 0
             if not hasattr(self, 'current_turn_max_cards'):
                 self.current_turn_max_cards = None
+            if not hasattr(self, 'skill_played_this_turn'):
+                self.skill_played_this_turn = False
             if not hasattr(self, '_popup_enemy_seq'):
                 self._popup_enemy_seq = 0
             if not hasattr(self, '_popup_player_seq'):
@@ -384,6 +397,34 @@ init python:
                     pass
             self.energy = max(0, self.energy - n)
 
+        ## ---------------- HATRED ----------------
+        def gain_hatred(self, n):
+            """Apply a Hatred delta during battle. A positive gain fires the
+            See Red block trigger and the Thick Skull threshold catch; a
+            negative delta (Bottled Rage / Adrenaline Dump cash-outs) just
+            lowers Hatred with no triggers. Hatred is the run stat
+            stats.pcr_hatred, so in-fight gains persist past the battle —
+            this IS the death clock the Hatred archetype plays against."""
+            if stats is None or n == 0:
+                return
+            if n < 0:
+                stats.increment_stats_pcr_hatred(n)
+                return
+            ## Thick Skull — the first gain that WOULD reach 100 this fight is
+            ## intercepted: Hatred is pinned at the floor and you wall up.
+            if self.buffs.get("thick_skull") and not self.buffs.get("thick_skull_used"):
+                if stats.pcr_hatred + n >= 100:
+                    self.buffs["thick_skull_used"] = True
+                    stats.increment_stats_pcr_hatred(THICK_SKULL_FLOOR - stats.pcr_hatred)
+                    self.gain_block("player", THICK_SKULL_BLOCK)
+                    self.add_log("[[Thick Skull]: Hatred held at {}. +{} block.".format(
+                        THICK_SKULL_FLOOR, THICK_SKULL_BLOCK))
+                    return
+            stats.increment_stats_pcr_hatred(n)
+            ## See Red — every Hatred gain this fight walls up a little block.
+            if self.buffs.get("see_red"):
+                self.gain_block("player", SEE_RED_BLOCK)
+
         ## ---------------- INTENT MANAGEMENT ----------------
         def advance_intent(self):
             """Move to the next intent. If the deck is exhausted, reshuffle
@@ -455,6 +496,11 @@ init python:
             ## Mirror has a per-fight cooldown after each use
             if card_id in ("mirror", "mirror_plus") and self.buffs.get("mirror_cooldown", 0) > 0:
                 return False, "Mirror on cooldown ({} turns).".format(self.buffs["mirror_cooldown"])
+            ## Embrace It needs a Rage card in hand to exhaust — gate it so it
+            ## can't be cashed as a free block + draw with nothing to consume.
+            if card_id in ("embrace_it", "embrace_it_plus"):
+                if not any(CARD_LIBRARY.get(_c, {}).get("is_rage") for _c in self.hand):
+                    return False, "No Rage card in hand."
             return True, ""
 
 
@@ -584,11 +630,15 @@ init python:
         if bs is None or bs.is_over():
             return
         bs.turn += 1
-        bs.player_block = bs.starting_block
+        ## Iron Posture — retain half of last turn's standing block instead of
+        ## losing all of it (read before the reset clears player_block).
+        _retain = (bs.player_block // 2) if bs.buffs.get("iron_posture") else 0
+        bs.player_block = bs.starting_block + _retain
 
         ## Card-play counter resets every turn. If a 'restrict' intent set
         ## cards_cap_next_turn, latch that into the live cap and consume.
         bs.cards_played_this_turn = 0
+        bs.skill_played_this_turn = False
         if bs.buffs.get("cards_cap_next_turn"):
             bs.current_turn_max_cards = bs.buffs["cards_cap_next_turn"]
             bs.buffs["cards_cap_next_turn"] = 0
@@ -749,6 +799,9 @@ init python:
 
         ## Tick the per-turn card counter — feeds the 'restrict' intent gate.
         bs.cards_played_this_turn += 1
+        ## Skill-played flag — read by Production Push's combo bonus.
+        if c.get("type") == "Skill":
+            bs.skill_played_this_turn = True
 
         ## Phase A juice — play card-type sfx immediately on click,
         ## before the effect resolves, so the audio feedback feels snappy.

@@ -56,6 +56,7 @@ init -1 python:
             "effect":     None,
             "exhaust":    False,
             "class_lock": None,
+            "archetype":  None,
             "flavor":        "",
             "art":           None,
             "art_glyph":     None,
