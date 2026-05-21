@@ -437,6 +437,21 @@ init -1 python:
         return _leaders[0] if len(_leaders) == 1 else None
 
 
+    ## Card-shop pricing by rarity. A bouncer night earns ~4-9k (club) or up
+    ## to 35k (strip bar), so a common is one ordinary night and a rare is a
+    ## great night or two saved — money becomes deck-buying power.
+    CARD_SHOP_PRICES = {"common": 2500, "uncommon": 5000, "rare": 10000}
+
+    def build_card_shop_offers(n=3):
+        """Roll up to n archetype-biased cards for a card shop, each priced by
+        rarity. Returns a list of {'card_id': str, 'price': int} dicts."""
+        offers = []
+        for cid in pick_battle_rewards("medium")[:n]:
+            c = CARD_LIBRARY.get(cid, {})
+            price = CARD_SHOP_PRICES.get(c.get("rarity", "common"), 4000)
+            offers.append({"card_id": cid, "price": price})
+        return offers
+
     def pick_battle_rewards(tier):
         """Pick up to 3 unique card_ids for the choose-1-of-3 battle reward.
 

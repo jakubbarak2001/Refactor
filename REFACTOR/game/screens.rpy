@@ -1875,6 +1875,93 @@ screen outcome_panel(outcome_text):
 
 
 ## ---------------------------------------------------------------------------
+## Card Shop — the bouncer-night market. Renders priced cards; BUY is gated on
+## cash. Returns a card_id to buy, or "leave". The caller (bouncer_market)
+## spends the money, grants the card, and re-shows until the player leaves.
+## ---------------------------------------------------------------------------
+
+screen card_shop_screen(offers):
+    modal True
+    zorder 700
+
+    add "#0a0a0aee"
+    use class_color_frame(thickness=3, alpha_suffix="aa")
+
+    python:
+        _shop_money = stats.available_money if stats else 0
+
+    text "THE DEALER":
+        xalign 0.5
+        yalign 0.055
+        color "#e8c878"
+        size 52
+        bold True
+        font "fonts/RobotoMono-Regular.ttf"
+        outlines [(3, "#000000", 0, 0)]
+
+    text "Cash on hand:  [_shop_money] CZK":
+        xalign 0.5
+        yalign 0.135
+        color "#ffd700"
+        size 22
+        bold True
+        font "fonts/RobotoMono-Regular.ttf"
+
+    hbox:
+        xalign 0.5
+        yalign 0.5
+        spacing 44
+
+        for _offer in offers:
+            python:
+                _sc_cid    = _offer["card_id"]
+                _sc_price  = _offer["price"]
+                _sc_card   = CARD_LIBRARY.get(_sc_cid, {})
+                _sc_afford = _shop_money >= _sc_price
+
+            vbox:
+                spacing 14
+                xalign 0.5
+
+                use card_visual(_sc_card)
+
+                text "[_sc_price] CZK":
+                    xalign 0.5
+                    color ("#ffd700" if _sc_afford else "#aa5544")
+                    size 26
+                    bold True
+                    font "fonts/RobotoMono-Regular.ttf"
+
+                textbutton ("[[ BUY ]" if _sc_afford else "[[ NOT ENOUGH CASH ]"):
+                    xalign 0.5
+                    sensitive _sc_afford
+                    action Return(_sc_cid)
+                    text_color ("#ffffff" if _sc_afford else "#6a5f55")
+                    text_hover_color "#ffd700"
+                    text_size 20
+                    text_bold True
+                    text_font "fonts/RobotoMono-Regular.ttf"
+                    background Frame("#1a1a1aee", 4, 4)
+                    hover_background Frame("#2a2a2aee", 4, 4)
+                    padding (26, 12)
+
+    textbutton "[[ LEAVE ]":
+        xalign 0.5
+        yalign 0.94
+        action Return("leave")
+        text_color "#bbbbbb"
+        text_hover_color "#ffffff"
+        text_size 20
+        text_bold True
+        text_font "fonts/RobotoMono-Regular.ttf"
+        background Frame("#1a1a1aee", 4, 4)
+        hover_background Frame("#2a2a2aee", 4, 4)
+        padding (24, 11)
+
+    key "K_ESCAPE" action Return("leave")
+
+
+## ---------------------------------------------------------------------------
 ## card_visual — the canonical "fancy card" render, identical to the post-
 ## combat reward card. Used by the offer screens so every card the player is
 ## shown looks the same. 420x580 footprint; the cost gem overhangs top-left.

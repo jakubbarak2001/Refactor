@@ -116,6 +116,7 @@ label dev_ladder_test:
             ("grundza",    "medium"),
             ("lawyer",     "medium"),
             ("dispatcher", "medium"),
+            ("vlk",        "medium"),
             ("inspekce",   "hard"),
             ("garda",      "hard"),
         ]
@@ -776,26 +777,17 @@ label bouncer_night_club:
     python:
         _roll = __import__('random').randint(1, 100)
         _bb_cash = 2500 if stats.player_class == "bodybuilder" else 0
-        _bouncer_card = None
-        ## Pending stat deltas — applied unconditionally if no card to offer,
-        ## or only on PASS if there is one.
-        _pending_money = 0
-        _pending_hatred = 0
         if _roll <= 70:
             _pending_money = 4000 + _bb_cash
             _pending_hatred = 10
-            _bouncer_card = "gut_punch"
             _btext = "Uneventful. Six hours in a doorway, nodding at people happier than you.\nBy 3 AM you're calculating how many more shifts like this to quit forever. The number is getting smaller."
             _boutcome = "+ {} CZK, +10 PCR HATRED{}".format(4000 + _bb_cash, " [BODYBUILDER BONUS]" if _bb_cash else "")
         elif _roll <= 90:
             _pending_money = 9000 + _bb_cash
             _pending_hatred = -10
-            ## A rare night — the door work pays off in a card worth keeping.
-            _bouncer_card = "brick_wall"
             _btext = "Rare night. Regulars tip heavy, the manager notices your work, and nobody throws up on anyone.\nDriving home at 4 AM, windows down: 'If this was my real job I would hate it slightly less.' Closest thing to joy you've felt all week."
             _boutcome = "+ {} CZK, -10 PCR HATRED{}".format(9000 + _bb_cash, " [BODYBUILDER BONUS]" if _bb_cash else "")
         else:
-            ## Bad outcome — no card offered; stats apply unconditionally below.
             _pending_money = 4000 + _bb_cash
             _pending_hatred = 20
             _btext = "Two drunks fight over a woman interested in neither. You step in — one recognizes you. 'TO JE PŘECE POLDA!'\nPhone out. The group chat hasn't stopped since. You want to die."
@@ -803,25 +795,17 @@ label bouncer_night_club:
 
     "[_btext]"
 
-    $ _bouncer_card_data = can_offer_card(_bouncer_card) if _bouncer_card else None
-
-    if _bouncer_card_data is not None:
-        window hide
-        call screen card_offer_screen(card=_bouncer_card_data, source_label="BOUNCER", pass_stats_text=_boutcome)
-        $ _took_bouncer = commit_card(_bouncer_card, _return == "take")
-    else:
-        $ _took_bouncer = False
-
     python:
-        if not _took_bouncer:
-            stats.increment_stats_value_money(_pending_money)
-            stats.increment_stats_pcr_hatred(_pending_hatred)
-        _bouncer_panel_text = show_outcome_panel(_took_bouncer, _bouncer_card, _boutcome)
+        stats.increment_stats_value_money(_pending_money)
+        stats.increment_stats_pcr_hatred(_pending_hatred)
 
     window hide
-    show screen outcome_panel(_bouncer_panel_text)
+    show screen outcome_panel(_boutcome)
     pause
     hide screen outcome_panel
+
+    call bouncer_market from _call_bouncer_market_club
+
     python:
         activity_selected = True
     jump end_day
@@ -833,19 +817,16 @@ label bouncer_strip_bar:
         _roll = __import__('random').randint(1, 100)
         _bb_cash = 2500 if stats.player_class == "bodybuilder" else 0
         _bb_tag = " [BODYBUILDER BONUS]" if _bb_cash else ""
-        _strip_card = None
-        ## Pending stat deltas — applied unconditionally if no card; only on PASS otherwise.
+        ## Pending stat deltas — applied unconditionally after the night.
         _pending_money = 0
         _pending_hatred = 0
         _pending_coding = 0
         if _roll <= 5:
             _pending_money = 35000 + _bb_cash
             _pending_hatred = -15
-            _strip_card = "killing_blow"
             _btext = "A famous regular shows up drunk and paranoid. Two guys try to drag him outside; you intervene with textbook precision.\nYour boss slides an envelope across the table. 'Not many can do what you did tonight.'"
             _boutcome = "+{} CZK, -15 PCR HATRED{}".format(35000 + _bb_cash, _bb_tag)
         elif _roll <= 25:
-            ## No card — stats apply unconditionally.
             _pending_money = 12500 + _bb_cash
             _pending_coding = 2
             _btext = "Steady crowds, few arguments, no real threats. Routine precision all night.\nYou use downtime to mentally rehearse OOP and class hierarchies — weirdly effective."
@@ -853,12 +834,9 @@ label bouncer_strip_bar:
         elif _roll <= 75:
             _pending_money = 6500 + _bb_cash
             _pending_hatred = 5
-            ## A fight breaks out and you finish it — the night yields a card.
-            _strip_card = "knuckle_down"
             _btext = "Four hours in a corridor that smells like vodka Red Bull and bad decisions. Nothing happens.\nOne person cries in the bathroom; you pretend not to notice. At least the envelope is solid."
             _boutcome = "+{} CZK, +5 PCR HATRED{}".format(6500 + _bb_cash, _bb_tag)
         elif _roll <= 95:
-            ## No card — stats apply unconditionally.
             _pending_money = 1000 + _bb_cash
             _pending_hatred = 25
             _btext = "A fight breaks out. You break it up — one participant recognizes you. 'Ty vole, to je POLDA!'\nYour boss only gives you a partial payout."
@@ -879,32 +857,50 @@ label bouncer_strip_bar:
 
     "[_btext]"
 
-    $ _strip_card_data = can_offer_card(_strip_card) if _strip_card else None
-
-    if _strip_card_data is not None:
-        window hide
-        call screen card_offer_screen(card=_strip_card_data, source_label="STRIP-BAR", pass_stats_text=_boutcome)
-        $ _took_strip = commit_card(_strip_card, _return == "take")
-    else:
-        $ _took_strip = False
-
     python:
-        if not _took_strip:
-            if _pending_money:
-                stats.increment_stats_value_money(_pending_money)
-            if _pending_hatred:
-                stats.increment_stats_pcr_hatred(_pending_hatred)
-            if _pending_coding:
-                stats.increment_stats_coding_skill(_pending_coding)
-        _strip_panel_text = show_outcome_panel(_took_strip, _strip_card, _boutcome)
+        if _pending_money:
+            stats.increment_stats_value_money(_pending_money)
+        if _pending_hatred:
+            stats.increment_stats_pcr_hatred(_pending_hatred)
+        if _pending_coding:
+            stats.increment_stats_coding_skill(_pending_coding)
 
     window hide
-    show screen outcome_panel(_strip_panel_text)
+    show screen outcome_panel(_boutcome)
     pause
     hide screen outcome_panel
+
+    call bouncer_market from _call_bouncer_market_strip
+
     python:
         activity_selected = True
     jump end_day
+
+
+## ---------------------------------------------------------------------------
+## BOUNCER MARKET — the card dealer who works the same venues. Money earned at
+## the door buys cards on the spot. No separate shop activity: the bouncer
+## night IS the shop. Called by both bouncer venues.
+## ---------------------------------------------------------------------------
+
+label bouncer_market:
+
+    python:
+        _mkt_offers = build_card_shop_offers(3)
+
+    "On your way out, the regular in the corner booth tilts his head at you. He deals cards — the kind that decide how a fight goes. One a night, cash only."
+
+    call screen card_shop_screen(offers=_mkt_offers)
+
+    if _return != "leave":
+        python:
+            for _o in _mkt_offers:
+                if _o["card_id"] == _return:
+                    if stats.try_spend_money(_o["price"]):
+                        grant_card(_o["card_id"], silent=True)
+                    break
+
+    return
 
 
 ## ---------------------------------------------------------------------------
