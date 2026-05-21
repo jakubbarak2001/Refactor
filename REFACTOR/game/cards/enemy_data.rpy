@@ -301,10 +301,10 @@ init -1 python:
         wrinkle      = "paperwork_injection",
         intro_lines  = [
             "Internal Affairs. The summons came on department letterhead, no reason given. You signed in your own weapon to walk into this room.",
-            "She has read your file three times. She doesn't raise her voice — she slides paper across the table and waits for the part where you sign.",
+            "Your file has been read three times — he could recite it back to you. No raised voice, no threats: just paper sliding across the table, and a man patient enough to wait for the part where you sign.",
         ],
         detour_lines = [
-            "She doesn't raise her voice. She slides three forms across the table. Sign here. Initial. Here.",
+            "He doesn't raise his voice. He slides three forms across the table. Sign here. Initial. Here.",
             "You're at a desk job by Monday. The badge stays in your drawer for now.",
         ],
     )
@@ -317,12 +317,12 @@ init -1 python:
         tier         = "hard",
         max_hp       = 180,
         deck_template = [
-            "breach_swing", "kettle", "shield_wall", "gas_throw",
+            "breach_swing", "shield_wall", "gas_throw",
             "baton_combo", "formation_buff", "phalanx_block", "clear_room",
         ],
         wrinkle      = "formation_strength",
         intro_lines  = [
-            "A police compound on the edge of town, past midnight. Razor wire along the fence, a transport van with its back doors open, riot shields racked and waiting in the rain. You came for the Colonel — this is as far in as you get.",
+            "Past midnight. This is where they keep the Colonel — behind the fence, behind other men. You've had enough of waiting for the day he picked. You came for him tonight.",
             "Three of them come around the van — balaclavas, no names, no faces. Zásahová jednotka: the unit you send once the talking is over. The Colonel didn't send anyone you could reason with — he sent the ones who were never going to ask why.",
         ],
         detour_lines = [

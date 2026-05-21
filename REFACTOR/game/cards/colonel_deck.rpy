@@ -651,14 +651,6 @@ init python:
         threat   = 3,
     )
     register_enemy_card(
-        "kettle",
-        name     = "Kettle",
-        intent   = "debuff",
-        value    = 1,
-        dialogue = "They form up around you. Less room. Less options.",
-        threat   = 2,
-    )
-    register_enemy_card(
         "shield_wall",
         name     = "Shield Wall",
         intent   = "block",
@@ -702,10 +694,10 @@ init python:
     )
     register_enemy_card(
         "clear_room",
-        name     = "Clear Room",
+        name     = "Controlled Burst",
         intent   = "attack",
         value    = 26,
-        dialogue = "'Clear left. Clear right.' The corner finds you.",
+        dialogue = "No warning, no shout. A short controlled burst — they train it until the noise stops meaning anything to them.",
         threat   = 3,
     )
 
