@@ -701,6 +701,142 @@ init python:
         threat   = 3,
     )
 
+    ## ---------------------------------------------------------------------------
+    ## The Lifer — JB's reflection: the cop who never quit. The golden-handcuffs
+    ## wrinkle (battle_engine, enemy_id == "lifer") hands him permanent Strength
+    ## on any turn the player fails to land a hit — stall, and the comfortable
+    ## life closes around you.
+    ## ---------------------------------------------------------------------------
+
+    register_enemy_card(
+        "lifer_pension",
+        name     = "Full Pension",
+        intent   = "attack",
+        value    = 20,
+        tags     = ["money", "fear"],
+        dialogue = "'Nine more years and it's a full pension. You can see it from here. Most men never get this close.'",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "lifer_what_now",
+        name     = "And Then What",
+        intent   = "attack",
+        value    = 18,
+        tags     = ["emotional", "mental"],
+        dialogue = "'You walk out, and then what? You don't have an answer. I've watched you not have one for weeks.'",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "lifer_the_offer",
+        name     = "The Offer",
+        intent   = "attack",
+        value    = 24,
+        tags     = ["fear"],
+        dialogue = "He slides the gold cuffs across the sink. 'Put them on yourself. Everyone here did. It stops hurting.'",
+        threat   = 3,
+    )
+    register_enemy_card(
+        "lifer_settle_in",
+        name     = "Settle In",
+        intent   = "block",
+        value    = 22,
+        dialogue = "He leans back. The chair takes his weight without a sound. It always has.",
+        threat   = 1,
+    )
+    register_enemy_card(
+        "lifer_seniority",
+        name     = "Seniority",
+        intent   = "buff",
+        value    = 5,
+        dialogue = "'Another year on the clock, JB. You feel the weight of it. The next one always lands a little heavier.'",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "lifer_routine",
+        name     = "The Routine",
+        intent   = "compound",
+        value    = 5,
+        value2   = 4,
+        tags     = ["mental"],
+        dialogue = "Shift. Report. Home. Sleep. He counts them off on four fingers and not one of them is the door.",
+        threat   = 3,
+    )
+    register_enemy_card(
+        "lifer_quiet_word",
+        name       = "A Quiet Word",
+        intent     = "debuff",
+        value      = 1,
+        debuff_key = "max_energy_penalty_next_turn",
+        dialogue   = "'One quiet word with the right people and your transfer just... stops. Funny how that works.'",
+        threat     = 2,
+    )
+
+    ## ---------------------------------------------------------------------------
+    ## The Old Man (Estébák) — the secret-police archive that outlived its
+    ## archivist. The the-file wrinkle (battle_engine, enemy_id == "estebak")
+    ## opens one drawer per turn; every open drawer adds to his single-hit
+    ## attacks. The case against you only ever gets heavier.
+    ## ---------------------------------------------------------------------------
+
+    register_enemy_card(
+        "estebak_dossier",
+        name     = "Open the Dossier",
+        intent   = "attack",
+        value    = 16,
+        dialogue = "A drawer slides out on its own. 'You were at the river on the ninth. We have it. We have all of it.'",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "estebak_redaction",
+        name     = "Redaction",
+        intent   = "attack",
+        value    = 18,
+        dialogue = "A black bar comes down across a line of your life. Whatever it covered, you won't get back.",
+        threat   = 3,
+    )
+    register_enemy_card(
+        "estebak_old_tape",
+        name     = "Old Tape",
+        intent   = "attack",
+        value    = 14,
+        tags     = ["mental"],
+        dialogue = "Reel-to-reel hiss. Then your own voice, younger, saying a thing you'd worked hard to forget.",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "estebak_archive",
+        name     = "Into the Stacks",
+        intent   = "block",
+        value    = 22,
+        dialogue = "He steps back between the cabinets. The drawers close around him like a wall.",
+        threat   = 1,
+    )
+    register_enemy_card(
+        "estebak_surveillance",
+        name     = "Surveillance Photos",
+        intent   = "compound",
+        value    = 5,
+        value2   = 4,
+        dialogue = "Four photographs, face down, turned over one at a time. You in every one. You never saw the camera.",
+        threat   = 3,
+    )
+    register_enemy_card(
+        "estebak_case_open",
+        name     = "The Case Reopens",
+        intent   = "buff",
+        value    = 4,
+        dialogue = "He licks a grey thumb and turns a page. The next thing he reads aloud will land harder.",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "estebak_summons",
+        name     = "Summons",
+        intent   = "debuff",
+        value    = 1,
+        dialogue = "A grey slip with your name typed on it. Report as instructed. The date on it is already past.",
+        threat   = 2,
+    )
+
 
     COLONEL_DECK_TEMPLATES = {
         ## Every difficulty includes cold_stare (permanent +2 STR ramp) AND

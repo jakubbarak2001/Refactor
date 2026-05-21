@@ -143,3 +143,5 @@ image dispatcher neutral    = im.Scale("images/sprites/enemies/dispatcher_neutra
 ## Hard tier
 image inspekce neutral      = im.Scale("images/sprites/enemies/inspekce_neutral.png",      600, 900)
 image garda neutral         = im.Scale("images/sprites/enemies/garda_neutral.png",         600, 900)
+image lifer neutral         = im.Scale("images/sprites/enemies/lifer_neutral.png",         600, 900)
+image estebak neutral       = im.Scale("images/sprites/enemies/estebak_neutral.png",       600, 900)

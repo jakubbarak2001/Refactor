@@ -131,7 +131,7 @@ init -1 python:
         deck_template = ["tag_quick", "tag_team", "spray_blind", "vandal_block"],
         wrinkle      = "tag_stack",
         intro_lines  = [
-            "A pedestrian underpass under the rail line. Every tile tagged end to end, the paint still wet under the flickering lights. Someone phoned it in mid-job.",
+            "Another vandalism call — the kind dispatch saves for whoever picks up last. You picked up. Kids, a wall, a tunnel: exactly the job you're trying to code your way out of.",
             "Three of them down the tunnel, in no hurry — they've been chased out of here so often it's basically cardio. One caps a fresh can and asks if you want your name on the wall too.",
         ],
         detour_lines = [
@@ -151,7 +151,7 @@ init -1 python:
         wrinkle      = "crew_rage",
         wrinkle_data = {"hp_threshold": 0.5, "bonus_dmg": 3},
         intro_lines  = [
-            "Match day, two hours after the final whistle. The depot's gone quiet — empty buses, a flare still hissing where it was dropped. Dispatch said one supporter never went home.",
+            "End of a long match-day shift — twelve hours minding other men's tempers, and you want it done. Dispatch isn't done with you: one supporter never made it onto his bus.",
             "His side lost three-nil and the crowd left without him. He's had two hours alone to stew on it. Then you walk in — the first thing all night he can do something about.",
         ],
         detour_lines = [
@@ -214,7 +214,7 @@ init -1 python:
         wrinkle      = "lab_timer",
         wrinkle_data = {"detonation_turn": 7, "detonation_dmg": 20},
         intro_lines  = [
-            "Third floor of a panelák, foil and black plastic taped over every kitchen window. Someone's mother cooked dinner here once. Now a flask boils green on a burner and a stack of solvent cans waits in the corner.",
+            "A tip, an address, three flights of stairs. You smelled what was up here before you reached the door — and you climbed anyway. Somebody's mother cooked dinner in this kitchen once. Tonight it cooks something else.",
             "Grundza doesn't look up from the rig. He's cooked through two raids in this kitchen and neither one rushed him. He knows to the minute when the batch turns — and when the room stops being a room. You have until then.",
         ],
         detour_lines = [
@@ -254,7 +254,7 @@ init -1 python:
         deck_template = ["priority_call", "all_units", "false_alarm", "silence", "frequency_jam"],
         wrinkle      = "priority_change",
         intro_lines  = [
-            "The dispatch hall, hours after the last shift clocked out. Every workstation dark but one — a console glowing blue at the far end, its chair turned out like someone just stood up. The calls that dragged you here came from that desk. It hasn't been assigned to anyone in years.",
+            "The calls wouldn't stop — wrong frequencies, jobs never logged, a voice that knew your unit number. You stopped trying to explain it and came to the dispatch hall yourself, long after the last shift clocked out.",
             "There's no one in the chair. There never was. The voice comes through every speaker on the floor at once — flat, unhurried, already reading your call sign back to you. It would like to know your location.",
         ],
         detour_lines = [
@@ -284,7 +284,7 @@ init -1 python:
     )
 
     ## ---------------------------------------------------------------------------
-    ## HARD tier (days 19-28)
+    ## HARD tier (days 18-28)
     ## ---------------------------------------------------------------------------
 
     register_enemy(
@@ -328,5 +328,51 @@ init -1 python:
         detour_lines = [
             "The breach team puts you face-down on the parking-lot asphalt. They were never your team.",
             "You sign whatever paperwork they slide under you. The Colonel doesn't have to be in the room.",
+        ],
+    )
+
+    register_enemy(
+        "lifer",
+        display_name = "The Lifer",
+        sprite_id    = "lifer",
+        log_name     = "The Lifer",
+        tier         = "hard",
+        max_hp       = 165,
+        deck_template = [
+            "lifer_pension", "lifer_what_now", "lifer_the_offer",
+            "lifer_settle_in", "lifer_seniority", "lifer_routine", "lifer_quiet_word",
+        ],
+        wrinkle      = "golden_handcuffs",
+        wrinkle_data = {"strength_per_stall": 2},
+        intro_lines  = [
+            "Past midnight, the station long emptied out. You came back for the last of your things and stopped at the mirror over the washroom sinks — the one you've walked past a thousand times without once looking into.",
+            "The reflection doesn't move when you do. It wears the dress uniform they hand you at twenty years' service, and it has filled out comfortably inside it. It holds out a pair of gold handcuffs — your size — and waits, patient and kind, for you to stop being silly and put them on.",
+        ],
+        detour_lines = [
+            "You put them on yourself. They're lighter than you expected. Warm, even.",
+            "The transfer paperwork goes back in the drawer. The desk is comfortable. It was always going to be comfortable.",
+        ],
+    )
+
+    register_enemy(
+        "estebak",
+        display_name = "The Old Man",
+        sprite_id    = "estebak",
+        log_name     = "The Old Man",
+        tier         = "hard",
+        max_hp       = 155,
+        deck_template = [
+            "estebak_dossier", "estebak_redaction", "estebak_old_tape",
+            "estebak_archive", "estebak_surveillance", "estebak_case_open", "estebak_summons",
+        ],
+        wrinkle      = "the_file",
+        wrinkle_data = {"drawer_cap": 6},
+        intro_lines  = [
+            "You went looking for the file the Colonel keeps over you — the car accident, the thing he buried for you. The trail led down: past the basement, past the boiler room, to an archive door with no number on it.",
+            "The records down here run back further than the Republic does, and the archive kept someone. He rises out of the card-index stacks with a censor's bar where his face should be and a wall of drawers for a chest — and every drawer has your name in it somewhere. He has read you cover to cover, and he would like to close the file.",
+        ],
+        detour_lines = [
+            "A drawer slides shut somewhere in the dark, and the part of you that wanted out gets suddenly, quietly hard to remember.",
+            "You climb back up the stairs empty-handed. The file stays down there — and so, in a way you can't name, do you.",
         ],
     )

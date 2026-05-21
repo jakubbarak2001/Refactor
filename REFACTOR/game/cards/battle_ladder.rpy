@@ -5,9 +5,9 @@
 ## roll_ladder_or_event(day) to decide between a ladder fight and the
 ## narrative random-event pool. Ladder pool drains as battles fire
 ## (no repeats per run) and is keyed by day band:
-##     easy (d3-9)   = rvac / sprejeri / fanousek / spis
-##     medium (d9-18)= nguyen / grundza / lawyer / dispatcher / vlk
-##     hard (d19-30) = inspekce / garda
+##     easy (d3-9)    = rvac / sprejeri / fanousek / spis
+##     medium (d10-17)= nguyen / grundza / lawyer / dispatcher / vlk
+##     hard (d18-28)  = inspekce / garda / lifer / estebak
 ## The Colonel (Day 30) stays on his own colonel_event label — his
 ## multi-phase resolution and ending-jump logic are NOT routed through
 ## the wrapper.
@@ -24,7 +24,7 @@ init python:
     def _battle_ladder_band(day):
         if day <= 9:
             return "easy"
-        if day <= 18:
+        if day <= 17:
             return "medium"
         return "hard"
 
@@ -34,7 +34,7 @@ init python:
             store.battle_ladder_pool = {
                 "easy":   ["rvac", "sprejeri", "fanousek", "spis"],
                 "medium": ["nguyen", "grundza", "lawyer", "dispatcher", "vlk"],
-                "hard":   ["inspekce", "garda"],
+                "hard":   ["inspekce", "garda", "lifer", "estebak"],
             }
 
     def roll_ladder_or_event(day):

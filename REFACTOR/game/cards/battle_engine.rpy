@@ -776,6 +776,15 @@ init python:
             if bs.turn == _vlk_inject:
                 bs.draw_pile.insert(0, "guaranteed_returns")
                 bs.add_log("[[Guaranteed Returns]: a sure thing slides onto your stack.")
+        if _eid == "lifer":
+            ## Golden handcuffs — snapshot his HP so the enemy-resolve step
+            ## can tell whether the player pushed for the exit this turn.
+            bs.buffs["lifer_hp_snapshot"] = bs.enemy_hp
+        if _eid == "estebak":
+            ## The file thickens — one more drawer opens every turn, capped.
+            _drawer_cap = ENEMY_LIBRARY.get("estebak", {}).get("wrinkle_data", {}).get("drawer_cap", 6)
+            bs.buffs["estebak_drawers"] = min(_drawer_cap, bs.buffs.get("estebak_drawers", 0) + 1)
+            bs.add_log("[[The File]: another drawer slides open ({} open).".format(bs.buffs["estebak_drawers"]))
 
         ## Draw 5 cards — minus any pending draw penalty from the previous
         ## enemy turn's debuff intents (authority_display, spray_blind,
@@ -1124,6 +1133,14 @@ init python:
             ## --- Garda formation strength: +3 dmg while above 50% HP ---
             if bs.enemy_id == "garda" and bs.enemy_hp > bs.enemy_max_hp // 2:
                 dmg += 3
+            ## --- Estébák the file: every open drawer makes the case against
+            ## you heavier. Single hits only — the compound (Surveillance
+            ## Photos) is left flat so the ramp can't run away on it.
+            if bs.enemy_id == "estebak":
+                _drawers = bs.buffs.get("estebak_drawers", 0)
+                if _drawers > 0:
+                    dmg += _drawers
+                    bs.add_log("[[The File]: {} open drawer(s) — +{} damage.".format(_drawers, _drawers))
             ## --- Hooligan crew rage: +bonus_dmg while at/below threshold HP.
             ## Bloodied → the crew piles in. Surfaced in the UI as the CREW
             ## RAGE badge near the enemy HP bar (hover tooltip explains).
@@ -1264,6 +1281,19 @@ init python:
         ## intended path, not a bug.
         if _intent_was_attack and bs.last_damage_to_player == 0 and _pre_resolve_block == 0:
             bs.add_log("[[WARN]: '{}' resolved 0 dmg with no player block — investigate.".format(ic.get("name", "?")))
+
+        ## --- Lifer golden handcuffs: a turn where you never landed a hit on
+        ## him is a turn you didn't fight to leave. The comfortable life
+        ## closes a little tighter — permanent Strength, every time.
+        ## (If an early-return branch above fired — you cancelled or mirrored
+        ## his attack with a card — this is skipped on purpose: spending a card
+        ## to shut him down is pushing, not stalling.)
+        if bs.enemy_id == "lifer":
+            _snap = bs.buffs.get("lifer_hp_snapshot", bs.enemy_hp)
+            if bs.enemy_hp >= _snap:
+                _gain = ENEMY_LIBRARY.get("lifer", {}).get("wrinkle_data", {}).get("strength_per_stall", 2)
+                bs.enemy_strength += _gain
+                bs.add_log("[[Golden handcuffs]: you didn't push tonight. He settles in — +{} Strength.".format(_gain))
 
         bs.advance_intent()
 

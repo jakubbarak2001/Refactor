@@ -1,0 +1,13 @@
+THREE reference images are attached. Treat them as a combined IDENTITY + STYLE reference: they all show "JB", the early-30s protagonist of a Czech cop game. Match his face and his rendering look EXACTLY — a smooth semi-realistic 3D character render: clean soft shading, subtle subsurface skin, gentle rim light, NO painterly brushstrokes, NO sketch lines, NO anime. Off-white / transparent neutral background. Vertical upper-body crop, roughly waist-up, with margin so nothing is cropped at the edges. SOLO figure. No legible text, no real agency logos — patches and badges are blank or generic abstract shapes.
+
+Character: "THE LIFER" — JB confronting his own reflection from a life he didn't choose: the version of JB who never quit the police force. This must be UNMISTAKABLY THE SAME MAN as the references — same square jaw, same thick straight dark brows, same nose, same hooded brown eyes, same dark hair, the same age. NOT aged up. This is a reflection, not an old man.
+
+THE DIFFERENCE IS COMFORT, NOT AGE. He took the path of least resistance and it shows softly: the gym-built muscle of the reference has gone padded and relaxed, a fuller face, a thicker softening neck, a slight paunch under the tunic. He is not a wreck — he looks successful, dignified, completely at ease. That ease is the trap.
+
+OUTFIT: a senior Czech police officer's formal DRESS UNIFORM instead of the reference's stripped-down tactical vest — a dark navy-grey buttoned tunic, clean collar, modest rank insignia on the shoulders, two or three subdued long-service medal ribbons on the chest, a peaked officer's cap with a band of gold braid. The comfortable uniform of a man who stopped fighting and arrived.
+
+THE GOLDEN HANDCUFFS — the signature prop: in one relaxed hand he holds out a pair of GOLD-PLATED handcuffs toward the viewer, loosely, almost offering them as a gift. They catch the light and are the single warm, saturated accent in an otherwise cold image.
+
+POSE & EXPRESSION: calm, settled, weight back, completely unthreatened. A faint knowing half-smile — paternal, patient, slightly pitying. He is not angry, not violent. He is here to talk you into staying. Eyes steady on the viewer.
+
+MOOD: cold, faintly desaturated, a subtle glassy mirror-sheen over the whole figure as if seen in a slightly silvered, foxed mirror — except the gold handcuffs, which stay warm. He should read instantly as "you, if you give up." Same cinematic 3D render pipeline as the references. Crisp, clean, no garbled text, no clutter.
