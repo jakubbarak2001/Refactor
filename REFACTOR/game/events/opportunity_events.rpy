@@ -278,7 +278,7 @@ label opp_the_snitch:
     menu:
         "[[OPPORTUNITY] Listen. Store the information.":
             python:
-                grant_card("snitch_info", silent=True)
+                grant_card("stack_trace", silent=True)
 
             "He talks for twelve minutes. You memorize the dates, the amounts, the account numbers."
             "You don't write anything down. That would be evidence."
@@ -288,7 +288,7 @@ label opp_the_snitch:
             "The information sits in your head like a loaded gun in a drawer. You hope you never need it."
 
             window hide
-            show screen outcome_panel("[INFO STORED] You know something about Lt. Kovář. [CARD] SNITCH INFO acquired.")
+            show screen outcome_panel("[INFO STORED] You know something about Lt. Kovář. [CARD] STACK TRACE acquired.")
             pause
             hide screen outcome_panel
 

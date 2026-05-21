@@ -59,9 +59,10 @@ label dev_skip_to_colonel:
         stats.available_money = 60000
         stats.pcr_hatred      = 50
 
-        ## Grant a representative deck of acquired cards
-        for _cid in ["iron_will", "iron_will", "boundary", "compile", "compile",
-                      "refactor", "side_income", "backup", "backup", "vigil"]:
+        ## Grant a representative deck of acquired cards — spans all 3 archetypes.
+        for _cid in ["provoke", "knuckle_down", "see_red", "breaking_point",
+                      "bracing", "iron_posture", "counterweight", "stack_trace",
+                      "hotfix", "crunch_time", "gut_punch", "killing_blow"]:
             grant_card(_cid, silent=True)
 
         ## Cycle Martin gift across runs to test all four
@@ -132,8 +133,8 @@ label dev_ladder_test:
         stats.available_money = 40000
         stats.pcr_hatred      = 30
 
-        for _cid in ["iron_will", "bracing", "gut_punch", "compile",
-                      "radio_call", "backup", "quick_jab"]:
+        for _cid in ["provoke", "knuckle_down", "bracing", "gut_punch",
+                      "stack_trace", "backup", "see_red"]:
             grant_card(_cid, silent=True)
 
         day_cycle.current_day = {"easy": 6, "medium": 12, "hard": 21}.get(_picked_tier, 6)
@@ -454,7 +455,7 @@ label activity_gym:
                 store.gym_streak += 1
                 ## BB-only common: spotter granted at the 3-day streak.
                 if store.gym_streak == 3 and stats.player_class == "bodybuilder":
-                    grant_card("spotter", silent=True)
+                    grant_card("hold_the_line", silent=True)
                 if store.gym_streak >= 5:
                     _newly_unlocked = unlock_achievement("gym_rat")
                     if _newly_unlocked and stats.player_class == "bodybuilder":
@@ -588,7 +589,7 @@ label activity_gym_heavy:
         store.gym_streak += 1
         add_soma(1)
         if store.gym_streak == 3 and stats.player_class == "bodybuilder":
-            grant_card("spotter", silent=True)
+            grant_card("hold_the_line", silent=True)
         if store.gym_streak >= 5:
             _newly_unlocked = unlock_achievement("gym_rat")
             if _newly_unlocked and stats.player_class == "bodybuilder":
@@ -761,16 +762,14 @@ label bouncer_night_club:
         if _roll <= 70:
             _pending_money = 4000 + _bb_cash
             _pending_hatred = 10
-            _bouncer_card = "side_income"
+            _bouncer_card = "gut_punch"
             _btext = "Uneventful. Six hours in a doorway, nodding at people happier than you.\nBy 3 AM you're calculating how many more shifts like this to quit forever. The number is getting smaller."
             _boutcome = "+ {} CZK, +10 PCR HATRED{}".format(4000 + _bb_cash, " [BODYBUILDER BONUS]" if _bb_cash else "")
         elif _roll <= 90:
             _pending_money = 9000 + _bb_cash
             _pending_hatred = -10
-            ## BB on a good night: meets the senior dev who'll review code for cash.
-            ## paid_review is a skill-purchase card — still useful even without a
-            ## hard coding cap (it's faster than studying). Others: side_income.
-            _bouncer_card = "paid_review" if stats.player_class == "bodybuilder" else "side_income"
+            ## A rare night — the door work pays off in a card worth keeping.
+            _bouncer_card = "brick_wall"
             _btext = "Rare night. Regulars tip heavy, the manager notices your work, and nobody throws up on anyone.\nDriving home at 4 AM, windows down: 'If this was my real job I would hate it slightly less.' Closest thing to joy you've felt all week."
             _boutcome = "+ {} CZK, -10 PCR HATRED{}".format(9000 + _bb_cash, " [BODYBUILDER BONUS]" if _bb_cash else "")
         else:
@@ -820,7 +819,7 @@ label bouncer_strip_bar:
         if _roll <= 5:
             _pending_money = 35000 + _bb_cash
             _pending_hatred = -15
-            _strip_card = "vip_treatment"
+            _strip_card = "killing_blow"
             _btext = "A famous regular shows up drunk and paranoid. Two guys try to drag him outside; you intervene with textbook precision.\nYour boss slides an envelope across the table. 'Not many can do what you did tonight.'"
             _boutcome = "+{} CZK, -15 PCR HATRED{}".format(35000 + _bb_cash, _bb_tag)
         elif _roll <= 25:
@@ -832,9 +831,8 @@ label bouncer_strip_bar:
         elif _roll <= 75:
             _pending_money = 6500 + _bb_cash
             _pending_hatred = 5
-            ## BB-only: brawl prompt fires only for bodybuilder (class_lock filter).
-            ## Non-BB players: offer_card returns False, stats apply (effectively no choice).
-            _strip_card = "brawl"
+            ## A fight breaks out and you finish it — the night yields a card.
+            _strip_card = "knuckle_down"
             _btext = "Four hours in a corridor that smells like vodka Red Bull and bad decisions. Nothing happens.\nOne person cries in the bathroom; you pretend not to notice. At least the envelope is solid."
             _boutcome = "+{} CZK, +5 PCR HATRED{}".format(6500 + _bb_cash, _bb_tag)
         elif _roll <= 95:
@@ -1134,7 +1132,7 @@ label activity_night_shift:
                 if _ns_roll <= 20:
                     stats.increment_stats_coding_skill(8)
                     stats.increment_stats_pcr_hatred(-5)
-                    _ns_extra_card = "procedural_defense"
+                    _ns_extra_card = "code_review"
                     _ns_bonus = "\n[NIGHT BONUS]: Dead quiet shift. You studied Python for 4 hours. +8 Coding, -5 Hatred."
                 elif _ns_roll <= 40:
                     stats.increment_stats_value_money(1500)
@@ -1551,7 +1549,7 @@ label activity_cold_read:
         ## (you observed the target — TAKE or PASS) and stays unconditional.
         _cr_pending_hatred = -20
         _cr_pending_coding = 0
-        _cr_card = "vigil"
+        _cr_card = "breath_test"
         if _high_hatred:
             _cr_pending_coding = 5
             _cr_card = "mirror"

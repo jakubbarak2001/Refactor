@@ -624,13 +624,13 @@ label re_the_informant:
     "'I've got something on Lieutenant Kovář. Expense reports. Doctored. Want to know?'"
 
     menu:
-        "Listen. [[CARD: SNITCH INFO]":
+        "Listen. [[CARD: STACK TRACE]":
             "He talks for twelve minutes. Dates, amounts, account numbers. You memorize them."
             "You walk away with information that has weight."
             python:
-                offer_card("snitch_info", "INFORMANT")
+                offer_card("stack_trace", "INFORMANT")
             window hide
-            show screen outcome_panel("[SNITCH INFO offered]")
+            show screen outcome_panel("[STACK TRACE offered]")
             pause
             hide screen outcome_panel
 
