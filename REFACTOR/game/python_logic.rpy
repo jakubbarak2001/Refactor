@@ -436,7 +436,7 @@ init python:
         "profile_master":   {"category": "Collection", "name": "Profile Master",          "desc": "Cold-read all four station targets at least three times each.",  "hint": "Dark Empath only — read every target deeply."},
         "maximum_stack":    {"category": "Collection", "name": "Maximum Stack",           "desc": "Reach SOMA 10/10. The body is the answer.",                      "hint": "Bodybuilder only — go to the gym 10 times."},
         "compound_knowledge":{"category":"Collection", "name": "Compound Knowledge",       "desc": "Learn synthesis instead of taking the vial.",                    "hint": "Biohacker only — pick the lesson over the contraband."},
-        "wake_up_call":     {"category": "Secret",     "name": "Wake Up Call",            "desc": "Type sys.exit() during the colonel's loop. Step out of the script.","hint": "???"},
+        "wake_up_call":     {"category": "Secret",     "name": "Wake Up Call",            "desc": "Break the Colonel's bureaucracy loop. Step out of the script.","hint": "???"},
         "i_dont_need_it":   {"category": "Secret",     "name": "I Don't Need IT",         "desc": "Reach the escape ending without signing the bootcamp contract.",    "hint": "Find another way out of the uniform."},
     }
 

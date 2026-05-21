@@ -125,11 +125,10 @@ label martin_phase1_preparation:
             pause
             hide screen outcome_panel
 
-        "{color=#ff6633}{b}[[BODYBUILDER]{/b}{/color} GYM FIRST — Walk in at your physical best. (+1 AFFECTION, free)" if stats.player_class == "bodybuilder" and getattr(store, 'gym_streak', 0) >= 5:
+        "{color=#ff6633}{b}[[BODYBUILDER]{/b}{/color} Hit the gym first. (+1 AFFECTION, free)" if stats.player_class == "bodybuilder" and getattr(store, 'gym_streak', 0) >= 5:
             python:
                 martin_affection += 1
-            "You hit the gym before lunch. Martin clocks the frame the second you walk in."
-            martin "'JB... you look different. Good different.'"
+            "You hit the gym before lunch. Martin clocks the frame the second you walk in. 'You look different, JB. Good different.'"
             window hide
             show screen outcome_panel("+1 AFFECTION [BODYBUILDER].")
             pause

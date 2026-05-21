@@ -602,7 +602,7 @@ screen battle_pile_peek():
                                     $ _c_is_compromise = bool(_c.get("is_compromise"))
                                     if _c_is_compromise:
                                         $ _ccol = "#5a5550"
-                                        $ _c_prefix = "⊘ "
+                                        $ _c_prefix = "🚫 "
                                         $ _c_name_color = "#a09890"
                                     elif _c_is_rage:
                                         $ _ccol = "#aa1a1a"
@@ -912,7 +912,7 @@ screen battle_screen():
                                         _dmg_for_threat = 0
                                     elif _itype == "restrict":
                                         ## Card-play cap on your next turn — purple, sharp glyph.
-                                        _icon = "⊘"
+                                        _icon = "🚫"
                                         _ic_color = "#cc44cc"
                                         _val_text = "Max {} card(s)".format(_intent.get("value", 1))
                                         _dmg_for_threat = 0
@@ -1046,7 +1046,7 @@ screen battle_screen():
                 ## matters most.
                 if bs.current_turn_max_cards is not None:
                     $ _restrict_left = max(0, bs.current_turn_max_cards - bs.cards_played_this_turn)
-                    text "⊘ RESTRICTED: [_restrict_left]/[bs.current_turn_max_cards] cards":
+                    text "🚫 RESTRICTED: [_restrict_left]/[bs.current_turn_max_cards] cards":
                         color ("#ff5555" if _restrict_left == 0 else "#cc44cc")
                         size 16
                         bold True
@@ -1095,7 +1095,7 @@ screen battle_screen():
                         "crash_next_turn":             "💥",
                         "max_energy_penalty_next_turn":"⚡",
                         "skip_next_turn":              "💤",
-                        "cards_cap_next_turn":         "⊘",
+                        "cards_cap_next_turn":         "🚫",
                         "enemy_attack_bonus":          "🔥",
                         "player_draw_penalty":         "🃏",
                         "see_red":                     "🔥",
@@ -1327,7 +1327,7 @@ screen battle_screen():
                     ##                Blood #aa1a1a, 🔥 glyph.
                     ##   Compromise — loss-injected on 2nd+ ladder loss, permanent
                     ##                AND unplayable (dead weight in hand).
-                    ##                Broken gray #5a5550, ⊘ glyph.
+                    ##                Broken gray #5a5550, 🚫 glyph.
                     $ _is_status     = (_card.get("effect") or "").startswith("status_")
                     $ _is_rage       = bool(_card.get("is_rage"))
                     $ _is_compromise = bool(_card.get("is_compromise"))
@@ -1369,7 +1369,7 @@ screen battle_screen():
                     $ _art_path = "images/cards/{}.png".format(_cid)
                     $ _has_art  = renpy.loadable(_art_path)
                     if _is_compromise:
-                        $ _art_glyph = "⊘"
+                        $ _art_glyph = "🚫"
                     elif _is_rage:
                         $ _art_glyph = "🔥"
                     elif _is_status:

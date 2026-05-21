@@ -28,7 +28,7 @@ label colonel_event:
     call colonel_round_two from _call_colonel_round_two
 
     hide jb with dissolve
-    show colonel normal at char_right
+    show colonel normal at char_right with dissolve
 
     ## --- Initialize the deck battle ---
     python:
@@ -112,7 +112,7 @@ label colonel_round_one:
 
 label colonel_round_two:
 
-    $ renpy.music.set_volume(1.25, 0, channel="voice")
+    $ renpy.music.set_volume(1.5, 0, channel="voice")
 
     scene bg_police_office with glitch_transition
     show colonel normal at char_right
@@ -137,8 +137,11 @@ label colonel_round_two:
 
     show colonel angry at char_right with dissolve
 
+    ## col_04 is loud enough at the base level — drop the +20% just for it.
+    $ renpy.music.set_volume(1.25, 0, channel="voice")
     voice "audio/voice/col_04_out_of_your_mind.ogg"
     colonel "ARE YOU OUT OF YOUR FUCKING MIND?!"
+    $ renpy.music.set_volume(1.5, 0, channel="voice")
 
     voice "audio/voice/col_05_six_thirty_morning.ogg"
     colonel "Six-thirty in the morning. A grown ass adult. And you put your bumper through MY grille — do you remember that, JB? Do you remember what should have happened to you that day?"
@@ -194,7 +197,8 @@ label colonel_round_two:
 
 
 ## ---------------------------------------------------------------------------
-## GLITCH PHASE — fires only on a perfect victory (HP >= 70%)
+## GLITCH PHASE — post-Colonel resolution. He's revealed as a loop; JB stops
+## performing and walks. Routes into colonel_victory_resolution -> good_ending.
 ## ---------------------------------------------------------------------------
 
 label colonel_glitch_phase:
@@ -208,101 +212,55 @@ label colonel_glitch_phase:
 
     pause 0.5
 
-    "He stumbles. The deck slides off the desk and the sound arrives a second too late."
-    "His mouth opens. Closes. No breath behind it."
+    "He stumbles. His mouth opens, closes. No breath behind it."
 
-    pause 0.8
+    pause 0.6
 
     scene bg_black with glitch_transition
 
-    "[[ERROR]: NPC_STATE.integrity = CRITICAL"
-    "[[ERROR]: Rollback FAILED. Reverting to cached state — bureaucracy_protocol_v1.exe"
+    "[[ERROR]: NPC_STATE.integrity = CRITICAL. Reverting to cached state."
 
-    pause 1.0
+    pause 0.8
 
     scene bg_police_office with glitch_transition
     show colonel normal at char_right
 
-    "The room reassembles. The desk slides back together. He stands up straight."
-    "But the geometry is too clean. The light has no source. The air has stopped moving."
-
-    pause 0.6
-
-    "He is looping."
-    "{i}police_bureaucracy.exe{/i} — runtime: 32 years."
+    "The room reassembles — but the geometry is too clean, the light has no source."
+    "He is looping. {i}police_bureaucracy.exe{/i} — runtime: 32 years."
 
     pause 0.6
 
     colonel "'You are a {b}COWARD{/b}, JB! You were never fit for this force!'"
 
-    "The opening line. Word for word."
+    "The opening line. Word for word. He isn't waiting for your answer. He never was."
 
     pause 0.8
-
-    "His eyes are already moving to the next one."
-    "He isn't waiting for your answer."
-    "He never was."
-
-    jump colonel_glitch_loop
-
-
-label colonel_glitch_loop:
-
-    python:
-        glitch_typing_init()
-
-    call screen glitch_typing_screen
-
-    ## Post-Phase-5D the screen only ever returns "wake_up" — typing the
-    ## target string is the sole exit. ARGUE / OBSERVE buttons were stripped
-    ## per playtest report (too much UI on the wake-up screen).
-    jump colonel_glitch_wake_up
-
-
-label colonel_glitch_wake_up:
 
     $ unlock_achievement("wake_up_call")
 
     scene bg_black with glitch_transition
 
-    pause 0.5
-
-    "You take one breath."
-    "It is yours. Not a line you have rehearsed answering with. Just air. Just a lung that is alive."
+    "You take one breath. It is yours — just air, a lung that is alive."
+    "You stop performing for him. The argument dissolves like smoke. It never had any weight."
 
     pause 0.7
 
-    "You stop performing for him."
-    "The argument — every variant of it, every version, every if-then branch you have ever memorised — dissolves like smoke."
-    "It never had any weight."
-    "It was just noise."
-
-    pause 1.0
-
     scene bg_police_office with dissolve
-    ## Colonel restored to "normal" — the scripted, dead-certain version JB
-    ## walked in on. JB on smirk: "I see through you, finally" — fits the
-    ## "no volume, no anger" cue better than determined (which reads as
-    ## committed-but-fighting). JB has TRANSCENDED the fight here.
     show colonel normal at char_right
     show jb smirk at char_left
 
-    "The office is just an office again."
-    "Concrete walls. Brass nameplate. A man behind a desk, mouth open mid-line, the rest of his speech still queued up behind his teeth."
+    "The office is just an office again. A man behind a desk, mouth still moving."
 
     pause 0.5
 
     jb "'I'm done.'"
 
-    "Two words."
-    "No volume. No anger."
+    "Two words. No volume. No anger."
 
     pause 0.6
 
-    "You take your resignation letter out of your jacket pocket. You unfold it. You smooth it once against the edge of his desk."
-    "You place it in his hand."
-    "His fingers close around it on muscle memory."
-    "His eyes don't change. His mouth keeps moving."
+    "You take out your resignation letter, smooth it against the edge of his desk, and place it in his hand."
+    "His fingers close on muscle memory. His eyes don't change. His mouth keeps moving."
 
     pause 0.6
 

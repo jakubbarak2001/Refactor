@@ -1776,7 +1776,7 @@ screen mm_affection_panel():
 
     frame:
         xpos 30
-        ypos 96
+        ypos 170
         xsize 300
         padding (18, 14)
         background Frame("#0d0d0df2", 0, 0)
@@ -1874,6 +1874,146 @@ screen outcome_panel(outcome_text):
 
 
 ## ---------------------------------------------------------------------------
+## card_visual — the canonical "fancy card" render, identical to the post-
+## combat reward card. Used by the offer screens so every card the player is
+## shown looks the same. 420x580 footprint; the cost gem overhangs top-left.
+## ---------------------------------------------------------------------------
+
+screen card_visual(card):
+
+    python:
+        _cv_type     = card.get("type", "Skill")
+        _cv_accent   = {"Attack": "#cc4422", "Skill": "#3388cc", "Power": "#aa44cc"}.get(_cv_type, "#888888")
+        _cv_name     = card.get("name", "?")
+        _cv_rarity   = card.get("rarity", "common")
+        _cv_colorlab = card.get("color", "Special")
+        _cv_cost     = card.get("cost", 0)
+        _cv_flavor   = card.get("flavor", "")
+        _cv_effect   = effect_description(card.get("effect"))
+        _cv_subtitle = (_cv_type.upper() + " · " + _cv_rarity.upper() + " · " + _cv_colorlab.upper()).strip(" ·")
+        _cv_art      = "images/cards/{}.png".format(card.get("id", ""))
+        _cv_has_art  = renpy.loadable(_cv_art)
+        _cv_glyph    = card.get("art_glyph") or {"Attack": "⚔", "Skill": "✦", "Power": "★"}.get(_cv_type, "●")
+
+    fixed:
+        xysize (420, 580)
+
+        ## L1: glow halo
+        add Solid(_cv_accent + "44") xpos 0 ypos 0 xysize (420, 580) at card_glow_pulse
+        add Solid(_cv_accent + "77") xpos 8 ypos 8 xysize (404, 564) at card_glow_pulse
+
+        ## L2: drop shadow
+        add Solid("#000000aa") xpos 26 ypos 28 xysize (380, 540)
+
+        ## L3 + L4: type-colored border wrapping warm-dark inner panel.
+        frame:
+            xpos 16
+            ypos 16
+            xsize 380
+            ysize 540
+            background Frame(_cv_accent, 6, 6)
+            padding (8, 8)
+
+            frame:
+                xfill True
+                yfill True
+                background Frame("#1a1410", 4, 4)
+                padding (12, 10)
+
+                vbox:
+                    xfill True
+                    spacing 6
+
+                    ## TITLE BANNER
+                    frame:
+                        xfill True
+                        ysize 44
+                        background Frame("#0a0806", 4, 4)
+                        text _cv_name substitute False:
+                            color card_name_color(card, "#e8c878")
+                            size 24
+                            bold True
+                            xalign 0.5
+                            yalign 0.5
+                            xmaximum 320
+                            text_align 0.5
+                            font "fonts/RobotoMono-Regular.ttf"
+
+                    ## ART ZONE
+                    frame:
+                        xfill True
+                        ysize 200
+                        background Frame(_cv_accent + "22", 4, 4)
+                        if _cv_has_art:
+                            add Transform(_cv_art, size=(320, 188)) xalign 0.5 yalign 0.5
+                        else:
+                            text _cv_glyph:
+                                xalign 0.5
+                                yalign 0.5
+                                color _cv_accent
+                                size 110
+                                outlines [(3, "#000000", 0, 0)]
+
+                    ## TYPE SUBTITLE
+                    text _cv_subtitle substitute False:
+                        xalign 0.5
+                        size 11
+                        color _cv_accent
+                        bold True
+                        font "fonts/RobotoMono-Regular.ttf"
+
+                    null height 2
+
+                    ## DESCRIPTION BAND
+                    frame:
+                        xfill True
+                        yminimum 100
+                        background Frame("#241d15", 4, 4)
+                        padding (12, 10)
+                        if _cv_effect:
+                            text _cv_effect substitute False:
+                                color "#e8e0d0"
+                                size 14
+                                bold True
+                                xalign 0.5
+                                yalign 0.5
+                                xmaximum 320
+                                text_align 0.5
+                                line_spacing 2
+
+                    ## FLAVOR
+                    if _cv_flavor:
+                        text _cv_flavor substitute False:
+                            color "#777777"
+                            size 11
+                            italic True
+                            xalign 0.5
+                            xmaximum 320
+                            text_align 0.5
+
+                    if card.get("exhaust"):
+                        text "EXHAUST":
+                            color "#cc4444"
+                            size 11
+                            bold True
+                            xalign 0.5
+
+        ## COST GEM — diamond overhanging the top-left corner.
+        fixed:
+            xpos -27
+            ypos -28
+            xysize (95, 95)
+            add Transform(Solid(_cv_accent), size=(60, 60), rotate=45) xalign 0.5 yalign 0.5
+            text "[_cv_cost]":
+                xalign 0.5
+                yalign 0.5
+                color "#0a0806"
+                size 34
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
+
+
+## ---------------------------------------------------------------------------
 ## Card Offer Screen — TAKE or PASS prompt for activity/event card drops.
 ## Returns "take" or "pass" via Return().
 ## ---------------------------------------------------------------------------
@@ -1934,99 +2074,9 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
         spacing 50
 
         ## ─────────────── LEFT: card preview ───────────────
-        frame:
-            xsize 420
-            ysize 540
-            background Frame("#0d0d0dee", 4, 4)
-            padding (22, 18)
-
-            vbox:
-                spacing 12
-                xalign 0.5
-
-                ## Top accent bar
-                frame:
-                    xalign 0.5
-                    xsize 360
-                    ysize 5
-                    background Frame(_co_color, 0, 0)
-
-                null height 6
-
-                ## Cost circle
-                frame:
-                    xsize 56
-                    ysize 56
-                    background Frame(_co_color, 4, 4)
-                    xalign 0.5
-                    text "[_co_cost]":
-                        color "#000000"
-                        size 32
-                        bold True
-                        xalign 0.5
-                        yalign 0.5
-
-                null height 2
-
-                text _co_name substitute False:
-                    color card_name_color(card, "#ffffff")
-                    size 30
-                    bold True
-                    xalign 0.5
-                    font "fonts/RobotoMono-Regular.ttf"
-
-                text "{} · {} · {}".format(_co_type, _co_rarity.upper(), _co_color_label) substitute False:
-                    color _co_color
-                    size 13
-                    xalign 0.5
-                    font "fonts/RobotoMono-Regular.ttf"
-
-                null height 10
-
-                text "─────────────────────────":
-                    color "#222222"
-                    size 12
-                    xalign 0.5
-
-                null height 6
-
-                ## EFFECT — what the card actually does. Mechanics first, vibes second.
-                $ _co_effect = effect_description(card.get("effect"))
-                if _co_effect:
-                    text _co_effect substitute False:
-                        color "#ffffff"
-                        size 16
-                        bold True
-                        xalign 0.5
-                        xmaximum 360
-                        text_align 0.5
-                        line_spacing 3
-
-                    null height 8
-
-                text _co_flavor substitute False:
-                    color "#888888"
-                    size 13
-                    italic True
-                    xalign 0.5
-                    xmaximum 360
-                    text_align 0.5
-
-                if card.get("exhaust"):
-                    null height 6
-                    text "[[EXHAUST]":
-                        color "#cc4444"
-                        size 13
-                        bold True
-                        xalign 0.5
-
-                if card.get("class_lock"):
-                    null height 4
-                    text "[[{}-LOCKED]".format(card["class_lock"].upper().replace("_", " ")):
-                        color "#888888"
-                        size 11
-                        italic True
-                        xalign 0.5
+        fixed:
+            xysize (420, 580)
+            use card_visual(card)
 
         ## ─────────────── Thin vertical rule between the two paths ───────────────
         frame:
@@ -2195,22 +2245,13 @@ screen card_solo_offer_screen(card, source_label=""):
     add "#0a0a0aee"
 
     python:
-        ## Local palette — `card_offer_screen`'s _CO_COLORS is scope-local
-        ## to that screen's python block, so it's not visible here. Inlined
-        ## to keep both screens self-contained until/unless we hoist the
-        ## palette to a module-level constant.
+        ## Card colour — only the TAKE button's hover accent needs it now that
+        ## card_visual renders the card body.
         _csolo_palette = {
             "Physical": "#ff6633", "Mental": "#9944cc", "Money": "#ffd700",
             "Logic": "#00ccff", "Police": "#3388cc", "Special": "#00cc88",
         }
         _co_color = _csolo_palette.get(card.get("color", "Special"), "#888888")
-        _co_name    = card.get("name", "?")
-        _co_type    = card.get("type", "")
-        _co_rarity  = card.get("rarity", "")
-        _co_cost    = card.get("cost", 0)
-        _co_flavor  = card.get("flavor", "")
-        _co_color_label = card.get("color", "")
-        _co_effect  = effect_description(card.get("effect"))
 
     use class_color_frame(thickness=3, alpha_suffix="aa")
 
@@ -2233,89 +2274,12 @@ screen card_solo_offer_screen(card, source_label=""):
                 size 14
                 font "fonts/RobotoMono-Regular.ttf"
 
-    ## Card preview — centered, same internal layout as card_offer_screen.
-    frame:
+    ## Card preview — the canonical fancy render, centered.
+    fixed:
         xalign 0.5
-        yalign 0.46
-        xsize 460
-        ysize 560
-        background Frame("#0d0d0dee", 4, 4)
-        padding (24, 20)
-
-        vbox:
-            spacing 12
-            xalign 0.5
-
-            frame:
-                xalign 0.5
-                xsize 400
-                ysize 5
-                background Frame(_co_color, 0, 0)
-
-            null height 6
-
-            frame:
-                xsize 60
-                ysize 60
-                background Frame(_co_color, 4, 4)
-                xalign 0.5
-                text "[_co_cost]":
-                    color "#000000"
-                    size 34
-                    bold True
-                    xalign 0.5
-                    yalign 0.5
-
-            null height 2
-
-            text _co_name substitute False:
-                color card_name_color(card, "#ffffff")
-                size 32
-                bold True
-                xalign 0.5
-                font "fonts/RobotoMono-Regular.ttf"
-
-            text "{} · {} · {}".format(_co_type, _co_rarity.upper(), _co_color_label) substitute False:
-                color _co_color
-                size 13
-                xalign 0.5
-                font "fonts/RobotoMono-Regular.ttf"
-
-            null height 10
-
-            text "─────────────────────────":
-                color "#222222"
-                size 12
-                xalign 0.5
-
-            null height 6
-
-            if _co_effect:
-                text _co_effect substitute False:
-                    color "#ffffff"
-                    size 17
-                    bold True
-                    xalign 0.5
-                    xmaximum 400
-                    text_align 0.5
-                    line_spacing 3
-                null height 8
-
-            text _co_flavor substitute False:
-                color "#888888"
-                size 13
-                italic True
-                xalign 0.5
-                xmaximum 400
-                text_align 0.5
-
-            if card.get("exhaust"):
-                null height 6
-                text "[[EXHAUST]":
-                    color "#cc4444"
-                    size 13
-                    bold True
-                    xalign 0.5
+        yalign 0.5
+        xysize (420, 580)
+        use card_visual(card)
 
     ## TAKE / PASS — same visual weight; the choice is "do I want this card"
     ## not "card vs stats". No stat panel.
@@ -2600,7 +2564,7 @@ screen fixer_removal_screen(entries, price, next_price):
         }
         _CORRUPTION_GLYPH = {
             "rage":       "🔥 ",
-            "compromise": "⊘ ",
+            "compromise": "🚫 ",
             "status":     "☠ ",
         }
         _f_affordable = (stats.available_money >= price)
@@ -3519,7 +3483,7 @@ screen card_acquired_toast(card):
             _ct_bg = "#1a0a0aff"
         elif _ct_is_compromise:
             _ct_color = "#a09890"
-            _ct_header = "⊘ COMPROMISE LANDED"
+            _ct_header = "🚫 COMPROMISE LANDED"
             _ct_bg = "#0d0d0aff"
         else:
             _ct_color = _CARD_TOAST_COLORS.get(card.get("color", "Special"), "#888888")

@@ -77,7 +77,7 @@ label homeless_ending:
 
 ## ---------------------------------------------------------------------------
 ## GOOD ENDING
-## Triggered from colonel_glitch_phase via [sys.exit()] WAKE UP
+## Reached from colonel_victory_resolution after the Colonel fight.
 ## ---------------------------------------------------------------------------
 
 label good_ending:
