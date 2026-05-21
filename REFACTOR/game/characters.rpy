@@ -125,7 +125,7 @@ image martin smiling = im.Scale("images/sprites/npcs/martin_normal.png", 600, 90
 image martin serious = im.Scale("images/sprites/npcs/martin_normal.png", 600, 900)
 image martin como    = im.Scale("images/sprites/npcs/martin_como.png",    600, 900)
 
-## Inspector sprites (GIBS — Happy Nation ending)
+## Inspector sprites (Internal Affairs — Happy Nation ending)
 image inspector neutral = im.Scale("images/sprites/npcs/inspector_neutral.png", 600, 900)
 
 ## Battle-ladder enemies (northern-Bohemia police-case grotesques)

@@ -138,9 +138,8 @@ screen stats_bar():
         _day_subhead = "day {:02d} / 30".format(_today)
 
     vbox:
-        xpos 0
         ypos 0
-        xfill True
+        xalign 0.5
 
         ## ▔▔▔ Top class-color hairline ▔▔▔
         frame:
@@ -148,19 +147,17 @@ screen stats_bar():
             ysize 2
             background Frame(_class_color, 0, 0)
 
-        ## ═══ Main strip ═══
+        ## ═══ Main strip — content-sized, no longer full-bleed ═══
         frame:
-            xfill True
-            padding (20, 8)
+            padding (16, 6)
             background Frame(DOSSIER_BG_BAR, 0, 0)
 
             hbox:
-                xfill True
-                spacing 0
+                spacing 14
+                yalign 0.5
 
-                ## ── LEFT ZONE — class identity (xsize 320) ────────────────
+                ## ── LEFT ZONE — class identity ────────────────────────────
                 frame:
-                    xsize 320
                     yalign 0.5
                     background None
                     padding (0, 0)
@@ -227,48 +224,39 @@ screen stats_bar():
                                     font DOSSIER_FONT
 
                 ## ── Divider ───────────────────────────────────────────────
-                add Solid("#333333") xysize (1, 80) yalign 0.5
+                add Solid("#333333") xysize (1, 44) yalign 0.5
 
-                null width 18
-
-                ## ── CENTER ZONE — countdown headline + 4-day strip ────────
-                ## Explicit xsize because xfill True on a vbox inside an hbox
-                ## only fills height, not horizontal slack — so without an
-                ## explicit width, the right zone slid off-screen.
-                ## Math: 1920 screen − 40 strip padding − 320 left − 38
-                ## (divider/null padding) − 640 right = 882, rounded to 880.
-                vbox:
-                    xsize 880
+                ## ── CENTER ZONE — day headline (left) + 4-day strip ───────
+                hbox:
+                    spacing 12
                     yalign 0.5
-                    spacing 3
 
-                    if _days_to_colonel > 0:
-                        text "DAY {stshl=[_today]} / 30":
-                            color "#f5f0e0"
-                            size 22
-                            bold True
-                            xalign 0.5
+                    vbox:
+                        yalign 0.5
+                        spacing 1
+
+                        if _days_to_colonel > 0:
+                            text "DAY {stshl=[_today]} / 30":
+                                color "#f5f0e0"
+                                size 19
+                                bold True
+                                font DOSSIER_FONT
+                        else:
+                            text "{stshl=TODAY} · CONFRONTATION":
+                                color "#f5f0e0"
+                                size 19
+                                bold True
+                                font DOSSIER_FONT
+
+                        text _day_subhead:
+                            color DOSSIER_INK_DIM
+                            size 10
+                            italic True
                             font DOSSIER_FONT
-                    else:
-                        text "{stshl=TODAY} · CONFRONTATION":
-                            color "#f5f0e0"
-                            size 22
-                            bold True
-                            xalign 0.5
-                            font DOSSIER_FONT
-
-                    text _day_subhead:
-                        color DOSSIER_INK_DIM
-                        size 11
-                        italic True
-                        xalign 0.5
-                        font DOSSIER_FONT
-
-                    null height 2
 
                     hbox:
-                        spacing 6
-                        xalign 0.5
+                        spacing 4
+                        yalign 0.5
 
                         for _d in _strip_days:
                             $ _is_today = (_d == _today)
@@ -290,15 +278,15 @@ screen stats_bar():
                                 if _is_today:
                                     text "▼":
                                         color _class_color
-                                        size 11
+                                        size 10
                                         xalign 0.5
                                         bold True
                                 else:
-                                    null height 13
+                                    null height 12
 
                                 frame:
-                                    xsize 96
-                                    ysize 32
+                                    xsize 66
+                                    ysize 30
                                     background Frame(_cell_bg, 3, 3)
 
                                     vbox:
@@ -308,7 +296,7 @@ screen stats_bar():
 
                                         text "DAY [_d]":
                                             color _cell_text
-                                            size 12
+                                            size 11
                                             bold _is_today
                                             xalign 0.5
                                             font DOSSIER_FONT
@@ -316,18 +304,15 @@ screen stats_bar():
                                         if _ev is not None:
                                             text "[_ev[0]]":
                                                 color _cell_text
-                                                size 10
+                                                size 9
                                                 xalign 0.5
                                                 font DOSSIER_FONT
 
-                null width 18
-
                 ## ── Divider ───────────────────────────────────────────────
-                add Solid("#333333") xysize (1, 80) yalign 0.5
+                add Solid("#333333") xysize (1, 44) yalign 0.5
 
-                ## ── RIGHT ZONE — resource gauges (xsize 640) ─────────────
+                ## ── RIGHT ZONE — resource gauges ──────────────────────────
                 frame:
-                    xsize 640
                     yalign 0.5
                     background None
                     padding (0, 0)
@@ -453,7 +438,7 @@ screen stats_bar():
     if _stats_tt:
         frame:
             xalign 0.5
-            ypos 128
+            ypos 86
             padding (12, 8)
             background Frame("#0d1018ee", 4, 4)
             text "[_stats_tt]":
@@ -1777,7 +1762,7 @@ screen mm_affection_panel():
 
     frame:
         xpos 30
-        ypos 170
+        ypos 126
         xsize 300
         padding (18, 14)
         background Frame("#0d0d0df2", 0, 0)

@@ -293,8 +293,11 @@ label day_start:
     ## `call expression ... from _xxx` so the named return label survives
     ## script edits (save stability — see the comment near salary_day above).
     python:
+        ## BB excluded — its crisis event was cut (Hatred is the Bodybuilder's
+        ## fantasy, not a mid-run "lose your shit" liability beat).
         _should_crisis = (
             stats.pcr_hatred >= 85
+            and stats.player_class != "bodybuilder"
             and not getattr(store, '_crisis_triggered', False)
         )
         if _should_crisis:
@@ -925,15 +928,6 @@ label activity_coding:
         _bh_accent = class_accent_color("biohacker")
         _coding_options = [
             {
-                "label_name":     "coding_refactor",
-                "title":          "REFACTOR THE DECK",
-                "accent":         _bh_accent,
-                "cost_text":      "FREE",
-                "effect_text":    "Upgrade cards (scales with Coding)",
-                "flavor_text":    "Open the deck like a codebase. Make it sharper.",
-                "class_relevant": False,
-            },
-            {
                 "label_name":     "coding_work_for_money",
                 "title":          "CODE FOR MONEY",
                 "accent":         _bh_accent,
@@ -984,54 +978,6 @@ label activity_coding:
         options     = _coding_options,
         back_label  = "select_activity",
     )
-
-
-## ---------------------------------------------------------------------------
-## CODING — REFACTOR THE DECK
-## The coding activity as a deck operation: open the deck like a codebase and
-## upgrade cards in place. How many refactor passes you get scales with Coding
-## Skill (1 / 2 / 3 at the 0-49 / 50-99 / 100 bands) — that is what grinding
-## Coding, and the bootcamp, actually buy.
-## ---------------------------------------------------------------------------
-
-label coding_refactor:
-
-    python:
-        _refac_max  = min(3, 1 + stats.coding_skill // 50)
-        _refac_done = 0
-
-    "You open the deck like a codebase — dead weight, loose logic, lines that could be tighter. Time to refactor."
-
-    label .loop:
-        python:
-            _refac_has_targets = any(
-                is_upgradeable(_c) for _c in (player_deck.cards if player_deck is not None else [])
-            )
-        if _refac_done >= _refac_max or not _refac_has_targets:
-            jump coding_refactor.finish
-
-        menu:
-            "Refactor a card.  ([_refac_done] / [_refac_max] done)":
-                call _run_card_upgrade_flow from _call_coding_refactor_flow
-                $ _refac_done += (1 if _return else 0)
-                jump coding_refactor.loop
-
-            "Stop here.":
-                jump coding_refactor.finish
-
-    label .finish:
-        python:
-            stats.increment_stats_coding_skill(5)
-            activity_selected = True
-            if _refac_done > 0:
-                _refac_msg = "Refactored {} card(s).  +5 CODING SKILL.".format(_refac_done)
-            else:
-                _refac_msg = "Nothing to refactor — the deck is already sharp.  +5 CODING SKILL."
-        window hide
-        show screen outcome_panel(_refac_msg)
-        pause
-        hide screen outcome_panel
-        jump end_day
 
 
 label coding_work_for_money:
@@ -1366,15 +1312,6 @@ label do_end_day:
         stats.increment_stats_pcr_hatred(_nightly_base)
         if python_bootcamp:
             stats.increment_stats_coding_skill(5) # bootcamp buff
-
-        # Persistent-HP nightly regen — +5 HP every night, capped at max.
-        # Keeps the run from death-spiraling: ladder fights chip the body,
-        # sleep claws a sliver back. Healing-card plays and gym sessions
-        # are the bigger valves.
-        _run_hp = getattr(store, 'run_hp', None)
-        _run_hp_max = getattr(store, 'run_hp_max', None)
-        if _run_hp is not None and _run_hp_max is not None and _run_hp < _run_hp_max:
-            store.run_hp = min(_run_hp_max, _run_hp + 10)
 
         # Advance day
         day_cycle.next_day()
@@ -1747,55 +1684,6 @@ label cold_read_observe:
 ## ---------------------------------------------------------------------------
 ## CRISIS EVENTS — fire once per run at >= 85 Hatred
 ## ---------------------------------------------------------------------------
-
-label crisis_event_bodybuilder:
-
-    play music "audio/tension_theme.mp3" fadein 1.0
-    scene bg_police_interior
-    show jb angry at char_left
-
-    "[[CRISIS EVENT — BODYBUILDER]"
-    "It happened at the gym."
-    "A man in a Levi's jacket made a joke about cops. Something about donuts."
-    "You don't remember deciding to react. You just did."
-    "You grabbed a 20kg plate off the rack and slammed it into the floor next to him."
-    "The crack echoed through the whole building. Everyone froze."
-    "He's still standing there, pale as concrete, phone already out."
-    "The gym manager has appeared. The word 'police report' has been used."
-    "Your hands are still shaking."
-
-    menu:
-        "Own it. (-2,000 CZK, -20 Hatred)":
-            python:
-                stats.increment_stats_pcr_hatred(-20)
-                stats.increment_stats_value_money(-2000)
-            "You uncurl your fists."
-            jb "'I'm sorry. I'll pay for the damage. You didn't deserve that.'"
-            "The manager nods slowly. The man with the phone doesn't look convinced, but he pockets it."
-            "You drive home. The rage is gone."
-            "What's left underneath it is quieter. And more honest."
-            "Your body was trying to tell you something. It's been trying for weeks."
-            window hide
-            show screen outcome_panel("-2,000 CZK, -20 PCR HATRED [BODYBUILDER CRISIS: you faced it].")
-            pause
-            hide screen outcome_panel
-
-        "Storm out. (+5 Hatred)":
-            python:
-                stats.increment_stats_pcr_hatred(5)
-            "You walk to the exit."
-            "Nobody stops you."
-            "In the car park you sit in your car for 25 minutes with the engine off."
-            "The anger has burned itself hollow."
-            "Nothing is resolved. But nothing escalated either."
-            "You exist in a grey zone between dangerous and fine."
-            window hide
-            show screen outcome_panel("+5 PCR HATRED [BODYBUILDER CRISIS: unresolved].")
-            pause
-            hide screen outcome_panel
-
-    return
-
 
 label crisis_event_dark_empath:
 

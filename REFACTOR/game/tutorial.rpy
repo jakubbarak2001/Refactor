@@ -91,6 +91,7 @@ label tutorial_intro:
 
     python:
         _tut_total = 6
+        _hcap = hatred_cap()
         _tut_class_label = {
             "bodybuilder": "BODYBUILDER",
             "dark_empath": "DARK EMPATH",
@@ -123,7 +124,7 @@ label tutorial_intro:
 
     call screen tutorial_popup(
         title="HATRED",
-        body="Cap this at 100 and you break — that's a loss. Below 60 you're safe. Above 90 the warning chip flashes red.",
+        body="Hit [_hcap] and you break — that's a loss. The Hatred chip shifts colour as you climb; once it's red, you're close.",
         step=4, total=_tut_total, accent="#ff4444",
     )
 

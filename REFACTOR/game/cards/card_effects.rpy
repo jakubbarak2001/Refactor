@@ -246,9 +246,9 @@ init python:
 
     @register_effect("red_mist")
     def _eff_red_mist(state, source, target):
-        state.deal_damage(target, 8)
-        ## Stagger the 2nd popup so the double-hit reads as two numbers.
-        state.deal_damage(target, 8, popup_delay=0.22)
+        state.deal_damage(target, 8, popup_xoffset=_zigzag_x(0))
+        ## Stagger + zigzag the 2nd popup so the double-hit reads as two numbers.
+        state.deal_damage(target, 8, popup_delay=0.22, popup_xoffset=_zigzag_x(1))
         state.gain_hatred(4)
 
     @register_effect("breaking_point")
@@ -465,7 +465,7 @@ init python:
     def _eff_killing_blow(state, source, target):
         state.deal_damage(target, 14)
         if state.enemy_max_hp > 0 and state.enemy_hp > 0 and state.enemy_hp * 2 < state.enemy_max_hp:
-            state.deal_damage(target, 14)
+            state.deal_damage(target, 14, popup_delay=0.22, popup_xoffset=_zigzag_x(1))
             state.add_log("[[Killing Blow]: execution — second hit lands.")
 
     @register_effect("last_stand")
@@ -783,7 +783,7 @@ init python:
     def _eff_killing_blow_plus(state, source, target):
         state.deal_damage(target, 16)
         if state.enemy_max_hp > 0 and state.enemy_hp > 0 and state.enemy_hp * 2 < state.enemy_max_hp:
-            state.deal_damage(target, 16)
+            state.deal_damage(target, 16, popup_delay=0.22, popup_xoffset=_zigzag_x(1))
             state.add_log("[[Killing Blow+]: execution — second hit lands.")
 
     @register_effect("last_stand_plus")
@@ -922,8 +922,8 @@ init python:
 
     @register_effect("red_mist_plus")
     def _eff_red_mist_plus(state, source, target):
-        state.deal_damage(target, 10)
-        state.deal_damage(target, 10, popup_delay=0.22)
+        state.deal_damage(target, 10, popup_xoffset=_zigzag_x(0))
+        state.deal_damage(target, 10, popup_delay=0.22, popup_xoffset=_zigzag_x(1))
         state.gain_hatred(4)
 
     @register_effect("breaking_point_plus")

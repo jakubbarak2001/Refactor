@@ -73,6 +73,53 @@ init python:
 
 
 ## ---------------------------------------------------------------------------
+## battle_intro — two-slide pre-fight cinematic.
+##   Slide 1: location background + "why you're here" narration.
+##   Slide 2: the enemy sprite rises into frame + reveal narration.
+## Reads intro_lines / bg_id / sprite_id from ENEMY_LIBRARY. Enemies with no
+## intro_lines (Colonel — own event) are skipped: the fight begins at once.
+## ---------------------------------------------------------------------------
+
+transform battle_intro_enemy_enter:
+    xalign 0.5
+    yalign 1.0
+    zoom 0.82
+    alpha 0.0
+    yoffset 80
+    easein 0.55 alpha 1.0 yoffset 0
+
+
+label battle_intro(enemy_id):
+
+    python:
+        _e = ENEMY_LIBRARY.get(enemy_id, {}) or {}
+        _intro = _e.get("intro_lines", []) or []
+        _bg_id = _e.get("bg_id") or _e.get("sprite_id") or enemy_id
+        _spr_tag = "{} neutral".format(_e.get("sprite_id") or enemy_id)
+        _intro_bg = Transform(
+            "images/backgrounds/bg_{}.jpg".format(_bg_id),
+            size=(config.screen_width, config.screen_height),
+        )
+
+    if len(_intro) < 2:
+        return
+
+    $ _intro_line1 = _intro[0]
+    $ _intro_line2 = _intro[1]
+
+    ## Slide 1 — the location, and why a cop is standing in it.
+    scene bg_black
+    scene expression _intro_bg with Dissolve(0.6)
+    narrator "[_intro_line1]"
+
+    ## Slide 2 — the enemy is in the room.
+    show expression _spr_tag as battle_intro_enemy at battle_intro_enemy_enter
+    narrator "[_intro_line2]"
+
+    return
+
+
+## ---------------------------------------------------------------------------
 ## battle_with — generalised entry point for any ENEMY_LIBRARY enemy.
 ## Colonel keeps colonel_event; this wrapper handles ladder rungs only.
 ## ---------------------------------------------------------------------------
@@ -86,6 +133,8 @@ label battle_with(enemy_id, tier):
     else:
         play music "audio/panelak_nocni_smycka.wav" fadein 0.8
     $ renpy.save("auto-ladder", "Ladder — {}".format(enemy_id))
+
+    call battle_intro(enemy_id) from _call_battle_intro
 
     python:
         battle_init(enemy_id)

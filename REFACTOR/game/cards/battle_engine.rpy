@@ -75,6 +75,12 @@ init python:
                     pass
                 return
 
+    def _zigzag_x(index):
+        """Horizontal popup offset for hit `index` (0-based) of a multi-hit
+        attack — even hits sit left of centre, odd hits right, so 2+
+        consecutive damage numbers read as separate hits."""
+        return -48 if index % 2 == 0 else 48
+
     class BattleState(object):
         """Singleton-style state for the deck-based Colonel fight."""
 
@@ -217,7 +223,7 @@ init python:
                 self.log = self.log[-12:]
 
         ## ---------------- DAMAGE / BLOCK ----------------
-        def deal_damage(self, target, amount, source_kind="effect", bypass_block=False, popup_delay=0.0):
+        def deal_damage(self, target, amount, source_kind="effect", bypass_block=False, popup_delay=0.0, popup_xoffset=0):
             """target: 'player' | 'enemy' (or string aliases).
 
             source_kind: 'effect' (card-played effect) | 'intent' (colonel's
@@ -234,10 +240,14 @@ init python:
             or the syringe you just stabbed yourself with.
 
             popup_delay: seconds to delay the damage-popup render. Multi-hit
-            compound attacks pass _i * 0.14 so the -N popups stagger across
+            compound attacks pass _i * 0.25 so the -N popups stagger across
             time instead of all collapsing into the last frame. The popup
             screen's transform consumes the delay (renpy.pause from a screen
             action would silently fail).
+
+            popup_xoffset: horizontal px offset for the damage popup. Multi-hit
+            attacks pass alternating -/+ values (see _zigzag_x) so consecutive
+            numbers land side by side instead of stacking on top of each other.
             """
             if amount <= 0:
                 return
@@ -283,6 +293,7 @@ init python:
                             "damage_popup_enemy_inner",
                             damage=actual,
                             delay=popup_delay,
+                            xoff=popup_xoffset,
                             _tag="dmg_popup_enemy_{}".format(self._popup_enemy_seq),
                         )
                         renpy.restart_interaction()
@@ -330,6 +341,7 @@ init python:
                             "damage_popup_player_inner",
                             damage=actual,
                             delay=popup_delay,
+                            xoff=popup_xoffset,
                             _tag="dmg_popup_player_{}".format(self._popup_player_seq),
                         )
                         renpy.restart_interaction()
@@ -1161,7 +1173,7 @@ init python:
                 ## five collapsing into one frame. The delay is consumed by
                 ## the popup screen's transform, NOT renpy.pause — pausing
                 ## from a screen-action callback silently fails.
-                bs.deal_damage("player", per_hit, source_kind="intent", popup_delay=_i * 0.25)
+                bs.deal_damage("player", per_hit, source_kind="intent", popup_delay=_i * 0.25, popup_xoffset=_zigzag_x(_i))
         elif intent_type == "block":
             bs.gain_block("enemy", ic.get("value", 0))
         elif intent_type == "buff":

@@ -623,14 +623,15 @@ init python:
     )
     register_card(
         "paragraph_4b",
-        name    = "Paragraph 4B",
-        type    = "Attack",
-        color   = "Logic",
-        cost    = 2,
-        rarity  = "boss",
-        effect  = "paragraph_4b",
-        exhaust = True,
-        flavor  = "Deal 40. The 80k debt is void.",
+        name      = "Paragraph 4B",
+        type      = "Attack",
+        color     = "Logic",
+        cost      = 2,
+        rarity    = "boss",
+        effect    = "paragraph_4b",
+        exhaust   = True,
+        art_glyph = "☠",
+        flavor    = "Deal 40. The 80k debt is void.",
     )
     register_card(
         "ghost_secret",

@@ -243,6 +243,16 @@ transform _energy_warn_pulse:
     linear 0.7 alpha 1.0
     repeat
 
+## Hatred-past-100 alarm — the combat readout throbs red once the player
+## crosses into the final danger band (only reachable by Bodybuilder, whose
+## breakdown cap is 125). Alpha pulse only — no zoom, so it never reflows the
+## status vbox beneath it.
+transform hatred_over_glow:
+    alpha 1.0
+    easeout 0.5 alpha 0.5
+    easein 0.5 alpha 1.0
+    repeat
+
 
 transform damage_flash_player:
     alpha 0.0
@@ -328,7 +338,7 @@ transform damage_popup_atl_delayed(delay=0.0):
 ## the hit timestamp), so Ren'Py mounts a fresh displayable + fires the ATL
 ## from frame 0 every time. Pure animation, no transform-function timing
 ## races. This is what replaces the long-standing flaky popup pipeline.
-screen damage_popup_enemy_inner(damage, delay=0.0):
+screen damage_popup_enemy_inner(damage, delay=0.0, xoff=0):
     ## zorder 800 — must render ABOVE battle_screen (zorder 600). Without this
     ## explicit zorder the popup mounts but draws BEHIND battle_screen's full-
     ## screen background, so it's invisible in-fight (but visible from console
@@ -337,9 +347,12 @@ screen damage_popup_enemy_inner(damage, delay=0.0):
     zorder 800
     ## Per-popup thud — fires AT the visible-popup moment, not when damage is
     ## dealt. Multi-hit compounds now get one thud per number, staggered.
-    timer (delay if delay > 0 else 0.01) action Function(_play_battle_sfx, "hit_thud") repeat False
+    ## hit_thud.* was never authored; enemy_hit.wav is the punch impact, and
+    ## REQUIRED_SFX.md specs one shared hit sound for both sides.
+    timer (delay if delay > 0 else 0.01) action Function(_play_battle_sfx, "enemy_hit") repeat False
     text "-[damage]":
         xalign 0.5
+        xoffset xoff
         ypos 195
         color "#ffdd44"
         size 88
@@ -348,11 +361,12 @@ screen damage_popup_enemy_inner(damage, delay=0.0):
         font "fonts/RobotoMono-Regular.ttf"
         at damage_popup_atl_delayed(delay)
 
-screen damage_popup_player_inner(damage, delay=0.0):
+screen damage_popup_player_inner(damage, delay=0.0, xoff=0):
     zorder 800
     timer (delay if delay > 0 else 0.01) action Function(_play_battle_sfx, "enemy_hit") repeat False
     text "-[damage]":
         xpos 130
+        xoffset xoff
         ypos 500
         color "#ff4422"
         size 88
@@ -1064,21 +1078,34 @@ screen battle_screen():
 
                 ## Hatred readout — the run stat the Hatred archetype juggles.
                 ## Climbs toward the breakdown cap; colour escalates as a warning.
+                ## Past 100 (BB-only territory — their cap is 125) the readout
+                ## throbs red: the final danger band before breakdown.
                 python:
                     _hat_val = stats.pcr_hatred if stats else 0
                     _hat_cap = hatred_cap()
                     _hat_r   = (_hat_val / float(_hat_cap)) if _hat_cap else 0.0
-                    if _hat_r >= 0.85:
+                    _hat_over = _hat_val > 100
+                    if _hat_over:
+                        _hat_col = "#ff2a1a"
+                    elif _hat_r >= 0.85:
                         _hat_col = "#ff3322"
                     elif _hat_r >= 0.6:
                         _hat_col = "#ffaa22"
                     else:
                         _hat_col = "#cc8866"
-                text "HATRED [_hat_val] / [_hat_cap]":
-                    color _hat_col
-                    size 16
-                    bold True
-                    font "fonts/RobotoMono-Regular.ttf"
+                if _hat_over:
+                    text "HATRED [_hat_val] / [_hat_cap]":
+                        color _hat_col
+                        size 16
+                        bold True
+                        font "fonts/RobotoMono-Regular.ttf"
+                        at hatred_over_glow
+                else:
+                    text "HATRED [_hat_val] / [_hat_cap]":
+                        color _hat_col
+                        size 16
+                        bold True
+                        font "fonts/RobotoMono-Regular.ttf"
 
                 if bs.player_block > 0:
                     ## Phase E — block_gain_pulse pumps zoom 1.0 -> 1.3 -> 1.0
