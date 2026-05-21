@@ -960,3 +960,29 @@ init python:
     register_upgrade("the_dossier",           effect="the_dossier_plus",           flavor="Cancel one incoming attack. Deal 30. They know what you have.")
     register_upgrade("the_compound",          effect="the_compound_plus",          flavor="Deal damage equal to current energy ×12. Lose 12 HP. Trial doubled.")
     register_upgrade("took_the_heat",         effect="took_the_heat_plus",         flavor="Gain 13 block. Draw 1. You owned it, twice.")
+
+    ## New-archetype cards — Hatred. The three Powers upgrade by going free
+    ## (cost 0, same effect) — the refactor / cuff_em cost-reduction pattern.
+    register_upgrade("provoke",               effect="provoke_plus",               flavor="You say the thing. You watch it land twice.")
+    register_upgrade("knuckle_down",          effect="knuckle_down_plus",          flavor="No windup, no speech — and your feet were already set.")
+    register_upgrade("snap_decision",         effect="snap_decision_plus",         flavor="The thought and the fist arrive together, harder.")
+    register_upgrade("red_mist",              effect="red_mist_plus",              flavor="Three seconds you won't remember. He won't forget them.")
+    register_upgrade("breaking_point",        effect="breaking_point_plus",        flavor="The hinge gave a long time ago. Now it's just leverage.")
+    register_upgrade("bottled_rage",          effect="bottled_rage_plus",          flavor="Uncapped — and you've learned to pour, not spill.")
+    register_upgrade("see_red",               effect="see_red",               cost=0, flavor="Anger isn't the problem. Anger is free.")
+    register_upgrade("thick_skull",           effect="thick_skull",           cost=0, flavor="The only thing that ever held. Costs you nothing.")
+    register_upgrade("adrenaline_dump",       effect="adrenaline_dump_plus",       flavor="The shake leaves your hands. A card finds them.")
+    register_upgrade("last_nerve",            effect="last_nerve_plus",            flavor="He's still standing on it. You stopped flinching.")
+    register_upgrade("embrace_it",            effect="embrace_it_plus",            flavor="Stop fighting the worst of yourself. Aim it better.")
+
+    ## New-archetype cards — Stoic
+    register_upgrade("iron_posture",          effect="iron_posture",          cost=0, flavor="You never learned to drop your guard. Now it's reflex.")
+    register_upgrade("counterweight",         effect="counterweight_plus",         flavor="Lean into the wall. Add your shoulder.")
+    register_upgrade("hold_the_line",         effect="hold_the_line_plus",         flavor="Doorframe at your back. Nobody gets past, ever.")
+    register_upgrade("brick_wall",            effect="brick_wall_plus",            flavor="Hit him with the thing he could never get through.")
+
+    ## New-archetype cards — Tech
+    register_upgrade("hotfix",                effect="hotfix_plus",                flavor="One commit. Straight to main. He never sees the diff.")
+    register_upgrade("ship_it",               effect="ship_it_plus",               flavor="Good enough ships. And reads itself back to you.")
+    register_upgrade("code_review",           effect="code_review_plus",           flavor="Delete the dead lines. The diff gets honest, and lean.")
+    register_upgrade("crunch_time",           effect="crunch_time_plus",           flavor="Every shortcut, every corner — all of it, due now.")

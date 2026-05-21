@@ -137,6 +137,20 @@ init python:
         "the_dossier_plus":        "Deal 30 damage. Cancel the next attack if it's tagged emotional or guilt. Exhausts.",
         "the_compound_plus":       "Deal (current energy × 12) damage. Lose 12 HP. Exhausts.",
         "took_the_heat_plus":      "Gain 13 block. Draw 1 card. Exhausts.",
+        ## New-archetype `_plus` variants (the See Red / Thick Skull / Iron
+        ## Posture Powers upgrade to cost 0 and reuse the base effect/text).
+        "provoke_plus":            "Gain 8 Hatred. Draw 2 cards.",
+        "knuckle_down_plus":       "Deal 18 damage. Gain 6 Hatred.",
+        "red_mist_plus":           "Deal 10 damage twice. Gain 4 Hatred.",
+        "adrenaline_dump_plus":    "Lose 10 Hatred. Gain 2 energy. Draw 1 card.",
+        "last_nerve_plus":         "Deal 9 damage. If a Rage card is in your hand, draw 1 card.",
+        "embrace_it_plus":         "Exhaust a Rage card in your hand: gain 20 block and draw 2 cards.",
+        "hold_the_line_plus":      "Gain 3 block for every Skill in your hand.",
+        "brick_wall_plus":         "Deal 12 damage. Gain block equal to the damage dealt.",
+        "hotfix_plus":             "Deal 8 damage. Draw 1 card. Deal 17 instead if this is the 3rd+ card you've played this turn.",
+        "ship_it_plus":            "Gain 1 energy for each Skill in your hand (max 3). Draw 1 card. Exhausts.",
+        "code_review_plus":        "Exhaust your leftmost other card. Draw 2 cards. Gain 6 block.",
+        "crunch_time_plus":        "Deal 5 damage for each card you've played this turn, including this one.",
     }
 
     ## Counterweight converts the block wall into damage without consuming it,
@@ -170,6 +184,17 @@ init python:
                 return "Deal {} damage (your block, max {}).".format(
                     min(battle_state.player_block, COUNTERWEIGHT_CAP), COUNTERWEIGHT_CAP)
             return "Deal damage equal to your current block (max {}).".format(COUNTERWEIGHT_CAP)
+        if effect_id == "breaking_point_plus":
+            return "Deal {} damage.\n13 + 1 per 3 Hatred.".format(13 + h // 3)
+        if effect_id == "bottled_rage_plus":
+            return "Deal {} damage (Hatred / 2 + 6).\nThen lose 25 Hatred.".format(h // 2 + 6)
+        if effect_id == "snap_decision_plus":
+            return "Deal {} damage.\n24 if Hatred is 60 or more.".format(24 if h >= 60 else 12)
+        if effect_id == "counterweight_plus":
+            if battle_state is not None:
+                return "Deal {} damage (your block + 4).".format(
+                    min(battle_state.player_block, COUNTERWEIGHT_CAP) + 4)
+            return "Deal damage equal to your current block + 4 (max {}).".format(COUNTERWEIGHT_CAP + 4)
         return EFFECT_DESCRIPTIONS.get(effect_id, "")
 
     ## ---------------------------------------------------------------------------
@@ -860,3 +885,114 @@ init python:
         state.gain_block(source, 13)
         state.draw_cards(1)
         state.buff(source, "took_the_heat_armed", True)
+
+    ## ---------------------------------------------------------------------------
+    ## NEW-ARCHETYPE `_plus` EFFECTS. See Red / Thick Skull / Iron Posture
+    ## upgrade to cost 0 and reuse their base effect — no `_plus` effect needed.
+    ## ---------------------------------------------------------------------------
+
+    @register_effect("provoke_plus")
+    def _eff_provoke_plus(state, source, target):
+        state.gain_hatred(8)
+        state.draw_cards(2)
+
+    @register_effect("knuckle_down_plus")
+    def _eff_knuckle_down_plus(state, source, target):
+        state.deal_damage(target, 18)
+        state.gain_hatred(6)
+
+    @register_effect("snap_decision_plus")
+    def _eff_snap_decision_plus(state, source, target):
+        _h = stats.pcr_hatred if stats else 0
+        _dmg = 24 if _h >= 60 else 12
+        state.deal_damage(target, _dmg)
+        state.add_log("Snap Decision+: {} damage (Hatred {}).".format(_dmg, _h))
+
+    @register_effect("red_mist_plus")
+    def _eff_red_mist_plus(state, source, target):
+        state.deal_damage(target, 10)
+        state.deal_damage(target, 10)
+        state.gain_hatred(4)
+
+    @register_effect("breaking_point_plus")
+    def _eff_breaking_point_plus(state, source, target):
+        _h = stats.pcr_hatred if stats else 0
+        _dmg = 13 + _h // 3
+        state.deal_damage(target, _dmg)
+        state.add_log("Breaking Point+: {} damage (13 + Hatred/3).".format(_dmg))
+
+    @register_effect("bottled_rage_plus")
+    def _eff_bottled_rage_plus(state, source, target):
+        ## Strict upgrade over base: +6 flat damage, identical 25 Hatred dump.
+        _dmg = ((stats.pcr_hatred // 2) if stats else 0) + 6
+        state.deal_damage(target, _dmg)
+        state.gain_hatred(-25)
+        state.add_log("Bottled Rage+: {} damage. -25 Hatred.".format(_dmg))
+
+    @register_effect("adrenaline_dump_plus")
+    def _eff_adrenaline_dump_plus(state, source, target):
+        state.gain_hatred(-10)
+        state.gain_energy(2)
+        state.draw_cards(1)
+
+    @register_effect("last_nerve_plus")
+    def _eff_last_nerve_plus(state, source, target):
+        state.deal_damage(target, 9)
+        if any(CARD_LIBRARY.get(c, {}).get("is_rage") for c in state.hand):
+            state.draw_cards(1)
+            state.add_log("Last Nerve+: a Rage card in hand — draw 1.")
+
+    @register_effect("embrace_it_plus")
+    def _eff_embrace_it_plus(state, source, target):
+        _rage = next((c for c in state.hand if CARD_LIBRARY.get(c, {}).get("is_rage")), None)
+        if _rage is not None:
+            state.exhaust(_rage)
+            state.add_log("Embrace It+: exhausted {}.".format(CARD_LIBRARY.get(_rage, {}).get("name", _rage)))
+        state.gain_block(source, 20)
+        state.draw_cards(2)
+
+    @register_effect("counterweight_plus")
+    def _eff_counterweight_plus(state, source, target):
+        _dmg = min(state.player_block, COUNTERWEIGHT_CAP) + 4
+        state.deal_damage(target, _dmg)
+        state.add_log("Counterweight+: {} damage (block {} + 4).".format(_dmg, state.player_block))
+
+    @register_effect("hold_the_line_plus")
+    def _eff_hold_the_line_plus(state, source, target):
+        _skills = sum(1 for c in state.hand if CARD_LIBRARY.get(c, {}).get("type") == "Skill")
+        state.gain_block(source, 3 * _skills)
+        state.add_log("Hold the Line+: {} Skills in hand -> {} block.".format(_skills, 3 * _skills))
+
+    @register_effect("brick_wall_plus")
+    def _eff_brick_wall_plus(state, source, target):
+        state.deal_damage(target, 12)
+        state.gain_block(source, state.last_damage_to_enemy)
+
+    @register_effect("hotfix_plus")
+    def _eff_hotfix_plus(state, source, target):
+        _dmg = 17 if state.cards_played_this_turn >= 3 else 8
+        state.deal_damage(target, _dmg)
+        state.draw_cards(1)
+
+    @register_effect("ship_it_plus")
+    def _eff_ship_it_plus(state, source, target):
+        _skills = sum(1 for c in state.hand if CARD_LIBRARY.get(c, {}).get("type") == "Skill")
+        _e = min(3, _skills)
+        state.gain_energy(_e)
+        state.draw_cards(1)
+        state.add_log("Ship It+: {} Skills in hand -> +{} energy, draw 1.".format(_skills, _e))
+
+    @register_effect("code_review_plus")
+    def _eff_code_review_plus(state, source, target):
+        _pool = [c for c in state.hand if c != "code_review_plus"]
+        if _pool:
+            state.exhaust(_pool[0])
+            state.add_log("Code Review+: exhausted {}.".format(CARD_LIBRARY.get(_pool[0], {}).get("name", _pool[0])))
+        state.draw_cards(2)
+        state.gain_block(source, 6)
+
+    @register_effect("crunch_time_plus")
+    def _eff_crunch_time_plus(state, source, target):
+        _n = state.cards_played_this_turn
+        state.deal_damage(target, 5 * _n)
+        state.add_log("Crunch Time+: {} cards played -> {} damage.".format(_n, 5 * _n))

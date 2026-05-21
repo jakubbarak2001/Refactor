@@ -1051,6 +1051,7 @@ screen battle_screen():
                         "job_offer_armed",
                         "took_the_heat_armed",
                         "sprejeri_tags",
+                        "thick_skull_used",
                     }
                     _BUFF_ICONS = {
                         "starting_block_+1":           "🛡",
@@ -1081,6 +1082,9 @@ screen battle_screen():
                         "cards_cap_next_turn":         "⊘",
                         "enemy_attack_bonus":          "🔥",
                         "player_draw_penalty":         "🃏",
+                        "see_red":                     "🔥",
+                        "thick_skull":                 "🛡",
+                        "iron_posture":                "🛡",
                     }
                     _BUFF_LABELS = {
                         "starting_block_+1":   "+1 Starting Block",
@@ -1141,6 +1145,9 @@ screen battle_screen():
                         "player_draw_penalty":  "Authority Display: you draw {v} fewer card(s) at the start of your next turn.",
                         "cards_cap_next_turn":  "Card Restriction: you can only play {v} card(s) on your next turn.",
                         "special_dr_50":        "Special DR: SPECIAL-typed enemy attacks deal half damage to you.",
+                        "see_red":              "See Red: each time you gain Hatred this fight, gain block.",
+                        "thick_skull":          "Thick Skull: the first Hatred gain that would reach 100 this fight is held at 80 — you wall up instead.",
+                        "iron_posture":         "Iron Posture: at the start of each turn you keep half your block instead of losing all of it.",
                     }
                     _active_buffs = []
                     for _k, _v in bs.buffs.items():
