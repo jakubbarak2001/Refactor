@@ -209,8 +209,8 @@ init python:
         name      = "Last Nerve",
         type      = "Attack",
         color     = "Physical",
-        cost      = 1,
-        rarity    = "rare",
+        cost      = 0,
+        rarity    = "common",
         effect    = "last_nerve",
         archetype = "hatred",
         flavor    = "He found it weeks ago. He's been standing on it since.",
@@ -896,6 +896,54 @@ init python:
         unplayable    = True,
         pool_excluded = True,
         flavor        = "Something you let go that you can't take back.",
+    )
+
+    ## ---------------------------------------------------------------------------
+    ## SOMA CAPSTONE — three rare Bodybuilder cards offered as a choose-1-of-3
+    ## when the SOMA stack hits 10/10. class-locked + pool_excluded: the only
+    ## way to get one is ten gym sessions. One per archetype — double down or
+    ## splash. Non-upgradeable by design: this is already the peak.
+    ## ---------------------------------------------------------------------------
+
+    register_card(
+        "roid_rage",
+        name          = "Roid Rage",
+        type          = "Power",
+        color         = "Physical",
+        cost          = 1,
+        rarity        = "rare",
+        effect        = "roid_rage",
+        class_lock    = "bodybuilder",
+        archetype     = "hatred",
+        pool_excluded = True,
+        flavor        = "The lid was never going back on. It was never going back on.",
+    )
+    register_card(
+        "synthol",
+        name          = "Synthol",
+        type          = "Skill",
+        color         = "Physical",
+        cost          = 2,
+        rarity        = "rare",
+        effect        = "synthol",
+        class_lock    = "bodybuilder",
+        archetype     = "stoic",
+        pool_excluded = True,
+        flavor        = "Twenty-three-inch arms. Four of those inches are oil. Nobody makes eye contact.",
+    )
+    register_card(
+        "pre_workout",
+        name          = "Pre-Workout",
+        type          = "Skill",
+        color         = "Physical",
+        cost          = 0,
+        rarity        = "rare",
+        effect        = "pre_workout",
+        class_lock    = "bodybuilder",
+        archetype     = "tech",
+        exhaust       = True,
+        pool_excluded = True,
+        flavor        = "Tingling scalp. Tunnel vision. The certainty you could deadlift the building.",
     )
 
     ## ---------------------------------------------------------------------------

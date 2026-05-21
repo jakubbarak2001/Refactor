@@ -348,6 +348,8 @@ init python:
         ## --- Class progression state ---
         ## BB: SOMA stack (each gym session +1, max 10). 5+ unlocks Iron Body buff in fight.
         store.bb_soma = 0
+        ## One-shot flag — the SOMA 10/10 capstone reward (soma_ten_reward) fires once.
+        store._soma_reward_given = False
         ## DE: PROFILES (npc_id -> read_count). 3 reads on same NPC unlocks their event.
         store.de_profiles = {"rookie": 0, "veteran": 0, "lieutenant": 0, "clerk": 0}
         ## BH: PROTOCOL (current active compound profile, set by last nootropic taken).

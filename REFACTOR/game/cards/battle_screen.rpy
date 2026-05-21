@@ -1015,6 +1015,22 @@ screen battle_screen():
                         color "#88ff88"
                         size 14
 
+                ## Hatred readout — the run stat the Hatred archetype juggles.
+                ## Climbs toward 100 = breakdown; colour escalates as a warning.
+                python:
+                    _hat_val = stats.pcr_hatred if stats else 0
+                    if _hat_val >= 85:
+                        _hat_col = "#ff3322"
+                    elif _hat_val >= 60:
+                        _hat_col = "#ffaa22"
+                    else:
+                        _hat_col = "#cc8866"
+                text "HATRED [_hat_val] / 100":
+                    color _hat_col
+                    size 16
+                    bold True
+                    font "fonts/RobotoMono-Regular.ttf"
+
                 if bs.player_block > 0:
                     ## Phase E — block_gain_pulse pumps zoom 1.0 -> 1.3 -> 1.0
                     ## over 0.4s after gain_block fires. No-op when no recent gain.
@@ -1085,6 +1101,7 @@ screen battle_screen():
                         "see_red":                     "🔥",
                         "thick_skull":                 "🛡",
                         "iron_posture":                "🛡",
+                        "roid_rage":                   "🩸",
                     }
                     _BUFF_LABELS = {
                         "starting_block_+1":   "+1 Starting Block",
@@ -1148,6 +1165,7 @@ screen battle_screen():
                         "see_red":              "See Red: each time you gain Hatred this fight, gain block.",
                         "thick_skull":          "Thick Skull: the first Hatred gain that would reach 100 this fight is held at 80 — you wall up instead.",
                         "iron_posture":         "Iron Posture: at the start of each turn you keep half your block instead of losing all of it.",
+                        "roid_rage":            "Roid Rage: each time you gain Hatred this fight, the enemy takes 3 damage.",
                     }
                     _active_buffs = []
                     for _k, _v in bs.buffs.items():
@@ -1336,6 +1354,9 @@ screen battle_screen():
                         $ _color = {"Attack": "#cc4422", "Skill": "#3388cc", "Power": "#aa44cc"}.get(_ctype, "#888888")
                     $ _ok, _reason = bs.hand_playable(_cid)
                     $ _border = _color if _ok else "#3a2020"
+                    ## Gold glow when a card's bonus condition is live right now.
+                    $ _combo_live = (_cid in ("production_push", "production_push_plus") and bs.skill_played_this_turn) or (_cid in ("hotfix", "hotfix_plus") and bs.cards_played_this_turn >= 2)
+                    $ _glow_col = "#ffcc33" if (_combo_live and _ok) else _color
                     $ _effect_text = effect_description(_card.get("effect")) or _card.get("flavor", "")
                     if _is_compromise:
                         $ _subtitle = "COMPROMISE · DEAD WEIGHT"
@@ -1368,8 +1389,8 @@ screen battle_screen():
                         ## L1: glow halo — two alpha layers approximate falloff.
                         ## Pulses gently on playable cards; invisible when locked.
                         if _ok:
-                            add Solid(_color + "44") xpos 0 ypos 0 xysize (220, 316) at card_glow_pulse
-                            add Solid(_color + "77") xpos 4 ypos 4 xysize (212, 308) at card_glow_pulse
+                            add Solid(_glow_col + "44") xpos 0 ypos 0 xysize (220, 316) at card_glow_pulse
+                            add Solid(_glow_col + "77") xpos 4 ypos 4 xysize (212, 308) at card_glow_pulse
 
                         ## L2: drop shadow — offset solid behind the card body.
                         add Solid("#000000aa") xpos 16 ypos 14 xysize (200, 300)

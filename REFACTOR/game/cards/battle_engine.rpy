@@ -47,6 +47,7 @@ init python:
     SEE_RED_BLOCK     = 2
     THICK_SKULL_FLOOR = 80
     THICK_SKULL_BLOCK = 20
+    ROID_RAGE_DMG     = 3   ## Roid Rage Power — enemy damage per in-fight Hatred gain
 
     def _play_battle_sfx(name, channel="sound", volume=1.0):
         """Phase A juice — play a battle SFX from audio/sfx/<name>.<ext>.
@@ -424,6 +425,9 @@ init python:
             ## See Red — every Hatred gain this fight walls up a little block.
             if self.buffs.get("see_red"):
                 self.gain_block("player", SEE_RED_BLOCK)
+            ## Roid Rage — every Hatred gain this fight also chips the enemy.
+            if self.buffs.get("roid_rage"):
+                self.deal_damage("enemy", ROID_RAGE_DMG)
 
         ## ---------------- INTENT MANAGEMENT ----------------
         def advance_intent(self):

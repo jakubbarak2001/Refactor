@@ -34,16 +34,16 @@ init python:
         "see_red":                 "Power: each time you gain Hatred this fight, gain 2 block.",
         "thick_skull":             "Power: the first time a Hatred gain would reach 100 this fight, Hatred is held at 80 and you gain 20 block.",
         "adrenaline_dump":         "Lose 10 Hatred. Gain 2 energy.",
-        "last_nerve":              "Deal 6 damage. If a Rage card is in your hand, draw 1 card.",
+        "last_nerve":              "Deal 4 damage.",
         "embrace_it":              "Exhaust a Rage card in your hand: gain 15 block and draw 2 cards.",
         ## Stoic archetype
         "bracing":                 "Gain 9 block.",
         "backup":                  "Gain 10 block.",
         "chain_of_command":        "Gain 8 block. Draw 1 card.",
         "iron_posture":            "Power: at the start of each turn, keep half your remaining block instead of losing all of it.",
-        "hold_the_line":           "Gain 2 block for every Skill in your hand.",
+        "hold_the_line":           "Gain 3 block for every Skill in your hand.",
         "brick_wall":              "Deal 8 damage. Gain block equal to the damage dealt.",
-        "iron_stance":             "Power: gain 12 block. Retaliate 4 when hit, growing +2 each turn (cap 12).",
+        "iron_stance":             "Power: gain 12 block. When an enemy attack hits you, strike back — 4 damage, rising +2 each round (max 12).",
         "bouncer_door":            "Gain 18 block. Retaliate 8 damage on the next hit.",
         "stoic_anchor":            "Power: +2 starting block per turn. Heal 2 HP after each enemy attack.",
         "second_wind":             "Heal 6 HP. Gain 10 block.",
@@ -97,13 +97,17 @@ init python:
         "status_tear_gas":         "Status. Take 3. Exhausts.",
         ## Compromise
         "compromise":              "Unplayable.\nDead weight in hand.",
+        ## SOMA capstone
+        "roid_rage":               "Power: whenever you gain Hatred this fight, deal 3 damage to the enemy.",
+        "synthol":                 "Gain 40 block.",
+        "pre_workout":             "Gain 2 energy. Draw 2 cards. Lose 3 HP. Exhausts.",
         ## ─── Upgraded (`_plus`) variants ───
         "strike_plus":             "Deal 9 damage.",
         "defend_plus":             "Gain 8 block.",
         "bracing_plus":            "Gain 11 block.",
         "backup_plus":             "Gain 14 block.",
         "chain_of_command_plus":   "Gain 11 block. Draw 1 card.",
-        "iron_stance_plus":        "Power: gain 16 block. Retaliate 4 when hit, growing +2 each turn (cap 12).",
+        "iron_stance_plus":        "Power: gain 16 block. When an enemy attack hits you, strike back — 4 damage, rising +2 each round (max 12).",
         "bouncer_door_plus":       "Gain 22 block. Retaliate 10 damage on the next hit.",
         "stoic_anchor_plus":       "Power: +3 starting block per turn. Heal 2 HP after each enemy attack.",
         "second_wind_plus":        "Heal 8 HP. Gain 13 block.",
@@ -143,9 +147,9 @@ init python:
         "knuckle_down_plus":       "Deal 18 damage. Gain 6 Hatred.",
         "red_mist_plus":           "Deal 10 damage twice. Gain 4 Hatred.",
         "adrenaline_dump_plus":    "Lose 10 Hatred. Gain 2 energy. Draw 1 card.",
-        "last_nerve_plus":         "Deal 9 damage. If a Rage card is in your hand, draw 1 card.",
+        "last_nerve_plus":         "Deal 6 damage.",
         "embrace_it_plus":         "Exhaust a Rage card in your hand: gain 20 block and draw 2 cards.",
-        "hold_the_line_plus":      "Gain 3 block for every Skill in your hand.",
+        "hold_the_line_plus":      "Gain 4 block for every Skill in your hand.",
         "brick_wall_plus":         "Deal 12 damage. Gain block equal to the damage dealt.",
         "hotfix_plus":             "Deal 8 damage. Draw 1 card. Deal 17 instead if this is the 3rd+ card you've played this turn.",
         "ship_it_plus":            "Gain 1 energy for each Skill in your hand (max 3). Draw 1 card. Exhausts.",
@@ -170,9 +174,9 @@ init python:
             return ""
         h = stats.pcr_hatred if stats else 0
         if effect_id == "heavy_set":
-            return "Deal {} damage.\nScales with Hatred.".format(6 + h // 8)
+            return "Deal {} damage.\n6 + 1 per 5 Hatred.".format(6 + h // 5)
         if effect_id == "heavy_set_plus":
-            return "Deal {} damage.\nScales with Hatred.".format(8 + h // 8)
+            return "Deal {} damage.\n8 + 1 per 5 Hatred.".format(8 + h // 5)
         if effect_id == "breaking_point":
             return "Deal {} damage.\n10 + 1 per 4 Hatred.".format(10 + h // 4)
         if effect_id == "bottled_rage":
@@ -212,7 +216,7 @@ init python:
     @register_effect("heavy_set")
     def _eff_heavy_set(state, source, target):
         ## BB signature — damage scales with the run-stat pcr_hatred.
-        dmg = 6 + (stats.pcr_hatred // 8) if stats else 6
+        dmg = 6 + (stats.pcr_hatred // 5) if stats else 6
         state.deal_damage(target, dmg)
         state.add_log("Heavy Set: {} damage (scaled by Hatred).".format(dmg))
 
@@ -242,7 +246,8 @@ init python:
     @register_effect("red_mist")
     def _eff_red_mist(state, source, target):
         state.deal_damage(target, 8)
-        state.deal_damage(target, 8)
+        ## Stagger the 2nd popup so the double-hit reads as two numbers.
+        state.deal_damage(target, 8, popup_delay=0.22)
         state.gain_hatred(4)
 
     @register_effect("breaking_point")
@@ -279,10 +284,7 @@ init python:
 
     @register_effect("last_nerve")
     def _eff_last_nerve(state, source, target):
-        state.deal_damage(target, 6)
-        if any(CARD_LIBRARY.get(c, {}).get("is_rage") for c in state.hand):
-            state.draw_cards(1)
-            state.add_log("Last Nerve: a Rage card in hand — draw 1.")
+        state.deal_damage(target, 4)
 
     @register_effect("embrace_it")
     def _eff_embrace_it(state, source, target):
@@ -331,8 +333,8 @@ init python:
     @register_effect("hold_the_line")
     def _eff_hold_the_line(state, source, target):
         _skills = sum(1 for c in state.hand if CARD_LIBRARY.get(c, {}).get("type") == "Skill")
-        state.gain_block(source, 2 * _skills)
-        state.add_log("Hold the Line: {} Skills in hand -> {} block.".format(_skills, 2 * _skills))
+        state.gain_block(source, 3 * _skills)
+        state.add_log("Hold the Line: {} Skills in hand -> {} block.".format(_skills, 3 * _skills))
 
     @register_effect("brick_wall")
     def _eff_brick_wall(state, source, target):
@@ -683,7 +685,7 @@ init python:
 
     @register_effect("heavy_set_plus")
     def _eff_heavy_set_plus(state, source, target):
-        dmg = 8 + (stats.pcr_hatred // 8) if stats else 8
+        dmg = 8 + (stats.pcr_hatred // 5) if stats else 8
         state.deal_damage(target, dmg)
         state.add_log("Heavy Set+: {} damage (scaled by Hatred).".format(dmg))
 
@@ -911,7 +913,7 @@ init python:
     @register_effect("red_mist_plus")
     def _eff_red_mist_plus(state, source, target):
         state.deal_damage(target, 10)
-        state.deal_damage(target, 10)
+        state.deal_damage(target, 10, popup_delay=0.22)
         state.gain_hatred(4)
 
     @register_effect("breaking_point_plus")
@@ -937,10 +939,7 @@ init python:
 
     @register_effect("last_nerve_plus")
     def _eff_last_nerve_plus(state, source, target):
-        state.deal_damage(target, 9)
-        if any(CARD_LIBRARY.get(c, {}).get("is_rage") for c in state.hand):
-            state.draw_cards(1)
-            state.add_log("Last Nerve+: a Rage card in hand — draw 1.")
+        state.deal_damage(target, 6)
 
     @register_effect("embrace_it_plus")
     def _eff_embrace_it_plus(state, source, target):
@@ -960,8 +959,8 @@ init python:
     @register_effect("hold_the_line_plus")
     def _eff_hold_the_line_plus(state, source, target):
         _skills = sum(1 for c in state.hand if CARD_LIBRARY.get(c, {}).get("type") == "Skill")
-        state.gain_block(source, 3 * _skills)
-        state.add_log("Hold the Line+: {} Skills in hand -> {} block.".format(_skills, 3 * _skills))
+        state.gain_block(source, 4 * _skills)
+        state.add_log("Hold the Line+: {} Skills in hand -> {} block.".format(_skills, 4 * _skills))
 
     @register_effect("brick_wall_plus")
     def _eff_brick_wall_plus(state, source, target):
@@ -996,3 +995,24 @@ init python:
         _n = state.cards_played_this_turn
         state.deal_damage(target, 5 * _n)
         state.add_log("Crunch Time+: {} cards played -> {} damage.".format(_n, 5 * _n))
+
+    ## ---------------------------------------------------------------------------
+    ## SOMA CAPSTONE EFFECTS — the 3 SOMA-10 reward cards.
+    ## ---------------------------------------------------------------------------
+
+    @register_effect("roid_rage")
+    def _eff_roid_rage(state, source, target):
+        ## Power — gain_hatred() reads this buff and chips the enemy per gain.
+        state.buff(source, "roid_rage", True)
+
+    @register_effect("synthol")
+    def _eff_synthol(state, source, target):
+        state.gain_block(source, 40)
+
+    @register_effect("pre_workout")
+    def _eff_pre_workout(state, source, target):
+        state.gain_energy(2)
+        state.draw_cards(2)
+        ## Self-damage bypasses block — the jitters go through your veins.
+        state.deal_damage(source, 3, bypass_block=True)
+        state.add_log("Pre-Workout: +2 energy, draw 2, -3 HP.")

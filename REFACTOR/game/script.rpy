@@ -415,6 +415,30 @@ label select_activity:
 
 
 ## ---------------------------------------------------------------------------
+## SOMA 10/10 capstone — choose 1 of 3 rare cards. Called from both gym
+## activities right after add_soma. Gated so a re-call is a safe no-op.
+## ---------------------------------------------------------------------------
+
+label soma_ten_reward:
+    if stats is None or stats.player_class != "bodybuilder":
+        return
+    if getattr(store, 'bb_soma', 0) < 10 or getattr(store, '_soma_reward_given', False):
+        return
+    $ store._soma_reward_given = True
+
+    "Ten sessions. Ten. The man in the mirror is not the man who walked in on Day 1."
+    "Your trainer doesn't say anything. He looks at the rack, then at you, then steps back."
+    "Something the body earned. Pick what it becomes."
+
+    window hide
+    call screen card_reward_trio_screen(cards=["roid_rage", "synthol", "pre_workout"])
+    python:
+        if _return and _return not in ("skip", None):
+            grant_card(_return, silent=False)
+    return
+
+
+## ---------------------------------------------------------------------------
 ## ACTIVITY: GYM
 ## ---------------------------------------------------------------------------
 
@@ -427,9 +451,8 @@ label activity_gym:
         if not hasattr(store, 'gym_streak'):
             store.gym_streak = 0
         _streak_bonus = min(store.gym_streak * 3, 15)  ## +3 extra hatred reduction per streak day, max +15
-        _gym_cost = adjusted_cost(400)
 
-    "You head to the gym with your trainer.\nTraining will help you relax, but it will cost [_gym_cost] CZK."
+    "You head to the gym with your trainer.\nTraining will help you relax."
     python:
         _streak_msg = ""
         if store.gym_streak >= 1:
@@ -437,17 +460,13 @@ label activity_gym:
     "Gym attendance: [store.gym_streak] day streak.[_streak_msg]"
 
     menu:
-        "PAY [_gym_cost] CZK — We go gym!":
+        "We go gym!":
             ## Same workout SFX as the BB hover preview on the class-select
             ## screen (audio/sfx/gym_plates.mp3) — clicking "we go gym" should
             ## sound like clanging plates.
             play sound "audio/sfx/gym_plates.mp3"
             python:
-                if not stats.try_spend_money(_gym_cost):
-                    renpy.say(None, "[[INSUFFICIENT FUNDS] You check your wallet... you don't even have [_gym_cost] CZK for the gym entry.")
-                    renpy.jump("select_activity")
-                else:
-                    _roll = __import__('random').randint(1, 3)
+                _roll = __import__('random').randint(1, 3)
 
             python:
                 _bb_bonus = 5 if stats.player_class == "bodybuilder" else 0
@@ -477,6 +496,7 @@ label activity_gym:
 
             ## SOMA always lands for BB — gym session is "I trained the body."
             $ add_soma(1)
+            call soma_ten_reward from _call_soma_ten_reward_gym
 
             ## Pre-compute the HEAL payload so the choice screen can preview
             ## the numbers. Apply nothing yet — heal block runs only if the
@@ -505,7 +525,7 @@ label activity_gym:
                     store.run_hp = store.run_hp_max
                 _heal_max_future = store.run_hp_max + _gym_max_bump
                 _gym_heal = int(round(_heal_max_future * 0.25))
-                _heal_parts = ["- {:,} CZK".format(_gym_cost)]
+                _heal_parts = []
                 if _gym_max_bump > 0:
                     _heal_parts.append("{{color=#00cc88}}+{} MAX HP{{/color}}".format(_gym_max_bump))
                 else:
@@ -599,6 +619,8 @@ label activity_gym_heavy:
         ## job). Numbers only applied if the player picks HEAL.
         _heavy_heal = 15
         _heavy_heal_text = "- {:,} CZK, -30 PCR HATRED, +1 SOMA, +{} HP".format(_heavy_cost, _heavy_heal)
+
+    call soma_ten_reward from _call_soma_ten_reward_heavy
 
     label .choice_loop:
         pass

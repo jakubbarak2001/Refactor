@@ -242,7 +242,7 @@ screen stats_bar():
                     spacing 3
 
                     if _days_to_colonel > 0:
-                        text "{stshl=[_days_to_colonel]} DAYS UNTIL THE COLONEL":
+                        text "DAY {stshl=[_today]} / 30":
                             color "#f5f0e0"
                             size 22
                             bold True
@@ -478,35 +478,35 @@ screen deck_viewer():
     add "#0d0d11ee"
 
     python:
-        ## Per-color accent. KEEP IN SYNC with deck_upgrade_picker and any new
-        ## color introduced in card_library — see VISION.md "Adding a Card"
-        ## checklist. Cards whose color isn't in this dict still render (fall
-        ## through `_col_hex` default below), but stack at the bottom under
-        ## the last row.
-        _COLOR_HEX = {
-            "Physical":   "#ff6633",
-            "Mental":     "#9944cc",
-            "Money":      "#ffd700",
-            "Logic":      "#00ccff",
-            "Tech":       "#66ddff",
-            "Police":     "#3388cc",
-            "Special":    "#00cc88",
+        ## Group cards by TYPE — Attack / Skill / Power — with corruption
+        ## (Rage / Status / Compromise) split out and anchored at the bottom
+        ## so the player's clean kit reads top-of-screen.
+        _GROUP_HEX = {
+            "Attack":     "#cc4422",
+            "Skill":      "#3388cc",
+            "Power":      "#aa44cc",
             "Rage":       "#cc2200",
+            "Status":     "#8a7a2a",
             "Compromise": "#7a7060",
         }
+        _group_order = ["Attack", "Skill", "Power", "Rage", "Status", "Compromise"]
+
         _deck_cards = player_deck.cards if player_deck is not None else []
         _deck_count = len(_deck_cards)
-        ## Group by color
-        _deck_by_color = {}
+        _deck_by_group = {}
         for _cid in _deck_cards:
             _c = CARD_LIBRARY.get(_cid)
             if _c is None:
                 continue
-            _col = _c.get("color", "Special")
-            _deck_by_color.setdefault(_col, []).append(_cid)
-        ## Display order — corruption rows (Rage, Compromise) anchored at the
-        ## bottom so the player's clean kit reads top-of-screen.
-        _color_order = ["Physical", "Mental", "Money", "Logic", "Tech", "Police", "Special", "Rage", "Compromise"]
+            if _c.get("is_compromise"):
+                _grp_key = "Compromise"
+            elif _c.get("is_rage"):
+                _grp_key = "Rage"
+            elif (_c.get("effect") or "").startswith("status_"):
+                _grp_key = "Status"
+            else:
+                _grp_key = _c.get("type", "Skill")
+            _deck_by_group.setdefault(_grp_key, []).append(_cid)
 
     ## Class-color outer frame — "this is YOUR deck" without overriding per-card colors.
     use class_color_frame(thickness=3, alpha_suffix="aa")
@@ -579,21 +579,21 @@ screen deck_viewer():
                 vbox:
                     spacing 14
 
-                    for _col in _color_order:
-                        if _deck_by_color.get(_col):
-                            $ _col_hex = _COLOR_HEX.get(_col, "#888888")
-                            $ _col_cards = _deck_by_color[_col]
+                    for _grp in _group_order:
+                        if _deck_by_group.get(_grp):
+                            $ _grp_hex = _GROUP_HEX.get(_grp, "#888888")
+                            $ _grp_cards = _deck_by_group[_grp]
 
                             hbox:
                                 spacing 10
-                                text "{} ({})".format(_col.upper(), len(_col_cards)):
-                                    color _col_hex
+                                text "{} ({})".format(_grp.upper(), len(_grp_cards)):
+                                    color _grp_hex
                                     size 18
                                     bold True
                                     font "fonts/RobotoMono-Regular.ttf"
 
                             ## Render cards in rows of 4
-                            $ _rows = [_col_cards[i:i+4] for i in range(0, len(_col_cards), 4)]
+                            $ _rows = [_grp_cards[i:i+4] for i in range(0, len(_grp_cards), 4)]
                             vbox:
                                 spacing 8
                                 for _row in _rows:
@@ -613,7 +613,7 @@ screen deck_viewer():
                                                     hbox:
                                                         spacing 6
                                                         text "[[ {} ]".format(_c.get("cost", 0)):
-                                                            color _col_hex
+                                                            color _grp_hex
                                                             size 14
                                                             bold True
                                                         text _c.get("name", _cid):
@@ -1138,9 +1138,7 @@ screen activity_select_screen():
         _is_bh = (_pc == "biohacker")
         ## Precomputed paid-tile affordability — drives the red cost text
         ## on the tile preempting an "insufficient funds" outcome.
-        _gym_cost      = adjusted_cost(400)
         _recovery_cost = adjusted_cost(500)
-        _gym_short     = (stats is not None) and (stats.available_money < _gym_cost)
         _recovery_short= (stats is not None) and (stats.available_money < _recovery_cost)
 
     vbox:
@@ -1176,8 +1174,7 @@ screen activity_select_screen():
                 label_name        = "activity_gym",
                 title             = "GYM",
                 accent            = class_accent_color("bodybuilder"),
-                cost_text         = "{:,} CZK".format(_gym_cost),
-                cost_unaffordable = _gym_short,
+                cost_text         = "FREE",
                 effect_chips      = [("Upgrade", "Upgrade a card"), ("sep", "/"), ("Card", "Heal + Max HP")],
                 flavor_text       = "An hour where the bar tells the truth.",
                 class_relevant    = True,
@@ -1251,15 +1248,6 @@ screen activity_select_screen():
         background Frame("#0d0d0dee", 3, 3)
         hover_background Frame("#1a1a1aee", 3, 3)
         padding (18, 10)
-
-    ## Footer
-    text "Hover for details - click to commit":
-        xalign 0.5
-        yalign 0.94
-        color "#444444"
-        size 13
-        italic True
-        font "fonts/RobotoMono-Regular.ttf"
 
 
 ## ---------------------------------------------------------------------------
@@ -1624,7 +1612,7 @@ screen phone_screen():
             bold True
             font "fonts/RobotoMono-Regular.ttf"
 
-        text "DAY [_phone_today] / 30   ·   [_phone_days_left] DAYS UNTIL CONFRONTATION":
+        text "DAY [_phone_today] / 30":
             xalign 0.5
             color "#888888"
             size 16
