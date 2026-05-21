@@ -272,9 +272,11 @@ label martin_phase4_coding_check:
             _code_jb      = "'I can do this,' you nod."
             _code_outcome = "+1 AFFECTION, -10 PCR HATRED."
         elif stats.coding_skill >= 100:
-            _code_text    = "You are a Junior. You know enough to get into trouble, maybe enough to get an internship.\nIt's going to be hard. But not impossible."
-            _code_jb      = "'I think I have a shot,' you say, hesitating slightly."
-            _code_outcome = "NEUTRAL. (It's not great, not terrible)."
+            martin_affection += 1
+            stats.increment_stats_pcr_hatred(-10)
+            _code_text    = "You walk him through the backend you built. He stops eating.\nFor a self-taught cop with a countdown over his head, this is real work. You are hireable."
+            _code_jb      = "'I can do this,' you say. No hesitation."
+            _code_outcome = "+1 AFFECTION, -10 PCR HATRED (You're ready)."
         elif stats.coding_skill >= 50:
             martin_affection -= 1
             stats.increment_stats_pcr_hatred(10)
@@ -347,21 +349,21 @@ label martin_phase5_money_check:
     "REALITY CHECK — Current Savings: [stats.available_money] CZK"
 
     python:
-        if stats.available_money >= 200000:
+        if stats.available_money >= 100000:
             martin_affection += 1
-            _mon_text    = "You nod confidently. You have been saving aggressively.\nYou have a war chest. You can buy your freedom twice over."
+            _mon_text    = "You nod. You saved hard and it shows.\nYou can cover the exit fee and still have a runway to land on your feet."
             _mon_martin  = "'Smart man.'"
             _mon_outcome = "+1 AFFECTION (Financial Freedom)."
-        elif stats.available_money >= 150000:
+        elif stats.available_money >= 65000:
             martin_affection += 1
-            _mon_text    = "You have enough. It will hurt, but you won't starve.\nYou can pay the exit fee and still have a buffer for a few months."
+            _mon_text    = "You have enough. It will hurt, but you won't starve.\nYou can pay the exit fee and still breathe for a couple of months."
             _mon_martin  = "'I'm covered,' you say."
             _mon_outcome = "+1 AFFECTION (Secure)."
-        elif stats.available_money >= 100000:
-            _mon_text    = "You do the math in your head. It's going to be extremely tight.\nIf you pay them off, you'll be eating instant noodles for weeks."
+        elif stats.available_money >= 40000:
+            _mon_text    = "You do the math in your head. It's going to be tight.\nIf you pay them off, you'll be eating instant noodles for a while."
             _mon_martin  = "'I can scrape it together,' you admit."
             _mon_outcome = "NEUTRAL (Survival Mode)."
-        elif stats.available_money >= 50000:
+        elif stats.available_money >= 20000:
             martin_affection -= 1
             _mon_text    = "You sweat a little. You don't have enough for the full fee.\nYou'll need a loan, or help from parents. It's messy."
             _mon_martin  = "'That's dangerous ground, JB.'"
