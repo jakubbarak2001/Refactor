@@ -323,7 +323,7 @@ init -1 python:
         wrinkle      = "formation_strength",
         intro_lines  = [
             "A police compound on the edge of town, past midnight. Razor wire along the fence, a transport van with its back doors open, riot shields racked and waiting in the rain. You came for the Colonel — this is as far in as you get.",
-            "Three of them step out between the cars. You know their names — last month they were the people you nodded to in the corridor. Tonight the Colonel posted them here to stop you, and not one of them looks troubled by it.",
+            "Three of them come around the van — balaclavas, no names, no faces. Zásahová jednotka: the unit you send once the talking is over. The Colonel didn't send anyone you could reason with — he sent the ones who were never going to ask why.",
         ],
         detour_lines = [
             "The breach team puts you face-down on the parking-lot asphalt. They were never your team.",
