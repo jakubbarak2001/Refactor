@@ -3587,189 +3587,242 @@ screen achievement_toast(ach_name, ach_desc):
 screen ending_screen(ending_label, ending_title, ending_flavor, ending_type, score=None, score_note=None, money=None, coding=None, diff_name=None):
     layer "screens"
     modal True
+    zorder 250
 
     ## Pre-compute accent color from ending type
     python:
         _ENDING_COLORS = {"perfect": "#ffdd00", "good": "#00ff41", "bittersweet": "#ffaa33", "difficult": "#ff6633", "neutral": "#8899bb", "burnout": "#cc7722", "secret": "#00ccff", "bad": "#cc3322"}
         _ec = _ENDING_COLORS.get(ending_type, "#ffffff")
 
+    ## Drop the in-game HUD — the ending is a clean fullscreen.
+    timer 0.01 action [Hide("stats_bar"), Hide("dossier_hud"), Hide("quick_menu")] repeat False
+
     add "#000000"
+    ## Faint ending-tinted wash so the void isn't dead-flat black.
+    add Solid(_ec + "0c")
+
+    ## Ending-color hairlines top and bottom — the "this screen matters" frame
+    ## the battle and reward screens wear.
+    frame:
+        xfill True
+        yalign 0.0
+        ysize 4
+        background Frame(_ec, 0, 0)
+    frame:
+        xfill True
+        yalign 1.0
+        ysize 4
+        background Frame(_ec, 0, 0)
 
     viewport:
         xfill True
         yfill True
         scrollbars "vertical"
         mousewheel True
+        draggable True
 
         vbox:
             xfill True
             yminimum 1080
             spacing 0
 
-            null height 80
+            null height 70
 
-            ## Ending type badge
+            ## Ending-type badge
             frame:
                 xalign 0.5
-                padding (28, 10)
-                background Frame(_ec + "22", 4, 4)
+                padding (26, 9)
+                background Frame(_ec + "1e", 4, 4)
                 text "[ending_label]":
                     color _ec
-                    size 16
+                    size 15
                     bold True
                     xalign 0.5
+                    font "fonts/RobotoMono-Regular.ttf"
 
-            null height 24
+            null height 20
 
             ## Main title
             text "[ending_title]":
                 color "#ffffff"
-                size 52
+                size 56
                 bold True
                 xalign 0.5
                 text_align 0.5
+                font "fonts/RobotoMono-Regular.ttf"
+                outlines [(3, "#000000", 0, 0)]
 
-            null height 30
+            null height 14
 
-            ## Divider
-            text "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━":
-                color "#333333"
+            ## Hairline divider
+            frame:
+                xalign 0.5
+                xsize 440
+                ysize 2
+                background Frame(_ec + "55", 0, 0)
+
+            null height 20
+
+            ## Flavor line
+            text "[ending_flavor]":
+                color "#c8c8c8"
                 size 18
                 xalign 0.5
-
-            null height 28
-
-            ## Flavor text
-            text "[ending_flavor]":
-                color "#cccccc"
-                size 19
-                xalign 0.5
                 text_align 0.5
+                xmaximum 920
+                font "fonts/RobotoMono-Regular.ttf"
 
-            ## Stats / Score panel
+            ## Score panel
             if score is not None:
 
-                null height 50
+                null height 36
 
                 frame:
                     xalign 0.5
-                    xmaximum 700
-                    padding (50, 30)
-                    background Frame("#0d1a0dee", 6, 6)
+                    xsize 620
+                    background Frame("#0c0c0cf2", 0, 0)
+                    padding (46, 22)
 
                     vbox:
+                        xfill True
                         spacing 10
-                        xalign 0.5
+
+                        ## Accent line
+                        frame:
+                            xfill True
+                            ysize 3
+                            background Frame(_ec, 0, 0)
+
+                        null height 2
 
                         text "FINAL STATS":
-                            color "#00ff41"
-                            size 16
+                            color _ec
+                            size 15
                             bold True
                             xalign 0.5
+                            font "fonts/RobotoMono-Regular.ttf"
 
-                        text "──────────────────────────────────":
-                            color "#003300"
-                            size 13
-                            xalign 0.5
+                        null height 2
 
                         if money is not None:
                             hbox:
                                 xalign 0.5
-                                spacing 0
-                                xmaximum 500
-                                text "Money Saved":
+                                xsize 500
+                                text "MONEY SAVED":
                                     color "#888888"
-                                    size 16
-                                    xminimum 240
+                                    size 15
+                                    xminimum 320
+                                    font "fonts/RobotoMono-Regular.ttf"
                                 text "[money] CZK":
                                     color "#ffffff"
-                                    size 16
+                                    size 15
                                     bold True
+                                    font "fonts/RobotoMono-Regular.ttf"
 
                         if coding is not None:
                             hbox:
                                 xalign 0.5
-                                spacing 0
-                                xmaximum 500
-                                text "Coding Skill":
+                                xsize 500
+                                text "CODING SKILL":
                                     color "#888888"
-                                    size 16
-                                    xminimum 240
+                                    size 15
+                                    xminimum 320
+                                    font "fonts/RobotoMono-Regular.ttf"
                                 text "[coding] pts":
-                                    color "#00ff41"
-                                    size 16
+                                    color _ec
+                                    size 15
                                     bold True
+                                    font "fonts/RobotoMono-Regular.ttf"
 
                         if diff_name is not None:
                             hbox:
                                 xalign 0.5
-                                spacing 0
-                                xmaximum 500
-                                text "Difficulty":
+                                xsize 500
+                                text "DIFFICULTY":
                                     color "#888888"
-                                    size 16
-                                    xminimum 240
+                                    size 15
+                                    xminimum 320
+                                    font "fonts/RobotoMono-Regular.ttf"
                                 text "[diff_name]":
                                     color "#ffdd00"
-                                    size 16
+                                    size 15
                                     bold True
+                                    font "fonts/RobotoMono-Regular.ttf"
 
-                        null height 6
+                        null height 5
 
-                        text "──────────────────────────────────":
-                            color "#003300"
-                            size 13
-                            xalign 0.5
+                        frame:
+                            xfill True
+                            ysize 1
+                            background Frame("#2a2a2a", 0, 0)
 
                         if score_note is not None:
                             text "[score_note]":
                                 color "#666666"
-                                size 13
+                                size 12
                                 xalign 0.5
+                                font "fonts/RobotoMono-Regular.ttf"
 
-                        null height 4
+                        null height 2
 
-                        text "FINAL SCORE  [score]":
-                            color _ec
-                            size 34
+                        text "FINAL SCORE":
+                            color "#888888"
+                            size 13
                             bold True
                             xalign 0.5
+                            font "fonts/RobotoMono-Regular.ttf"
 
-            null height 60
+                        text "[score]":
+                            color _ec
+                            size 54
+                            bold True
+                            xalign 0.5
+                            font "fonts/RobotoMono-Regular.ttf"
+                            outlines [(3, "#000000", 0, 0)]
+
+            null height 44
 
             ## Credits
-            text "──────────────────────────────────":
-                color "#222222"
-                size 13
+            frame:
                 xalign 0.5
+                xsize 280
+                ysize 1
+                background Frame("#2a2a2a", 0, 0)
 
             null height 16
 
-            text "Thank you for playing":
-                color "#aaaaaa"
-                size 15
+            text "THANK YOU FOR PLAYING":
+                color "#999999"
+                size 13
                 xalign 0.5
-
-            text "REFACTOR":
-                color "#ffffff"
-                size 26
-                bold True
-                xalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
 
             null height 6
 
+            text "REFACTOR":
+                color "#ffffff"
+                size 30
+                bold True
+                xalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
+                outlines [(2, "#000000", 0, 0)]
+
+            null height 10
+
             text "'Code your way out, or lose your mind trying.'":
-                color "#cccccc"
+                color "#bbbbbb"
                 size 13
                 italic True
                 xalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
 
             text "— Jakub Barák":
-                color "#aaaaaa"
+                color "#888888"
                 size 12
                 xalign 0.5
+                font "fonts/RobotoMono-Regular.ttf"
 
-            null height 50
+            null height 38
 
             ## Return button — Return() (not MainMenu()) so the calling
             ## ending label keeps control. good_ending uses this to play the
@@ -3781,11 +3834,12 @@ screen ending_screen(ending_label, ending_title, ending_flavor, ending_type, sco
                 text_size 18
                 text_bold True
                 text_hover_color "#ffffff"
-                background Frame("#00000000", 0, 0)
-                hover_background Frame(_ec + "22", 4, 4)
-                padding (30, 14)
+                text_font "fonts/RobotoMono-Regular.ttf"
+                background Frame("#0c0c0cf2", 4, 4)
+                hover_background Frame(_ec + "28", 4, 4)
+                padding (32, 15)
 
-            null height 80
+            null height 70
 
 
 ## ---------------------------------------------------------------------------
