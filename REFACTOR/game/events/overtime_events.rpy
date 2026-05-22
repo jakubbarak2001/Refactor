@@ -10,25 +10,25 @@
 ##     it to the 10% floor. Enemies are drawn from the SHARED battle ladder
 ##     pool (current day band) — overtime drains the same roster the daily
 ##     cycle does, and never repeats an enemy.
-##   - Otherwise a narrative overtime event (overtime_event_pool), drained
-##     per run.
+##   - Otherwise an StS-style choice event, drawn from the shared event pool
+##     (random_event_pool) that the daily random-event slot also drains —
+##     so an event seen on overtime never repeats in the daily slot.
 ##   - Otherwise the flat night roll back in activity_overtime.
-##
-## overtime_event_pool is intentionally EMPTY: the old ot_* events were cut.
-## New, stronger overtime events get appended here when written.
 ################################################################################
 
 init python:
 
     def _pick_overtime_event():
-        """Drain one event label from the overtime narrative pool, or None."""
+        """Drain one event label from the shared StS-event pool, or None.
+
+        Overtime and the daily random-event slot draw from the same pool, so
+        an event seen one way never repeats the other."""
         import random
-        if not hasattr(store, 'overtime_event_pool'):
-            store.overtime_event_pool = []
-        if not store.overtime_event_pool:
+        _ensure_random_event_pool()
+        if not store.random_event_pool:
             return None
-        ev = random.choice(store.overtime_event_pool)
-        store.overtime_event_pool.remove(ev)
+        ev = random.choice(store.random_event_pool)
+        store.random_event_pool.remove(ev)
         return ev
 
     def _roll_overtime():

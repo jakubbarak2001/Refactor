@@ -1809,24 +1809,13 @@ label crisis_event_biohacker:
 
 label random_event_check:
 
-    ## Narrative-event pool — StS-style choice events, drained per run (no
-    ## repeats). Each ev_* label drives an event_screen / event_outcome flow
-    ## (events/event_screen.rpy + event_engine.rpy). Battles take priority;
-    ## an event fills the slot only when the day-band ladder pool is dry.
+    ## StS-style choice events — drained per run (no repeats), shared with the
+    ## Overtime activity, which pulls from the same pool. Each ev_* label drives
+    ## an event_screen / event_outcome flow (events/event_screen.rpy +
+    ## event_engine.rpy). Battles take priority; an event fills this daily slot
+    ## only when the day-band ladder pool is dry.
     python:
-        if not hasattr(store, 'random_event_pool'):
-            store.random_event_pool = [
-                "ev_the_vending_machine",
-                "ev_the_smell",
-                "ev_designer_of_forms",
-                "ev_lost_and_found",
-                "ev_colonel_regards",
-                "ev_pills",
-                "ev_uniform_collector",
-                "ev_karaoke",
-                "ev_the_interview",
-                "ev_photocopier",
-            ]
+        _ensure_random_event_pool()
         _ladder_init_pool()
 
     ## Class arc takes priority over both battle and event pool — fires

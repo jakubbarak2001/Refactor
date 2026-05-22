@@ -327,11 +327,13 @@ init python:
         ## new run gets a fresh pool of 10 enemies.
         store.battle_ladder_pool = None
         store._ladder_skip_tomorrow = False
-        ## Overtime "?" state — pity counter for the enemy roll (resets to the
-        ## 10% floor on a fight) + drainable overtime event pool. See
-        ## _roll_overtime in events/overtime_events.rpy.
+        ## Overtime "?" pity counter for the enemy roll (resets to the 10%
+        ## floor on a fight). See _roll_overtime in events/overtime_events.rpy.
         store.overtime_enemy_chance = 10
-        store.overtime_event_pool = []
+        ## Shared StS-event pool — drained by the daily random-event slot AND
+        ## the Overtime activity (no repeats across either). None here so
+        ## _ensure_random_event_pool refills it fresh each run.
+        store.random_event_pool = None
         ## Event hook — a random event can leave the NEXT battle's enemy with
         ## bonus Strength (ev_colonel_regards). Consumed in battle_init.
         store._next_enemy_strength_bonus = 0

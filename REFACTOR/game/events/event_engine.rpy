@@ -28,6 +28,21 @@ init python:
         """Keyword span — gold."""
         return "{color=#e8c878}" + s + "{/color}"
 
+    ## ── Shared event pool ─────────────────────────────────────────────────
+    ## The 10 ev_* events live in ONE pool, drained by two channels — the daily
+    ## random_event_check slot and the Overtime activity — with no repeats
+    ## across a run. init_game sets store.random_event_pool = None; this refills
+    ## it on the next access.
+
+    def _ensure_random_event_pool():
+        if getattr(store, 'random_event_pool', None) is None:
+            store.random_event_pool = [
+                "ev_the_vending_machine", "ev_the_smell", "ev_designer_of_forms",
+                "ev_lost_and_found", "ev_colonel_regards", "ev_pills",
+                "ev_uniform_collector", "ev_karaoke", "ev_the_interview",
+                "ev_photocopier",
+            ]
+
     ## ── Run-HP helpers ────────────────────────────────────────────────────
     ## run_hp is the persistent battle-HP pool. It stays None until the first
     ## battle lazy-inits it (battle_engine.battle_init). An event can fire
