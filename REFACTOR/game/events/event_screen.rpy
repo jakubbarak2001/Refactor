@@ -125,11 +125,13 @@ screen event_screen(title, art, body, choices):
                             font DOSSIER_FONT
                             xmaximum 1030
 
-    ## Number-key shortcuts — fire only when that choice is present and enabled.
-    key "K_1" action If(len(choices) >= 1 and choices[0].get("enabled", True), Return(choices[0]["id"]), NullAction())
-    key "K_2" action If(len(choices) >= 2 and choices[1].get("enabled", True), Return(choices[1]["id"]), NullAction())
-    key "K_3" action If(len(choices) >= 3 and choices[2].get("enabled", True), Return(choices[2]["id"]), NullAction())
-    key "K_4" action If(len(choices) >= 4 and choices[3].get("enabled", True), Return(choices[3]["id"]), NullAction())
+    ## Number-key shortcuts — one key bound per present, enabled choice.
+    ## Built in a loop: a hardcoded key referencing choices[N] would eval that
+    ## index at render time and IndexError on any event with fewer choices.
+    for _ev_ki, _ev_kc in enumerate(choices):
+        if _ev_ki < 9 and _ev_kc.get("enabled", True):
+            $ _ev_keysym = "K_" + str(_ev_ki + 1)
+            key _ev_keysym action Return(_ev_kc["id"])
 
 
 screen event_outcome(title, art, result):
