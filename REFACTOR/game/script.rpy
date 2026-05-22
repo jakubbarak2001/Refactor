@@ -1127,49 +1127,54 @@ label coding_bootcamp_de:
 
 
 ## ---------------------------------------------------------------------------
-## ACTIVITY: NIGHT SHIFT PATROL
+## ACTIVITY: OVERTIME
+##
+## Volunteer for the extra shift. Flat +5,000 CZK / +15 Hatred, then
+## _roll_overtime() (events/overtime_events.rpy) resolves the night: a
+## pity-ramped battle-ladder fight, an overtime event, or the flat night roll.
 ## ---------------------------------------------------------------------------
 
-label activity_night_shift:
+label activity_overtime:
 
     scene bg_police_interior
 
-    "You volunteer for the extra night shift."
+    "You volunteer for overtime."
     "5,000 CZK for 8 more hours in uniform."
     "You don't need the money. But you do need the distraction."
 
     menu:
-        "Take the shift. (+5,000 CZK) (+ [[CARD] BACKUP)":
+        "Take the shift. (+5,000 CZK)":
             python:
                 stats.increment_stats_value_money(5000)
                 stats.increment_stats_pcr_hatred(15)
-                _ot_event = _roll_overtime_event()
+                _ot_kind, _ot_eid, _ot_tier = _roll_overtime()
 
-            if _ot_event:
-                call expression _ot_event from _call_overtime_event
+            if _ot_kind == "battle":
+                call battle_with(_ot_eid, _ot_tier) from _call_overtime_battle
                 python:
-                    offer_card("backup", "NIGHT SHIFT")
+                    if stats.pcr_hatred >= 75:
+                        renpy.music.play("audio/tension_theme.mp3", fadein=1.5)
+                    else:
+                        play_daily_music(fadein=1.5)
                     activity_selected = True
                 jump end_day
 
-            python:
-                ## Random chance for a coding opportunity or incident during night shift
-                _ns_roll = __import__('random').randint(1, 100)
+            if _ot_kind == "event":
+                call expression _ot_eid from _call_overtime_event
+                $ activity_selected = True
+                jump end_day
 
             python:
-                ## Backup card always offered (you're always with a partner on patrol)
-                _ns_extra_card = None
+                _ns_roll = __import__('random').randint(1, 100)
                 if _ns_roll <= 20:
                     stats.increment_stats_coding_skill(8)
                     stats.increment_stats_pcr_hatred(-5)
-                    _ns_extra_card = "code_review"
                     _ns_bonus = "\n[NIGHT BONUS]: Dead quiet shift. You studied Python for 4 hours. +8 Coding, -5 Hatred."
                 elif _ns_roll <= 40:
                     stats.increment_stats_value_money(1500)
                     _ns_bonus = "\n[NIGHT BONUS]: Helped with an accident. Extra callout pay. +1,500 CZK."
                 elif _ns_roll <= 60:
                     stats.increment_stats_pcr_hatred(10)
-                    _ns_extra_card = "chain_of_command"
                     _ns_bonus = "\n[NIGHT PENALTY]: Paperwork from an arrest took until 6AM. +10 PCR HATRED."
                 else:
                     _ns_bonus = ""
@@ -1183,11 +1188,7 @@ label activity_night_shift:
             pause
             hide screen outcome_panel
 
-            python:
-                offer_card("backup", "NIGHT SHIFT")
-                if _ns_extra_card:
-                    offer_card(_ns_extra_card, "NIGHT SHIFT BONUS")
-                activity_selected = True
+            $ activity_selected = True
             jump end_day
 
         "Return to menu.":
@@ -1285,7 +1286,7 @@ label activity_fixer:
     hide screen outcome_panel
 
     ## Fixer doesn't consume the day. Return to the hub so the player can
-    ## still pick an activity (gym, bouncer, coding, night shift).
+    ## still pick an activity (gym, bouncer, coding, overtime).
     jump daily_menu
 
 
@@ -1808,21 +1809,23 @@ label crisis_event_biohacker:
 
 label random_event_check:
 
-    ## Narrative-event pool — events removed once triggered (drains per run).
-    ## Trimmed from 20 to 6 keepers (the "deck IS your 30 days" pivot — fewer
-    ## but stronger narrative beats; remaining slots roll battle ladder rungs).
-    ## Cut event bodies stay defined in events/random_events.rpy; they're just
-    ## unreferenced now (re_overtime_offer superseded by the overtime "?" pool
-    ## in events/overtime_events.rpy).
+    ## Narrative-event pool — StS-style choice events, drained per run (no
+    ## repeats). Each ev_* label drives an event_screen / event_outcome flow
+    ## (events/event_screen.rpy + event_engine.rpy). Battles take priority;
+    ## an event fills the slot only when the day-band ladder pool is dry.
     python:
         if not hasattr(store, 'random_event_pool'):
             store.random_event_pool = [
-                "re_corpse_in_care_home",
-                "re_paperwork_overload",
-                "re_dispatch_blue_screen",
-                "re_tech_bro_speeding",
-                "re_suicide_call",
-                "re_coding_interview",
+                "ev_the_vending_machine",
+                "ev_the_smell",
+                "ev_designer_of_forms",
+                "ev_lost_and_found",
+                "ev_colonel_regards",
+                "ev_pills",
+                "ev_uniform_collector",
+                "ev_karaoke",
+                "ev_the_interview",
+                "ev_photocopier",
             ]
         _ladder_init_pool()
 

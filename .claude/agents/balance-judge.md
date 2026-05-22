@@ -31,7 +31,7 @@ Each daily activity must produce a meaningful positive expected value at the cos
 - Bouncer nightclub: ~5500 CZK avg
 - Bouncer strip bar: ~5000 CZK avg, high variance, occasional negative
 - Coding (Tier-gated): scales 0 → 35,000+ CZK at T5
-- Night Shift: 3,000 CZK + 15 hatred (always net negative without bonus roll)
+- Overtime: 5,000 CZK + 15 hatred (pity-ramped "?" night: battle-ladder fight, overtime event, or flat roll)
 - Cold Read (DE): -20 hatred free, +5 coding if hatred>60
 
 Flag any activity whose new EV breaks the curve (e.g. new activity giving 8000 CZK and -10 hatred for 0 cost — flat dominant strategy).
@@ -83,7 +83,7 @@ Once cards exist, evaluate:
 
 ### 8. ECONOMY RUNAWAY
 Watch for compounding loops:
-- Bootcamp +5 coding/night → night shift +8 coding bonus → opp_free_webinar +8 coding → "are we training too fast"?
+- Bootcamp +5 coding/night → overtime +8 coding bonus → opp_free_webinar +8 coding → "are we training too fast"?
 - Daily BTC income (BH 500/day) → does it dominate the late-game money curve?
 
 Identify the new compounding interaction and run the 30-day projection.

@@ -1,14 +1,26 @@
 ################################################################################
-## REFACTOR — Random Events (distilled v2)
+## REFACTOR — Random Events
 ##
-## Each random event is now a Slay-the-Spire-style 2-option choice:
-##   1 setup banner, 2-3 lines of context, 2 options with cost/reward visible
-##   inline, 1-2 lines of resolution per branch.
+## Slay-the-Spire-style choice events. Each ev_* label drives the event_screen
+## / event_outcome flow (events/event_screen.rpy); shared helpers live in
+## events/event_engine.rpy. The events are pooled in random_event_pool
+## (script.rpy) and fire from random_event_check when the day-band battle
+## ladder is dry.
+##
+## Design contract:
+##   - Trade in HP / cards / CZK / hatred only. No "+1 coding" noise.
+##   - Every choice costs something real. No "no change" branch.
+##   - Outcomes can be hidden (a real gamble) and permanent (deck changes).
+##   - art = "images/events/<id>.jpg" — a styled placeholder renders until the
+##     illustration exists; no label change needed when art lands.
 ################################################################################
 
 ## ---------------------------------------------------------------------------
-## EVENT 1: Tel Aviv Professor
-## Coding-skill check (≥35) or Biohacker auto-pass. Pass unlocks FLMod for BH.
+## re_israeli_developer — LEGACY KEEP. A pre-deckbuilder menu-style event, not
+## in the event pool and currently unreferenced. It is the only setter of
+## `flmodafinil_unlocked` (which gates the Biohacker arc + tier-5 nootropics).
+## The Biohacker class is locked (BB-only scope), so this label is dormant —
+## kept rather than deleted so that gate survives if BH is ever revived.
 ## ---------------------------------------------------------------------------
 
 label re_israeli_developer:
@@ -60,844 +72,936 @@ label re_israeli_developer:
 
 
 ## ---------------------------------------------------------------------------
-## EVENT 2: The Nightmare
-## Atmospheric Arc-II beat. Flag retained for save-state continuity, no longer
-## gates a hidden ending.
+## THE VENDING MACHINE [surreal] — money or HP buys a card; the skip costs HP.
 ## ---------------------------------------------------------------------------
 
-label re_nightmare_wolf:
+label ev_the_vending_machine:
 
     scene bg_random_event
-    play sound "audio/police_siren.mp3"
-    play music "audio/random_event_bed.wav" fadein 1.5
-
-    $ store._nightmare_wolf_triggered = True
-
-    "THE NIGHTMARE"
-
-    "04:00 AM. A dream of body bags moving. A black husky pressing its nose to glass."
-    "You wake up choking. The room is silent. The dream had teeth."
-
-    menu:
-        "Shake it off. [[+5 Hatred]":
-            $ stats.increment_stats_pcr_hatred(5)
-            "You don't forget."
-            window hide
-            show screen outcome_panel("+5 PCR HATRED.")
-            pause
-            hide screen outcome_panel
-
-        "Analyze it.":
-            python:
-                if stats.player_class == "dark_empath":
-                    stats.increment_stats_pcr_hatred(-10)
-                    stats.increment_stats_coding_skill(5)
-                    _nw_msg = "[DARK EMPATH] You map the symbolism. The bag is the job. The wolf is the part of you that already left."
-                    _nw_out = "-10 PCR HATRED, +5 CODING [DE: insight]."
-                else:
-                    _roll = __import__('random').randint(1, 100)
-                    if _roll <= 50:
-                        stats.increment_stats_coding_skill(5)
-                        _nw_msg = "You journal it. Some patterns surface. You sleep better the rest of the week."
-                        _nw_out = "+5 CODING SKILL."
-                    else:
-                        stats.increment_stats_pcr_hatred(10)
-                        _nw_msg = "You stare at the ceiling and the dream gets worse, not better."
-                        _nw_out = "+10 PCR HATRED."
-            "[_nw_msg]"
-            window hide
-            show screen outcome_panel(_nw_out)
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-## ---------------------------------------------------------------------------
-## EVENT 3: The Compliment (DE auto-success)
-## ---------------------------------------------------------------------------
-
-label re_civilian_small_talk:
-
-    scene bg_random_event
-    play sound "audio/police_siren.mp3"
-    play music "audio/random_event_bed.wav" fadein 1.5
-
-    "THE COMPLIMENT"
-
-    "An older woman with a small dog stops at a crosswalk and compliments your uniform."
-    "'Just polite,' she says. 'I notice things.'"
-
-    menu:
-        "Small talk.":
-            python:
-                if stats.player_class == "dark_empath":
-                    stats.increment_stats_pcr_hatred(-25)
-                    _ct_amt = -25
-                    _ct_tag = " [DARK EMPATH]"
-                else:
-                    _roll = __import__('random').randint(1, 100)
-                    _ct_tag = ""
-                    if _roll <= 60:
-                        stats.increment_stats_pcr_hatred(-15)
-                        _ct_amt = -15
-                    else:
-                        stats.increment_stats_pcr_hatred(5)
-                        _ct_amt = 5
-            if _ct_amt < 0:
-                "She tells you about her son abroad. The dog is from a shelter. You leave the corner lighter."
-                window hide
-                show screen outcome_panel("{} PCR HATRED{}".format(_ct_amt, _ct_tag))
-            else:
-                "You botch the rhythm of the conversation. She walks off. You feel worse than before."
-                window hide
-                show screen outcome_panel("+{} PCR HATRED (awkward).".format(_ct_amt))
-            pause
-            hide screen outcome_panel
-
-        "Professional nod. [[no change]":
-            "You move on. So does she."
-            window hide
-            show screen outcome_panel("NO CHANGE.")
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-## ---------------------------------------------------------------------------
-## EVENT 4: The Paperwork
-## ---------------------------------------------------------------------------
-
-label re_admin_mistake:
-
-    scene bg_random_event
-    play sound "audio/police_siren.mp3"
-    play music "audio/random_event_bed.wav" fadein 1.5
-
-    "THE PAPERWORK"
-
-    "Sergeant: 'JB. This report has your name on it. Stop signature, search authorization, evidence chain. It shouldn't.'"
-    "You've never seen this case before."
-
-    menu:
-        "Fix it quietly. [[-5 Hatred, +1 Coding]":
-            python:
-                stats.increment_stats_pcr_hatred(-5)
-                stats.increment_stats_coding_skill(1)
-            "Forty-five minutes of database forensics. You find the bug. You file a quiet correction."
-            "Your name comes off the doc. Nobody else finds out."
-            window hide
-            show screen outcome_panel("-5 PCR HATRED, +1 CODING SKILL.")
-            pause
-            hide screen outcome_panel
-
-        "Escalate. [[+10 Hatred]":
-            $ stats.increment_stats_pcr_hatred(10)
-            "Internal Review opens an inquiry. Three colleagues are interviewed."
-            "By Friday everyone knows you ratted. The atmosphere does not improve."
-            window hide
-            show screen outcome_panel("+10 PCR HATRED.")
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-## ---------------------------------------------------------------------------
-## EVENT 5: The Overtime (BB perk: no Hatred)
-## ---------------------------------------------------------------------------
-
-label re_overtime_offer:
-
-    scene bg_random_event
-    play sound "audio/police_siren.mp3"
-    play music "audio/random_event_bed.wav" fadein 1.5
-
-    "THE OVERTIME"
-
-    "Dispatch needs a double tonight. Cash bonus, no questions. The shift supervisor is already walking away."
-
-    menu:
-        "Take it. (+6,000 CZK) (BB: 0 Hatred. Other: +15 Hatred.)":
-            python:
-                stats.increment_stats_value_money(6000)
-                if stats.player_class == "bodybuilder":
-                    _ot_hat = 0
-                    _ot_msg = "[BB] You sleep four hours and look fresh. The sergeant is suspicious."
-                else:
-                    stats.increment_stats_pcr_hatred(15)
-                    _ot_hat = 15
-                    _ot_msg = "Sixteen hours straight. By hour twelve you stop being a person and start being a function."
-            "[_ot_msg]"
-            window hide
-            show screen outcome_panel("+6,000 CZK, +{} PCR HATRED.".format(_ot_hat))
-            pause
-            hide screen outcome_panel
-
-        "Pass. [[no change]":
-            "He blinks. Nobody says no. He shrugs and walks off."
-            window hide
-            show screen outcome_panel("NO CHANGE.")
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-## ---------------------------------------------------------------------------
-## EVENT 6: The Birthday Gift
-## ---------------------------------------------------------------------------
-
-label re_birthday_gift:
-
-    scene bg_random_event
-    play sound "audio/police_siren.mp3"
-    play music "audio/random_event_bed.wav" fadein 1.5
-
-    "THE GIFT"
-
-    "It's your birthday. Lieutenant Kovář puts a hand on your shoulder. 'Don't open it here.'"
-    "An envelope. Heavy. You can feel the cash through the paper."
-
-    menu:
-        "Accept. (+5,000 CZK, +15 Hatred)":
-            python:
-                stats.increment_stats_value_money(5000)
-                stats.increment_stats_pcr_hatred(15)
-            "He squeezes your shoulder. 'You're a good man, JB.'"
-            "You're not sure what 'good' means anymore."
-            window hide
-            show screen outcome_panel("+5,000 CZK, +15 PCR HATRED.")
-            pause
-            hide screen outcome_panel
-
-        "Refuse. [[-5 Hatred]":
-            $ stats.increment_stats_pcr_hatred(-5)
-            "He looks at you for a long moment. Then nods. 'Fair enough.'"
-            "Your spine straightens slightly."
-            window hide
-            show screen outcome_panel("-5 PCR HATRED.")
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-## ---------------------------------------------------------------------------
-## EVENT 7: The Note (DE: +1 extra Coding)
-## ---------------------------------------------------------------------------
-
-label re_corpse_in_care_home:
-
-    scene bg_random_event
-    play sound "audio/police_siren.mp3"
-    play music "audio/random_event_bed.wav" fadein 1.5
-
-    "THE NOTE"
-
-    "A care home. An elderly woman. The smell. The note on the bedside table."
-    "'Sorry for the trouble.'"
-
-    menu:
-        "Process professionally. [[+15 Hatred, +1 Coding]":
-            python:
-                stats.increment_stats_pcr_hatred(15)
-                stats.increment_stats_coding_skill(1)
-            "You document everything correctly. The paperwork is clean. You sleep poorly for three days."
-            window hide
-            show screen outcome_panel("+15 PCR HATRED, +1 CODING SKILL (procedure muscle).")
-            pause
-            hide screen outcome_panel
-
-        "Stay with her.":
-            python:
-                stats.increment_stats_pcr_hatred(-10)
-                stats.increment_stats_coding_skill(5)
-                _nt_extra = ""
-                if stats.player_class == "dark_empath":
-                    stats.increment_stats_coding_skill(1)
-                    _nt_extra = " [DARK EMPATH: read between the lines, +1 extra]"
-            "She had a granddaughter. The handwriting is firm. She knew what she was doing."
-            "You leave the room slower than you entered it."
-            window hide
-            show screen outcome_panel("-10 PCR HATRED, +5 CODING SKILL{}.".format(_nt_extra))
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-## ---------------------------------------------------------------------------
-## EVENT 8: The USB
-## ---------------------------------------------------------------------------
-
-label re_forgotten_usb:
-
-    scene bg_random_event
-    play sound "audio/police_siren.mp3"
-    play music "audio/random_event_bed.wav" fadein 1.5
-
-    "THE USB"
-
-    "A USB stick on your keyboard. No label. Not yours."
-
-    menu:
-        "Plug it in.":
-            python:
-                _usb_roll = __import__('random').randint(1, 100)
-                stats.increment_stats_coding_skill(10)
-                if _usb_roll <= 25:
-                    stats.increment_stats_coding_skill(10)  ## net +20
-                    store._usb_evidence = True
-                    _usb_msg = "Internal procurement records. Three names. Six contracts. One name belongs to a colleague."
-                    _usb_out = "+20 CODING SKILL [FLAG: usb_evidence]"
-                else:
-                    _usb_msg = "A folder of badly-organized scripts and a corrupted Excel. You learn from the chaos."
-                    _usb_out = "+10 CODING SKILL."
-            "[_usb_msg]"
-            window hide
-            show screen outcome_panel(_usb_out)
-            pause
-            hide screen outcome_panel
-
-        "Turn it in. [[+5 Hatred]":
-            $ stats.increment_stats_pcr_hatred(5)
-            "Lieutenant Kovář takes it without making eye contact. You never see it again."
-            window hide
-            show screen outcome_panel("+5 PCR HATRED.")
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-## ---------------------------------------------------------------------------
-## EVENT 9: The Turkish Neighbor
-## ---------------------------------------------------------------------------
-
-label re_turkish_fraud:
-
-    scene bg_random_event
-    play sound "audio/police_siren.mp3"
-    play music "audio/random_event_bed.wav" fadein 1.5
-
-    "THE CALL"
-
-    "An older man at the front desk: 'Pane policisto, my Turkish neighbor — he keeps asking my bank details.'"
-    "'I think he's running a scam. Or maybe I'm paranoid.'"
-
-    menu:
-        "Follow up. [[+10 Coding]":
-            $ stats.increment_stats_coding_skill(10)
-            "An empty Airbnb. Three burner phones in a drawer. You run the IPs."
-            "You find a fraud ring you can't dismantle alone — but you understand the topology now."
-            window hide
-            show screen outcome_panel("+10 CODING SKILL (system mapping).")
-            pause
-            hide screen outcome_panel
-
-        "Dismiss. [[+5 Hatred]":
-            $ stats.increment_stats_pcr_hatred(5)
-            "He leaves. He looks smaller than when he came in."
-            window hide
-            show screen outcome_panel("+5 PCR HATRED.")
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-## ---------------------------------------------------------------------------
-## EVENT 10: The Printer (BB perk)
-## ---------------------------------------------------------------------------
-
-label re_printer_incident:
-
-    scene bg_random_event
-    play sound "audio/police_siren.mp3"
-    play music "audio/random_event_bed.wav" fadein 1.5
-
-    "THE PRINTER"
-
-    "The printer eats your incident report. You have ten minutes to get it to the prosecutor."
-
-    menu:
-        "Slam it.":
-            python:
-                if stats.player_class == "bodybuilder":
-                    stats.increment_stats_coding_skill(5)
-                    _pr_msg = "[BB] One palm strike. The drum unjams. The page emerges. Sergeant slow-claps. You bow."
-                    _pr_out = "+5 CODING (you fixed it by being correct about the world). [BB]"
-                else:
-                    stats.increment_stats_pcr_hatred(15)
-                    _pr_msg = "You break the front panel. The printer makes a sound it shouldn't. You owe IT 4,000 CZK."
-                    _pr_out = "+15 PCR HATRED."
-            "[_pr_msg]"
-            window hide
-            show screen outcome_panel(_pr_out)
-            pause
-            hide screen outcome_panel
-
-        "Debug it. [[+5 Coding]":
-            $ stats.increment_stats_coding_skill(5)
-            "You find the rolled paper. You release it. The printer respects you, briefly."
-            window hide
-            show screen outcome_panel("+5 CODING SKILL.")
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-## ---------------------------------------------------------------------------
-## EVENT 11: The Old Man
-## ---------------------------------------------------------------------------
-
-label re_citizen_czechoslovakia:
-
-    scene bg_random_event
-    play sound "audio/police_siren.mp3"
-    play music "audio/random_event_bed.wav" fadein 1.5
-
-    "THE OLD MAN"
-
-    "An old man at a tram stop, talking about how things were better in 1985."
-    "He sees the uniform. He locks onto you. 'Officer. You have a minute?'"
-
-    menu:
-        "Listen. [[-10 Hatred]":
-            $ stats.increment_stats_pcr_hatred(-10)
-            "He talks for six minutes. Beer was 1.20 Kčs. The trams ran on time. His wife died in 2003."
-            "You don't say much. He doesn't need you to."
-            window hide
-            show screen outcome_panel("-10 PCR HATRED.")
-            pause
-            hide screen outcome_panel
-
-        "Move him along. [[+10 Hatred]":
-            $ stats.increment_stats_pcr_hatred(10)
-            "He shuffles off. He doesn't look back."
-            window hide
-            show screen outcome_panel("+10 PCR HATRED.")
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-## ---------------------------------------------------------------------------
-## EVENT 12: The Stack (BH perk)
-## ---------------------------------------------------------------------------
-
-label re_paperwork_overload:
-
-    scene bg_random_event
-    play sound "audio/police_siren.mp3"
-    play music "audio/random_event_bed.wav" fadein 1.5
-
-    "THE STACK"
-
-    "200 incident reports, due tomorrow. Half are duplicates. The form fields are inconsistent."
-
-    menu:
-        "Stack up.":
-            python:
-                if stats.player_class == "biohacker":
-                    stats.increment_stats_coding_skill(20)
-                    _st_msg = "[BH] You drop into deep work. Four hours feels like forty minutes. Done."
-                    _st_out = "+20 CODING SKILL [BH: hyperfocus]"
-                else:
-                    stats.increment_stats_pcr_hatred(15)
-                    _st_msg = "You dial in. The system breaks twice. Your back hurts. You finish at 3 AM."
-                    _st_out = "+15 PCR HATRED."
-            "[_st_msg]"
-            window hide
-            show screen outcome_panel(_st_out)
-            pause
-            hide screen outcome_panel
-
-        "Manual grind. [[+10 Hatred, +1 Coding]":
-            python:
-                stats.increment_stats_pcr_hatred(10)
-                stats.increment_stats_coding_skill(1)
-            "You finish at 4 AM. You learn the schema by accident."
-            window hide
-            show screen outcome_panel("+10 PCR HATRED, +1 CODING SKILL.")
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-## ---------------------------------------------------------------------------
-## EVENT 13: The Outage
-## ---------------------------------------------------------------------------
-
-label re_dispatch_blue_screen:
-
-    scene bg_random_event
-    play sound "audio/police_siren.mp3"
-    play music "audio/random_event_bed.wav" fadein 1.5
-
-    "THE OUTAGE"
-
-    "'Dispatch is offline.' The room freezes. Three patrols are mid-pursuit. The radio works. The terminal doesn't."
-
-    menu:
-        "Reboot it. [[+10 Coding]":
-            $ stats.increment_stats_coding_skill(10)
-            "You restart the service. You clear the lock file. You re-establish the database connection."
-            "Dispatch is back online in eleven minutes. The unit chief looks at you for the first time in three years."
-            window hide
-            show screen outcome_panel("+10 CODING SKILL.")
-            pause
-            hide screen outcome_panel
-
-        "Use the radio. [[-5 Hatred]":
-            $ stats.increment_stats_pcr_hatred(-5)
-            "Voice channel only, like the 90s. Things move slower. Nobody dies. You like it."
-            window hide
-            show screen outcome_panel("-5 PCR HATRED.")
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-## ---------------------------------------------------------------------------
-## EVENT 14: The Tesla (BH perk)
-## ---------------------------------------------------------------------------
-
-label re_tech_bro_speeding:
-
-    scene bg_random_event
-    play sound "audio/police_siren.mp3"
-    play music "audio/random_event_bed.wav" fadein 1.5
-
-    "THE TESLA"
-
-    "Tesla Model S. 220 km/h. The driver is in his thirties, AirPods in, no panic at all."
-    "He hands you a business card before he hands you his license. CTO. Fintech. Smug."
-
-    menu:
-        "Take the card.":
-            python:
-                stats.increment_stats_coding_skill(5)
-                if stats.player_class == "biohacker":
-                    stats.increment_stats_coding_skill(3)
-                    _tb_msg = "[BH] You ask three sharp questions about his stack. He's impressed enough to follow up."
-                    _tb_out = "+8 CODING SKILL [BH: networking]"
-                else:
-                    _tb_msg = "You bookmark him in your head. You'll Google the company later."
-                    _tb_out = "+5 CODING SKILL (networking flag)."
-            "[_tb_msg]"
-            window hide
-            show screen outcome_panel(_tb_out)
-            pause
-            hide screen outcome_panel
-
-        "Write the ticket. [[+1,500 CZK]":
-            $ stats.increment_stats_value_money(1500)
-            "He pays without arguing. He drives at exactly 130 km/h afterwards."
-            window hide
-            show screen outcome_panel("+1,500 CZK.")
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-## ---------------------------------------------------------------------------
-## EVENT 15: The Whisper (offers snitch_info card)
-## ---------------------------------------------------------------------------
-
-label re_the_informant:
-
-    scene bg_random_event
-    play sound "audio/police_siren.mp3"
-    play music "audio/random_event_bed.wav" fadein 1.5
-
-    "THE WHISPER"
-
-    "A colleague you barely know corners you by the coffee machine."
-    "'I've got something on Lieutenant Kovář. Expense reports. Doctored. Want to know?'"
-
-    menu:
-        "Listen. [[CARD: STACK TRACE]":
-            "He talks for twelve minutes. Dates, amounts, account numbers. You memorize them."
-            "You walk away with information that has weight."
-            python:
-                offer_card("stack_trace", "INFORMANT")
-            window hide
-            show screen outcome_panel("[STACK TRACE offered]")
-            pause
-            hide screen outcome_panel
-
-        "Pass. [[+5 Hatred]":
-            $ stats.increment_stats_pcr_hatred(5)
-            "He nods. He walks away. Now you wonder."
-            window hide
-            show screen outcome_panel("+5 PCR HATRED.")
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-## ---------------------------------------------------------------------------
-## EVENT 16: The Eval
-## ---------------------------------------------------------------------------
-
-label re_the_evaluation:
-
-    scene bg_random_event
-    play sound "audio/police_siren.mp3"
-    play music "audio/random_event_bed.wav" fadein 1.5
-
-    "THE EVAL"
-
-    "Mandatory department psych eval. The therapist is in her forties, kind eyes, a clipboard."
-    "'How are you feeling about the work, JB?'"
-
-    menu:
-        "Be honest. [[-10 Hatred]":
-            $ stats.increment_stats_pcr_hatred(-10)
-            "She nods slowly. Doesn't write it down. Says: 'I'm not your enemy. I'll mark you fit. Take care of yourself.'"
-            window hide
-            show screen outcome_panel("-10 PCR HATRED.")
-            pause
-            hide screen outcome_panel
-
-        "Perform sanity. [[+5 Hatred]":
-            $ stats.increment_stats_pcr_hatred(5)
-            "You hear yourself say things the academy taught you to say. She marks you fit."
-            "The lie taxes you on the drive home."
-            window hide
-            show screen outcome_panel("+5 PCR HATRED.")
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-## ---------------------------------------------------------------------------
-## EVENT 17: The 03:14 Call (DE bonus)
-## ---------------------------------------------------------------------------
-
-label re_suicide_call:
-
-    scene bg_random_event
-    play sound "audio/police_siren.mp3"
-    play music "audio/random_event_bed.wav" fadein 1.5
-
-    "THE CALL"
-
-    "03:14 AM. The voice on the line is shaking. Male, mid-twenties, on a bridge."
-    "He's not asking for help. He's just talking."
-
-    menu:
-        "Stay on the line.":
-            python:
-                stats.increment_stats_pcr_hatred(-15)
-                stats.increment_stats_coding_skill(5)
-                _sc_extra = ""
-                if stats.player_class == "dark_empath":
-                    stats.increment_stats_coding_skill(5)
-                    _sc_extra = " [DARK EMPATH: read his pauses, +5 extra Coding]"
-            "Forty-seven minutes. He stays. By the time the ambulance gets there, he's sitting on the curb crying."
-            window hide
-            show screen outcome_panel("-15 PCR HATRED, +5 CODING SKILL.{}".format(_sc_extra))
-            pause
-            hide screen outcome_panel
-
-        "Transfer it. [[+10 Hatred]":
-            $ stats.increment_stats_pcr_hatred(10)
-            "You patch him to the suicide hotline. The call drops during the transfer."
-            "You don't know what happened. The shift continues."
-            window hide
-            show screen outcome_panel("+10 PCR HATRED.")
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-## ---------------------------------------------------------------------------
-## EVENT 18: The Party
-## ---------------------------------------------------------------------------
-
-label re_retirement_party:
-
-    scene bg_random_event
-    play sound "audio/police_siren.mp3"
-    play music "audio/random_event_bed.wav" fadein 1.5
-
-    "THE PARTY"
-
-    "Sergeant Novák. 35 years. Retiring with a 28%% pension."
-    "Drinks at U Slunce, 7 PM. Half the station will be there."
-
-    menu:
-        "Go. (-1,500 CZK)":
-            python:
-                stats.increment_stats_value_money(-1500)
-                stats.increment_stats_pcr_hatred(-10)
-            "He cries on you at 11 PM. Forty years of service. He says: 'Don't make my mistakes, kid.'"
-            "You don't know which ones he means. All of them, probably."
-            window hide
-            show screen outcome_panel("-1,500 CZK, -10 PCR HATRED.")
-            pause
-            hide screen outcome_panel
-
-        "Skip it. [[+5 Hatred]":
-            $ stats.increment_stats_pcr_hatred(5)
-            "You see the photos on Monday. He looks happy. You look at your reflection."
-            window hide
-            show screen outcome_panel("+5 PCR HATRED.")
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-## ---------------------------------------------------------------------------
-## EVENT 19: The Interview (puzzle gate)
-## ---------------------------------------------------------------------------
-
-label re_coding_interview:
-
-    scene bg_random_event
-    play sound "audio/police_siren.mp3"
-    play music "audio/random_event_bed.wav" fadein 1.5
-
-    "THE INTERVIEW"
-
-    "A startup emailed back. Quick technical screen, 30 minutes, tonight."
-    "You're parked in a patrol car. Phone in your lap. They're already on the line."
-
-    menu:
-        "Take it.":
-            python:
-                _ci_solved = getattr(store, '_puzzles_solved', None)
-                if _ci_solved is None:
-                    store._puzzles_solved = []
-                    _ci_solved = store._puzzles_solved
-                _ci_pid = pick_puzzle_for_skill(stats.coding_skill, exclude=_ci_solved)
-                if _ci_pid is None:
-                    _ci_pid = "p_medium_sum_even"
-                puzzle_init(_ci_pid, max_attempts=1 + diff_setting("minigame_retries", 1))
-
-            "[PUZZLES[_ci_pid]['spec']]"
-
-            call screen coding_puzzle_screen
-
-            python:
-                _ci_pass = (_return == "pass")
-                if _ci_pass:
-                    stats.increment_stats_coding_skill(20)
-                    stats.increment_stats_pcr_hatred(-15)
-                    store.coding_interview_passed = True
-                    store._puzzles_solved.append(_ci_pid)
-                    _ci_msg = "You answer cleanly. The interviewer goes quiet. Then: 'Can you come in next week for a technical round?'"
-                    _ci_out = "+20 CODING, -15 PCR HATRED [INTERVIEW PASSED]"
-                else:
-                    stats.increment_stats_coding_skill(5)
-                    stats.increment_stats_pcr_hatred(15)
-                    _ci_msg = "Async Python catches you. You hear yourself say 'callback hell' and mean something else. Dispatch interrupts the call."
-                    _ci_out = "+5 CODING (you learned), +15 PCR HATRED."
-
-            "[_ci_msg]"
-            window hide
-            show screen outcome_panel(_ci_out)
-            pause
-            hide screen outcome_panel
-
-        "Reschedule. [[+3 Coding, +10 Hatred]":
-            python:
-                stats.increment_stats_coding_skill(3)
-                stats.increment_stats_pcr_hatred(10)
-            "They reply: 'Sure! Friday at 14:00.' Friday is your 12-hour shift."
-            "You stare at the calendar. You reply: 'Perfect.'"
-            window hide
-            show screen outcome_panel("+3 CODING, +10 PCR HATRED.")
-            pause
-            hide screen outcome_panel
-
-    return
-
-
-## ---------------------------------------------------------------------------
-## EVENT 20: The Update (BH/DE perks + skill check)
-## ---------------------------------------------------------------------------
-
-label re_system_update:
-
-    scene bg_police_interior
-    play sound "audio/police_siren.mp3"
-    play music "audio/random_event_bed.wav" fadein 1.5
-
-    "THE UPDATE"
-
-    "IT pushed an update at 06:00. By 07:30 nothing works."
-    "Error: 'RuntimeError: Database migration failed.' You actually understand what that means."
+    play music "audio/random_event_bed.wav" fadein 1.0
 
     python:
-        _su_chance = min((stats.coding_skill * 100) // 60, 100)
+        _vm_art = "images/events/ev_the_vending_machine.jpg"
+        _vm_afford = (stats.available_money >= 1500)
+        _vm_body = [
+            "The drinks machine in the third-floor corridor has glowed the same dead green for as long as you have worked here.",
+            "Tonight the display has your name on it. Your badge number beneath it. Then, one character at a time: I HAVE WHAT YOU NEED.",
+            "The coin slot lights up. It is waiting.",
+        ]
+        _vm_choices = [
+            {
+                "id": "feed",
+                "label": "[ FEED IT ]",
+                "desc": ec("Pay 1,500 CZK") + ".  " + eg("It dispenses something. You choose what."),
+                "enabled": _vm_afford,
+                "locked": "The coin slot stays lit. You do not have 1,500 CZK.",
+            },
+            {
+                "id": "tip",
+                "label": "[ TIP IT OVER ]",
+                "desc": ec("Lose 8 HP") + ".  " + eg("It splits open: a random card, and a tray of other people's coins."),
+            },
+            {
+                "id": "kick",
+                "label": "[ KICK IT AND WALK AWAY ]",
+                "desc": ec("Lose 5 HP") + ".  Nothing else. The glow follows you down the corridor.",
+            },
+        ]
 
-    menu:
-        "[[BH] KNOWN FAILURE MODE — You've seen this exact error on a dev forum at 2 AM." if stats.player_class == "biohacker":
+    call screen event_screen(title="THE VENDING MACHINE", art=_vm_art, body=_vm_body, choices=_vm_choices)
+
+    python:
+        _vm_pick = _return
+        _vm_tier = _battle_ladder_band(day_cycle.current_day)
+        _vm_res = []
+
+    if _vm_pick == "feed":
+        $ stats.try_spend_money(1500)
+        $ _vm_trio = pick_battle_rewards(_vm_tier)
+        call screen card_reward_trio_screen(_vm_trio)
+        python:
+            _vm_card = _return
+            if _vm_card and _vm_card != "skip":
+                grant_card(_vm_card, silent=True)
+                _vm_res = [
+                    "You feed it three coins. It thinks about it. Then a mechanism deep inside turns over, once, and drops what you asked for into the tray.",
+                    "You take it. The display thanks you by name.",
+                    eg("Gained a card.") + "   " + ec("- 1,500 CZK."),
+                ]
+            else:
+                _vm_res = [
+                    "You feed it three coins and then, at the last second, take nothing. The machine keeps the money. The machine always keeps the money.",
+                    ec("- 1,500 CZK."),
+                ]
+
+    elif _vm_pick == "tip":
+        python:
+            _vm_lost = event_hurt(8)
+            stats.increment_stats_value_money(800)
+            _vm_pool = pick_battle_rewards(_vm_tier)
+            if _vm_pool:
+                grant_card(__import__('random').choice(_vm_pool), silent=True)
+            _vm_res = [
+                "You get a shoulder under it and heave. It goes over with a sound like a wardrobe full of glass and splits along a seam that was never meant to open.",
+                "Inside: coins from everyone who ever fed it, and one thing it was apparently keeping for you.",
+                eg("Gained a card.") + "   " + eg("+ 800 CZK.") + "   " + ec("- {} HP.".format(_vm_lost)),
+            ]
+
+    else:
+        python:
+            _vm_lost = event_hurt(5)
+            _vm_res = [
+                "You kick it once, hard, in the place a person would keep a knee. Your foot tells you about it for the rest of the shift.",
+                "The machine glows. Your name is still on the display when you reach the stairs.",
+                ec("- {} HP.".format(_vm_lost)),
+            ]
+
+    call screen event_outcome(title="THE VENDING MACHINE", art=_vm_art, result=_vm_res)
+    return
+
+
+## ---------------------------------------------------------------------------
+## THE SMELL ON THE THIRD FLOOR [surreal] — a hidden roll behind a warm door.
+## ---------------------------------------------------------------------------
+
+label ev_the_smell:
+
+    scene bg_random_event
+    play music "audio/random_event_bed.wav" fadein 1.0
+
+    python:
+        _sm_art = "images/events/ev_the_smell.jpg"
+        _sm_body = [
+            "Panelak, eighth floor. A neighbour called about the smell on the landing. Nobody has been reported missing. Nobody is ever reported missing here.",
+            "The door is warm. You put your palm flat against it and it is warm, evenly, all over — as if something behind it is still running.",
+            "The lock turns before you have finished deciding to turn it.",
+        ]
+        _sm_choices = [
+            {
+                "id": "open",
+                "label": "[ OPEN THE DOOR ]",
+                "desc": ek("Whatever is on the other side, you will have seen it."),
+            },
+            {
+                "id": "seal",
+                "label": "[ SEAL IT. LOSE THE ADDRESS. ]",
+                "desc": eg("- 8 Hatred") + ".  " + ec("The not-knowing stays: gain a dead card."),
+            },
+            {
+                "id": "call",
+                "label": "[ WAIT FOR THE SPECIALISTS ]",
+                "desc": ec("Lose 6 HP") + ".  " + eg("+ 2,000 CZK callout pay."),
+            },
+        ]
+
+    call screen event_screen(title="THE SMELL ON THE THIRD FLOOR", art=_sm_art, body=_sm_body, choices=_sm_choices)
+
+    python:
+        _sm_pick = _return
+        _sm_tier = _battle_ladder_band(day_cycle.current_day)
+        _sm_res = []
+
+    if _sm_pick == "open":
+        python:
+            _sm_roll = __import__('random').randint(1, 100)
+        if _sm_roll <= 55:
             python:
-                stats.increment_stats_coding_skill(15)
-                stats.increment_stats_pcr_hatred(-20)
-                stats.increment_stats_value_money(2500)
-            "Three commands in a terminal. The screen turns green. Silence. Sergeant: 'JB. How did you—'"
-            "You leave before he can take the bonus back."
-            window hide
-            show screen outcome_panel("+15 CODING, -20 PCR HATRED, +2,500 CZK [BH: known fix]")
-            pause
-            hide screen outcome_panel
-
-        "[[DE] FIND HORA — Constable Hora isn't panicking. He knows something." if stats.player_class == "dark_empath":
+                stats.increment_stats_pcr_hatred(-6)
+                _sm_res = [
+                    "It is a chest freezer. Unplugged a week ago when the power was cut for unpaid bills. Inside, a hunter's whole autumn — boar, venison — gone soft and loud with flies.",
+                    "No one. Just meat, and a man somewhere too ashamed of the bills to come back for it.",
+                    "You laugh, once, in the empty flat. The first time in days something turned out to be nothing.",
+                    eg("- 6 Hatred."),
+                ]
+        else:
             python:
-                stats.increment_stats_pcr_hatred(-10)
-                stats.increment_stats_coding_skill(5)
-            "Hora: 'The v1.4.2 rollback re-enables the legacy ODBC connector. Run the old client on desktop four.'"
-            "You do. It works. You give Hora the coffee meant for the sergeant."
-            window hide
-            show screen outcome_panel("-10 PCR HATRED, +5 CODING [DE: extracted the workaround]")
-            pause
-            hide screen outcome_panel
+                stats.increment_stats_pcr_hatred(18)
+                _sm_pool = pick_battle_rewards(_sm_tier)
+                if _sm_pool:
+                    grant_card(__import__('random').choice(_sm_pool), silent=True)
+                _sm_res = [
+                    "It is not a freezer.",
+                    "You do the work. You document it the way the work is documented. It takes until morning and it does not leave when you do.",
+                    "On the table, among the things that outlived their owner, there is one you keep. You tell yourself it is evidence. You do not log it.",
+                    ec("+ 18 Hatred.") + "   " + eg("Gained a card."),
+                ]
 
-        "Fix it. [[CODING CHECK: [_su_chance]%%]":
+    elif _sm_pick == "seal":
+        python:
+            stats.increment_stats_pcr_hatred(-8)
+            grant_card("compromise", silent=True)
+            _sm_res = [
+                "You write the address down wrong. A transposed digit, a tired hand — the kind of mistake nobody audits.",
+                "By the time anyone notices, it will not be your shift, your district, your problem.",
+                "You sleep fine. Something useless and heavy settles into the deck of you and does not leave.",
+                eg("- 8 Hatred.") + "   " + ec("Gained a dead card."),
+            ]
+
+    else:
+        python:
+            _sm_lost = event_hurt(6)
+            stats.increment_stats_value_money(2000)
+            _sm_res = [
+                "You call it up the chain and then do the part nobody trains you for: you wait. Four hours in a concrete corridor that smells of the thing behind the door.",
+                "The specialists come at dawn, unhurried, gloved. You sign where they point and drive home with the windows down.",
+                ec("- {} HP.".format(_sm_lost)) + "   " + eg("+ 2,000 CZK."),
+            ]
+
+    call screen event_outcome(title="THE SMELL ON THE THIRD FLOOR", art=_sm_art, result=_sm_res)
+    return
+
+
+## ---------------------------------------------------------------------------
+## THE DESIGNER OF FORMS [grounded-absurd] — pay CZK to upgrade / transform /
+## remove cards. The deck-craft event. Skip costs HP.
+## ---------------------------------------------------------------------------
+
+label ev_designer_of_forms:
+
+    scene bg_random_event
+    play music "audio/random_event_bed.wav" fadein 1.0
+
+    python:
+        _df_art = "images/events/ev_designer_of_forms.jpg"
+        _df_up_avail = any(is_upgradeable(c) for c in player_deck.cards)
+        _df_rem_avail = any(c not in CLASS_SIGNATURE_CARDS for c in player_deck.cards)
+
+        _df_grieve_ok = (stats.available_money >= 4000) and _df_up_avail
+        if stats.available_money < 4000:
+            _df_grieve_lock = "Records do not move for less than 4,000 CZK."
+        else:
+            _df_grieve_lock = "Nothing in your file can be sharpened further."
+
+        _df_full_ok = (stats.available_money >= 10000) and _df_rem_avail
+        if stats.available_money < 10000:
+            _df_full_lock = "Full reprocessing runs 10,000 CZK. It is not negotiable."
+        else:
+            _df_full_lock = "Your file holds nothing he is permitted to strike."
+
+        _df_body = [
+            "Records, sub-basement. The man behind the desk has been redrawing the same arrest form since 2007. Box 4b has moved nine times.",
+            "The walls are papered with rejected drafts. He does not look up. 'You. Your paperwork. I have read it. It is structurally unsound.'",
+            "'I can process it. Properly. There are tiers of service.'",
+        ]
+        _df_choices = [
+            {
+                "id": "grievance",
+                "label": "[ FILE A GRIEVANCE ]",
+                "desc": ec("4,000 CZK") + ".  " + eg("He upgrades a card."),
+                "enabled": _df_grieve_ok,
+                "locked": _df_grieve_lock,
+            },
+            {
+                "id": "resubmit",
+                "label": "[ RESUBMIT IN TRIPLICATE ]",
+                "desc": ec("7,000 CZK") + ".  " + eg("He transforms 2 cards into something else."),
+                "enabled": (stats.available_money >= 7000),
+                "locked": "Triplicate filing runs 7,000 CZK.",
+            },
+            {
+                "id": "full",
+                "label": "[ FULL REPROCESSING ]",
+                "desc": ec("10,000 CZK") + ".  " + eg("He strikes a card from the record and sharpens one at random."),
+                "enabled": _df_full_ok,
+                "locked": _df_full_lock,
+            },
+            {
+                "id": "fine",
+                "label": "[ TELL HIM THE FORM IS FINE ]",
+                "desc": ec("Lose 6 HP") + ".  He has given nineteen years to box 4b.",
+            },
+        ]
+
+    call screen event_screen(title="THE DESIGNER OF FORMS", art=_df_art, body=_df_body, choices=_df_choices)
+
+    python:
+        _df_pick = _return
+        _df_res = []
+
+    if _df_pick == "grievance":
+        $ stats.try_spend_money(4000)
+        python:
+            _df_up = [c for c in player_deck.cards if is_upgradeable(c)]
+        call screen event_card_picker("CHOOSE A CARD TO SHARPEN", _df_up)
+        python:
+            upgrade_card_in_deck(_return)
+            _df_res = [
+                "He takes your file into the back. Machine sounds — a stapler, or teeth. He returns it warmer than paper should be.",
+                "It came back sharper than it went in. He has already forgotten you.",
+                ec("- 4,000 CZK.") + "   " + eg("Upgraded a card."),
+            ]
+
+    elif _df_pick == "resubmit":
+        $ stats.try_spend_money(7000)
+        python:
+            _df_deck = list(player_deck.cards)
+        call screen event_card_picker("CHOOSE A CARD TO RESUBMIT", _df_deck)
+        python:
+            event_transform_card(_return)
+            _df_deck = list(player_deck.cards)
+        call screen event_card_picker("CHOOSE ANOTHER CARD TO RESUBMIT", _df_deck)
+        python:
+            event_transform_card(_return)
+            _df_res = [
+                "He does not fix what you brought him. He files it under a heading you did not know existed and hands you back something else entirely.",
+                "Two cards went in. Two different cards came out. He calls this correct.",
+                ec("- 7,000 CZK.") + "   " + eg("Transformed 2 cards."),
+            ]
+
+    elif _df_pick == "full":
+        $ stats.try_spend_money(10000)
+        python:
+            _df_rem = [c for c in player_deck.cards if c not in CLASS_SIGNATURE_CARDS]
+        call screen event_card_picker("CHOOSE A CARD TO STRIKE FROM THE RECORD", _df_rem)
+        python:
+            player_deck.remove(_return)
+            _df_up = [c for c in player_deck.cards if is_upgradeable(c)]
+            _df_upid = None
+            if _df_up:
+                _df_upid = __import__('random').choice(_df_up)
+                upgrade_card_in_deck(_df_upid)
+            _df_res = [
+                "He reads the whole file this time. Every box. Then he removes a page, feeds it to something under the desk, and it is gone the way only paperwork can be gone.",
+                "One thing struck from the record. One thing, chosen by him, made sharper.",
+                ec("- 10,000 CZK.") + "   " + eg("Removed a card.") + ("   " + eg("Upgraded a card.") if _df_upid else ""),
+            ]
+
+    else:
+        python:
+            _df_lost = event_hurt(6)
+            _df_res = [
+                "'The form,' you say, 'is fine.'",
+                "He stops. He looks at you the way you would look at a man kicking a dog. Nineteen years of box 4b, and you have called it fine.",
+                "Something lands, somewhere under your ribs, and decides to stay.",
+                ec("- {} HP.".format(_df_lost)),
+            ]
+
+    call screen event_outcome(title="THE DESIGNER OF FORMS", art=_df_art, result=_df_res)
+    return
+
+
+## ---------------------------------------------------------------------------
+## THE LOST & FOUND [grounded-absurd] — remove a card (HP or CZK), or take one
+## that was never yours (Hatred).
+## ---------------------------------------------------------------------------
+
+label ev_lost_and_found:
+
+    scene bg_random_event
+    play music "audio/random_event_bed.wav" fadein 1.0
+
+    python:
+        _lf_art = "images/events/ev_lost_and_found.jpg"
+        _lf_rem_avail = any(c not in CLASS_SIGNATURE_CARDS for c in player_deck.cards)
+        _lf_body = [
+            "The property room. Mrs. Hajkova has run it for thirty years, and she knows, she says, what belongs to whom — and what was never anyone's to keep.",
+            "She looks at you the way she looks at her shelves. 'You're carrying something that isn't doing you any good. I can take it off the books.'",
+            "'Records get lost. It happens. The question is what you'll give me for the favour.'",
+        ]
+        _lf_choices = [
+            {
+                "id": "sidearm",
+                "label": "[ HAND OVER YOUR SIDEARM FOR AN HOUR ]",
+                "desc": ec("Lose 9 HP") + ".  " + eg("Remove a card.") + "  An hour unarmed is a long hour.",
+                "enabled": _lf_rem_avail,
+                "locked": "She looks through your deck and finds nothing she is willing to lose.",
+            },
+            {
+                "id": "pay",
+                "label": "[ PAY HER 5,000 CZK ]",
+                "desc": ec("5,000 CZK") + ".  " + eg("Remove a card."),
+                "enabled": (stats.available_money >= 5000) and _lf_rem_avail,
+                "locked": ("Need 5,000 CZK." if stats.available_money < 5000 else "She finds nothing in your deck she will take."),
+            },
+            {
+                "id": "take",
+                "label": "[ TAKE A BOX THAT ISN'T YOURS ]",
+                "desc": ec("+ 12 Hatred") + ".  " + eg("Gain a card.") + "  Someone, somewhere, is still looking for it.",
+            },
+        ]
+
+    call screen event_screen(title="THE LOST & FOUND", art=_lf_art, body=_lf_body, choices=_lf_choices)
+
+    python:
+        _lf_pick = _return
+        _lf_tier = _battle_ladder_band(day_cycle.current_day)
+        _lf_res = []
+
+    if _lf_pick == "sidearm":
+        python:
+            _lf_lost = event_hurt(9)
+            _lf_rem = [c for c in player_deck.cards if c not in CLASS_SIGNATURE_CARDS]
+        call screen event_card_picker("CHOOSE A CARD TO LOSE ON THE BOOKS", _lf_rem)
+        python:
+            player_deck.remove(_return)
+            _lf_res = [
+                "She locks your sidearm in a drawer and slides a claim ticket across. 'One hour.'",
+                "You walk an hour of corridor without the weight on your hip, and your body spends the whole hour noticing.",
+                "When you come back, the ticket is gone and so is the thing you wanted gone.",
+                ec("- {} HP.".format(_lf_lost)) + "   " + eg("Removed a card."),
+            ]
+
+    elif _lf_pick == "pay":
+        $ stats.try_spend_money(5000)
+        python:
+            _lf_rem = [c for c in player_deck.cards if c not in CLASS_SIGNATURE_CARDS]
+        call screen event_card_picker("CHOOSE A CARD TO LOSE ON THE BOOKS", _lf_rem)
+        python:
+            player_deck.remove(_return)
+            _lf_res = [
+                "She counts the notes twice, slow, and does not write a receipt.",
+                "'It was never here,' she says. 'Neither were you.' The shelf where it sat is already holding something else.",
+                ec("- 5,000 CZK.") + "   " + eg("Removed a card."),
+            ]
+
+    else:
+        python:
+            stats.increment_stats_pcr_hatred(12)
+            _lf_trio = pick_battle_rewards(_lf_tier)
+        call screen card_reward_trio_screen(_lf_trio)
+        python:
+            _lf_card = _return
+            if _lf_card and _lf_card != "skip":
+                grant_card(_lf_card, silent=True)
+            _lf_res = [
+                "She watches you lift the box and says nothing, which is its own kind of saying something.",
+                "It is good. It is useful. It belonged to someone who came in once, frightened, and never came back for it.",
+                "You carry it out. It is yours now, the way most things become yours: by nobody stopping you.",
+                ec("+ 12 Hatred.") + ("   " + eg("Gained a card.") if (_lf_card and _lf_card != "skip") else ""),
+            ]
+
+    call screen event_outcome(title="THE LOST & FOUND", art=_lf_art, result=_lf_res)
+    return
+
+
+## ---------------------------------------------------------------------------
+## THE COLONEL SENDS HIS REGARDS [surreal] — a strong card now, the next fight
+## harder; or burn it (HP); or refuse it (CZK + Hatred relief).
+## ---------------------------------------------------------------------------
+
+label ev_colonel_regards:
+
+    scene bg_random_event
+    play music "audio/random_event_bed.wav" fadein 1.0
+
+    python:
+        _cr_art = "images/events/ev_colonel_regards.jpg"
+        _cr_body = [
+            "There is a box outside your door. No courier waited. No label, no stamp — just your name, in handwriting you have spent ten years learning to read upside down across a desk.",
+            "Inside: one card, face-down. And a note.",
+            ek("\"Thought of you. Wear it well.  — K.\""),
+        ]
+        _cr_choices = [
+            {
+                "id": "keep",
+                "label": "[ KEEP IT ]",
+                "desc": eg("Gain a strong card") + ".  " + ec("The next case he sends comes harder."),
+            },
+            {
+                "id": "burn",
+                "label": "[ BURN IT IN THE SINK ]",
+                "desc": ec("Lose 10 HP") + ".  You will watch it the whole way down.",
+            },
+            {
+                "id": "return",
+                "label": "[ COURIER IT BACK, UNOPENED ]",
+                "desc": ec("7,000 CZK") + ".  " + eg("- 15 Hatred") + ".  A clean refusal, and not a cheap one.",
+                "enabled": (stats.available_money >= 7000),
+                "locked": "A courier across the country costs 7,000 CZK. You do not have it.",
+            },
+        ]
+
+    call screen event_screen(title="THE COLONEL SENDS HIS REGARDS", art=_cr_art, body=_cr_body, choices=_cr_choices)
+
+    python:
+        _cr_pick = _return
+        _cr_res = []
+
+    if _cr_pick == "keep":
+        python:
+            _cr_trio = pick_battle_rewards("hard")
+        call screen card_reward_trio_screen(_cr_trio)
+        python:
+            _cr_card = _return
+            if _cr_card and _cr_card != "skip":
+                grant_card(_cr_card, silent=True)
+            store._next_enemy_strength_bonus = 3
+            _cr_res = [
+                "You take it out of the box. It is good — better than good. It is exactly the thing you would have chosen for yourself, which is the part that makes your hands cold.",
+                "He knows what you are building. He has always known.",
+                "Somewhere, a file with your name on it gets a note added to it, and the next man he sends will have read that note.",
+                (eg("Gained a card.") + "   " if (_cr_card and _cr_card != "skip") else "") + ec("The next fight: enemy +3 Strength."),
+            ]
+
+    elif _cr_pick == "burn":
+        python:
+            _cr_lost = event_hurt(10)
+            _cr_res = [
+                "You hold it under the tap, strike a match, and watch. It does not burn like paper. It takes its time.",
+                "You do not sleep. You sit with the smell of it until the window goes grey, turning over every reason a man like that sends a gift, and finding the same answer each time.",
+                ec("- {} HP.".format(_cr_lost)),
+            ]
+
+    else:
+        python:
+            stats.try_spend_money(7000)
+            stats.increment_stats_pcr_hatred(-15)
+            _cr_res = [
+                "You do not open it. You pay a courier the better part of a week's wage to drive it back across the country and put it in his hands exactly as it came.",
+                "He will understand the message. It cost you to send it. That is the message.",
+                "Your spine, for once, is the straightest thing in the room.",
+                ec("- 7,000 CZK.") + "   " + eg("- 15 Hatred."),
+            ]
+
+    call screen event_outcome(title="THE COLONEL SENDS HIS REGARDS", art=_cr_art, result=_cr_res)
+    return
+
+
+## ---------------------------------------------------------------------------
+## PILLS, PROBABLY [grounded-absurd] — swallow one (hidden roll: heal or
+## hurt + curse), sell them (CZK + Hatred), or flush them (HP).
+## ---------------------------------------------------------------------------
+
+label ev_pills:
+
+    scene bg_random_event
+    play music "audio/random_event_bed.wav" fadein 1.0
+
+    python:
+        _pl_art = "images/events/ev_pills.jpg"
+        _pl_body = [
+            "Vehicle search, routine, one in the morning. Under the passenger seat: a sandwich bag of pills. No markings. No two of them quite the same.",
+            "The driver swears they aren't his. They are never anyone's.",
+            "Your hand closes around the bag. The shift has six hours left in it and you have not slept properly since March.",
+        ]
+        _pl_choices = [
+            {
+                "id": "swallow",
+                "label": "[ SWALLOW ONE ]",
+                "desc": ek("You will not know which one until it is already in you."),
+            },
+            {
+                "id": "sell",
+                "label": "[ SELL THEM ]",
+                "desc": eg("+ 6,000 CZK") + ".  " + ec("+ 10 Hatred") + ".  You know a man. You wish you didn't.",
+            },
+            {
+                "id": "flush",
+                "label": "[ FLUSH THEM ]",
+                "desc": ec("Lose 4 HP") + ".  You stand over the bowl longer than the act requires.",
+            },
+        ]
+
+    call screen event_screen(title="PILLS, PROBABLY", art=_pl_art, body=_pl_body, choices=_pl_choices)
+
+    python:
+        _pl_pick = _return
+        _pl_res = []
+
+    if _pl_pick == "swallow":
+        python:
+            _pl_roll = __import__('random').randint(1, 100)
+        if _pl_roll <= 55:
             python:
-                _su_roll = __import__('random').randint(1, 100)
-                if _su_roll <= _su_chance:
-                    stats.increment_stats_coding_skill(15)
-                    stats.increment_stats_pcr_hatred(-20)
-                    stats.increment_stats_value_money(2500)
-                    _su_msg = "Three commands. Green screen. Sergeant gives you the rest of the shift off and an unofficial bonus."
-                    _su_out = "+15 CODING, -20 PCR HATRED, +2,500 CZK."
-                else:
-                    stats.increment_stats_coding_skill(5)
-                    stats.increment_stats_pcr_hatred(20)
-                    _su_msg = "You make it worse. The migration re-runs and a 2019 arrest warrant gets reactivated. Someone in Brno is having a confusing afternoon."
-                    _su_out = "+5 CODING (negative reinforcement), +20 PCR HATRED."
-            "[_su_msg]"
-            window hide
-            show screen outcome_panel(_su_out)
-            pause
-            hide screen outcome_panel
-
-        "Walk out. [[+10 Hatred, +2 Coding]":
+                _pl_healed = event_heal(30)
+                _pl_res = [
+                    "It is small and white and tastes of nothing. For twenty minutes nothing happens.",
+                    "Then the night goes soft at the edges. The radio is far away. The cold is far away. You finish the shift like a man walking downhill, and you sleep like the dead and wake up repaired.",
+                    eg("+ {} HP.".format(_pl_healed)),
+                ]
+        else:
             python:
-                stats.increment_stats_pcr_hatred(10)
-                stats.increment_stats_coding_skill(2)
-            "You spend patrol thinking about the error message. Better communication than most humans you know."
-            window hide
-            show screen outcome_panel("+10 PCR HATRED, +2 CODING (ambient learning).")
-            pause
-            hide screen outcome_panel
+                _pl_lost = event_hurt(14)
+                grant_card("compromise", silent=True)
+                _pl_res = [
+                    "It is small and white and tastes of nothing. For twenty minutes nothing happens.",
+                    "Then your heart does something a heart should not do, twice, and your hands stop being yours for a while. You finish the shift on a kind of autopilot you will not be able to account for later.",
+                    "Something moves into you on the comeback down and does not pay rent.",
+                    ec("- {} HP.".format(_pl_lost)) + "   " + ec("Gained a dead card."),
+                ]
 
+    elif _pl_pick == "sell":
+        python:
+            stats.increment_stats_value_money(6000)
+            stats.increment_stats_pcr_hatred(10)
+            _pl_res = [
+                "You know a man who buys things with no markings and asks no questions, and the worst part is how easy his number was to find in your own phone.",
+                "Six thousand crowns for a bag you logged as empty. The driver was right: they were never anyone's. Now they are someone's problem, and you chose who.",
+                eg("+ 6,000 CZK.") + "   " + ec("+ 10 Hatred."),
+            ]
+
+    else:
+        python:
+            _pl_lost = event_hurt(4)
+            _pl_res = [
+                "You tip the bag into the bowl and flush, and then you stand there longer than the act requires, because some tired animal part of you wanted those, badly, and is not done being angry about it.",
+                ec("- {} HP.".format(_pl_lost)),
+            ]
+
+    call screen event_outcome(title="PILLS, PROBABLY", art=_pl_art, result=_pl_res)
+    return
+
+
+## ---------------------------------------------------------------------------
+## THE MAN WHO BUYS UNIFORMS [grounded-absurd] — sell a Police card for CZK,
+## transform a card for CZK, or refuse and take the curse.
+## ---------------------------------------------------------------------------
+
+label ev_uniform_collector:
+
+    scene bg_random_event
+    play music "audio/random_event_bed.wav" fadein 1.0
+
+    python:
+        _uc_art = "images/events/ev_uniform_collector.jpg"
+        _uc_police = [c for c in player_deck.cards
+                      if CARD_LIBRARY.get(c, {}).get("color") == "Police"
+                      and c not in CLASS_SIGNATURE_CARDS]
+        _uc_body = [
+            "A flat on the top floor, and a man who collects uniforms. Mannequins line the hallway — tram driver, postman, miner, police.",
+            "'The costumes of people who were never asked what they wanted to be,' he says, fond. 'I would like a piece of yours. I pay well, and I pay strangely.'",
+            "He is already holding a tape measure. He is already looking at your shoulders.",
+        ]
+        _uc_choices = [
+            {
+                "id": "badge",
+                "label": "[ SELL HIM THE BADGE-WORK ]",
+                "desc": eg("+ 8,000 CZK") + ".  " + ec("Remove a Police card.") + "  He buys a piece of the job itself.",
+                "enabled": bool(_uc_police),
+                "locked": "He wants the police in you, and finds you are not carrying it just now.",
+            },
+            {
+                "id": "memory",
+                "label": "[ SELL HIM A MEMORY ]",
+                "desc": eg("+ 3,000 CZK") + ".  " + ec("Transform a card") + " into whatever he leaves in its place.",
+            },
+            {
+                "id": "refuse",
+                "label": "[ REFUSE, AND MEET HIS EYES ]",
+                "desc": ec("His stare follows you home: gain a dead card."),
+            },
+        ]
+
+    call screen event_screen(title="THE MAN WHO BUYS UNIFORMS", art=_uc_art, body=_uc_body, choices=_uc_choices)
+
+    python:
+        _uc_pick = _return
+        _uc_res = []
+
+    if _uc_pick == "badge":
+        python:
+            _uc_police = [c for c in player_deck.cards
+                          if CARD_LIBRARY.get(c, {}).get("color") == "Police"
+                          and c not in CLASS_SIGNATURE_CARDS]
+        call screen event_card_picker("CHOOSE THE BADGE-WORK TO SELL", _uc_police)
+        python:
+            player_deck.remove(_return)
+            stats.increment_stats_value_money(8000)
+            _uc_res = [
+                "He does not want the cloth. He wants the thing the cloth taught your hands to do, and somehow, with the tape measure, he takes it.",
+                "Eight thousand crowns. A mannequin in his hallway stands a little straighter now, wearing a competence that used to be yours.",
+                eg("+ 8,000 CZK.") + "   " + ec("Removed a Police card."),
+            ]
+
+    elif _uc_pick == "memory":
+        python:
+            _uc_deck = list(player_deck.cards)
+        call screen event_card_picker("CHOOSE A MEMORY TO SELL", _uc_deck)
+        python:
+            event_transform_card(_return)
+            stats.increment_stats_value_money(3000)
+            _uc_res = [
+                "He asks you to think of something while he measures. You do. He nods, satisfied, and the thought goes out of you and into a notebook you do not see him close.",
+                "Where the memory was, there is now a different one. It works just as well. It was simply never yours.",
+                eg("+ 3,000 CZK.") + "   " + eg("Transformed a card."),
+            ]
+
+    else:
+        python:
+            grant_card("compromise", silent=True)
+            _uc_res = [
+                "'No,' you say, and you hold his eyes while you say it, because you will not give him the flinch either.",
+                "He smiles, untroubled, and goes back to his mannequins. But the stare does not stay in the flat. It rides the tram home with you. It is still there when you turn off the light.",
+                ec("Gained a dead card."),
+            ]
+
+    call screen event_outcome(title="THE MAN WHO BUYS UNIFORMS", art=_uc_art, result=_uc_res)
+    return
+
+
+## ---------------------------------------------------------------------------
+## KARAOKE NIGHT AT U SLUNCE [grounded-absurd] — peace (Hatred relief), power
+## (a card + Hatred + curse), or profit (CZK + Hatred).
+## ---------------------------------------------------------------------------
+
+label ev_karaoke:
+
+    scene bg_random_event
+    play music "audio/random_event_bed.wav" fadein 1.0
+
+    python:
+        _kk_art = "images/events/ev_karaoke.jpg"
+        _kk_body = [
+            "Station karaoke night, back room of U Slunce. Someone has Nedved on. Someone always has Nedved on.",
+            "Three beers in, the colleague next to you stops singing and tells you a thing. A real thing — with a date on it, and a name.",
+            "Then he goes back to the chorus as if he hadn't. But you heard it. And he knows you heard it.",
+        ]
+        _kk_choices = [
+            {
+                "id": "forget",
+                "label": "[ FORGET YOU HEARD IT ]",
+                "desc": eg("- 12 Hatred") + ".  Some things weigh less the moment you decide not to carry them.",
+            },
+            {
+                "id": "use",
+                "label": "[ USE IT ]",
+                "desc": eg("Gain a strong card") + ".  " + ec("+ 15 Hatred, and a colleague becomes a problem you keep."),
+            },
+            {
+                "id": "report",
+                "label": "[ REPORT IT ]",
+                "desc": eg("+ 3,000 CZK") + ".  " + ec("+ 10 Hatred") + ".  The room will go cold around you.",
+            },
+        ]
+
+    call screen event_screen(title="KARAOKE NIGHT AT U SLUNCE", art=_kk_art, body=_kk_body, choices=_kk_choices)
+
+    python:
+        _kk_pick = _return
+        _kk_res = []
+
+    if _kk_pick == "forget":
+        python:
+            stats.increment_stats_pcr_hatred(-12)
+            _kk_res = [
+                "You let it go past you the way you let the chorus go past you. You buy him the next beer. You sing the Nedved badly, on purpose, and he laughs.",
+                "There is a date and a name you could have kept. You decide, deliberately, not to know them. It is the lightest you have felt in weeks.",
+                eg("- 12 Hatred."),
+            ]
+
+    elif _kk_pick == "use":
+        python:
+            _kk_trio = pick_battle_rewards("hard")
+        call screen card_reward_trio_screen(_kk_trio)
+        python:
+            _kk_card = _return
+            if _kk_card and _kk_card != "skip":
+                grant_card(_kk_card, silent=True)
+            stats.increment_stats_pcr_hatred(15)
+            grant_card("compromise", silent=True)
+            grant_card("compromise", silent=True)
+            _kk_res = [
+                "You wait until Monday. You let him see you waiting. By Wednesday he understands the arrangement without either of you naming it, and the arrangement is good for you.",
+                "Leverage is just a thing you hold over a drop. It works. It always works.",
+                "But now there is a man in your building who watches the back of your head — and there is the part of you that chose to do this to him. Two passengers you did not have on Friday.",
+                (eg("Gained a card.") + "   " if (_kk_card and _kk_card != "skip") else "") + ec("+ 15 Hatred.") + "   " + ec("Gained 2 dead cards."),
+            ]
+
+    else:
+        python:
+            stats.increment_stats_value_money(3000)
+            stats.increment_stats_pcr_hatred(10)
+            _kk_res = [
+                "You write it up clean and you hand it up the chain, the way the academy said, the way the posters in the corridor still say.",
+                "There is an informant's fee. There is also a Thursday shift where nobody saves you a seat, and a Friday one, and the cold does not lift after that.",
+                eg("+ 3,000 CZK.") + "   " + ec("+ 10 Hatred."),
+            ]
+
+    call screen event_outcome(title="KARAOKE NIGHT AT U SLUNCE", art=_kk_art, result=_kk_res)
+    return
+
+
+## ---------------------------------------------------------------------------
+## THE INTERVIEW [grounded-absurd] — the coding puzzle minigame. Pass: heal +
+## card + Hatred relief. Fail: Hatred + curse. Reschedule / hang up cost too.
+## ---------------------------------------------------------------------------
+
+label ev_the_interview:
+
+    scene bg_random_event
+    play music "audio/random_event_bed.wav" fadein 1.0
+
+    python:
+        _iv_art = "images/events/ev_the_interview.jpg"
+        _iv_body = [
+            "A number you applied to three weeks ago, calling back now, nine in the evening, while you are parked behind the Albert with the engine off.",
+            "'Quick technical screen. Thirty minutes. Is now bad?'",
+            "Now is bad. Now is always bad. The laptop is on the passenger seat.",
+        ]
+        _iv_choices = [
+            {
+                "id": "take",
+                "label": "[ TAKE THE CALL ]",
+                "desc": ek("A coding problem, right now, in the car. Solve it or don't."),
+            },
+            {
+                "id": "resched",
+                "label": "[ ASK TO RESCHEDULE ]",
+                "desc": ec("+ 10 Hatred") + ".  They will offer you a day, and the day will be a shift.",
+            },
+            {
+                "id": "hang",
+                "label": "[ HANG UP ]",
+                "desc": ec("Lose 6 HP") + ".  Sit in the dark behind the supermarket a while.",
+            },
+        ]
+
+    call screen event_screen(title="THE INTERVIEW", art=_iv_art, body=_iv_body, choices=_iv_choices)
+
+    python:
+        _iv_pick = _return
+        _iv_tier = _battle_ladder_band(day_cycle.current_day)
+        _iv_res = []
+
+    if _iv_pick == "take":
+        python:
+            if getattr(store, '_puzzles_solved', None) is None:
+                store._puzzles_solved = []
+            _iv_pid = pick_puzzle_for_skill(stats.coding_skill, exclude=store._puzzles_solved)
+            if _iv_pid is None:
+                _iv_pid = "p_medium_sum_even"
+            puzzle_init(_iv_pid, max_attempts=1 + diff_setting("minigame_retries", 1))
+        call screen coding_puzzle_screen
+        python:
+            _iv_pass = (_return == "pass")
+        if _iv_pass:
+            python:
+                store._puzzles_solved.append(_iv_pid)
+                store.coding_interview_passed = True
+                _iv_healed = event_heal(20)
+                stats.increment_stats_pcr_hatred(-12)
+                _iv_trio = pick_battle_rewards(_iv_tier)
+            call screen card_reward_trio_screen(_iv_trio)
+            python:
+                _iv_card = _return
+                if _iv_card and _iv_card != "skip":
+                    grant_card(_iv_card, silent=True)
+                _iv_res = [
+                    "You answer the question. Then the follow-up. Then the one underneath that, the one they ask to see what you do when you don't know.",
+                    "A pause on the line — the good kind. 'That's... yeah. Can you come in properly next week?'",
+                    "For thirty minutes you were not a cop. You were a person being asked what you could do.",
+                    eg("+ {} HP.".format(_iv_healed)) + "   " + eg("- 12 Hatred.") + ("   " + eg("Gained a card.") if (_iv_card and _iv_card != "skip") else ""),
+                ]
+        else:
+            python:
+                stats.increment_stats_pcr_hatred(15)
+                grant_card("compromise", silent=True)
+                _iv_res = [
+                    "Generators. Decorators. A thing about the global interpreter lock. You hear yourself put words in a confident order that do not, in the end, add up to an answer.",
+                    "'We'll let you know.' They will not let you know.",
+                    "The impostor in the car was you the whole time. He rides home with you and does not get out.",
+                    ec("+ 15 Hatred.") + "   " + ec("Gained a dead card."),
+                ]
+
+    elif _iv_pick == "resched":
+        python:
+            stats.increment_stats_pcr_hatred(10)
+            _iv_res = [
+                "'Could we do Friday?' you ask. They can do Friday.",
+                "Friday is a twelve-hour shift. You know this as the words leave your mouth. You say 'Friday is perfect' anyway, and you hang up, and you have rescheduled nothing — only postponed the same impossible evening.",
+                ec("+ 10 Hatred."),
+            ]
+
+    else:
+        python:
+            _iv_lost = event_hurt(6)
+            _iv_res = [
+                "You end the call before the first question. The screen says 00:00 and then goes dark.",
+                "You sit behind the supermarket with the engine off until the cold gets all the way into your hands, thinking about the version of the evening where you were brave.",
+                ec("- {} HP.".format(_iv_lost)),
+            ]
+
+    call screen event_outcome(title="THE INTERVIEW", art=_iv_art, result=_iv_res)
+    return
+
+
+## ---------------------------------------------------------------------------
+## THE PHOTOCOPIER [surreal] — a card from a curated fortune; a duplicate of a
+## card you already carry; or refuse to know (Hatred).
+## ---------------------------------------------------------------------------
+
+label ev_photocopier:
+
+    scene bg_random_event
+    play music "audio/random_event_bed.wav" fadein 1.0
+
+    python:
+        _pc_art = "images/events/ev_photocopier.jpg"
+        _pc_body = [
+            "The big photocopier on the second floor has a quirk the day shift pretends not to know about. Feed it a blank page and it does not give you a blank page back.",
+            "It gives you a sentence. About you. About what is coming. The toner it uses for this is not a toner the supplier sells.",
+            "It is warm. It is humming. The feed tray is open like a waiting hand.",
+        ]
+        _pc_choices = [
+            {
+                "id": "blank",
+                "label": "[ COPY A BLANK PAGE ]",
+                "desc": ec("2,000 CZK in toner") + ".  " + eg("It prints your fortune. Take the card it names."),
+                "enabled": (stats.available_money >= 2000),
+                "locked": "The toner cartridge is the kind you pay 2,000 CZK for. You can't.",
+            },
+            {
+                "id": "hand",
+                "label": "[ COPY YOUR OWN HAND ]",
+                "desc": ec("Lose 8 HP") + ".  " + eg("It prints a card you already carry. Now you carry it twice."),
+            },
+            {
+                "id": "unplug",
+                "label": "[ PULL THE PLUG ]",
+                "desc": ec("+ 5 Hatred") + ".  The not-knowing rides home and sits on your chest.",
+            },
+        ]
+
+    call screen event_screen(title="THE PHOTOCOPIER", art=_pc_art, body=_pc_body, choices=_pc_choices)
+
+    python:
+        _pc_pick = _return
+        _pc_tier = _battle_ladder_band(day_cycle.current_day)
+        _pc_res = []
+
+    if _pc_pick == "blank":
+        $ stats.try_spend_money(2000)
+        python:
+            _pc_trio = pick_battle_rewards(_pc_tier)
+        call screen card_reward_trio_screen(_pc_trio)
+        python:
+            _pc_card = _return
+            if _pc_card and _pc_card != "skip":
+                grant_card(_pc_card, silent=True)
+                _pc_res = [
+                    "You lay one blank page on the glass and press the green button. The light goes across, slow, the way light goes across a face.",
+                    "The page that comes out is not blank. It describes, in a single warm sentence, a thing you will need before this is over — and then it stops being a sentence and is simply the thing, in your hand.",
+                    ec("- 2,000 CZK.") + "   " + eg("Gained a card."),
+                ]
+            else:
+                _pc_res = [
+                    "You lay one blank page on the glass and press the green button. The light goes across, slow, the way light goes across a face.",
+                    "The page that comes out is not blank — but you set it down without reading it to the end. Some fortunes you are not ready to be told. The machine keeps the toner money regardless.",
+                    ec("- 2,000 CZK."),
+                ]
+
+    elif _pc_pick == "hand":
+        python:
+            _pc_lost = event_hurt(8)
+            _pc_deck = list(player_deck.cards)
+        call screen event_card_picker("CHOOSE A CARD TO COPY", _pc_deck)
+        python:
+            grant_card(_return, silent=True)
+            _pc_res = [
+                "You press your palm flat to the glass and hold the lid down on the back of your own hand. The light goes under your skin. It does not feel like nothing.",
+                "The page it prints is a card you already carry, exact down to the wear on the corners. You have it twice now. You will not think too hard about where the second one came from.",
+                ec("- {} HP.".format(_pc_lost)) + "   " + eg("Duplicated a card."),
+            ]
+
+    else:
+        python:
+            stats.increment_stats_pcr_hatred(5)
+            _pc_res = [
+                "You find the cable and pull it out of the wall. The hum dies. The screen forgets your name one character at a time.",
+                "You did not read it. So now you carry the other thing instead — the not-knowing, which is heavier, and which follows you all the way home and sits on your chest in the dark.",
+                ec("+ 5 Hatred."),
+            ]
+
+    call screen event_outcome(title="THE PHOTOCOPIER", art=_pc_art, result=_pc_res)
     return
 

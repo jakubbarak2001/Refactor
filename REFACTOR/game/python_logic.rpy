@@ -327,6 +327,14 @@ init python:
         ## new run gets a fresh pool of 10 enemies.
         store.battle_ladder_pool = None
         store._ladder_skip_tomorrow = False
+        ## Overtime "?" state — pity counter for the enemy roll (resets to the
+        ## 10% floor on a fight) + drainable overtime event pool. See
+        ## _roll_overtime in events/overtime_events.rpy.
+        store.overtime_enemy_chance = 10
+        store.overtime_event_pool = []
+        ## Event hook — a random event can leave the NEXT battle's enemy with
+        ## bonus Strength (ev_colonel_regards). Consumed in battle_init.
+        store._next_enemy_strength_bonus = 0
         ## Persistent run HP — carries across ladder battles + into the Colonel.
         ## None = first battle hasn't fired yet (battle_init will lazy-init to
         ## the class max). After each victory, battle_finish writes the

@@ -37,7 +37,7 @@ Each day you pick **one move**. Activities don't just shift stats — they seed 
 | **Gym** | Train. Upgrade a card, or heal and raise max HP. |
 | **Coding** | Freelance / Coach / Bootcamp. Raises coding skill — your escape velocity. |
 | **Bouncer** | High-risk cash at the club. Pays well; dangerous for a cop. |
-| **Night Shift** | Trade time for money: +5,000 CZK, +15 hatred. |
+| **Overtime** | Trade time for money: +5,000 CZK, +15 hatred — and a "?" night that may turn into a fight. |
 
 Three stats run the campaign:
 

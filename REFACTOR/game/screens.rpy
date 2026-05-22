@@ -236,7 +236,7 @@ screen stats_bar():
                         spacing 1
 
                         if _days_to_colonel > 0:
-                            text "DAY {stshl=[_today]} / 30":
+                            text _day_subhead:
                                 color "#f5f0e0"
                                 size 19
                                 bold True
@@ -247,12 +247,6 @@ screen stats_bar():
                                 size 19
                                 bold True
                                 font DOSSIER_FONT
-
-                        text _day_subhead:
-                            color DOSSIER_INK_DIM
-                            size 10
-                            italic True
-                            font DOSSIER_FONT
 
                     hbox:
                         spacing 4
@@ -459,8 +453,6 @@ screen deck_viewer():
     modal True
     zorder 400
 
-    default _deck_tab = "deck"  ## "deck" or "colonel"
-
     add "#0d0d11ee"
 
     python:
@@ -502,57 +494,16 @@ screen deck_viewer():
         yalign 0.5
         spacing 14
 
-        if _deck_tab == "deck":
-            text "> YOUR DECK <":
-                xalign 0.5
-                color "#cc2200"
-                size 36
-                bold True
-                font "fonts/RobotoMono-Regular.ttf"
-            text "[_deck_count] CARDS COLLECTED":
-                xalign 0.5
-                color "#888888"
-                size 18
-        else:
-            text "> VS COLONEL <":
-                xalign 0.5
-                color "#cc2200"
-                size 36
-                bold True
-                font "fonts/RobotoMono-Regular.ttf"
-            python:
-                _col_deck_size = diff_setting("colonel_deck_size", 7)
-            text "DIFFICULTY: [stats.difficulty.upper()]   ·   DECK SIZE: [_col_deck_size]":
-                xalign 0.5
-                color "#888888"
-                size 18
-
-        ## Tab switcher
-        hbox:
+        text "> YOUR DECK <":
             xalign 0.5
-            spacing 12
-
-            textbutton "MY DECK":
-                action SetScreenVariable("_deck_tab", "deck")
-                text_color ("#ffffff" if _deck_tab == "deck" else "#666666")
-                text_hover_color "#ffdd00"
-                text_size 16
-                text_bold (_deck_tab == "deck")
-                text_font "fonts/RobotoMono-Regular.ttf"
-                background (Frame("#1a0011ee", 4, 4) if _deck_tab == "deck" else "#00000000")
-                hover_background Frame("#2a0022ee", 4, 4)
-                padding (16, 8)
-
-            textbutton "VS COLONEL":
-                action SetScreenVariable("_deck_tab", "colonel")
-                text_color ("#ffffff" if _deck_tab == "colonel" else "#666666")
-                text_hover_color "#ffdd00"
-                text_size 16
-                text_bold (_deck_tab == "colonel")
-                text_font "fonts/RobotoMono-Regular.ttf"
-                background (Frame("#1a0000ee", 4, 4) if _deck_tab == "colonel" else "#00000000")
-                hover_background Frame("#2a0000ee", 4, 4)
-                padding (16, 8)
+            color "#cc2200"
+            size 36
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+        text "[_deck_count] CARDS COLLECTED":
+            xalign 0.5
+            color "#888888"
+            size 18
 
         viewport:
             xsize 1500
@@ -561,149 +512,67 @@ screen deck_viewer():
             mousewheel True
             draggable True
 
-            if _deck_tab == "deck":
-                vbox:
-                    spacing 14
+            vbox:
+                spacing 14
 
-                    for _grp in _group_order:
-                        if _deck_by_group.get(_grp):
-                            $ _grp_hex = _GROUP_HEX.get(_grp, "#888888")
-                            $ _grp_cards = _deck_by_group[_grp]
+                for _grp in _group_order:
+                    if _deck_by_group.get(_grp):
+                        $ _grp_hex = _GROUP_HEX.get(_grp, "#888888")
+                        $ _grp_cards = _deck_by_group[_grp]
 
-                            hbox:
-                                spacing 10
-                                text "{} ({})".format(_grp.upper(), len(_grp_cards)):
-                                    color _grp_hex
-                                    size 18
-                                    bold True
-                                    font "fonts/RobotoMono-Regular.ttf"
-
-                            ## Render cards in rows of 4
-                            $ _rows = [_grp_cards[i:i+4] for i in range(0, len(_grp_cards), 4)]
-                            vbox:
-                                spacing 8
-                                for _row in _rows:
-                                    hbox:
-                                        spacing 8
-                                        for _cid in _row:
-                                            $ _c = CARD_LIBRARY.get(_cid, {})
-                                            frame:
-                                                xsize 350
-                                                ysize 130
-                                                background Frame("#0d0d0dee", 4, 4)
-                                                padding (12, 10)
-
-                                                vbox:
-                                                    spacing 4
-
-                                                    hbox:
-                                                        spacing 6
-                                                        text "[[ {} ]".format(_c.get("cost", 0)):
-                                                            color _grp_hex
-                                                            size 14
-                                                            bold True
-                                                        text _c.get("name", _cid):
-                                                            color card_name_color(_c, "#ffffff")
-                                                            size 16
-                                                            bold True
-
-                                                    text "{} · {} · {}".format(_c.get("type", ""), _c.get("rarity", ""), _c.get("color", "")):
-                                                        color "#666666"
-                                                        size 11
-
-                                                    text effect_description(_c.get("effect", "")):
-                                                        color "#cccccc"
-                                                        size 13
-                                                        xmaximum 326
-
-                    if not _deck_cards:
-                        text "Your deck is empty.\nDo activities, attend events, or talk to Martin to collect cards.":
-                            color "#666666"
-                            size 16
-                            italic True
-                            xalign 0.5
-                            text_align 0.5
-            else:
-                ## --- COLONEL'S DECK PREVIEW ---
-                python:
-                    _col_template = COLONEL_DECK_TEMPLATES.get(diff_setting("colonel_deck_size", 7), COLONEL_DECK_TEMPLATES[7])
-                    _col_seen = []
-                    _col_dedup = []
-                    for _eid in _col_template:
-                        if _eid not in _col_seen:
-                            _col_seen.append(_eid)
-                            _col_dedup.append(_eid)
-
-                vbox:
-                    spacing 12
-
-                    text "He'll play these (in random order). Build your deck to counter:":
-                        color "#aaaaaa"
-                        size 14
-                        italic True
-
-                    null height 4
-
-                    $ _crows = [_col_dedup[i:i+3] for i in range(0, len(_col_dedup), 3)]
-                    for _crow in _crows:
                         hbox:
-                            spacing 12
-                            for _eid in _crow:
-                                $ _ec = ENEMY_DECK_LIBRARY.get(_eid, {})
-                                $ _eintent = _ec.get("intent", "attack")
-                                $ _eval = _ec.get("value", 0)
-                                $ _ev2 = _ec.get("value2", 0)
-                                $ _eaccent = "#ff4422" if _eintent in ("attack", "compound") else "#88aaff" if _eintent == "block" else "#ffaa44"
-                                if _eintent == "compound":
-                                    $ _enum = "{}x{}".format(_eval, _ev2)
-                                elif _eintent in ("attack", "block"):
-                                    $ _enum = "{}".format(_eval)
-                                else:
-                                    $ _enum = ""
-                                $ _eimm = _ec.get("immunity", [])
-                                $ _ecnt_keys = list(_ec.get("counter", {}).keys())
+                            spacing 10
+                            text "{} ({})".format(_grp.upper(), len(_grp_cards)):
+                                color _grp_hex
+                                size 18
+                                bold True
+                                font "fonts/RobotoMono-Regular.ttf"
 
-                                frame:
-                                    xsize 460
-                                    background Frame("#1a0000ee", 4, 4)
-                                    padding (14, 10)
+                        ## Render cards in rows of 4
+                        $ _rows = [_grp_cards[i:i+4] for i in range(0, len(_grp_cards), 4)]
+                        vbox:
+                            spacing 8
+                            for _row in _rows:
+                                hbox:
+                                    spacing 8
+                                    for _cid in _row:
+                                        $ _c = CARD_LIBRARY.get(_cid, {})
+                                        frame:
+                                            xsize 350
+                                            ysize 130
+                                            background Frame("#0d0d0dee", 4, 4)
+                                            padding (12, 10)
 
-                                    vbox:
-                                        spacing 4
+                                            vbox:
+                                                spacing 4
 
-                                        hbox:
-                                            spacing 8
-                                            text _ec.get("name", _eid):
-                                                color _eaccent
-                                                size 16
-                                                bold True
-                                            if _enum:
-                                                text _enum:
-                                                    color "#ffffff"
-                                                    size 14
-                                                    bold True
+                                                hbox:
+                                                    spacing 6
+                                                    text "[[ {} ]".format(_c.get("cost", 0)):
+                                                        color _grp_hex
+                                                        size 14
+                                                        bold True
+                                                    text _c.get("name", _cid):
+                                                        color card_name_color(_c, "#ffffff")
+                                                        size 16
+                                                        bold True
 
-                                        text "{} · threat {}".format(_eintent.upper(), _ec.get("threat", 1)):
-                                            color "#666666"
-                                            size 11
+                                                text "{} · {} · {}".format(_c.get("type", ""), _c.get("rarity", ""), _c.get("color", "")):
+                                                    color "#666666"
+                                                    size 11
 
-                                        text _ec.get("dialogue", ""):
-                                            color "#aaaaaa"
-                                            size 12
-                                            italic True
-                                            xmaximum 432
+                                                text effect_description(_c.get("effect", "")):
+                                                    color "#cccccc"
+                                                    size 13
+                                                    xmaximum 326
 
-                                        if _eimm:
-                                            text "IMMUNE: {}".format(", ".join(c.upper() for c in _eimm)):
-                                                color "#88cc88"
-                                                size 11
-                                                italic True
-
-                                        if _ecnt_keys:
-                                            text "COUNTERS: {}".format(", ".join(_ecnt_keys)):
-                                                color "#ccaa66"
-                                                size 11
-                                                italic True
+                if not _deck_cards:
+                    text "Your deck is empty.\nDo activities, attend events, or talk to Martin to collect cards.":
+                        color "#666666"
+                        size 16
+                        italic True
+                        xalign 0.5
+                        text_align 0.5
 
         textbutton "[[ CLOSE ]":
             xalign 0.5
@@ -811,7 +680,7 @@ default _ACT_DEFAULT_GLYPHS = {
     "RECOVERY": "❋",
     "BOUNCER": "$",
     "CODING": "</>",
-    "NIGHT SHIFT": "◐",
+    "OVERTIME": "◐",
     "PHONE": "☏",
     "SLEEP": "☾",
     "REST": "❋",
@@ -1209,10 +1078,10 @@ screen activity_select_screen():
             class_relevant = False,
         )
 
-        ## NIGHT SHIFT - shared money + hatred trade.
+        ## OVERTIME - shared money + hatred trade.
         use _activity_tile(
-            label_name     = "activity_night_shift",
-            title          = "NIGHT SHIFT",
+            label_name     = "activity_overtime",
+            title          = "OVERTIME",
             accent         = "#3388cc",
             cost_text      = "FREE",
             effect_chips   = [("CZK", +5000), ("Hatred", +15)],

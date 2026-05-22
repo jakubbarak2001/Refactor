@@ -633,6 +633,14 @@ init python:
             bs.enemy_max_hp = _enemy.get("max_hp") or 80
         bs.enemy_hp = bs.enemy_max_hp
 
+        ## Event hook — a random event (ev_colonel_regards) can leave the next
+        ## fight's enemy with bonus Strength. One-shot: consumed on entry.
+        _next_str = getattr(store, '_next_enemy_strength_bonus', 0)
+        if _next_str:
+            bs.enemy_strength += _next_str
+            bs.add_log("[[Setup]: {} starts with +{} Strength.".format(bs.enemy_log_name, _next_str))
+            store._next_enemy_strength_bonus = 0
+
         ## Vlk — Buy-In counter starts at 0. It drives Margin Call's damage
         ## and is surfaced as the BUY-IN badge in battle_screen.
         if enemy_id == "vlk":
