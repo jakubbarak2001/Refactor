@@ -1,133 +1,130 @@
 # REFACTOR
+
 > *"Code your way out, or lose your mind trying."*
 
-REFACTOR is a dark, satirical life-sim visual novel set in Northern Bohemia. You play as JB — a young police officer who realizes his calling is software development, not law enforcement.
+**REFACTOR** is a deckbuilder–life-sim set in Northern Bohemia. You play JB, a Czech cop on a 30-day countdown to a confrontation with his commanding officer — the Colonel — clawing his way out of policing and into software.
 
-Survive 30 days. Learn to code. Escape the system before it breaks you.
+The hook: **the deck you fight with is the 30 days you lived.** There is no curated card pool handed to you. Every day is a resource decision, and every decision writes a card into your deck. The Colonel fight is the reckoning for the deck — and the man — those 30 days produced.
+
+It's a Slay-the-Spire-shaped roguelike with a life-sim front half. Not a visual novel.
+
+<p align="center">
+  <img width="840" src="REFACTOR/game/images/backgrounds/colonel_office_angry.jpg" alt="The Colonel's office">
+  <br><sub><i>The Colonel's office — the cracks in the wall, and in the system.</i></sub>
+</p>
 
 ---
 
-## Core Loop
+## Preview
 
-Every day you pick **one activity**. Every third day, a **mandatory event** interrupts your routine. Story events fire on fixed days. Between it all, **opportunity events** appear randomly — small moments that test whether you stick to the plan or seize the unexpected.
+<table>
+  <tr>
+    <td width="50%"><img src="REFACTOR/game/images/backgrounds/bg_garda.jpg" alt="Police staging lot"><br><sub><i>A police staging lot — one node on the battle ladder.</i></sub></td>
+    <td width="50%"><img src="REFACTOR/game/images/backgrounds/bg_nguyen.jpg" alt="Market"><br><sub><i>The market — another Northern-Bohemia case to close.</i></sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="REFACTOR/game/images/backgrounds/bb_gym.jpg" alt="The gym"><br><sub><i>The gym — where you forge and upgrade cards.</i></sub></td>
+    <td width="50%"><img src="REFACTOR/game/images/backgrounds/havana_club_night.jpg" alt="Havana Club"><br><sub><i>The Havana Club — moonlighting a cop shouldn't be doing.</i></sub></td>
+  </tr>
+</table>
 
-Your choices compound. There is no single winning strategy.
+---
 
-### Stats
-- **Money (CZK)** — Pay for courses, therapy, gym. Hit zero → homeless ending.
-- **Coding Skill** — Your escape velocity. Learn Python, grind Fiverr tutors, invest in bootcamps.
-- **Police Hatred (PCR)** — Rises every night (scaling: +3 early, +5 late game). Hit 100 → breakdown.
+## The 30-day loop
 
-### Daily Activities
-| Activity | What It Does |
+Each day you pick **one move**. Activities don't just shift stats — they seed cards into your deck:
+
+| Activity | What it does |
 |---|---|
-| **Gym** | Reduce hatred. Streak 3+ days → Focus Buff (+2 coding/night) |
-| **Therapy** | Reduce hatred (diminishing returns over sessions, resets weekly) |
-| **Bouncer** | High-risk money. Night club (safer) or strip bar (volatile) |
-| **Coding** | Fiverr lessons (learn), Code for Money (earn, requires Tier 2+), Bootcamp (+5 coding/night for 10 days, repurchasable at scaling cost) |
-| **Patrol** | +3,000 CZK, +3 coding, +8 hatred. The grind shift. |
-| **Cold Read** | Dark Empath only. -20 hatred through observation. |
+| **Gym** | Train. Upgrade a card, or heal and raise max HP. |
+| **Coding** | Freelance / Coach / Bootcamp. Raises coding skill — your escape velocity. |
+| **Bouncer** | High-risk cash at the club. Pays well; dangerous for a cop. |
+| **Night Shift** | Trade time for money: +5,000 CZK, +15 hatred. |
 
-### Activity Combos
-Sequential activities trigger bonuses:
-- **Therapy → Gym** = Clear Mind (bad gym rolls upgraded)
-- **Patrol → Fiverr** = Night Learner (+3 bonus coding)
-- **Fiverr → Code for Money** = Flow State (+15% income)
+Three stats run the campaign:
 
-### Opportunity Events
-~30% chance on non-event days. 8-event pool, no repeats per run. Small encounters with real tradeoffs — a laptop deal, a freelance ping, an old friend, a midnight run. They don't consume your daily activity.
+- **Money (CZK)** — pays for coaching, courses, recovery. Hit zero and you're on the street.
+- **Coding Skill** — your way out, and it reaches into battle.
+- **Police Hatred (PČR)** — climbs every night. Hit 100 and JB breaks.
+
+Story beats fire on fixed days; opportunity events appear at random. Your choices compound — there is no single winning strategy.
 
 ---
 
-## Character Classes
+## Hatred corrupts your deck
 
-Chosen once at game start. Permanent.
-
-- **Bodybuilder** — Gym bonuses, bouncer pay bonus. Starts with -5 coding.
-- **Dark Empath** — Cold Read replaces therapy. Starts with -10 hatred.
-- **Biohacker** — Nootropics system, guaranteed top Fiverr tutors, BTC passive income. Starts with +10 coding.
+Hatred isn't only a fail bar. As it climbs, **involuntary Rage cards** get jammed into your deck — high damage, self-corrupting (self-damage, hand discard, block-strip). A "hot" run hits hard and runs unstable. The Colonel weaponizes your own hatred against you.
 
 ---
 
-## Difficulty
+## Combat — the battle ladder
 
-| Mode | Money | Coding | Hatred |
-|---|---|---|---|
-| Easy | 55,000 | 10 | 15 |
-| Hard | 35,000 | 5 | 25 |
-| Insane | 20,000 | 0 | 35 |
-| Ultra | 10,000 | -25 | 50 |
+A dozen-plus turn-based card battles are spread across the 30 days, each framed as a Northern-Bohemia police case: a market bust, a staging-lot standoff, an internal-affairs interrogation. A day slot rolls **either** a battle node or a narrative event.
+
+Each fight uses conventional HP. **Losing is not game over** — it triggers a *forced detour* (hospital, suspension, debt) with its own choices and cost. Stack up enough stalls and the run degrades toward a worse ending.
+
+**The Colonel** is the capstone — a multi-phase deck-fight whose intent escalates with your hatred, built on mechanics the ladder telegraphs but never fully shows.
 
 ---
 
-## Story Structure
+## Classes
 
-- **Day 1** — Car Incident. Three choices, multiple RNG outcomes. Sets the Colonel's attitude for the rest of the game.
-- **Day 6 / 12 / 18** — The Bribe Chain. A corrupt cop arc with escalating consequences. Your choices here can lock you into a hidden ending.
-- **Day 14** — Salary day. Amount depends on your hatred level.
-- **Day 15** — Midnight Call. The Colonel phones you.
-- **Day 24** — Martin Meeting. Your ex-colleague offers a way out.
-- **Day 25-30** — Colonel Event. The final confrontation.
+<img align="right" width="240" src="REFACTOR/game/images/sprites/jb_bodybuilder.jpg" alt="JB, the Bodybuilder">
 
-Random events fire every 3rd day between story beats. Pool-based, no repeats.
+- **Bodybuilder** — playable. A body-and-block archetype: the gym is his card forge, and every rep is an argument.
+- **Dark Empath / Biohacker** — locked previews in this build.
+
+The class you pick is permanent and reshapes the daily loop, the deck you can build, and how the Colonel fight goes.
+
+<br clear="right">
 
 ---
 
 ## Endings
 
-| # | Ending | Trigger |
-|---|---|---|
-| 1 | **Mental Breakdown** | Hatred ≥ 100 before colonel day |
-| 2 | **Homeless** | Money ≤ 0 |
-| 3 | **Burnout** | Hatred ≥ 100 on colonel day+ |
-| 4 | **Defeated** | Colonel wins the fight |
-| 5 | **Escaped** | JB wins the fight |
-| 6 | **Happy Nation** | Hidden. Beat the Colonel, but the Bribe Chain catches up. GIBS raids your apartment three weeks after you resign. |
+Four ways the 30 days resolve:
+
+- **Breakdown** — hatred reaches 100 before the reckoning.
+- **Homeless** — money runs out.
+- **Escape** — you beat the Colonel and walk out clean.
+- **Reunion** — you survive the Colonel, but too broke or unskilled to truly leave.
 
 ---
 
 ## Tone
 
-Dark comedy meets existential dread. JB isn't a victim who cries about his failures — he's a guy trapped in a broken system who decides to fight his way out. The humor is dry, the stakes are real, and the bureaucracy is the true antagonist.
-
-The game doesn't moralize. It presents choices and lets the math do the talking.
+Dark comedy meets existential dread. JB isn't a victim who cries about his failures — he's a man trapped in a broken system who decides to fight his way out. The humor is dry, the stakes are real, and the bureaucracy is the true antagonist. The game doesn't moralize; it presents choices and lets the math do the talking.
 
 ---
 
-## How to Run
+## Tech
 
-### Ren'Py Launcher (Recommended)
+- **Engine:** Ren'Py 8 — Python game logic in `init python` blocks
+- **Architecture:** modular `.rpy` codebase — daily loop, stat model, deck/battle engine, and content split across separate files
+- **Content:** 70+ cards across multiple archetypes; a dozen-plus enemy ladder plus the Colonel capstone
+- **Art:** AI-generated and hand-curated (Nano Banana / Gemini pipeline)
+- **Music:** original AI-generated tracks
+
+Currently runs on one tuned difficulty; difficulty tiers and meta-progression are post-1.0. See `docs/REFACTOR_VISION.md` for the roadmap to Steam 1.0.
+
+---
+
+## Run it
+
 1. Download [Ren'Py 8](https://www.renpy.org/latest.html)
-2. Add the `REFACTOR/` folder as a project
+2. Add the `REFACTOR/` folder as a project in the Ren'Py launcher
 3. Launch
 
-### Built Distribution
-Run the pre-built executable directly.
+### Controls
 
----
-
-## Controls
-- **Left click / Space / Enter** — Advance dialogue
-- **Mouse wheel / Page Up/Down** — Scroll history
-- **Escape** — Game menu
-- **S** — Screenshot
-- **H** — Hide dialogue
-
----
-
-## Tech Stack
-- **Engine:** Ren'Py 8
-- **Scripting:** Ren'Py Script + Python 3
-- **Audio:** MP3 (original AI-generated tracks)
-- **Visuals:** AI-generated sprites, backgrounds, video cutscenes
-- **Art:** Gemini, Midjourney
-- **Music:** Suno AI
+- **Left click / Space / Enter** — advance
+- **Escape** — game menu
+- **S** — screenshot · **H** — hide dialogue
 
 ---
 
 ## Credits
-**Developer:** Jakub Barak
 
----
+**Developer:** Jakub Barák
 
 *"Police officers preserve the status quo. Developers build the future."*
