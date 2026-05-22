@@ -9,24 +9,22 @@ The hook: **the deck you fight with is the 30 days you lived.** There is no cura
 It's a Slay-the-Spire-shaped roguelike with a life-sim front half. Not a visual novel.
 
 <p align="center">
-  <img width="840" src="REFACTOR/game/images/backgrounds/colonel_office_angry.jpg" alt="The Colonel's office">
-  <br><sub><i>The Colonel's office — the cracks in the wall, and in the system.</i></sub>
+  <img width="880" src="docs/screenshots/main_menu.png" alt="REFACTOR main menu">
 </p>
 
 ---
 
 ## Preview
 
-<table>
-  <tr>
-    <td width="50%"><img src="REFACTOR/game/images/backgrounds/bg_garda.jpg" alt="Police staging lot"><br><sub><i>A police staging lot — one node on the battle ladder.</i></sub></td>
-    <td width="50%"><img src="REFACTOR/game/images/backgrounds/bg_nguyen.jpg" alt="Market"><br><sub><i>The market — another Northern-Bohemia case to close.</i></sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="REFACTOR/game/images/backgrounds/bb_gym.jpg" alt="The gym"><br><sub><i>The gym — where you forge and upgrade cards.</i></sub></td>
-    <td width="50%"><img src="REFACTOR/game/images/backgrounds/havana_club_night.jpg" alt="Havana Club"><br><sub><i>The Havana Club — moonlighting a cop shouldn't be doing.</i></sub></td>
-  </tr>
-</table>
+<p align="center">
+  <img width="880" src="docs/screenshots/battle.png" alt="Card battle against a football hooligan">
+  <br><sub><i>Turn-based card combat. Every fight is a Northern-Bohemia police case — here, a football hooligan. Cards like <b>Heavy Set</b> scale with your hatred.</i></sub>
+</p>
+
+<p align="center">
+  <img width="880" src="docs/screenshots/daily_hub.png" alt="The daily hub in JB's flat">
+  <br><sub><i>The daily hub — JB's flat in Děčín. Pick one move; the calendar counts down to the Colonel.</i></sub>
+</p>
 
 ---
 
