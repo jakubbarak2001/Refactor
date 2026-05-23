@@ -397,7 +397,7 @@ label martin_phase6_hatred_check:
     martin "One last thing. The system. The Colonel. The meaningless orders."
     martin "What do you really feel about them? Is this just burnout, or is it personal?"
 
-    "REALITY CHECK — Current PCR HATRED: [stats.pcr_hatred]/100"
+    "REALITY CHECK — Current PCR HATRED: [stats.pcr_hatred]/[hatred_cap()]"
 
     menu:
         "Pure rage. (+2 AFFECTION, +25 HATRED)":

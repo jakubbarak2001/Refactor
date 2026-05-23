@@ -99,7 +99,7 @@ label ev_the_vending_machine:
             {
                 "id": "tip",
                 "label": "[ TIP IT OVER ]",
-                "desc": ec("Lose 8 HP") + ".  " + eg("It splits open: a random card, and a tray of other people's coins."),
+                "desc": ec("Lose 8 HP") + ".  " + eg("Gain a random card.") + "  " + eg("+ 800 CZK."),
             },
             {
                 "id": "kick",
@@ -180,12 +180,12 @@ label ev_the_smell:
             {
                 "id": "open",
                 "label": "[ OPEN THE DOOR ]",
-                "desc": ek("Whatever is on the other side, you will have seen it."),
+                "desc": ek("A gamble.") + "  " + eg("Best case: - 6 Hatred.") + "  " + ec("Worst: + 18 Hatred, gain a card.") + "  Even odds.",
             },
             {
                 "id": "seal",
                 "label": "[ SEAL IT. LOSE THE ADDRESS. ]",
-                "desc": eg("- 8 Hatred") + ".  " + ec("The not-knowing stays: gain a dead card."),
+                "desc": eg("- 8 Hatred") + ".  " + ec("Gain an unplayable card (dead weight).") + "  The not-knowing stays.",
             },
             {
                 "id": "call",
@@ -294,14 +294,14 @@ label ev_designer_of_forms:
             {
                 "id": "resubmit",
                 "label": "[ RESUBMIT IN TRIPLICATE ]",
-                "desc": ec("7,000 CZK") + ".  " + eg("He transforms 2 cards into something else."),
+                "desc": ec("7,000 CZK") + ".  " + eg("You pick 2 cards; each becomes a random card of the same rarity."),
                 "enabled": (stats.available_money >= 7000),
                 "locked": "Triplicate filing runs 7,000 CZK.",
             },
             {
                 "id": "full",
                 "label": "[ FULL REPROCESSING ]",
-                "desc": ec("10,000 CZK") + ".  " + eg("He strikes a card from the record and sharpens one at random."),
+                "desc": ec("10,000 CZK") + ".  " + eg("Remove a card you choose. Upgrade another at random."),
                 "enabled": _df_full_ok,
                 "locked": _df_full_lock,
             },
@@ -495,7 +495,7 @@ label ev_colonel_regards:
             {
                 "id": "keep",
                 "label": "[ KEEP IT ]",
-                "desc": eg("Gain a strong card") + ".  " + ec("The next case he sends comes harder."),
+                "desc": eg("Gain a strong card") + ".  " + ec("Next enemy: + 3 Strength."),
             },
             {
                 "id": "burn",
@@ -578,7 +578,7 @@ label ev_pills:
             {
                 "id": "swallow",
                 "label": "[ SWALLOW ONE ]",
-                "desc": ek("You will not know which one until it is already in you."),
+                "desc": ek("A gamble.") + "  " + eg("Best case: + 30 HP.") + "  " + ec("Worst: - 14 HP, gain a dead card.") + "  Roughly even odds.",
             },
             {
                 "id": "sell",
@@ -673,12 +673,12 @@ label ev_uniform_collector:
             {
                 "id": "memory",
                 "label": "[ SELL HIM A MEMORY ]",
-                "desc": eg("+ 3,000 CZK") + ".  " + ec("Transform a card") + " into whatever he leaves in its place.",
+                "desc": eg("+ 3,000 CZK") + ".  " + ec("You pick a card; it becomes a random card of the same rarity."),
             },
             {
                 "id": "refuse",
                 "label": "[ REFUSE, AND MEET HIS EYES ]",
-                "desc": ec("His stare follows you home: gain a dead card."),
+                "desc": ec("Gain an unplayable card (dead weight).") + "  His stare follows you home.",
             },
         ]
 
@@ -755,7 +755,7 @@ label ev_karaoke:
             {
                 "id": "use",
                 "label": "[ USE IT ]",
-                "desc": eg("Gain a strong card") + ".  " + ec("+ 15 Hatred, and a colleague becomes a problem you keep."),
+                "desc": eg("Gain a strong card") + ".  " + ec("+ 15 Hatred.") + "  " + ec("Gain 2 unplayable cards (dead weight)."),
             },
             {
                 "id": "report",
@@ -826,13 +826,13 @@ label ev_the_interview:
         _iv_body = [
             "A number you applied to three weeks ago, calling back now, nine in the evening, while you are parked behind the Albert with the engine off.",
             "'Quick technical screen. Thirty minutes. Is now bad?'",
-            "Now is bad. Now is always bad. The laptop is on the passenger seat.",
+            "Now is bad. Now is always bad. The laptop is waiting for you.",
         ]
         _iv_choices = [
             {
                 "id": "take",
                 "label": "[ TAKE THE CALL ]",
-                "desc": ek("A coding problem, right now, in the car. Solve it or don't."),
+                "desc": ek("Coding puzzle.") + "  " + eg("Pass: + 20 HP, - 12 Hatred, gain a card.") + "  " + ec("Fail: + 15 Hatred, gain a dead card."),
             },
             {
                 "id": "resched",
@@ -1005,3 +1005,80 @@ label ev_photocopier:
     call screen event_outcome(title="THE PHOTOCOPIER", art=_pc_art, result=_pc_res)
     return
 
+
+## ---------------------------------------------------------------------------
+## SYNTHOL BROTHERS [bodybuilder-only] — the shortcut. Demo dose buys +2 SOMA
+## for HP; the full stack buys +5 SOMA for a Compromise card; walk away costs
+## nothing but a little dignity. Pool-gated to BB in event_engine.rpy.
+## ---------------------------------------------------------------------------
+
+label ev_synthol_brothers:
+
+    scene bg_random_event
+    play music "audio/random_event_bed.wav" fadein 1.0
+
+    python:
+        _sb_art = "images/events/ev_synthol_brothers.jpg"
+        _sb_body = [
+            "Behind the squat-rack at Iron Garden, two brothers run a small business off a folding table. Vials, a syringe still in its wrapper, a roll of paper towel. Everything you would need, laid out the way a dentist lays out tools.",
+            "'Brácho. Saw you on the rack. Good form. Slow tempo.' The older one tilts his head. 'You're working hard. We can make it easier.'",
+            "His shoulders sit wrong — round, oiled, too high. Not muscle. Not all muscle. The younger one is already drawing the dose.",
+        ]
+        _sb_choices = [
+            {
+                "id": "demo",
+                "label": "[ ONE SHOT ]",
+                "desc": eg("+ 2 SOMA") + ".  " + ec("Lose 20 HP") + ".  The cheap demo dose. Your body will know.",
+            },
+            {
+                "id": "full",
+                "label": "[ THE FULL STACK ]",
+                "desc": eg("+ 5 SOMA") + ".  " + ec("Gain an unplayable card (dead weight).") + "  They cook the bigger batch.",
+            },
+            {
+                "id": "walk",
+                "label": "[ WALK AWAY ]",
+                "desc": "Nothing. They will let you go, and they will let you know what they think of it.",
+            },
+        ]
+
+    call screen event_screen(title="THE SYNTHOL BROTHERS", art=_sb_art, body=_sb_body, choices=_sb_choices)
+
+    python:
+        _sb_pick = _return
+        _sb_res = []
+
+    if _sb_pick == "demo":
+        python:
+            _sb_lost = event_hurt(20)
+            add_soma(2)
+            _sb_res = [
+                "He hits the deltoid, fast, the way someone who has done this two hundred times hits it. You barely feel the needle. You feel the rest.",
+                "By the time you reach the car your shoulder is hot, then cold, then a temperature your shoulder is not meant to be. You sleep on your other side for a week.",
+                "But the mirror does not argue. The shirt sits differently. You are bigger. Cheaper, in some way you cannot point at — but bigger.",
+                eg("+ 2 SOMA.") + "   " + ec("- {} HP.".format(_sb_lost)),
+            ]
+
+    elif _sb_pick == "full":
+        python:
+            add_soma(5)
+            grant_card("compromise", silent=True)
+            _sb_res = [
+                "The younger one warms the vial in his palm like a sommelier. The older one talks the whole time — about discipline, about heritage, about how the body is a project, and a project deserves a budget.",
+                "Four sites. Four needles. You walk out of Iron Garden three centimetres bigger across the chest and a different person inside the shirt.",
+                "Something settled in with the oil. It does not show in the mirror. It shows in the deck.",
+                eg("+ 5 SOMA.") + "   " + ec("Gained an unplayable card (dead weight)."),
+            ]
+
+    else:
+        python:
+            _sb_res = [
+                "'No,' you say. 'Not for me.'",
+                "The older brother smiles, slow, the way men smile at boys. 'Sure, brácho. Stay natty. Twenty years of pressing and you'll look like me anyway.' He flexes once, just to make the point. The shoulder does not move like a shoulder.",
+                "'You don't know what you're missing,' the younger one calls after you. 'You'll be back when the bench plateaus.'",
+                "The door swings shut behind you. They are still laughing.",
+                "No cost. No gain. Just the noise of it, riding home with you.",
+            ]
+
+    call screen event_outcome(title="THE SYNTHOL BROTHERS", art=_sb_art, result=_sb_res)
+    return

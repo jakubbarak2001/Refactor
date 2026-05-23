@@ -36,12 +36,15 @@ init python:
 
     def _ensure_random_event_pool():
         if getattr(store, 'random_event_pool', None) is None:
-            store.random_event_pool = [
+            _pool = [
                 "ev_the_vending_machine", "ev_the_smell", "ev_designer_of_forms",
                 "ev_lost_and_found", "ev_colonel_regards", "ev_pills",
                 "ev_uniform_collector", "ev_karaoke", "ev_the_interview",
                 "ev_photocopier",
             ]
+            if stats is not None and stats.player_class == "bodybuilder":
+                _pool.append("ev_synthol_brothers")
+            store.random_event_pool = _pool
 
     ## ── Run-HP helpers ────────────────────────────────────────────────────
     ## run_hp is the persistent battle-HP pool. It stays None until the first

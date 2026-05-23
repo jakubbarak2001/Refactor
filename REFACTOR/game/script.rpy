@@ -1045,85 +1045,52 @@ label coding_bootcamp:
 
     python:
         _bc_cost = adjusted_cost(35000)
-        _bc_cost_str = "{:,}".format(_bc_cost)
+        if not stats.try_spend_money(_bc_cost):
+            renpy.say(None, "[[INSUFFICIENT FUNDS] You need {:,} CZK. Current: {:,} CZK.".format(_bc_cost, stats.available_money))
+            renpy.jump("activity_coding")
 
-    "The bootcamp costs [_bc_cost_str] CZK. This is a massive investment.\nAre you sure you want to sign the contract?"
+    "Six weeks of deadlines, code reviews, and one Friday capstone that ships a working REST API in a single sitting. The instructor pings you: 'You're ready to push to production.'"
 
-    menu:
-        "Yes.":
-            python:
-                if not stats.try_spend_money(_bc_cost):
-                    renpy.say(None, "[[INSUFFICIENT FUNDS] You need {:,} CZK. That is a lot of money. Maybe stick to free docs for now?".format(_bc_cost))
-                    renpy.jump("activity_coding")
-            "You sign a contract and pay for an on-line Python bootcamp.\nDeadlines, assignments, code reviews. The full package.\nThis is no longer a hobby. This is a commitment."
-            "Six weeks in, the Friday capstone hits. You ship a working REST API in a single sitting. The instructor pings you privately: 'You're ready to push to production.'"
+    $ python_bootcamp = True
 
-            $ python_bootcamp = True
+    python:
+        stats.increment_stats_coding_skill(25)
+        grant_card("production_push", silent=True)
+        _bc_outcome = "- {:,} CZK   +25 CODING   +5 Coding/night   [+ Production Push]".format(_bc_cost)
 
-            python:
-                ## Bootcamp pays out everything in one go now: +25 coding, the
-                ## permanent +5/night buff, and the Production Push card. The
-                ## old "take card OR take stats" trade was removed — players
-                ## found the extra screen friction-heavy for an already-pricey
-                ## activity.
-                stats.increment_stats_coding_skill(25)
-                grant_card("production_push", silent=True)
-                _bc_outcome = "- {:,} CZK   +25 CODING   +5 Coding/night   [+ Production Push]".format(_bc_cost)
-
-            window hide
-            show screen outcome_panel(_bc_outcome)
-            pause
-            hide screen outcome_panel
-            python:
-                activity_selected = True
-            jump end_day
-
-        "No.":
-            "You step back. It's too much money right now."
-            jump activity_coding
+    window hide
+    show screen outcome_panel(_bc_outcome)
+    pause
+    hide screen outcome_panel
+    python:
+        activity_selected = True
+    jump end_day
 
 
 label coding_bootcamp_de:
 
     python:
         _bc_cost = adjusted_cost(28000)
-        _bc_cost_str = "{:,}".format(_bc_cost)
+        if not stats.try_spend_money(_bc_cost):
+            renpy.say(None, "[[INSUFFICIENT FUNDS] You need {:,} CZK. Current: {:,} CZK.".format(_bc_cost, stats.available_money))
+            renpy.jump("activity_coding")
 
-    "The bootcamp costs [_bc_cost_str] CZK. Your emotional intelligence tells you this course is worth more than it costs."
-    "You've already mapped the instructor's communication style. You will extract maximum value."
+    "You read the instructor on the call and price yourself a 20%% discount. Six weeks later you ship the capstone REST API ahead of the cohort. 'You're ready to push to production.'"
 
-    menu:
-        "Yes.":
-            python:
-                if not stats.try_spend_money(_bc_cost):
-                    renpy.say(None, "[[INSUFFICIENT FUNDS] You need {:,} CZK. Current: {:,} CZK.".format(_bc_cost, stats.available_money))
-                    renpy.jump("activity_coding")
-            "You sign the contract."
-            "While others grind through the curriculum mechanically, you read your cohort."
-            "You know which questions to ask. You know when to stay late and when the instructor is in a generous mood."
-            "The bootcamp that costs others 35k costs you 28k. You extracted a 20%% discount through competence."
-            "Six weeks in, the Friday capstone hits. You ship a clean REST API while the rest of the cohort is still wrestling with imports. The instructor doesn't say it, but you already read it on her face: 'You're ready to push to production.'"
+    $ python_bootcamp = True
 
-            $ python_bootcamp = True
+    python:
+        stats.increment_stats_coding_skill(25)
+        grant_card("production_push", silent=True)
+        _bc_outcome = "- {:,} CZK [DE DISCOUNT]   +25 CODING   +5 Coding/night   [+ Production Push]".format(_bc_cost)
 
-            python:
-                ## Same consolidated reward as the universal bootcamp — see
-                ## coding_bootcamp comment. DE discount on price only.
-                stats.increment_stats_coding_skill(25)
-                grant_card("production_push", silent=True)
-                _bc_outcome = "- {:,} CZK [DE DISCOUNT]   +25 CODING   +5 Coding/night   [+ Production Push]".format(_bc_cost)
-
-            window hide
-            show screen outcome_panel(_bc_outcome)
-            pause
-            hide screen outcome_panel
-            python:
-                activity_selected = True
-            jump end_day
-
-        "No.":
-            "You step back."
-            jump activity_coding
+    window hide
+    show screen outcome_panel(_bc_outcome)
+    pause
+    hide screen outcome_panel
+    python:
+        activity_selected = True
+    jump end_day
 
 
 ## ---------------------------------------------------------------------------
@@ -1138,61 +1105,52 @@ label activity_overtime:
 
     scene bg_police_interior
 
-    "You volunteer for overtime."
-    "5,000 CZK for 8 more hours in uniform."
-    "You don't need the money. But you do need the distraction."
+    "You sign on for the extra shift. 5,000 CZK and eight more hours under the fluorescents."
 
-    menu:
-        "Take the shift. (+5,000 CZK)":
-            python:
-                stats.increment_stats_value_money(5000)
-                stats.increment_stats_pcr_hatred(15)
-                _ot_kind, _ot_eid, _ot_tier = _roll_overtime()
+    python:
+        stats.increment_stats_value_money(5000)
+        stats.increment_stats_pcr_hatred(15)
+        _ot_kind, _ot_eid, _ot_tier = _roll_overtime()
 
-            if _ot_kind == "battle":
-                call battle_with(_ot_eid, _ot_tier) from _call_overtime_battle
-                python:
-                    if stats.pcr_hatred >= 75:
-                        renpy.music.play("audio/tension_theme.mp3", fadein=1.5)
-                    else:
-                        play_daily_music(fadein=1.5)
-                    activity_selected = True
-                jump end_day
+    if _ot_kind == "battle":
+        call battle_with(_ot_eid, _ot_tier) from _call_overtime_battle
+        python:
+            if stats.pcr_hatred >= 75:
+                renpy.music.play("audio/tension_theme.mp3", fadein=1.5)
+            else:
+                play_daily_music(fadein=1.5)
+            activity_selected = True
+        jump end_day
 
-            if _ot_kind == "event":
-                call expression _ot_eid from _call_overtime_event
-                $ activity_selected = True
-                jump end_day
+    if _ot_kind == "event":
+        call expression _ot_eid from _call_overtime_event
+        $ activity_selected = True
+        jump end_day
 
-            python:
-                _ns_roll = __import__('random').randint(1, 100)
-                if _ns_roll <= 20:
-                    stats.increment_stats_coding_skill(8)
-                    stats.increment_stats_pcr_hatred(-5)
-                    _ns_bonus = "\n[NIGHT BONUS]: Dead quiet shift. You studied Python for 4 hours. +8 Coding, -5 Hatred."
-                elif _ns_roll <= 40:
-                    stats.increment_stats_value_money(1500)
-                    _ns_bonus = "\n[NIGHT BONUS]: Helped with an accident. Extra callout pay. +1,500 CZK."
-                elif _ns_roll <= 60:
-                    stats.increment_stats_pcr_hatred(10)
-                    _ns_bonus = "\n[NIGHT PENALTY]: Paperwork from an arrest took until 6AM. +10 PCR HATRED."
-                else:
-                    _ns_bonus = ""
+    python:
+        _ns_roll = __import__('random').randint(1, 100)
+        if _ns_roll <= 20:
+            stats.increment_stats_coding_skill(8)
+            stats.increment_stats_pcr_hatred(-5)
+            _ns_bonus = "\n[NIGHT BONUS]: Dead quiet shift. You studied Python for 4 hours. +8 Coding, -5 Hatred."
+        elif _ns_roll <= 40:
+            stats.increment_stats_value_money(1500)
+            _ns_bonus = "\n[NIGHT BONUS]: Helped with an accident. Extra callout pay. +1,500 CZK."
+        elif _ns_roll <= 60:
+            stats.increment_stats_pcr_hatred(10)
+            _ns_bonus = "\n[NIGHT PENALTY]: Paperwork from an arrest took until 6AM. +10 PCR HATRED."
+        else:
+            _ns_bonus = ""
 
-            "You work through the night."
-            "The city is different after midnight — quieter, stranger, more honest."
-            "You check your watch every hour."
-            "[_ns_bonus]"
-            window hide
-            show screen outcome_panel("+5,000 CZK, +15 PCR HATRED.{}".format(_ns_bonus))
-            pause
-            hide screen outcome_panel
+    "You work through the night. The city is different after midnight — quieter, stranger, more honest."
+    "[_ns_bonus]"
+    window hide
+    show screen outcome_panel("+5,000 CZK, +15 PCR HATRED.{}".format(_ns_bonus))
+    pause
+    hide screen outcome_panel
 
-            $ activity_selected = True
-            jump end_day
-
-        "Return to menu.":
-            jump daily_menu
+    $ activity_selected = True
+    jump end_day
 
 
 ## ---------------------------------------------------------------------------

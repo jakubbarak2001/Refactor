@@ -637,17 +637,17 @@ screen _activity_chip_row(chips):
             if _stat == "sep":
                 text _act_chip_label(_stat, _delta):
                     color _chip_color
-                    size 14
+                    size 18
                     bold True
                     font "fonts/RobotoMono-Regular.ttf"
                     yalign 0.5
             else:
                 frame:
-                    padding (5, 2)
+                    padding (9, 4)
                     background Frame("#1a1a1aee", 3, 3)
                     text _act_chip_label(_stat, _delta):
                         color _chip_color
-                        size 12
+                        size 16
                         bold True
                         font "fonts/RobotoMono-Regular.ttf"
 
@@ -783,14 +783,18 @@ screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effe
                             bold True
                             outlines [(2, "#000000", 0, 0)]
 
-                    ## COST — gold by default, red when player can't afford,
-                    ## dim grey when the tile is class-locked.
-                    text cost_text:
-                        color _at_cost_color
-                        size 16
-                        bold True
-                        xalign 0.5
-                        font "fonts/RobotoMono-Regular.ttf"
+                    ## COST — only render when the activity actually costs
+                    ## something. FREE is the default and carries no info, so
+                    ## suppressing it lets the outcome chips below be the
+                    ## visual headline (was the #1 playtest complaint: the
+                    ## big bold FREE made players miss the real outcomes).
+                    if cost_text and cost_text != "FREE":
+                        text cost_text:
+                            color _at_cost_color
+                            size 16
+                            bold True
+                            xalign 0.5
+                            font "fonts/RobotoMono-Regular.ttf"
 
                     ## EFFECT — chip row (preferred) or legacy "Reward:" string.
                     if effect_chips:
@@ -926,6 +930,8 @@ screen hatred_intro_popup():
 
     add "#000000aa"
 
+    $ _hatred_collapse_cap = hatred_cap()
+
     frame:
         xalign 0.5
         yalign 0.5
@@ -947,19 +953,19 @@ screen hatred_intro_popup():
                 ysize 2
                 background Frame("#cc2200", 0, 0)
 
-            text "Police-Citizen-Relations. The job's corruption stat. Rises from confrontations and bad events. Drops from gym, recovery, and relief activities.":
+            text "The job's corruption clock. Bad events raise it. Relief activities drop it.":
                 color "#cccccc"
                 size 16
                 xmaximum 620
                 font "fonts/RobotoMono-Regular.ttf"
 
-            text "At 40, 60, and 80 — a Rage card is forced into your deck. Permanent for the run. Rage cards deal damage but cost HP, a card, or +2 Hatred.":
+            text "At 40 / 60 / 80 — a Rage card is forced into your deck. Deals damage at a cost.":
                 color "#cccccc"
                 size 16
                 xmaximum 620
                 font "fonts/RobotoMono-Regular.ttf"
 
-            text "At 100 — collapse. The run ends.":
+            text "At [_hatred_collapse_cap] — collapse. The run ends.":
                 color "#ff6655"
                 size 16
                 bold True
@@ -1062,7 +1068,7 @@ screen activity_select_screen():
             title          = "BOUNCER",
             accent         = "#ffd700",
             cost_text      = "FREE",
-            effect_chips   = [("CZK", None), ("Hatred", None)],
+            effect_chips   = [("CZK", "+ CZK"), ("Hatred", "+ Hatred")],
             flavor_text    = "Moonlighting pays well, but it's dangerous for cops.",
             class_relevant = False,
         )
@@ -1073,7 +1079,7 @@ screen activity_select_screen():
             title          = "CODING",
             accent         = "#00ccff",
             cost_text      = "FREE",
-            effect_chips   = [("Coding", None), ("CZK", None)],
+            effect_chips   = [("Coding", "+ Coding"), ("sep", "/"), ("CZK", "+ CZK")],
             flavor_text    = "Freelance / Coach / Bootcamp.",
             class_relevant = False,
         )
@@ -5005,7 +5011,7 @@ screen quick_menu():
                 textbutton _("save") action ShowMenu('save')
                 textbutton _("q.save") action QuickSave()
                 textbutton _("q.load") action QuickLoad()
-                textbutton _("prefs") action ShowMenu('preferences')
+                textbutton _("settings") action ShowMenu('preferences')
 
 
 ## This code ensures that the quick_menu screen is displayed in-game, whenever
@@ -5074,7 +5080,7 @@ screen navigation():
 
         textbutton _("►  load") action ShowMenu("load")
 
-        textbutton _("►  preferences") action ShowMenu("preferences")
+        textbutton _("►  settings") action ShowMenu("preferences")
 
         if stats is not None:
 
@@ -5240,7 +5246,7 @@ screen main_menu_navigation():
         if stats is not None:
             textbutton _("►  trophies") style "mm_button" action [Hide("phone_screen"), ShowMenu("trophies_menu")] hovered _mm_hover_sfx
 
-        textbutton _("►  preferences") style "mm_button" action ShowMenu("preferences") hovered _mm_hover_sfx
+        textbutton _("►  settings") style "mm_button" action ShowMenu("preferences") hovered _mm_hover_sfx
 
         textbutton _("►  about") style "mm_button" action ShowMenu("about") hovered _mm_hover_sfx
 
@@ -5765,7 +5771,7 @@ screen preferences():
 
     tag menu
 
-    use game_menu(_("Preferences"), scroll="viewport"):
+    use game_menu(_("Settings"), scroll="viewport"):
 
         vbox:
             spacing 14

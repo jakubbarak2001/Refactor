@@ -42,26 +42,11 @@ label car_incident:
 
     "A polite crunch. You look in the mirror. You see grey."
     "You get out. A Kodiaq is parked diagonal across the back lane. Your bumper found his front grille at maybe four kph."
-    "Nobody parks like that. Except the Commandant."
+    "You don't need to check the plate. You know whose car this is. The Colonel's."
 
-    ## Flashback — hard cut to the banner, then straight into the cutscene.
-    ## No fade transition or padding pauses; the abrupt swap is the point.
-    stop music fadeout 0.3
-    scene bg_black
-    hide screen dossier_hud
-
-    "{size=+18}{color=#ffcc00}{b}FLASHBACK — THE COLONEL{/b}{/color}{/size}"
-
-    $ renpy.movie_cutscene("video/colonel_car_incident.webm")
-
-    scene bg_parking_lot with fade
     $ set_dossier_beat("06:34", "FILE I/02 · COLONEL'S CAR")
-    show screen dossier_hud
-    show jb worried at char_left
-    play music "audio/car_incident_dawn.mp3" fadein 0.5
 
-    "{cps=8}{b}{color=#ffcc00}{size=+12}AND THIS IS HIS CAR.{/size}{/color}{/b}{/cps}"
-    "Cameras. Gossip. The Commandant's morning walk-around. He'll know by lunch."
+    "Cameras. Gossip. The morning walk-around. He'll know by lunch."
     "You'd rather be the one who tells him."
 
     jump car_incident_admit
