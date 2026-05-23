@@ -62,6 +62,12 @@ screen event_screen(title, art, body, choices):
     add "#0a0a0aee"
     use class_color_frame(thickness=3, alpha_suffix="aa")
 
+    ## Stats bar embedded so the player can see what they're trading off
+    ## during a choice. `use` ignores the bar's own zorder/layer directives
+    ## and renders the content at this screen's zorder (700), above the
+    ## modal overlay.
+    use stats_bar
+
     hbox:
         xalign 0.5
         yalign 0.5
@@ -140,6 +146,7 @@ screen event_outcome(title, art, result):
 
     add "#0a0a0aee"
     use class_color_frame(thickness=3, alpha_suffix="aa")
+    use stats_bar
 
     hbox:
         xalign 0.5

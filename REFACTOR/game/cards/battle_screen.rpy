@@ -81,6 +81,81 @@ init python:
         trans.xoffset = int(amp * _juice_math.sin(age * 40.0))
         return 0.016
 
+    def _enemy_idle_breath_fn(trans, st, at):
+        """Continuous low-amplitude breathing on the enemy sprite — sells
+        'alive' on a static PNG. Slow sine on zoom (1.000↔1.014) and a
+        smaller out-of-phase sine on yoffset. Always returns 0.033 so the
+        screen keeps polling (also keeps lunge/stance transforms reactive
+        to fresh timestamps even when nothing else is animating)."""
+        bs = battle_state
+        if bs is None or getattr(bs, 'over', None):
+            trans.zoom = 1.0
+            trans.yoffset = 0
+            return None
+        phase = _juice_math.sin(st * (2.0 * _juice_math.pi / 3.2))
+        trans.zoom = 1.0 + 0.014 * phase
+        trans.yoffset = int(-2.5 * _juice_math.sin(st * (2.0 * _juice_math.pi / 3.2) + 0.4))
+        return 0.033
+
+    def _enemy_intent_stance_fn(trans, st, at):
+        """Posture shift based on the current intent. Attack/compound → lean
+        in (zoom up + yoffset down). Block → settle back (zoom down + lift).
+        Other → neutral. Eases ~10%/frame toward target so transitions feel
+        like the enemy shifting weight rather than snapping into pose."""
+        bs = battle_state
+        if bs is None or getattr(bs, 'over', None):
+            target_z, target_y = 1.0, 0.0
+        else:
+            ic = bs.current_intent() if hasattr(bs, 'current_intent') else None
+            kind = ic.get("intent", "") if ic else ""
+            if kind in ("attack", "compound"):
+                target_z, target_y = 1.020, 4.0
+            elif kind == "block":
+                target_z, target_y = 0.990, -2.0
+            else:
+                target_z, target_y = 1.0, 0.0
+        ## In function-mode ATL the `trans` TransformState persists across
+        ## frames, so this frame's write is next frame's read — that's the
+        ## lerp's memory. (Unique pattern in this file; don't "simplify"
+        ## back to a stateless recompute or the easing dies.)
+        cur_z = trans.zoom if trans.zoom is not None else 1.0
+        cur_y = float(trans.yoffset) if trans.yoffset is not None else 0.0
+        trans.zoom = cur_z + (target_z - cur_z) * 0.10
+        trans.yoffset = int(cur_y + (target_y - cur_y) * 0.10)
+        return 0.033
+
+    def _enemy_attack_lunge_fn(trans, st, at):
+        """On enemy attack landing, snap forward (zoom up + yoffset down)
+        over 0.08s, then ease back over 0.22s. Driven by
+        last_enemy_attack_time, which is only set when source_kind='intent'
+        — so the enemy doesn't lunge when the player plays a self-damage
+        card."""
+        bs = battle_state
+        t_hit = getattr(bs, 'last_enemy_attack_time', -1.0) if bs is not None else -1.0
+        if t_hit < 0:
+            trans.zoom = 1.0
+            trans.yoffset = 0
+            return None
+        try:
+            age = renpy.get_game_runtime() - t_hit
+        except Exception:
+            trans.zoom = 1.0
+            trans.yoffset = 0
+            return None
+        if age >= 0.30:
+            trans.zoom = 1.0
+            trans.yoffset = 0
+            return None
+        if age < 0.08:
+            p = age / 0.08
+            trans.zoom = 1.0 + 0.11 * p
+            trans.yoffset = int(14 * p)
+        else:
+            p = (age - 0.08) / 0.22
+            trans.zoom = 1.11 - 0.11 * p
+            trans.yoffset = int(14 * (1.0 - p))
+        return 0.016
+
     def _energy_pulse_fn(trans, st, at):
         """Phase B juice — energy counter scales 1.0 -> 1.25 -> 1.0 over
         0.35s after a card is played (i.e. last_energy_spend_time was just
@@ -221,6 +296,15 @@ init python:
 
 transform colonel_hit_shake:
     function _colonel_shake_fn
+
+transform enemy_idle_breath:
+    function _enemy_idle_breath_fn
+
+transform enemy_intent_stance:
+    function _enemy_intent_stance_fn
+
+transform enemy_attack_lunge:
+    function _enemy_attack_lunge_fn
 
 transform player_frame_hit_shake:
     function _player_frame_shake_fn
@@ -748,7 +832,7 @@ screen battle_screen():
             _sprite_ypos = 880 if _sprite_base == "garda" else 800
         ## Sprite is bottom-anchored so the (often torso-cropped) lower edge
         ## tucks behind the card hand instead of floating mid-screen.
-        add _sprite_tag xalign 0.5 ypos _sprite_ypos yanchor 1.0 zoom 0.69 at colonel_hit_shake
+        add _sprite_tag xalign 0.5 ypos _sprite_ypos yanchor 1.0 zoom 0.69 at (colonel_hit_shake, enemy_attack_lunge, enemy_intent_stance, enemy_idle_breath)
 
         ## ── VIGNETTE ──────────────────────────────────────────────────────────
         ## Bottom-band darken between sprite and UI: punches cards forward

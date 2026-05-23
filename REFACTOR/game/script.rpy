@@ -739,62 +739,36 @@ label activity_recovery:
 ## ACTIVITY: BOUNCER
 ## ---------------------------------------------------------------------------
 
+## ---------------------------------------------------------------------------
+## BOUNCER — the flat money lane. One venue, no card-shop side hustle. Cards
+## are the Coding lane's job. Payouts tuned ~65% above the legacy night-club
+## EV (5k -> 8.3k) since Bouncer is now the only dedicated money activity.
+## BB bonus +2,500 CZK still applies.
+## ---------------------------------------------------------------------------
+
 label activity_bouncer:
-
-    scene bg_jb_flat
-
-    python:
-        _bouncer_options = [
-            {
-                "label_name":     "bouncer_night_club",
-                "title":          "NIGHT CLUB",
-                "accent":         "#ffd700",
-                "cost_text":      "FREE",
-                "effect_text":    "+ CZK · low risk",
-                "flavor_text":    "Drunks, mostly handled. The owner pays cash.",
-                "class_relevant": False,
-            },
-            {
-                "label_name":     "bouncer_strip_bar",
-                "title":          "STRIP BAR",
-                "accent":         "#ffd700",
-                "cost_text":      "FREE",
-                "effect_text":    "+ more CZK · ugly outcomes possible",
-                "flavor_text":    "Pays better. You'll see things. You'll do things.",
-                "class_relevant": False,
-            },
-        ]
-
-    call screen activity_submenu(
-        title       = "BOUNCER — PICK A VENUE",
-        subtitle    = "Two doors. Different math.",
-        options     = _bouncer_options,
-        back_label  = "select_activity",
-    )
-
-
-label bouncer_night_club:
 
     scene bg_havana_club
 
     python:
         _roll = __import__('random').randint(1, 100)
         _bb_cash = 2500 if stats.player_class == "bodybuilder" else 0
+        _bb_tag = " [BODYBUILDER BONUS]" if _bb_cash else ""
         if _roll <= 70:
-            _pending_money = 4000 + _bb_cash
+            _pending_money = 7000 + _bb_cash
             _pending_hatred = 10
             _btext = "Uneventful. Six hours in a doorway, nodding at people happier than you.\nBy 3 AM you're calculating how many more shifts like this to quit forever. The number is getting smaller."
-            _boutcome = "+ {} CZK, +10 PCR HATRED{}".format(4000 + _bb_cash, " [BODYBUILDER BONUS]" if _bb_cash else "")
+            _boutcome = "+ {} CZK, +10 PCR HATRED{}".format(7000 + _bb_cash, _bb_tag)
         elif _roll <= 90:
-            _pending_money = 9000 + _bb_cash
+            _pending_money = 14000 + _bb_cash
             _pending_hatred = -10
             _btext = "Rare night. Regulars tip heavy, the manager notices your work, and nobody throws up on anyone.\nDriving home at 4 AM, windows down: 'If this was my real job I would hate it slightly less.' Closest thing to joy you've felt all week."
-            _boutcome = "+ {} CZK, -10 PCR HATRED{}".format(9000 + _bb_cash, " [BODYBUILDER BONUS]" if _bb_cash else "")
+            _boutcome = "+ {} CZK, -10 PCR HATRED{}".format(14000 + _bb_cash, _bb_tag)
         else:
-            _pending_money = 4000 + _bb_cash
+            _pending_money = 6000 + _bb_cash
             _pending_hatred = 20
             _btext = "Two drunks fight over a woman interested in neither. You step in — one recognizes you. 'TO JE PŘECE POLDA!'\nPhone out. The group chat hasn't stopped since. You want to die."
-            _boutcome = "+ {} CZK, +20 PCR HATRED{}".format(4000 + _bb_cash, " [BODYBUILDER BONUS]" if _bb_cash else "")
+            _boutcome = "+ {} CZK, +20 PCR HATRED{}".format(6000 + _bb_cash, _bb_tag)
 
     "[_btext]"
 
@@ -807,103 +781,9 @@ label bouncer_night_club:
     pause
     hide screen outcome_panel
 
-    call bouncer_market from _call_bouncer_market_club
-
     python:
         activity_selected = True
     jump end_day
-
-
-label bouncer_strip_bar:
-
-    python:
-        _roll = __import__('random').randint(1, 100)
-        _bb_cash = 2500 if stats.player_class == "bodybuilder" else 0
-        _bb_tag = " [BODYBUILDER BONUS]" if _bb_cash else ""
-        ## Pending stat deltas — applied unconditionally after the night.
-        _pending_money = 0
-        _pending_hatred = 0
-        _pending_coding = 0
-        if _roll <= 5:
-            _pending_money = 35000 + _bb_cash
-            _pending_hatred = -15
-            _btext = "A famous regular shows up drunk and paranoid. Two guys try to drag him outside; you intervene with textbook precision.\nYour boss slides an envelope across the table. 'Not many can do what you did tonight.'"
-            _boutcome = "+{} CZK, -15 PCR HATRED{}".format(35000 + _bb_cash, _bb_tag)
-        elif _roll <= 25:
-            _pending_money = 12500 + _bb_cash
-            _pending_coding = 2
-            _btext = "Steady crowds, few arguments, no real threats. Routine precision all night.\nYou use downtime to mentally rehearse OOP and class hierarchies — weirdly effective."
-            _boutcome = "+{} CZK, +2 CODING SKILLS{}".format(12500 + _bb_cash, _bb_tag)
-        elif _roll <= 75:
-            _pending_money = 6500 + _bb_cash
-            _pending_hatred = 5
-            _btext = "Four hours in a corridor that smells like vodka Red Bull and bad decisions. Nothing happens.\nOne person cries in the bathroom; you pretend not to notice. At least the envelope is solid."
-            _boutcome = "+{} CZK, +5 PCR HATRED{}".format(6500 + _bb_cash, _bb_tag)
-        elif _roll <= 95:
-            _pending_money = 1000 + _bb_cash
-            _pending_hatred = 25
-            _btext = "A fight breaks out. You break it up — one participant recognizes you. 'Ty vole, to je POLDA!'\nYour boss only gives you a partial payout."
-            _boutcome = "+{} CZK, +25 PCR HATRED{}".format(1000 + _bb_cash, _bb_tag)
-        else:
-            ## Worst-case strip bar outcome — pure beat-up, no debt. The old
-            ## version subtracted 12.5K CZK AND offered loan_sharks card AND
-            ## stripped 5 coding. One bad RNG roll could torpedo a run. Now
-            ## you just take the hatred hit; the bouncer profession is the
-            ## risk, not getting put in actual debt.
-            _pending_money = _bb_cash
-            _pending_hatred = 30
-            _btext = "You turn your back for one second — enough for a coked-up idiot to drive a vodka bottle into your skull.\nThe boss doesn't pay you for the night, but he doesn't fire you either. The headache lasts three days."
-            if _bb_cash:
-                _boutcome = "+{} CZK [BB BONUS], +30 PCR HATRED".format(_bb_cash)
-            else:
-                _boutcome = "No pay tonight, +30 PCR HATRED"
-
-    "[_btext]"
-
-    python:
-        if _pending_money:
-            stats.increment_stats_value_money(_pending_money)
-        if _pending_hatred:
-            stats.increment_stats_pcr_hatred(_pending_hatred)
-        if _pending_coding:
-            stats.increment_stats_coding_skill(_pending_coding)
-
-    window hide
-    show screen outcome_panel(_boutcome)
-    pause
-    hide screen outcome_panel
-
-    call bouncer_market from _call_bouncer_market_strip
-
-    python:
-        activity_selected = True
-    jump end_day
-
-
-## ---------------------------------------------------------------------------
-## BOUNCER MARKET — the card dealer who works the same venues. Money earned at
-## the door buys cards on the spot. No separate shop activity: the bouncer
-## night IS the shop. Called by both bouncer venues.
-## ---------------------------------------------------------------------------
-
-label bouncer_market:
-
-    python:
-        _mkt_offers = build_card_shop_offers(3)
-
-    "On your way out, the regular in the corner booth tilts his head at you. He deals cards — the kind that decide how a fight goes. One a night, cash only."
-
-    call screen card_shop_screen(offers=_mkt_offers)
-
-    if _return != "leave":
-        python:
-            for _o in _mkt_offers:
-                if _o["card_id"] == _return:
-                    if stats.try_spend_money(_o["price"]):
-                        grant_card(_o["card_id"], silent=True)
-                    break
-
-    return
 
 
 ## ---------------------------------------------------------------------------
@@ -915,40 +795,27 @@ label activity_coding:
     scene bg_jb_flat
 
     python:
-        _tier_name, _tier_info = get_coding_tier_info(stats.coding_skill)
         _is_bh = (stats.player_class == "biohacker")
         _is_de = (stats.player_class == "dark_empath")
         _bc_done = bool(python_bootcamp)
         _bc_label = "coding_bootcamp_de" if _is_de else "coding_bootcamp"
         _bc_cost = adjusted_cost(28000) if _is_de else adjusted_cost(35000)
         _bc_cost_text = "{:,} CZK".format(_bc_cost)
-        _bc_flavor = "You stop being a guy with a hobby."
+        _bc_flavor = "Six weeks. Study days roll high-tier cards after."
         if _is_de:
-            _bc_flavor = "You stop being a guy with a hobby. Discount: read the room."
+            _bc_flavor = "Six weeks. You'll read the instructor for a discount. Study days roll high-tier cards after."
         _bh_accent = class_accent_color("biohacker")
         _coding_options = [
             {
-                "label_name":     "coding_work_for_money",
-                "title":          "CODE FOR MONEY",
+                "label_name":     "coding_study",
+                "title":          "STUDY",
                 "accent":         _bh_accent,
                 "cost_text":      "FREE",
-                "effect_text":    "+ CZK (scales with tier)",
-                "flavor_text":    "Take what your skill's worth right now.",
-                "class_relevant": _is_bh,
-            },
-            {
-                "label_name":     "coding_fiverr",
-                "title":          "BUY A CODING COACH",
-                "accent":         _bh_accent,
-                "cost_text":      "{:,} CZK".format(adjusted_cost(2500)),
-                "effect_text":    "+ Coding",
-                "flavor_text":    "Pay someone better to short-cut you up the curve.",
+                "effect_text":    "Pick from a 3-card offer",
+                "flavor_text":    ("Bootcamp tier: high-rarity offers." if _bc_done else "An hour at the keyboard. The keyboard pays in cards."),
                 "class_relevant": _is_bh,
             },
         ]
-        ## BH gets a Nootropics Lab tile in this slot (their commitment curve);
-        ## every other class gets a Bootcamp tile. The Bootcamp locks (instead
-        ## of hiding) once enrolled so players can see the buff is permanent.
         if _is_bh:
             _coding_options.append({
                 "label_name":     "activity_nootropics",
@@ -965,7 +832,7 @@ label activity_coding:
                 "title":          "JOIN BOOTCAMP",
                 "accent":         _bh_accent,
                 "cost_text":      _bc_cost_text,
-                "effect_text":    "+25 Coding, +5/night",
+                "effect_text":    "Study days roll rare cards",
                 "flavor_text":    _bc_flavor,
                 "class_relevant": False,
                 "locked":         _bc_done,
@@ -980,60 +847,33 @@ label activity_coding:
     )
 
 
-label coding_work_for_money:
+## ---------------------------------------------------------------------------
+## STUDY — the card lane. An hour of focused work; the day pays in a card.
+## Tier band scales with the current day-band, OR jumps to "hard" tier once
+## the player has graduated Bootcamp (the deck-defining purchase that turns
+## every future Study day into a rare-biased card offer).
+## ---------------------------------------------------------------------------
+
+label coding_study:
 
     python:
-        _tier_name, _tier_info = get_coding_tier_info(stats.coding_skill)
-        if _tier_name == "TIER 1":
-            renpy.say(None, "[[TIER 1] Still learning.\nYou can't code for money yet. Keep practicing and building tiny projects.\nUnlock paid work at 50 Coding Skill.")
-            renpy.jump("activity_coding")
+        _study_tier = "hard" if bool(python_bootcamp) else _battle_ladder_band(day_cycle.current_day)
+        _study_trio = pick_battle_rewards(_study_tier)
+
+    "An hour at the keyboard. Documentation tabs open. You build something small that works, and it earns you something worth keeping."
+
+    call screen card_reward_trio_screen(_study_trio)
+
+    python:
+        _study_card = _return
+        if _study_card and _study_card != "skip":
+            grant_card(_study_card, silent=True)
+            _study_outcome = "+ Card."
         else:
-            _standard = _tier_info["standard"]
-            _hourly   = _tier_info["hourly"]
-            _earned   = _standard + (stats.coding_skill * _hourly)
-            stats.increment_stats_value_money(_earned)
-            activity_selected = True
-
-    "You bill out a day's work. [_tier_name] — [_tier_info['label']]."
-    window hide
-    show screen outcome_panel("+ {} CZK".format(_earned))
-    pause
-    hide screen outcome_panel
-    jump end_day
-
-
-label coding_fiverr:
-
-    python:
-        _fiverr_cost = adjusted_cost(2500)
-        if not stats.try_spend_money(_fiverr_cost):
-            renpy.say(None, "[[INSUFFICIENT FUNDS] You need {:,} CZK. Current: {:,} CZK.".format(_fiverr_cost, stats.available_money))
-            renpy.jump("activity_coding")
-
-    python:
-        _fiverr_gain = 25
-        _fiverr_card = "refactor"
-        _ftext = "Senior dev. Ten years in. Code review, patterns, mental models. Paradigm shift."
-        _foutcome = "- {} CZK, +25 CODING SKILL.".format(_fiverr_cost)
-
-    "[_ftext]"
-
-    $ _fiverr_card_data = can_offer_card(_fiverr_card)
-
-    if _fiverr_card_data is not None:
-        window hide
-        call screen card_offer_screen(card=_fiverr_card_data, source_label="CODING COACH", pass_stats_text=_foutcome)
-        $ _took_fiverr = commit_card(_fiverr_card, _return == "take")
-    else:
-        $ _took_fiverr = False
-
-    python:
-        if not _took_fiverr:
-            stats.increment_stats_coding_skill(_fiverr_gain)
-        _fiverr_panel_text = show_outcome_panel(_took_fiverr, _fiverr_card, _foutcome)
+            _study_outcome = "Passed on the offer."
 
     window hide
-    show screen outcome_panel(_fiverr_panel_text)
+    show screen outcome_panel(_study_outcome)
     pause
     hide screen outcome_panel
     python:

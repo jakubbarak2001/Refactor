@@ -1079,8 +1079,8 @@ screen activity_select_screen():
             title          = "CODING",
             accent         = "#00ccff",
             cost_text      = "FREE",
-            effect_chips   = [("Coding", "+ Coding"), ("sep", "/"), ("CZK", "+ CZK")],
-            flavor_text    = "Freelance / Coach / Bootcamp.",
+            effect_chips   = [("Card", "+ Card")],
+            flavor_text    = "Study sessions. The keyboard pays in cards.",
             class_relevant = False,
         )
 
@@ -1735,9 +1735,11 @@ screen outcome_panel(outcome_text):
 
 
 ## ---------------------------------------------------------------------------
-## Card Shop — the bouncer-night market. Renders priced cards; BUY is gated on
-## cash. Returns a card_id to buy, or "leave". The caller (bouncer_market)
-## spends the money, grants the card, and re-shows until the player leaves.
+## Card Shop — paid-trio offer screen. Renders priced cards; BUY is gated on
+## cash. Returns a card_id to buy, or "leave". Currently unwired (the legacy
+## bouncer-market caller was removed when Bouncer collapsed to the flat money
+## lane). Kept as a future-event utility — pairs with build_card_shop_offers
+## in card_data.rpy.
 ## ---------------------------------------------------------------------------
 
 screen card_shop_screen(offers):

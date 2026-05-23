@@ -82,82 +82,120 @@ label ev_the_vending_machine:
 
     python:
         _vm_art = "images/events/ev_the_vending_machine.jpg"
-        _vm_afford = (stats.available_money >= 1500)
-        _vm_body = [
-            "The drinks machine in the third-floor corridor has glowed the same dead green for as long as you have worked here.",
-            "Tonight the display has your name on it. Your badge number beneath it. Then, one character at a time: I HAVE WHAT YOU NEED.",
-            "The coin slot lights up. It is waiting.",
+        ## Tier ladder: (cost CZK, +Max HP, +Hatred). Each take heals current
+        ## HP by the same amount as the Max HP bump. After 3 takes the
+        ## machine stops; the player can also kick out at any tier. HP gain
+        ## escalates 6/8/10 so tier 3 isn't strictly worse ROI than tier 1 —
+        ## press-your-luck needs reward-for-risk, not just cost-for-risk.
+        _vm_ladder = [
+            (1500, 6, 0),
+            (3500, 8, 5),
+            (7000, 10, 12),
         ]
-        _vm_choices = [
-            {
-                "id": "feed",
-                "label": "[ FEED IT ]",
-                "desc": ec("Pay 1,500 CZK") + ".  " + eg("It dispenses something. You choose what."),
-                "enabled": _vm_afford,
-                "locked": "The coin slot stays lit. You do not have 1,500 CZK.",
-            },
-            {
-                "id": "tip",
-                "label": "[ TIP IT OVER ]",
-                "desc": ec("Lose 8 HP") + ".  " + eg("Gain a random card.") + "  " + eg("+ 800 CZK."),
-            },
-            {
-                "id": "kick",
-                "label": "[ KICK IT AND WALK AWAY ]",
-                "desc": ec("Lose 5 HP") + ".  Nothing else. The glow follows you down the corridor.",
-            },
-        ]
+        _vm_step = 0
+        _vm_total_cost = 0
+        _vm_total_hp = 0
+        _vm_total_hat = 0
 
-    call screen event_screen(title="THE VENDING MACHINE", art=_vm_art, body=_vm_body, choices=_vm_choices)
+    label .vm_offer:
 
-    python:
-        _vm_pick = _return
-        _vm_tier = _battle_ladder_band(day_cycle.current_day)
-        _vm_res = []
-
-    if _vm_pick == "feed":
-        $ stats.try_spend_money(1500)
-        $ _vm_trio = pick_battle_rewards(_vm_tier)
-        call screen card_reward_trio_screen(_vm_trio)
         python:
-            _vm_card = _return
-            if _vm_card and _vm_card != "skip":
-                grant_card(_vm_card, silent=True)
+            _vm_cost, _vm_hp, _vm_hat = _vm_ladder[_vm_step]
+            _vm_afford = (stats.available_money >= _vm_cost)
+
+            if _vm_step == 0:
+                _vm_body = [
+                    "The drinks machine in the third-floor corridor has glowed the same dead green for as long as you have worked here.",
+                    "Tonight the display has your name on it. Your badge number beneath it. Then, one character at a time: I HAVE WHAT YOU NEED.",
+                    "The coin slot lights up. It is waiting.",
+                ]
+                _vm_label = "[ FEED IT ]"
+            elif _vm_step == 1:
+                _vm_body = [
+                    "Something fell into the tray. You took it. It felt the way a thing feels when it was always going to be yours.",
+                    "The display goes dark for one breath and then flickers back, brighter than before: I HAVE MORE.",
+                    "The coin slot is warm now. The price has gone up.",
+                ]
+                _vm_label = "[ FEED IT AGAIN ]"
+            else:
+                _vm_body = [
+                    "The second drop was heavier. You took that one too. The corridor has gone quiet in the way corridors do not normally go quiet.",
+                    "The display, no fade this time: ONE MORE.",
+                    "The machine is humming on a frequency you can feel in the back of your teeth.",
+                ]
+                _vm_label = "[ ONE MORE TIME ]"
+
+            _vm_up_desc = ec("- {:,} CZK".format(_vm_cost)) + ".  " + eg("+ {} Max HP".format(_vm_hp)) + "."
+            if _vm_hat > 0:
+                _vm_up_desc += "  " + ec("+ {} Hatred".format(_vm_hat)) + "."
+
+            _vm_choices = [
+                {
+                    "id": "upgrade",
+                    "label": _vm_label,
+                    "desc": _vm_up_desc,
+                    "enabled": _vm_afford,
+                    "locked": "The coin slot stays lit. You do not have {:,} CZK.".format(_vm_cost),
+                },
+                {
+                    "id": "kick",
+                    "label": "[ KICK IT AND WALK AWAY ]",
+                    "desc": ec("Lose 5 HP") + ".  The glow follows you down the corridor.",
+                },
+            ]
+
+        call screen event_screen(title="THE VENDING MACHINE", art=_vm_art, body=_vm_body, choices=_vm_choices)
+
+        python:
+            _vm_pick = _return
+
+        if _vm_pick == "upgrade":
+            python:
+                stats.try_spend_money(_vm_cost)
+                _event_ensure_run_hp()
+                store.run_hp_max += _vm_hp
+                store.run_hp = min(store.run_hp_max, store.run_hp + _vm_hp)
+                if _vm_hat > 0:
+                    stats.increment_stats_pcr_hatred(_vm_hat)
+                _vm_total_cost += _vm_cost
+                _vm_total_hp += _vm_hp
+                _vm_total_hat += _vm_hat
+                _vm_step += 1
+
+            if _vm_step < 3:
+                jump ev_the_vending_machine.vm_offer
+
+            python:
                 _vm_res = [
-                    "You feed it three coins. It thinks about it. Then a mechanism deep inside turns over, once, and drops what you asked for into the tray.",
-                    "You take it. The display thanks you by name.",
-                    eg("Gained a card.") + "   " + ec("- 1,500 CZK."),
+                    "The third drop is the heaviest. A glass thing, capped, that fits the palm of you that has been clenched for a week. It is still warm.",
+                    "The display goes dark. The corridor goes dark. The hum stops. Whatever was in the machine is in you now.",
+                    eg("+ {} Max HP".format(_vm_total_hp)) + "   " + ec("- {:,} CZK".format(_vm_total_cost)) + "   " + ec("+ {} Hatred.".format(_vm_total_hat)),
+                ]
+            call screen event_outcome(title="THE VENDING MACHINE", art=_vm_art, result=_vm_res)
+            return
+
+        python:
+            _vm_lost = event_hurt(5)
+            if _vm_total_hp > 0:
+                _vm_kick_parts = [ec("- {} HP".format(_vm_lost))]
+                _vm_kick_parts.append(eg("kept: + {} Max HP".format(_vm_total_hp)))
+                _vm_kick_parts.append(ec("paid: {:,} CZK".format(_vm_total_cost)))
+                if _vm_total_hat > 0:
+                    _vm_kick_parts.append(ec("+ {} Hatred".format(_vm_total_hat)))
+                _vm_res = [
+                    "You walk past the slot. The display says nothing. You took what you came for and the machine knows it.",
+                    "Somewhere behind you, in the dark corridor, the glow keeps your name a little longer than it should.",
+                    "   ".join(_vm_kick_parts) + ".",
                 ]
             else:
                 _vm_res = [
-                    "You feed it three coins and then, at the last second, take nothing. The machine keeps the money. The machine always keeps the money.",
-                    ec("- 1,500 CZK."),
+                    "You kick it once, hard, in the place a person would keep a knee. Your foot tells you about it for the rest of the shift.",
+                    "The machine glows. Your name is still on the display when you reach the stairs.",
+                    ec("- {} HP.".format(_vm_lost)),
                 ]
 
-    elif _vm_pick == "tip":
-        python:
-            _vm_lost = event_hurt(8)
-            stats.increment_stats_value_money(800)
-            _vm_pool = pick_battle_rewards(_vm_tier)
-            if _vm_pool:
-                grant_card(__import__('random').choice(_vm_pool), silent=True)
-            _vm_res = [
-                "You get a shoulder under it and heave. It goes over with a sound like a wardrobe full of glass and splits along a seam that was never meant to open.",
-                "Inside: coins from everyone who ever fed it, and one thing it was apparently keeping for you.",
-                eg("Gained a card.") + "   " + eg("+ 800 CZK.") + "   " + ec("- {} HP.".format(_vm_lost)),
-            ]
-
-    else:
-        python:
-            _vm_lost = event_hurt(5)
-            _vm_res = [
-                "You kick it once, hard, in the place a person would keep a knee. Your foot tells you about it for the rest of the shift.",
-                "The machine glows. Your name is still on the display when you reach the stairs.",
-                ec("- {} HP.".format(_vm_lost)),
-            ]
-
-    call screen event_outcome(title="THE VENDING MACHINE", art=_vm_art, result=_vm_res)
-    return
+        call screen event_outcome(title="THE VENDING MACHINE", art=_vm_art, result=_vm_res)
+        return
 
 
 ## ---------------------------------------------------------------------------
@@ -936,7 +974,7 @@ label ev_photocopier:
             {
                 "id": "blank",
                 "label": "[ COPY A BLANK PAGE ]",
-                "desc": ec("2,000 CZK in toner") + ".  " + eg("It prints your fortune. Take the card it names."),
+                "desc": ec("2,000 CZK in toner") + ".  " + eg("Pick a card from 3 offered."),
                 "enabled": (stats.available_money >= 2000),
                 "locked": "The toner cartridge is the kind you pay 2,000 CZK for. You can't.",
             },

@@ -133,6 +133,10 @@ init python:
             self.last_card_type = None       ## 'Attack' | 'Skill' | 'Power'
             self.last_enemy_hit_time = -1.0  ## game-runtime sec; -1 = never
             self.last_player_hit_time = -1.0
+            ## Distinct from last_player_hit_time: only set when an *intent*
+            ## lands on the player, so self-damage cards don't trigger the
+            ## enemy lunge animation.
+            self.last_enemy_attack_time = -1.0
 
             ## Phase B/C/D juice — additional timestamps for energy pulse,
             ## turn-banner slide-in, victory/defeat fanfare reveal.
@@ -177,6 +181,8 @@ init python:
                 self.last_enemy_hit_time = -1.0
             if not hasattr(self, 'last_player_hit_time'):
                 self.last_player_hit_time = -1.0
+            if not hasattr(self, 'last_enemy_attack_time'):
+                self.last_enemy_attack_time = -1.0
             if not hasattr(self, 'last_energy_spend_time'):
                 self.last_energy_spend_time = -1.0
             if not hasattr(self, 'last_turn_start_time'):
@@ -331,6 +337,8 @@ init python:
                 ## for enemy-attack impact feedback.
                 if actual > 0:
                     self.last_player_hit_time = self._now()
+                    if source_kind == "intent":
+                        self.last_enemy_attack_time = self._now()
                     ## SFX deferred to popup screen via timer — see comment
                     ## on the enemy-target branch above.
                     try:
