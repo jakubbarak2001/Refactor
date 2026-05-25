@@ -134,7 +134,7 @@ label martin_phase1_preparation:
             pause
             hide screen outcome_panel
 
-        "[[BIOHACKER] STACK UP — T[nootropic_tier_max] protocol an hour before. (+1 AFFECTION, free)" if stats.player_class == "biohacker" and nootropic_tier_max >= 2:
+        "[[BIOHACKER] STACK UP — [bh_protocol] protocol an hour before. (+1 AFFECTION, free)" if stats.player_class == "biohacker" and bh_protocol is not None:
             python:
                 martin_affection += 1
             "Pattern-recognition sharp. Anxiety metabolized into clarity. He notices the focus."
@@ -303,17 +303,17 @@ label martin_phase4_coding_check:
         _de_read_bonus = (stats.player_class == "dark_empath")
 
     if _bh_t3_bonus:
-        "You mention that you've been running a Racetam stack to accelerate your study retention."
+        "You mention that you've been running a stack to accelerate your study retention."
         "Martin stops. His fork goes down."
         martin "'...Wait. You're using nootropics to code?'"
-        jb "'T3 protocol. Tracked my retention rate. I'm learning 40%% faster than baseline.'"
+        jb "'[bh_protocol] protocol. Tracked my retention rate. I'm learning 40%% faster than baseline.'"
         "He stares at you."
         martin "'That is either insane or brilliant.'"
         martin "'I genuinely can't tell yet. But it's very you.'"
         python:
             martin_affection += 1
         window hide
-        show screen outcome_panel("+1 AFFECTION [BIOHACKER: T3+ compound protocol impresses Martin's analytical side].")
+        show screen outcome_panel("+1 AFFECTION [BIOHACKER: protocol stack impresses Martin's analytical side].")
         pause
         hide screen outcome_panel
 

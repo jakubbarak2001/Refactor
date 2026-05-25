@@ -266,21 +266,21 @@ screen stats_bar():
                                 $ _cell_bg   = "#222222"
                                 $ _cell_text = "#aaaaaa"
 
-                            vbox:
-                                spacing 0
-
-                                if _is_today:
-                                    text "▼":
-                                        color _class_color
-                                        size 10
-                                        xalign 0.5
-                                        bold True
-                                else:
-                                    null height 12
+                            ## Use a `fixed` so the cell frame itself
+                            ## yalign-centers in the strip — same vertical
+                            ## anchor as "day 01 / 30" and the resource
+                            ## gauges. The ▼ TODAY marker floats above the
+                            ## cell as a positioned overlay so it doesn't
+                            ## inflate the cell's visual height (the prior
+                            ## vbox layout pushed the calendar ~10px below
+                            ## every other zone element).
+                            fixed:
+                                xysize (66, 30)
+                                yalign 0.5
 
                                 frame:
-                                    xsize 66
-                                    ysize 30
+                                    xfill True
+                                    yfill True
                                     background Frame(_cell_bg, 3, 3)
 
                                     vbox:
@@ -301,6 +301,14 @@ screen stats_bar():
                                                 size 9
                                                 xalign 0.5
                                                 font DOSSIER_FONT
+
+                                if _is_today:
+                                    text "▼":
+                                        color _class_color
+                                        size 10
+                                        bold True
+                                        xalign 0.5
+                                        ypos -12
 
                 ## ── Divider ───────────────────────────────────────────────
                 add Solid("#333333") xysize (1, 44) yalign 0.5
@@ -456,19 +464,9 @@ screen deck_viewer():
     add "#0d0d11ee"
 
     python:
-        ## Group cards by TYPE — Attack / Skill / Power — with corruption
-        ## (Rage / Status / Compromise) split out and anchored at the bottom
-        ## so the player's clean kit reads top-of-screen.
-        _GROUP_HEX = {
-            "Attack":     "#cc4422",
-            "Skill":      "#3388cc",
-            "Power":      "#aa44cc",
-            "Rage":       "#cc2200",
-            "Status":     "#8a7a2a",
-            "Compromise": "#7a7060",
-        }
-        _group_order = ["Attack", "Skill", "Power", "Rage", "Status", "Compromise"]
-
+        ## Group cards by visual type — Attack / Skill / Power / Curse / Status.
+        ## Order is `CARD_VISUAL_TYPES` so clean kit reads top-of-screen and
+        ## corruption is anchored at the bottom (Curse/Status).
         _deck_cards = player_deck.cards if player_deck is not None else []
         _deck_count = len(_deck_cards)
         _deck_by_group = {}
@@ -476,14 +474,7 @@ screen deck_viewer():
             _c = CARD_LIBRARY.get(_cid)
             if _c is None:
                 continue
-            if _c.get("is_compromise"):
-                _grp_key = "Compromise"
-            elif _c.get("is_rage"):
-                _grp_key = "Rage"
-            elif (_c.get("effect") or "").startswith("status_"):
-                _grp_key = "Status"
-            else:
-                _grp_key = _c.get("type", "Skill")
+            _grp_key = card_visual_type(_c)
             _deck_by_group.setdefault(_grp_key, []).append(_cid)
 
     ## Class-color outer frame — "this is YOUR deck" without overriding per-card colors.
@@ -492,7 +483,7 @@ screen deck_viewer():
     vbox:
         xalign 0.5
         yalign 0.5
-        spacing 14
+        spacing 10
 
         text "> YOUR DECK <":
             xalign 0.5
@@ -505,66 +496,58 @@ screen deck_viewer():
             color "#888888"
             size 18
 
+        ## ── Grid layout ───────────────────────────────────────────────────
+        ## Six cards per row at hand-mode size (220×316). Row pitch leaves
+        ## clearance for the cost-gem overhang (-12px above each card) so
+        ## adjacent rows don't visually collide. Viewport 1600×880 fits
+        ## 6×220 + 5×16 = 1400 wide with margin to spare; tall enough to
+        ## show a full row + group header without scrolling on small decks.
         viewport:
-            xsize 1500
-            ysize 700
+            xsize 1600
+            ysize 880
             scrollbars "vertical"
             mousewheel True
             draggable True
 
             vbox:
-                spacing 14
+                spacing 24
 
-                for _grp in _group_order:
+                for _grp in CARD_VISUAL_TYPES:
                     if _deck_by_group.get(_grp):
-                        $ _grp_hex = _GROUP_HEX.get(_grp, "#888888")
+                        $ _grp_hex = TYPE_PALETTE.get(_grp, {}).get("frame", "#888888")
                         $ _grp_cards = _deck_by_group[_grp]
 
+                        ## Group header — type label, color-coded, with count.
                         hbox:
-                            spacing 10
+                            spacing 12
+                            yalign 0.5
+                            ## Color bar to the left of the label gives the
+                            ## header weight and matches the card frames below.
+                            frame:
+                                ysize 22
+                                xsize 8
+                                background Frame(_grp_hex, 0, 0)
                             text "{} ({})".format(_grp.upper(), len(_grp_cards)):
                                 color _grp_hex
-                                size 18
+                                size 22
                                 bold True
                                 font "fonts/RobotoMono-Regular.ttf"
+                                outlines [(1, "#000000", 0, 0)]
 
-                        ## Render cards in rows of 4
-                        $ _rows = [_grp_cards[i:i+4] for i in range(0, len(_grp_cards), 4)]
+                        ## Six cards per row, full StS card visuals via the
+                        ## canonical battle_card_view renderer. Top padding
+                        ## on the first card slot reserves room for the cost
+                        ## gem's -12px overhang.
+                        $ _rows = [_grp_cards[i:i+6] for i in range(0, len(_grp_cards), 6)]
                         vbox:
-                            spacing 8
+                            spacing 28
                             for _row in _rows:
                                 hbox:
-                                    spacing 8
+                                    spacing 16
                                     for _cid in _row:
-                                        $ _c = CARD_LIBRARY.get(_cid, {})
-                                        frame:
-                                            xsize 350
-                                            ysize 130
-                                            background Frame("#0d0d0dee", 4, 4)
-                                            padding (12, 10)
-
-                                            vbox:
-                                                spacing 4
-
-                                                hbox:
-                                                    spacing 6
-                                                    text "[[ {} ]".format(_c.get("cost", 0)):
-                                                        color _grp_hex
-                                                        size 14
-                                                        bold True
-                                                    text _c.get("name", _cid):
-                                                        color card_name_color(_c, "#ffffff")
-                                                        size 16
-                                                        bold True
-
-                                                text "{} · {} · {}".format(_c.get("type", ""), _c.get("rarity", ""), _c.get("color", "")):
-                                                    color "#666666"
-                                                    size 11
-
-                                                text effect_description(_c.get("effect", "")):
-                                                    color "#cccccc"
-                                                    size 13
-                                                    xmaximum 326
+                                        fixed:
+                                            xysize (220, 320)
+                                            use battle_card_view(cid=_cid, mode="hand", playable=True)
 
                 if not _deck_cards:
                     text "Your deck is empty.\nDo activities, attend events, or talk to Martin to collect cards.":
@@ -796,14 +779,14 @@ screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effe
                             xalign 0.5
                             font "fonts/RobotoMono-Regular.ttf"
 
-                    ## EFFECT — chip row (preferred) or legacy "Reward:" string.
-                    if effect_chips:
-                        use _activity_chip_row(chips=effect_chips)
-                    elif effect_text:
-                        text "Reward: [effect_text]":
-                            color "#cccccc"
-                            size 13
-                            xalign 0.5
+                    ## EFFECT chips DELIBERATELY NOT RENDERED. The previous
+                    ## XCOM-style "+ HP", "+/-", "?", "+ Card", "+5,000 CZK"
+                    ## pill row felt clinical and dated. Modern hybrids
+                    ## (StS, Hades) lean on prose + icons. Outcome is
+                    ## carried by `flavor_text` below; cost is carried by
+                    ## `cost_text` above. `effect_chips` / `effect_text`
+                    ## parameters are kept on the signature so existing
+                    ## call sites don't break, but they no longer render.
 
                     ## FLAVOR / LOCK NOTE — italic at the bottom.
                     null height 2
@@ -817,12 +800,14 @@ screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effe
                             xmaximum 280
                     elif flavor_text:
                         text flavor_text:
-                            color "#888080"
-                            size 11
+                            color "#aaa090"
+                            size 13
                             italic True
                             xalign 0.5
+                            yalign 0.5
                             text_align 0.5
                             xmaximum 280
+                            line_spacing 2
 
 
 ## ---------------------------------------------------------------------------
@@ -931,6 +916,7 @@ screen hatred_intro_popup():
     add "#000000aa"
 
     $ _hatred_collapse_cap = hatred_cap()
+    $ _hp_pc = stats.player_class if stats else None
 
     frame:
         xalign 0.5
@@ -959,11 +945,28 @@ screen hatred_intro_popup():
                 xmaximum 620
                 font "fonts/RobotoMono-Regular.ttf"
 
-            text "At 40 / 60 / 80 — a Rage card is forced into your deck. Deals damage at a cost.":
-                color "#cccccc"
-                size 16
-                xmaximum 620
-                font "fonts/RobotoMono-Regular.ttf"
+            ## Class-specific corruption description. BB carries it in the
+            ## deck (Rage cards). BH carries it chemically (dependency in
+            ## the nootropic stack). DE carries it relationally (profiles
+            ## go cold). Only BB sees the Rage-card warning.
+            if _hp_pc == "bodybuilder":
+                text "At 40 / 60 / 80 — a Rage card is forced into your deck. Deals damage at a cost.":
+                    color "#cccccc"
+                    size 16
+                    xmaximum 620
+                    font "fonts/RobotoMono-Regular.ttf"
+            elif _hp_pc == "biohacker":
+                text "The body keeps the score. Recovery and a clean stack walk it back.":
+                    color "#cccccc"
+                    size 16
+                    xmaximum 620
+                    font "fonts/RobotoMono-Regular.ttf"
+            else:
+                text "Burn it off where you can. The number doesn't reset on its own.":
+                    color "#cccccc"
+                    size 16
+                    xmaximum 620
+                    font "fonts/RobotoMono-Regular.ttf"
 
             text "At [_hatred_collapse_cap] — collapse. The run ends.":
                 color "#ff6655"
@@ -997,10 +1000,6 @@ screen activity_select_screen():
         _is_bb = (_pc == "bodybuilder")
         _is_de = (_pc == "dark_empath")
         _is_bh = (_pc == "biohacker")
-        ## Precomputed paid-tile affordability — drives the red cost text
-        ## on the tile preempting an "insufficient funds" outcome.
-        _recovery_cost = adjusted_cost(500)
-        _recovery_short= (stats is not None) and (stats.available_money < _recovery_cost)
 
     vbox:
         xalign 0.5
@@ -1036,7 +1035,7 @@ screen activity_select_screen():
                 title             = "GYM",
                 accent            = class_accent_color("bodybuilder"),
                 cost_text         = "FREE",
-                effect_chips      = [("Upgrade", "Upgrade a card"), ("sep", "/"), ("Card", "Heal + Max HP")],
+                effect_chips      = [("Upgrade", "Upgrade a card"), ("Card", "or Heal + Max HP")],
                 flavor_text       = "An hour where the bar tells the truth.",
                 class_relevant    = True,
             )
@@ -1052,26 +1051,38 @@ screen activity_select_screen():
             )
         elif _is_bh:
             use _activity_tile(
-                label_name        = "activity_recovery",
-                title             = "RECOVERY",
-                accent            = class_accent_color("biohacker"),
-                cost_text         = "{:,} CZK".format(_recovery_cost),
-                cost_unaffordable = _recovery_short,
-                effect_chips      = [("Hatred", -30)],
-                flavor_text       = "Red light. Sauna. Cold plunge. Data clean.",
-                class_relevant    = True,
+                label_name     = "activity_recovery",
+                title          = "RECOVERY",
+                accent         = class_accent_color("biohacker"),
+                cost_text      = "FREE",
+                effect_chips   = [("HP", "+ HP"), ("?", "+/- ?")],
+                flavor_text    = "Sauna, meditation, cold plunge, red light — today the body picks.",
+                class_relevant = True,
             )
 
-        ## BOUNCER - money path, neutral for every class.
-        use _activity_tile(
-            label_name     = "activity_bouncer",
-            title          = "BOUNCER",
-            accent         = "#ffd700",
-            cost_text      = "FREE",
-            effect_chips   = [("CZK", "+ CZK"), ("Hatred", "+ Hatred")],
-            flavor_text    = "Moonlighting pays well, but it's dangerous for cops.",
-            class_relevant = False,
-        )
+        ## Slot 2 - money/stack lane. BH gets the NOOTROPICS LAB tile (was a
+        ## submenu of CODING; promoted to top-level since it's the BH signature
+        ## activity). Other classes keep BOUNCER as their money path.
+        if _is_bh:
+            use _activity_tile(
+                label_name     = "activity_nootropics",
+                title          = "NOOTROPICS LAB",
+                accent         = class_accent_color("biohacker"),
+                cost_text      = "VARIES",
+                effect_chips   = [("Coding", "+ Coding"), ("Card", "+ Card")],
+                flavor_text    = "Three tiers + Research PubMed. Build the stack, build the deck.",
+                class_relevant = True,
+            )
+        else:
+            use _activity_tile(
+                label_name     = "activity_bouncer",
+                title          = "BOUNCER",
+                accent         = "#ffd700",
+                cost_text      = "FREE",
+                effect_chips   = [("CZK", "+ CZK"), ("Hatred", "+ Hatred")],
+                flavor_text    = "Moonlighting pays well, but it's dangerous for cops.",
+                class_relevant = False,
+            )
 
         ## CODING - everyone needs to learn the trade.
         use _activity_tile(
@@ -1830,137 +1841,13 @@ screen card_shop_screen(offers):
 ## ---------------------------------------------------------------------------
 
 screen card_visual(card):
-
-    python:
-        _cv_type     = card.get("type", "Skill")
-        _cv_accent   = {"Attack": "#cc4422", "Skill": "#3388cc", "Power": "#aa44cc"}.get(_cv_type, "#888888")
-        _cv_name     = card.get("name", "?")
-        _cv_rarity   = card.get("rarity", "common")
-        _cv_colorlab = card.get("color", "Special")
-        _cv_cost     = card.get("cost", 0)
-        _cv_flavor   = card.get("flavor", "")
-        _cv_effect   = effect_description(card.get("effect"))
-        _cv_subtitle = (_cv_type.upper() + " · " + _cv_rarity.upper() + " · " + _cv_colorlab.upper()).strip(" ·")
-        _cv_art      = "images/cards/{}.png".format(card.get("id", ""))
-        _cv_has_art  = renpy.loadable(_cv_art)
-        _cv_glyph    = card.get("art_glyph") or {"Attack": "⚔", "Skill": "✦", "Power": "★"}.get(_cv_type, "●")
-
-    fixed:
-        xysize (420, 580)
-
-        ## L1: glow halo
-        add Solid(_cv_accent + "44") xpos 0 ypos 0 xysize (420, 580) at card_glow_pulse
-        add Solid(_cv_accent + "77") xpos 8 ypos 8 xysize (404, 564) at card_glow_pulse
-
-        ## L2: drop shadow
-        add Solid("#000000aa") xpos 26 ypos 28 xysize (380, 540)
-
-        ## L3 + L4: type-colored border wrapping warm-dark inner panel.
-        frame:
-            xpos 16
-            ypos 16
-            xsize 380
-            ysize 540
-            background Frame(_cv_accent, 6, 6)
-            padding (8, 8)
-
-            frame:
-                xfill True
-                yfill True
-                background Frame("#1a1410", 4, 4)
-                padding (12, 10)
-
-                vbox:
-                    xfill True
-                    spacing 6
-
-                    ## TITLE BANNER
-                    frame:
-                        xfill True
-                        ysize 44
-                        background Frame("#0a0806", 4, 4)
-                        text _cv_name substitute False:
-                            color card_name_color(card, "#e8c878")
-                            size 24
-                            bold True
-                            xalign 0.5
-                            yalign 0.5
-                            xmaximum 320
-                            text_align 0.5
-                            font "fonts/RobotoMono-Regular.ttf"
-
-                    ## ART ZONE
-                    frame:
-                        xfill True
-                        ysize 200
-                        background Frame(_cv_accent + "22", 4, 4)
-                        if _cv_has_art:
-                            add Transform(_cv_art, size=(320, 188)) xalign 0.5 yalign 0.5
-                        else:
-                            text _cv_glyph:
-                                xalign 0.5
-                                yalign 0.5
-                                color _cv_accent
-                                size 110
-                                outlines [(3, "#000000", 0, 0)]
-
-                    ## TYPE SUBTITLE
-                    text _cv_subtitle substitute False:
-                        xalign 0.5
-                        size 11
-                        color _cv_accent
-                        bold True
-                        font "fonts/RobotoMono-Regular.ttf"
-
-                    null height 2
-
-                    ## DESCRIPTION BAND
-                    frame:
-                        xfill True
-                        yminimum 100
-                        background Frame("#241d15", 4, 4)
-                        padding (12, 10)
-                        if _cv_effect:
-                            text _cv_effect substitute False:
-                                color "#e8e0d0"
-                                size 14
-                                bold True
-                                xalign 0.5
-                                yalign 0.5
-                                xmaximum 320
-                                text_align 0.5
-                                line_spacing 2
-
-                    ## FLAVOR
-                    if _cv_flavor:
-                        text _cv_flavor substitute False:
-                            color "#777777"
-                            size 11
-                            italic True
-                            xalign 0.5
-                            xmaximum 320
-                            text_align 0.5
-
-                    if card.get("exhaust"):
-                        text "EXHAUST":
-                            color "#cc4444"
-                            size 11
-                            bold True
-                            xalign 0.5
-
-        ## COST GEM — diamond overhanging the top-left corner.
-        fixed:
-            xpos -27
-            ypos -28
-            xysize (95, 95)
-            add Transform(Solid(_cv_accent), size=(60, 60), rotate=45) xalign 0.5 yalign 0.5
-            text "[_cv_cost]":
-                xalign 0.5
-                yalign 0.5
-                color "#0a0806"
-                size 34
-                bold True
-                font "fonts/RobotoMono-Regular.ttf"
+    ## Thin wrapper around the canonical card renderer in battle_screen.rpy.
+    ## Used by card_offer_screen, card_solo_offer_screen, fixer preview, and
+    ## anywhere else the game shows a full-size StS-style card preview. The
+    ## inspect-mode card_view fits the legacy 420×580 envelope this screen
+    ## was built around (actual rendered size: 400×572 — close enough that
+    ## existing 420×580 fixed-size callers still anchor correctly).
+    use battle_card_view(cid=card.get("id", ""), mode="inspect", playable=True)
 
 
 ## ---------------------------------------------------------------------------
@@ -1975,15 +1862,7 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
     add "#0a0a0aee"
 
     python:
-        _CO_COLORS = {
-            "Physical": "#ff6633",
-            "Mental":   "#9944cc",
-            "Money":    "#ffd700",
-            "Logic":    "#00ccff",
-            "Police":   "#3388cc",
-            "Special":  "#00cc88",
-        }
-        _co_color   = _CO_COLORS.get(card.get("color", "Special"), "#888888")
+        _co_color   = card_type_color(card, "frame")
         _co_name    = card.get("name", "?")
         _co_type    = card.get("type", "")
         _co_rarity  = card.get("rarity", "")
@@ -1993,7 +1872,6 @@ screen card_offer_screen(card, source_label="", pass_stats_text=""):
         _stat_lines = [s.strip() for s in pass_stats_text.split(",") if s.strip()] if pass_stats_text else []
         _co_cost    = card.get("cost", 0)
         _co_flavor  = card.get("flavor", "")
-        _co_color_label = card.get("color", "")
 
     ## Outer class-color accent — frames the modal so the offer reads as YOURS.
     use class_color_frame(thickness=3, alpha_suffix="aa")
@@ -2197,11 +2075,7 @@ screen card_solo_offer_screen(card, source_label=""):
     python:
         ## Card colour — only the TAKE button's hover accent needs it now that
         ## card_visual renders the card body.
-        _csolo_palette = {
-            "Physical": "#ff6633", "Mental": "#9944cc", "Money": "#ffd700",
-            "Logic": "#00ccff", "Police": "#3388cc", "Special": "#00cc88",
-        }
-        _co_color = _csolo_palette.get(card.get("color", "Special"), "#888888")
+        _co_color = card_type_color(card, "frame")
 
     use class_color_frame(thickness=3, alpha_suffix="aa")
 
@@ -2293,9 +2167,6 @@ screen card_reward_trio_screen(cards):
 
     add "#0a0a0aee"
 
-    python:
-        _type_palette = {"Attack": "#cc4422", "Skill": "#3388cc", "Power": "#aa44cc"}
-
     use class_color_frame(thickness=3, alpha_suffix="aa")
 
     text "CHOOSE A CARD":
@@ -2313,24 +2184,9 @@ screen card_reward_trio_screen(cards):
         spacing 36
 
         for _ctp_i, _cid in enumerate(cards):
-            python:
-                _c        = CARD_LIBRARY.get(_cid, {})
-                _name     = _c.get("name", _cid)
-                _type     = _c.get("type", "Skill")
-                _rarity   = _c.get("rarity", "common")
-                _cost     = _c.get("cost", 0)
-                _flavor   = _c.get("flavor", "")
-                _colorlab = _c.get("color", "Special")
-                _accent   = _type_palette.get(_type, "#888888")
-                _effect_s = effect_description(_c.get("effect"))
-                _hot_n    = _ctp_i + 1
-                _subtitle = (_type.upper() + " · " + _rarity.upper() + " · " + _colorlab.upper()).strip(" ·")
-                _art_path = "images/cards/{}.png".format(_cid)
-                _has_art  = renpy.loadable(_art_path)
-                _art_glyph = _c.get("art_glyph") or {"Attack": "⚔", "Skill": "✦", "Power": "★"}.get(_type, "●")
-                ## Fan-out hover offset: left leans left, centre stays, right leans right.
-                ## Indexed by position in the trio; 4th+ slot defaults to no shift.
-                _hover_xoff = (-36, 0, 36)[_ctp_i] if _ctp_i < 3 else 0
+            ## Fan-out hover offset: left leans left, centre stays, right leans right.
+            ## Indexed by position in the trio; 4th+ slot defaults to no shift.
+            $ _hover_xoff = (-36, 0, 36)[_ctp_i] if _ctp_i < 3 else 0
 
             button:
                 xsize 420
@@ -2340,121 +2196,7 @@ screen card_reward_trio_screen(cards):
                 action Return(_cid)
                 at reward_card_hover(_hover_xoff)
 
-                ## L1: glow halo — pulses softly, signaling all three are selectable.
-                add Solid(_accent + "44") xpos 0 ypos 0 xysize (420, 580) at card_glow_pulse
-                add Solid(_accent + "77") xpos 8 ypos 8 xysize (404, 564) at card_glow_pulse
-
-                ## L2: drop shadow
-                add Solid("#000000aa") xpos 26 ypos 28 xysize (380, 540)
-
-                ## L3 + L4: type-colored border wrapping warm-dark inner panel.
-                frame:
-                    xpos 16
-                    ypos 16
-                    xsize 380
-                    ysize 540
-                    background Frame(_accent, 6, 6)
-                    padding (8, 8)
-
-                    frame:
-                        xfill True
-                        yfill True
-                        background Frame("#1a1410", 4, 4)
-                        padding (12, 10)
-
-                        vbox:
-                            xfill True
-                            spacing 6
-
-                            ## TITLE BANNER
-                            frame:
-                                xfill True
-                                ysize 44
-                                background Frame("#0a0806", 4, 4)
-                                text _name substitute False:
-                                    color card_name_color(_c, "#e8c878")
-                                    size 24
-                                    bold True
-                                    xalign 0.5
-                                    yalign 0.5
-                                    xmaximum 320
-                                    text_align 0.5
-                                    font "fonts/RobotoMono-Regular.ttf"
-
-                            ## ART ZONE
-                            frame:
-                                xfill True
-                                ysize 200
-                                background Frame(_accent + "22", 4, 4)
-                                if _has_art:
-                                    add Transform(_art_path, size=(320, 188)) xalign 0.5 yalign 0.5
-                                else:
-                                    text _art_glyph:
-                                        xalign 0.5
-                                        yalign 0.5
-                                        color _accent
-                                        size 110
-                                        outlines [(3, "#000000", 0, 0)]
-
-                            ## TYPE SUBTITLE
-                            text _subtitle substitute False:
-                                xalign 0.5
-                                size 11
-                                color _accent
-                                bold True
-                                font "fonts/RobotoMono-Regular.ttf"
-
-                            null height 2
-
-                            ## DESCRIPTION BAND
-                            frame:
-                                xfill True
-                                yminimum 100
-                                background Frame("#241d15", 4, 4)
-                                padding (12, 10)
-                                if _effect_s:
-                                    text _effect_s substitute False:
-                                        color "#e8e0d0"
-                                        size 14
-                                        bold True
-                                        xalign 0.5
-                                        yalign 0.5
-                                        xmaximum 320
-                                        text_align 0.5
-                                        line_spacing 2
-
-                            ## FLAVOR
-                            if _flavor:
-                                text _flavor substitute False:
-                                    color "#777777"
-                                    size 11
-                                    italic True
-                                    xalign 0.5
-                                    xmaximum 320
-                                    text_align 0.5
-
-                            if _c.get("exhaust"):
-                                text "EXHAUST":
-                                    color "#cc4444"
-                                    size 11
-                                    bold True
-                                    xalign 0.5
-
-                ## COST GEM — diamond overhanging card top-left.
-                ## Geometry mirrors battle gem ratio (battle: xpos -11/-14 on
-                ## a 220-wide slot → reward: scaled 1.9× for the 420-wide slot).
-                fixed:
-                    xpos -27
-                    ypos -28
-                    xysize (95, 95)
-                    add Transform(Solid(_accent), size=(60, 60), rotate=45) xalign 0.5 yalign 0.5
-                    text "[_cost]":
-                        xalign 0.5
-                        yalign 0.5
-                        color "#0a0806"
-                        size 34
-                        bold True
-                        font "fonts/RobotoMono-Regular.ttf"
+                use battle_card_view(cid=_cid, mode="inspect", playable=True)
 
     textbutton "SKIP":
         xalign 0.5
@@ -2922,28 +2664,20 @@ screen deck_upgrade_picker():
     add "#0d0d11ee"
 
     python:
-        ## Keep in sync with deck_viewer's _COLOR_HEX (and VISION.md card-add checklist).
-        _DUP_COLOR_HEX = {
-            "Physical":   "#ff6633",
-            "Mental":     "#9944cc",
-            "Money":      "#ffd700",
-            "Logic":      "#00ccff",
-            "Tech":       "#66ddff",
-            "Police":     "#3388cc",
-            "Special":    "#00cc88",
-            "Rage":       "#cc2200",
-            "Compromise": "#7a7060",
-        }
+        ## Group by visual type — Attack / Skill / Power / Curse / Status —
+        ## matches the deck_viewer grouping. Curse / Status sections are
+        ## non-upgradeable (register_upgrade refuses corruption) but rendered
+        ## anyway so the player sees the full deck while picking.
         _dup_cards = player_deck.cards if player_deck is not None else []
         _dup_count = len(_dup_cards)
-        _dup_by_color = {}
+        _dup_by_group = {}
         for _cid in _dup_cards:
             _c = CARD_LIBRARY.get(_cid)
             if _c is None:
                 continue
-            _col = _c.get("color", "Special")
-            _dup_by_color.setdefault(_col, []).append(_cid)
-        _dup_color_order = ["Physical", "Mental", "Money", "Logic", "Tech", "Police", "Special", "Rage", "Compromise"]
+            _grp = card_visual_type(_c)
+            _dup_by_group.setdefault(_grp, []).append(_cid)
+        _dup_group_order = list(CARD_VISUAL_TYPES)
         _dup_eligible_count = sum(1 for _cid in _dup_cards if is_upgradeable(_cid))
 
     use class_color_frame(thickness=3, alpha_suffix="aa")
@@ -2965,85 +2699,68 @@ screen deck_upgrade_picker():
             color "#888888"
             size 16
 
+        ## ── Grid layout — full StS card visuals, click an upgradeable card
+        ## to preview its `+` form. Non-upgradeable cards are dimmed (passed
+        ## `playable=False` to battle_card_view) and not clickable. Matches
+        ## the deck_viewer grid; same 6-per-row pitch.
         viewport:
-            xsize 1500
-            ysize 640
+            xsize 1600
+            ysize 760
             scrollbars "vertical"
             mousewheel True
             draggable True
 
             vbox:
-                spacing 14
+                spacing 24
 
-                for _col in _dup_color_order:
-                    if _dup_by_color.get(_col):
-                        $ _col_hex = _DUP_COLOR_HEX.get(_col, "#888888")
-                        $ _col_cards = _dup_by_color[_col]
+                for _col in _dup_group_order:
+                    if _dup_by_group.get(_col):
+                        $ _col_hex = TYPE_PALETTE.get(_col, {}).get("frame", "#888888")
+                        $ _col_cards = _dup_by_group[_col]
 
+                        ## Group header — color bar + count.
                         hbox:
-                            spacing 10
+                            spacing 12
+                            yalign 0.5
+                            frame:
+                                ysize 22
+                                xsize 8
+                                background Frame(_col_hex, 0, 0)
                             text "{} ({})".format(_col.upper(), len(_col_cards)):
                                 color _col_hex
-                                size 18
+                                size 22
                                 bold True
                                 font "fonts/RobotoMono-Regular.ttf"
+                                outlines [(1, "#000000", 0, 0)]
 
-                        $ _rows = [_col_cards[i:i+4] for i in range(0, len(_col_cards), 4)]
+                        $ _rows = [_col_cards[i:i+6] for i in range(0, len(_col_cards), 6)]
                         vbox:
-                            spacing 8
+                            spacing 28
                             for _row in _rows:
                                 hbox:
-                                    spacing 8
+                                    spacing 16
                                     for _cid in _row:
-                                        $ _c = CARD_LIBRARY.get(_cid, {})
                                         $ _can_up = is_upgradeable(_cid)
-                                        $ _bg_color = "#0d0d0dee" if _can_up else "#0a0a0a99"
-                                        ## Already-upgraded cards render their name green
-                                        ## here too — the picker won't let you pick them
-                                        ## (they're non-upgradeable), but the green tells
-                                        ## you why they're locked.
-                                        $ _name_color = card_name_color(_c, "#ffffff" if _can_up else "#555555")
-                                        $ _flavor_color = "#aaaaaa" if _can_up else "#3a3a3a"
 
-                                        button:
-                                            xsize 350
-                                            ysize 130
-                                            background Frame(_bg_color, 4, 4)
-                                            hover_background (Frame("#2a1a00ee", 4, 4) if _can_up else Frame(_bg_color, 4, 4))
-                                            sensitive _can_up
-                                            action Return(_cid)
-                                            padding (12, 10)
-
-                                            vbox:
-                                                spacing 4
-
-                                                hbox:
-                                                    spacing 6
-                                                    text "[[ {} ]".format(_c.get("cost", 0)):
-                                                        color _col_hex
-                                                        size 14
-                                                        bold True
-                                                    text _c.get("name", _cid) substitute False:
-                                                        color _name_color
-                                                        size 16
-                                                        bold True
-                                                    if not _can_up:
-                                                        text "·":
-                                                            color "#3a3a3a"
-                                                            size 14
-                                                        text "can't upgrade":
-                                                            color "#555533"
-                                                            size 11
-                                                            italic True
-
-                                                text "{} · {} · {}".format(_c.get("type", ""), _c.get("rarity", ""), _c.get("color", "")):
-                                                    color "#666666"
-                                                    size 11
-
-                                                text effect_description(_c.get("effect", "")) substitute False:
-                                                    color _flavor_color
-                                                    size 13
-                                                    xmaximum 326
+                                        ## fixed wrapper reserves the slot
+                                        ## so non-upgradeable cards (no
+                                        ## button) take the same footprint
+                                        ## as the clickable ones.
+                                        fixed:
+                                            xysize (220, 320)
+                                            if _can_up:
+                                                button:
+                                                    xsize 220
+                                                    ysize 316
+                                                    background None
+                                                    hover_background None
+                                                    action Return(_cid)
+                                                    at card_hover_lift
+                                                    use battle_card_view(cid=_cid, mode="hand", playable=True)
+                                            else:
+                                                ## Dimmed via playable=False — frame desaturates,
+                                                ## cost gem darkens, description fades. No hover lift.
+                                                use battle_card_view(cid=_cid, mode="hand", playable=False)
 
                 if not _dup_cards:
                     text "Your deck is empty.":
@@ -3053,7 +2770,20 @@ screen deck_upgrade_picker():
                         xalign 0.5
                         text_align 0.5
 
-        textbutton "[[ ← BACK TO GYM ]":
+        ## Class-aware back label — BB upgrades from gym, DE from cold-read
+        ## (currently routed through gym-equivalent flow), BH from PubMed
+        ## research. Falls back to plain BACK for unknown class.
+        python:
+            _dup_pc = stats.player_class if stats else None
+            if _dup_pc == "biohacker":
+                _dup_back_label = "[[ ← BACK TO RESEARCH ]"
+            elif _dup_pc == "bodybuilder":
+                _dup_back_label = "[[ ← BACK TO GYM ]"
+            elif _dup_pc == "dark_empath":
+                _dup_back_label = "[[ ← BACK ]"
+            else:
+                _dup_back_label = "[[ ← BACK ]"
+        textbutton _dup_back_label:
             xalign 0.5
             action Return("cancel")
             text_color "#aaaaaa"
@@ -3083,18 +2813,10 @@ screen card_upgrade_preview(base_id):
     use class_color_frame(thickness=3, alpha_suffix="aa")
 
     python:
-        _CUP_COLORS = {
-            "Physical": "#ff6633",
-            "Mental":   "#9944cc",
-            "Money":    "#ffd700",
-            "Logic":    "#00ccff",
-            "Police":   "#3388cc",
-            "Special":  "#00cc88",
-        }
         _cup_base = CARD_LIBRARY.get(base_id, {})
         _cup_plus_id = get_upgraded_id(base_id)
         _cup_plus = CARD_LIBRARY.get(_cup_plus_id, {}) if _cup_plus_id else {}
-        _cup_color = _CUP_COLORS.get(_cup_base.get("color", "Special"), "#888888")
+        _cup_color = card_type_color(_cup_base, "frame")
         _cup_upg_accent = "#ffaa44"
 
     vbox:
@@ -3119,10 +2841,21 @@ screen card_upgrade_preview(base_id):
     hbox:
         xalign 0.5
         yalign 0.46
-        spacing 30
+        spacing 40
 
-        ## LEFT — base card
-        use _upgrade_card_panel(card=_cup_base, accent_color=_cup_color, label="CURRENT")
+        ## LEFT — base card (full StS visual via the canonical renderer).
+        vbox:
+            spacing 12
+            xalign 0.5
+            text "CURRENT":
+                xalign 0.5
+                color _cup_color
+                size 16
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
+            fixed:
+                xysize (400, 580)
+                use battle_card_view(cid=_cup_base.get("id", ""), mode="inspect", playable=True)
 
         ## Arrow glyph
         vbox:
@@ -3135,8 +2868,19 @@ screen card_upgrade_preview(base_id):
                 size 80
                 bold True
 
-        ## RIGHT — upgraded card
-        use _upgrade_card_panel(card=_cup_plus, accent_color=_cup_upg_accent, label="UPGRADED")
+        ## RIGHT — upgraded card.
+        vbox:
+            spacing 12
+            xalign 0.5
+            text "UPGRADED":
+                xalign 0.5
+                color _cup_upg_accent
+                size 16
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
+            fixed:
+                xysize (400, 580)
+                use battle_card_view(cid=_cup_plus.get("id", ""), mode="inspect", playable=True)
 
     hbox:
         xalign 0.5
@@ -3185,100 +2929,6 @@ screen card_upgrade_preview(base_id):
     key "K_ESCAPE" action Return("cancel")
 
 
-screen _upgrade_card_panel(card, accent_color, label):
-    ## Shared card preview tile for card_upgrade_preview. Same shape as the
-    ## TAKE panel in card_offer_screen so the eye recognizes "this is a card".
-    frame:
-        xsize 420
-        ysize 540
-        background Frame("#0d0d0dee", 4, 4)
-        padding (22, 18)
-
-        vbox:
-            spacing 12
-            xalign 0.5
-
-            frame:
-                xalign 0.5
-                xsize 360
-                ysize 5
-                background Frame(accent_color, 0, 0)
-
-            text label:
-                color accent_color
-                size 13
-                xalign 0.5
-                bold True
-                font "fonts/RobotoMono-Regular.ttf"
-
-            null height 4
-
-            frame:
-                xsize 56
-                ysize 56
-                background Frame(accent_color, 4, 4)
-                xalign 0.5
-                text "[card.get('cost', 0)]":
-                    color "#000000"
-                    size 32
-                    bold True
-                    xalign 0.5
-                    yalign 0.5
-
-            null height 2
-
-            text card.get("name", "?") substitute False:
-                color card_name_color(card, "#ffffff")
-                size 28
-                bold True
-                xalign 0.5
-                font "fonts/RobotoMono-Regular.ttf"
-
-            text "{} · {} · {}".format(card.get("type", ""), card.get("rarity", "").upper(), card.get("color", "")) substitute False:
-                color accent_color
-                size 13
-                xalign 0.5
-                font "fonts/RobotoMono-Regular.ttf"
-
-            null height 10
-
-            text "─────────────────────────":
-                color "#222222"
-                size 12
-                xalign 0.5
-
-            null height 6
-
-            $ _cup_eff = effect_description(card.get("effect"))
-            if _cup_eff:
-                text _cup_eff substitute False:
-                    color "#ffffff"
-                    size 16
-                    bold True
-                    xalign 0.5
-                    xmaximum 360
-                    text_align 0.5
-                    line_spacing 3
-
-                null height 8
-
-            text card.get("flavor", "") substitute False:
-                color "#888888"
-                size 13
-                italic True
-                xalign 0.5
-                xmaximum 360
-                text_align 0.5
-
-            if card.get("exhaust"):
-                null height 6
-                text "[[EXHAUST]":
-                    color "#cc4444"
-                    size 13
-                    bold True
-                    xalign 0.5
-
-
 ## ---------------------------------------------------------------------------
 ## Upgrade Reveal — fade-in, big card centered, 1s pause, fade-out. Used
 ## right after a confirmed upgrade, before end_day.
@@ -3299,101 +2949,26 @@ screen upgrade_reveal_screen(plus_id):
     add "#000000ff"
 
     python:
-        _UR_COLORS = {
-            "Physical": "#ff6633",
-            "Mental":   "#9944cc",
-            "Money":    "#ffd700",
-            "Logic":    "#00ccff",
-            "Police":   "#3388cc",
-            "Special":  "#00cc88",
-        }
-        _ur_card = CARD_LIBRARY.get(plus_id, {})
-        _ur_color = _UR_COLORS.get(_ur_card.get("color", "Special"), "#ffaa44")
         _ur_accent = "#ffaa44"
 
-    frame at _upgrade_reveal_anim:
+    vbox at _upgrade_reveal_anim:
         xalign 0.5
         yalign 0.5
-        xsize 480
-        ysize 600
-        background Frame("#0d0d0dee", 4, 4)
-        padding (24, 20)
+        spacing 18
 
-        vbox:
-            spacing 14
+        text "UPGRADED":
             xalign 0.5
+            color _ur_accent
+            size 28
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+            outlines [(2, "#000000", 0, 0)]
 
-            text "UPGRADED":
-                color _ur_accent
-                size 18
-                bold True
-                xalign 0.5
-                font "fonts/RobotoMono-Regular.ttf"
-
-            frame:
-                xalign 0.5
-                xsize 400
-                ysize 5
-                background Frame(_ur_accent, 0, 0)
-
-            null height 6
-
-            frame:
-                xsize 64
-                ysize 64
-                background Frame(_ur_color, 4, 4)
-                xalign 0.5
-                text "[_ur_card.get('cost', 0)]":
-                    color "#000000"
-                    size 36
-                    bold True
-                    xalign 0.5
-                    yalign 0.5
-
-            null height 4
-
-            text _ur_card.get("name", "?") substitute False:
-                color card_name_color(_ur_card, "#ffffff")
-                size 36
-                bold True
-                xalign 0.5
-                font "fonts/RobotoMono-Regular.ttf"
-
-            text "{} · {} · {}".format(_ur_card.get("type", ""), _ur_card.get("rarity", "").upper(), _ur_card.get("color", "")) substitute False:
-                color _ur_color
-                size 14
-                xalign 0.5
-                font "fonts/RobotoMono-Regular.ttf"
-
-            null height 12
-
-            text "─────────────────────────":
-                color "#222222"
-                size 12
-                xalign 0.5
-
-            null height 6
-
-            $ _ur_eff = effect_description(_ur_card.get("effect"))
-            if _ur_eff:
-                text _ur_eff substitute False:
-                    color "#ffffff"
-                    size 18
-                    bold True
-                    xalign 0.5
-                    xmaximum 420
-                    text_align 0.5
-                    line_spacing 3
-
-            null height 10
-
-            text _ur_card.get("flavor", "") substitute False:
-                color "#aaaaaa"
-                size 14
-                italic True
-                xalign 0.5
-                xmaximum 420
-                text_align 0.5
+        ## Big StS card centered. Same canonical renderer as everywhere else.
+        fixed:
+            xysize (400, 580)
+            xalign 0.5
+            use battle_card_view(cid=plus_id, mode="inspect", playable=True)
 
     timer 1.0 action Return(True)
 
@@ -3414,16 +2989,8 @@ screen card_acquired_toast(card):
     zorder 310
 
     python:
-        _CARD_TOAST_COLORS = {
-            "Physical": "#ff6633",
-            "Mental":   "#9944cc",
-            "Money":    "#ffd700",
-            "Logic":    "#00ccff",
-            "Police":   "#3388cc",
-            "Special":  "#00cc88",
-        }
-        ## Corruption variants override the color palette + header. These
-        ## cards aren't "acquired" — they're forced on you. Rage by hatred,
+        ## Corruption variants override the color + header. These cards
+        ## aren't "acquired" — they're forced on you. Rage by hatred,
         ## Compromise by losing fights.
         _ct_is_rage       = bool(card.get("is_rage"))
         _ct_is_compromise = bool(card.get("is_compromise"))
@@ -3436,7 +3003,7 @@ screen card_acquired_toast(card):
             _ct_header = "🚫 COMPROMISE LANDED"
             _ct_bg = "#0d0d0aff"
         else:
-            _ct_color = _CARD_TOAST_COLORS.get(card.get("color", "Special"), "#888888")
+            _ct_color = card_type_color(card, "frame")
             _ct_header = "CARD ACQUIRED"
             _ct_bg = "#0d1018ff"
 
@@ -3468,7 +3035,7 @@ screen card_acquired_toast(card):
                 size 18
                 bold True
 
-            text "{} · {} · {}".format(card.get("type", ""), card.get("rarity", ""), card.get("color", "")):
+            text "{} · {}".format(card_visual_type(card), card.get("rarity", "").upper()):
                 color "#888888"
                 size 11
 
@@ -4057,7 +3624,7 @@ screen difficulty_selection_screen():
 ## own hover. Not selectable.
 init python:
     CLASS_SELECT_ORDER = ["bodybuilder", "dark_empath", "biohacker"]
-    LOCKED_CLASSES = {"dark_empath", "biohacker"}
+    LOCKED_CLASSES = {"dark_empath"}
     CLASS_PORTRAITS = {
         "bodybuilder": "images/sprites/jb_bodybuilder.jpg",
         "dark_empath": "images/sprites/jb_dark_empath.jpg",
@@ -4088,6 +3655,7 @@ init python:
     }
     CLASS_IDENTITY = {
         "bodybuilder": "Words bounce off muscle. The grind pays — in cash and calm. Code comes slower.",
+        "biohacker":   "The body is the lab. Today's protocol decides tomorrow's combat edge. Coding ramps fastest.",
     }
     CLASS_COL_W = 640   # 1920 / 3
 
@@ -4105,15 +3673,20 @@ init python:
 ## overlays (accent bar, name plate, bottom scrim, stamp/pill) sit *outside*
 ## this, so they stay crisp + full-brightness no matter what's focused.
 ##
-## _classcol_hero — the playable class (BB). Just centres the portrait: no
-## blur, no dim, no zoom, ever. It's crisp + full-brightness from frame one,
-## which is what makes it visibly own the screen next to the recessed locked
-## columns. (No hover zoom — it scaled the bright portrait up just enough to
-## poke past the bottom scrim's edges.)
+## _classcol_hero — playable class columns (BB, BH). Crisp + full-brightness
+## by default. Hover bumps brightness slightly and adds a tiny zoom so the
+## player can SEE which column the cursor is over without breaking the
+## "this column owns the screen" feel. Keep the change small — anything more
+## than ~3% zoom pokes past the bottom scrim.
 transform _classcol_hero:
     anchor (0.5, 0.5)
     pos (0.5, 0.5)
     zoom 1.0
+    matrixcolor BrightnessMatrix(0.0)
+    on hover:
+        ease 0.18 zoom 1.025 matrixcolor BrightnessMatrix(0.08)
+    on idle:
+        ease 0.18 zoom 1.0 matrixcolor BrightnessMatrix(0.0)
 
 ## _classcol_locked_idle — DE / BH previews. Heavily blurred + dimmed at rest;
 ## hovering un-blurs them just enough to read as a teaser, but they stay dim

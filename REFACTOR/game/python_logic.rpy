@@ -23,6 +23,68 @@ init python:
 
     config.custom_text_tags["stshl"] = _stshl_tag
 
+    ## ── Stale module-ref scrubber ─────────────────────────────────────────
+    ## Old code did `import random as _bh_grant_rand` inside a label python
+    ## block, which left the random MODULE bound in the store. The store is
+    ## pickled on every save, and modules can't be pickled — instant crash.
+    ## The bug is fixed (we use `__import__('random').choice(...)` inline now)
+    ## but older saves still carry the leaked binding. Scrub on every load
+    ## so existing saves don't keep crashing.
+    def _bh_scrub_stale_module_refs():
+        import types as _types
+        for _name in ("_bh_grant_rand", "_noot_rng", "_daily_music_rand",
+                      "_battle_rand", "_rage_rand", "_bh_rand", "_juice_math",
+                      "_kw_re_mod"):
+            if hasattr(store, _name):
+                try:
+                    delattr(store, _name)
+                except Exception:
+                    pass
+        ## Defensive sweep — any leaked module-typed store attr is unrenderable
+        ## and unsave-able. Scrub anything that snuck through.
+        for _name in list(vars(store).keys()):
+            try:
+                if isinstance(getattr(store, _name), _types.ModuleType) and _name.startswith("_"):
+                    delattr(store, _name)
+            except Exception:
+                pass
+
+    config.after_load_callbacks.append(_bh_scrub_stale_module_refs)
+    config.start_callbacks.append(_bh_scrub_stale_module_refs)
+
+    ## ── Misclassed-Rage scrubber ─────────────────────────────────────────
+    ## Rage cards (Outburst / Tunnel Vision / Snap) are Bodybuilder-exclusive
+    ## as of the class-gating fix. Saves made BEFORE the gate may carry
+    ## injected Rage cards on a Biohacker or Dark Empath deck. Purge them on
+    ## load + start so existing runs aren't permanently corrupted by a fix
+    ## they predate.
+    ##
+    ## Also resets _rage_thresholds_triggered to {} for non-BB so the
+    ## tutorial popup / threshold tracking doesn't think the player already
+    ## "saw" 40/60/80 — they didn't, the system just shouldn't have fired.
+    def _scrub_misclassed_rage():
+        try:
+            _pc = stats.player_class if stats is not None else None
+        except Exception:
+            return
+        if _pc == "bodybuilder" or _pc is None:
+            return
+        _pd = globals().get("player_deck")
+        if _pd is None:
+            return
+        _rage_ids = {"outburst", "tunnel_vision", "snap",
+                     "outburst_plus", "tunnel_vision_plus", "snap_plus"}
+        _pd.cards = [c for c in _pd.cards if c not in _rage_ids]
+        ## Reset trigger-set so non-BB doesn't show "already triggered" if
+        ## they ever class-switch in a dev/test scenario.
+        try:
+            store._rage_thresholds_triggered = set()
+        except Exception:
+            pass
+
+    config.after_load_callbacks.append(_scrub_misclassed_rage)
+    config.start_callbacks.append(_scrub_misclassed_rage)
+
 
     class Stats:
         """Core stat container for JB. Ported from stats.py."""
@@ -216,6 +278,14 @@ init python:
     ## Each threshold (40 / 60 / 80) jams a permanent Rage card into the deck
     ## on first crossing. The deck IS the 30 days; bad weeks stick.
     ## Fired from increment_stats_pcr_hatred after the mutation lands.
+    ##
+    ## CLASS GATING: Rage is BODYBUILDER-EXCLUSIVE. BB's fantasy is "the bar
+    ## tells the truth and the body holds the grudge" — Rage cards are the
+    ## physical manifestation of that grudge. Biohacker's corruption is
+    ## CHEMICAL (dependency, tolerance, crash) and lives in the Nootropics
+    ## protocol rather than the deck. Dark Empath's corruption is RELATIONAL
+    ## and lives in the cold-read tracker. Non-BB classes still accumulate
+    ## Hatred — it still feeds the collapse cap — but no Rage cards land.
     ## ---------------------------------------------------------------------------
     RAGE_THRESHOLDS = [
         (40, "outburst"),
@@ -225,6 +295,10 @@ init python:
 
     def _check_rage_injection():
         if stats is None:
+            return
+        ## BB-exclusive. Hatred still ticks for everyone (collapse cap still
+        ## ends the run), but no permanent Rage cards land in non-BB decks.
+        if stats.player_class != "bodybuilder":
             return
         triggered = getattr(store, '_rage_thresholds_triggered', None)
         if triggered is None:
@@ -372,6 +446,14 @@ init python:
         store.de_profiles = {"rookie": 0, "veteran": 0, "lieutenant": 0, "clerk": 0}
         ## BH: PROTOCOL (current active compound profile, set by last nootropic taken).
         store.bh_protocol = None
+        ## One-shot flag — the Protocol 10/10 capstone (protocol_ten_reward) fires once.
+        store._protocol_reward_given = False
+        ## ACD856 FAKE outcome leaves the player with a one-shot Diarrhea status
+        ## card injected into the next battle. Read + consumed in battle_init.
+        store.bh_pending_diarrhea = False
+        ## Per-day Nootropics Lab gate — one dose OR one research session per day.
+        ## Reset in do_end_day, blocks re-entry in activity_nootropics.
+        store.nootropics_done_today = False
         ## Class-arc multi-stage flags (Kovář / Telegram)
         store.de_arc_stage = 0
         store.bh_arc_stage = 0
@@ -422,11 +504,14 @@ init python:
             "tagline": "Optimized. Caffeinated. Slightly illegal.",
             "color":   class_accent_color("biohacker"),
             "perks": [
+                "Two unique daily activities — Nootropics Lab (dose for combat edge) and Recovery (4 modalities for HP + Hatred relief).",
+                "Today's PROTOCOL drives the next fight's bonus — Legal: +1 starting block; Shady: +1 max energy; Lab: +1 max energy AND first-turn perks.",
+                "Fastest Coding ramp of any class (T1/T2/T3 doses grant +3/+6/+10 Coding).",
+                "10 nootropic BUYs unlock a choose-1-of-3 rare capstone Power.",
+                "ACD856 random event — 10k CZK gamble for +20 max HP and a rare regen Power.",
                 "Starts with +5 Coding Skill (analytical edge from baseline).",
-                "Israeli Developer event always grants max coding reward.",
-                "Colonel's Safety Net attack is auto-countered.",
             ],
-            "passive": "Starts with +5 Coding Skill (analytical edge from baseline).",
+            "passive": "Starts with +5 Coding. Daily protocol decides the per-fight bonus. Three deck archetypes — Stimulant (energy ramp), Neurochem (draw / replay), Wetware (HP regen).",
             "coding_modifier":   5,
             "hatred_modifier":   0,
             "coding_ceiling":  250,
@@ -502,16 +587,23 @@ init python:
     # Nootropics System — Biohacker exclusive
     # ---------------------------------------------------------------------------
 
+    ## REFACTORED to a 3-user-tier model (Legal/Shady/Lab) mapped onto the
+    ## 5-tier array slots 1/3/5. Slots 2 and 4 are kept as data (older systems
+    ## — martin_meeting, class_arcs, colonel_event — index into NOOTROPIC_TIERS
+    ## directly) but never surfaced in the submenu (_NOOT_VIS hides them).
+    ## User-visible tier names: T1 LEGAL eshop, T3 SHADY source, T5 LAB grade.
+    ## Cost curve: 2k / 5k / 10k. Coding ramp: +3 / +6 / +10. Hatred:
+    ## -3 / -2 net / +5 (lab grade is paranoia + cost + body strain).
     NOOTROPIC_TIERS = {
         1: {
-            "name":          "Daily Supplements",
-            "compounds":     "Omega-3, Creatine, Matcha, Magnesium, Vitamin D",
-            "cost":          300,
-            "coding":        4,
-            "hatred":        -4,
+            "name":          "Legal Supplements",
+            "compounds":     "Omega-3, Creatine, Magnesium, Vitamin D — eshop next-day.",
+            "cost":          2000,
+            "coding":        3,
+            "hatred":        -3,
             "crash_coding":  0,
             "crash_hatred":  0,
-            "flavor":        "Boring. Effective. The foundation of any serious optimisation protocol.",
+            "flavor":        "Boring. Legal. The foundation any serious protocol starts from.",
             "crash_flavor":  "",
         },
         2: {
@@ -522,19 +614,19 @@ init python:
             "hatred":        -5,
             "crash_coding":  0,
             "crash_hatred":  0,
-            "flavor":        "The static clears. The cursor blinks faster.",
+            "flavor":        "[DEPRECATED visible tier — kept as data for legacy references.]",
             "crash_flavor":  "",
         },
         3: {
-            "name":          "Racetams",
-            "compounds":     "Aniracetam, Oxiracetam, Phenylpiracetam",
-            "cost":          1250,
-            "coding":        13,
-            "hatred":        -8,
-            "crash_coding":  -3,
-            "crash_hatred":  0,
-            "flavor":        "You feel the connections forming. Real ones. Dendrites firing in new configurations.",
-            "crash_flavor":  "Mild choline depletion. Your focus is slightly dulled this morning.",
+            "name":          "Shady Source",
+            "compounds":     "Modafinil, racetams — Telegram dealer, brown envelope.",
+            "cost":          5000,
+            "coding":        6,
+            "hatred":        -5,
+            "crash_coding":  -1,
+            "crash_hatred":  3,
+            "flavor":        "The dealer answers on the third ring. He doesn't say his name.",
+            "crash_flavor":  "Mild crash. Hands twitchy this morning.",
         },
         4: {
             "name":          "Peptides",
@@ -544,21 +636,134 @@ init python:
             "hatred":        -12,
             "crash_coding":  -5,
             "crash_hatred":  8,
-            "flavor":        "You are not yourself. You are a better-compiled version of yourself.",
-            "crash_flavor":  "Mood flatness. The grey is back. You knew it would come.",
+            "flavor":        "[DEPRECATED visible tier — kept as data for legacy references.]",
+            "crash_flavor":  "",
         },
         5: {
-            "name":          "FLModafinil (CRL-40,940)",
-            "compounds":     "Fluoromodafinil — research chemical, slightly illegal",
-            "cost":          3500,
-            "coding":        28,
-            "hatred":        -20,
-            "crash_coding":  -18,
-            "crash_hatred":  22,
-            "flavor":        "You are the compiler now. Everything else is just source code waiting to be optimised.",
-            "crash_flavor":  "The crash hits like a system reboot with corrupted memory. Your hands shake. The Colonel's face is very clear this morning.",
+            "name":          "Lab Grade",
+            "compounds":     "DIHEXA, FLModafinil, custom peptides — gray-market lab.",
+            "cost":          10000,
+            "coding":        10,
+            "hatred":        5,
+            "crash_coding":  -5,
+            "crash_hatred":  10,
+            "flavor":        "The vial is plain. The labelling is wrong on purpose.",
+            "crash_flavor":  "Crash hits like a reboot with corrupted memory. The Colonel's face is very clear this morning.",
         },
     }
+
+    ## ── BH escalation flavor ─────────────────────────────────────────────
+    ## The user explicitly asked for the Nootropics Lab to read "more like a
+    ## protocol or some kind of shit. Or make it progressively worse." Voice
+    ## drifts from cautious-clinical (early) to obsessive-clinical (mid) to
+    ## post-clinical (late) as cumulative doses pile up. The cabinet stops
+    ## being something you visit and starts being the room.
+    ##
+    ## Stages (cumulative across all tiers):
+    ##   1: ≤2  uses — methodical, optimistic, "the protocol"
+    ##   2: 3-6 uses — daily routine, instrumented, sticky notes
+    ##   3: 7-9 uses — handwriting not entirely yours, baseline drift
+    ##   4: 10+ uses — cabinet IS the room, dose IS the language
+    def bh_stage():
+        n = sum(nootropic_uses) if nootropic_uses else 0
+        if n <= 2:
+            return 1
+        if n <= 6:
+            return 2
+        if n <= 9:
+            return 3
+        return 4
+
+    _BH_OPEN_LINES = [
+        "You open the cabinet. The protocol is specific. Every compound has a purpose.",
+        "Cabinet open. Today's protocol is on the second sticky note from the left. Three weeks of data behind it.",
+        "You open the cabinet without looking. The protocol changed again last night — your handwriting, not entirely your decision.",
+        "There is no closing the cabinet anymore. The protocol is just what the next hour looks like.",
+    ]
+    _BH_SUBTITLES = [
+        "Exact compound. Exact dose. Exact timing.",
+        "Compound. Dose. Timing. HRV in, HRV out, clarity 1-10.",
+        "Inputs in. Outputs trending. The baseline is the variable now.",
+        "There is no baseline. There is the dose.",
+    ]
+    _BH_RESEARCH_FLAVORS = [
+        "Late-night dive. Three open tabs of papers and forum threads.",
+        "Twelve tabs. Two PDFs you've already cited to yourself.",
+        "PubMed. Reddit. A Korean preprint server. Sleep is for control groups.",
+        "The papers stopped being other people's a while ago. You're just confirming.",
+    ]
+    _BH_TIER_FLAVORS = {
+        1: [
+            "Omega-3, creatine, magnesium, vitamin D. Next-day delivery.",
+            "The base stack. Boring. Necessary. Spreadsheet column A.",
+            "Foundational. You haven't bought magnesium and creatine on different days in months.",
+            "Floor. The thing the rest of the protocol sits on. You take it without reading the bottle.",
+        ],
+        3: [
+            "Modafinil, racetams. Brown envelope from a Telegram contact.",
+            "The Telegram contact has a name now. 'Tom.' Tom is reliable.",
+            "Tom doesn't ask what you do. You don't ask where the racetams cross the border.",
+            "You stopped reading the labels. Tom is reliable. The labels are a formality.",
+        ],
+        5: [
+            "DIHEXA, FLModafinil, custom peptides. Gray-market lab.",
+            "Subcutaneous. The site rotates. You log the angle.",
+            "You haven't called what's in the vials by its chemical name in weeks.",
+            "The dose is the language. The vial is a sentence. Today's sentence is short.",
+        ],
+    }
+    ## Post-dose flavor — fires AFTER the dose lands as in-character reflection.
+    ## Per tier, four escalating lines. Indexed by per-tier use count, not stage.
+    _BH_POSTDOSE_FLAVORS = {
+        1: [
+            "Boring. Legal. The foundation any serious protocol starts from.",
+            "Predictable curve. The baseline you compare everything else against.",
+            "You barely notice it land. Which is the point. Floor stays floor.",
+            "It's not a dose anymore. It's part of breakfast.",
+        ],
+        3: [
+            "The dealer answers on the third ring. He doesn't say his name.",
+            "Tom answered second ring today. The envelope is a little heavier.",
+            "Tom said 'be careful' and meant it. You're not sure with what.",
+            "Tom didn't say anything. Tom just nodded. The room felt smaller after.",
+        ],
+        5: [
+            "The vial is plain. The labelling is wrong on purpose.",
+            "Second dose hits faster than the first. You note the delta. You don't fix it.",
+            "You can feel the membrane uptake now. That's not supposed to be a thing you can feel.",
+            "The Colonel's face is very clear today. Useful. The dose is doing its job.",
+        ],
+    }
+
+    def bh_open_line():
+        return _BH_OPEN_LINES[bh_stage() - 1]
+
+    def bh_subtitle():
+        return _BH_SUBTITLES[bh_stage() - 1]
+
+    def bh_research_flavor():
+        return _BH_RESEARCH_FLAVORS[bh_stage() - 1]
+
+    def bh_tier_flavor(tier):
+        ## Per-tier flavor in the picker — escalates with how many times THIS
+        ## tier has been bought (not cumulative). Caps at the last index.
+        idx = nootropic_uses[tier - 1] if 0 <= tier - 1 < len(nootropic_uses) else 0
+        pool = _BH_TIER_FLAVORS.get(tier, [])
+        if not pool:
+            return ""
+        return pool[min(idx, len(pool) - 1)]
+
+    def bh_postdose_flavor(tier):
+        ## Fires AFTER a dose lands. nootropic_uses[tier-1] has just been
+        ## incremented at this point, so dose #1 → idx 0 in the flavor list
+        ## (subtract 1 to compensate).
+        used = nootropic_uses[tier - 1] if 0 <= tier - 1 < len(nootropic_uses) else 0
+        idx = max(0, used - 1)
+        pool = _BH_POSTDOSE_FLAVORS.get(tier, [])
+        if not pool:
+            return NOOTROPIC_TIERS.get(tier, {}).get("flavor", "")
+        return pool[min(idx, len(pool) - 1)]
+
 
     def apply_nootropic_morning_effects():
         """
@@ -615,24 +820,22 @@ init python:
 
     def check_nootropic_unlocks():
         """
-        Check if usage thresholds unlock the next tier.
-        Returns a tag string if a new tier was unlocked, else None.
-        T1x2 -> T2, T2x2 -> T3, T3x2 -> T4, T4x2 -> T5.
+        Check if usage thresholds unlock the next tier under the 3-user-tier
+        model (Legal / Shady / Lab → slots 1 / 3 / 5).
+        T1x3 (Legal) -> T3 (Shady) — jumps tier_max straight to 3.
+        T3x3 (Shady) -> T5 (Lab)  — jumps tier_max straight to 5.
         T5 can also be unlocked via the Israeli Developer event flag.
         """
         global nootropic_tier_max
-        if nootropic_tier_max < 2 and nootropic_uses[0] >= 2:
-            nootropic_tier_max = 2
-            return "T2_UNLOCKED"
-        if nootropic_tier_max < 3 and nootropic_uses[1] >= 2:
+        ## Legal x3 unlocks Shady — jump past the dead slot 2 to keep
+        ## downstream `tier_max >= 2` checks (martin_meeting etc.) satisfied.
+        if nootropic_tier_max < 3 and nootropic_uses[0] >= 3:
             nootropic_tier_max = 3
-            return "T3_UNLOCKED"
-        if nootropic_tier_max < 4 and nootropic_uses[2] >= 2:
-            nootropic_tier_max = 4
-            return "T4_UNLOCKED"
-        if nootropic_tier_max < 5 and nootropic_uses[3] >= 2:
+            return "SHADY_UNLOCKED"
+        ## Shady x3 unlocks Lab — jump past the dead slot 4.
+        if nootropic_tier_max < 5 and nootropic_uses[2] >= 3:
             nootropic_tier_max = 5
-            return "T5_UNLOCKED"
+            return "LAB_UNLOCKED"
         return None
 
     # ---------------------------------------------------------------------------
@@ -731,7 +934,12 @@ init python:
 
 init python:
 
-    import random as _daily_music_rand
+    ## Do NOT bind `random` to a store name here (e.g. `import random as
+    ## _daily_music_rand`). The store gets pickled on save and modules can't
+    ## be pickled — and even when the import is at init-python level (not a
+    ## label block) the binding only survives if the running process never
+    ## scrubs it. Use `__import__('random').choice(...)` inline below.
+    ## Same lesson as `_bh_grant_rand` / `_noot_rng` (see scrubber above).
 
     ## Add/remove filenames here as new tracks land. Each track lives in the
     ## Mr-Robot / Cyberpunk / HL2 industrial-noir lane (A minor) so any
@@ -764,7 +972,7 @@ init python:
         ## Pick a fresh pool track, avoiding the last one if pool has >1 entry.
         last = getattr(store, '_last_daily_track', None)
         choices = [t for t in pool if t != last] or pool
-        chosen = _daily_music_rand.choice(choices)
+        chosen = __import__('random').choice(choices)
 
         renpy.music.play(chosen, fadein=fadein, channel="music")
         store._last_daily_track = chosen

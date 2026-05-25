@@ -39,7 +39,12 @@ init python:
 
 init python:
 
-    import random as _battle_rand
+    ## Do NOT `import random as _battle_rand` here — the binding lands on
+    ## store and the `random` module is unpicklable. Saves made with the
+    ## binding silently drop it; on load `_battle_rand` is missing and the
+    ## next shuffle NameErrors. Same lesson as `_bh_grant_rand` /
+    ## `_daily_music_rand` (see scrubber in python_logic.rpy). Use
+    ## `__import__('random')` at the call sites below.
 
     ## Hatred-archetype battle constants (tunable). See Red walls up block on
     ## each in-fight Hatred gain; Thick Skull catches the first gain that would
@@ -326,10 +331,28 @@ init python:
                 self.player_hp -= actual
                 self.last_damage_to_player = actual
                 self.add_log("JB takes {} damage.".format(actual))
+                ## Pain Threshold (BH Wetware Power) — convert HP loss into
+                ## block, and heal a chip if on Legal protocol. Triggers on any
+                ## non-zero damage taken, regardless of source.
+                if actual > 0 and self.buffs.get("pain_threshold_active"):
+                    self.gain_block(target, actual)
+                    self.add_log("[[Pain Threshold]: +{} block from HP lost.".format(actual))
+                    if getattr(store, 'bh_protocol', None) == "Legal":
+                        self.heal(target, 2)
                 if self.player_hp <= 0:
-                    self.player_hp = 0
-                    self.over = "defeat"
-                    self.battle_end_time = self._now()
+                    ## Telomere Reset (BH Wetware capstone) — one-time per fight
+                    ## death save. Charges live in buffs["death_save_charges"];
+                    ## the heal-back amount is buffs["death_save_heal"] (default 20).
+                    if self.buffs.get("death_save_charges", 0) > 0:
+                        self.buffs["death_save_charges"] -= 1
+                        _ds_heal = self.buffs.get("death_save_heal", 20)
+                        self.player_hp = 1
+                        self.player_hp = min(self.player_max_hp, self.player_hp + _ds_heal)
+                        self.add_log("[[Telomere Reset]: death saved. Held at 1, healed {}.".format(_ds_heal))
+                    else:
+                        self.player_hp = 0
+                        self.over = "defeat"
+                        self.battle_end_time = self._now()
                 ## Phase A juice — floating "-N" popup + flash overlay + sfx.
                 ## Same imperative show_screen pattern as the enemy branch.
                 ## "enemy_hit" plays the user-provided punch wav (audio/sfx/
@@ -386,7 +409,7 @@ init python:
                     if not self.discard_pile:
                         return  ## empty everywhere
                     self.draw_pile = list(self.discard_pile)
-                    _battle_rand.shuffle(self.draw_pile)
+                    __import__('random').shuffle(self.draw_pile)
                     self.discard_pile = []
                 if self.draw_pile:
                     self.hand.append(self.draw_pile.pop())
@@ -408,6 +431,15 @@ init python:
         ## ---------------- ENERGY ----------------
         def gain_energy(self, n):
             self.energy += n
+            ## Peak State (BH capstone) — every energy gain chips the enemy.
+            ## Capped at 5 triggers per turn so a Megadose+Stack-Up+Racetam+
+            ## Kernel-Patch+Catecholamine chain doesn't free-cast a fight
+            ## win. Counter resets in battle_start_player_turn.
+            if n > 0 and self.buffs.get("peak_state_active"):
+                _trig = self.buffs.get("peak_state_triggers_this_turn", 0)
+                if _trig < 5:
+                    self.deal_damage("enemy", 4)
+                    self.buffs["peak_state_triggers_this_turn"] = _trig + 1
 
         def spend_energy(self, n):
             ## Phase B juice — timestamp the spend so the energy counter pulses.
@@ -585,12 +617,22 @@ init python:
         elif stats and stats.player_class == "biohacker":
             bs.player_max_hp = 80 + _gym_b
             bs.player_hp = 80 + _gym_b
-            ## BH max-energy gate: dose-counter check (3+ total nootropic uses across all tiers).
-            if sum(getattr(store, 'nootropic_uses', [0,0,0,0,0])) >= 3:
-                bs.max_energy = 4
-                bs.add_log("[[STACK]: dose count >= 3. +1 max energy.")
             bs.buffs["kick_charges"] = 3
             bs.add_log("[[KICK x3]: The compound kicking in. Each turn it's running, you draw one extra card. He's still finishing the sentence; you've already chosen.")
+            ## BH per-fight bonus is driven by today's PROTOCOL (the most recent
+            ## nootropic tier purchased). Legal = foundational steadiness;
+            ## Shady = focus juice; Lab = peak cognitive output (and the +5
+            ## Hatred to acquire is the cost). None = no dose yet.
+            _proto = getattr(store, 'bh_protocol', None)
+            if _proto == "Legal":
+                bs.buffs["starting_block_+1"] = True
+                bs.add_log("[[Protocol — Legal]: +1 starting block each turn.")
+            elif _proto == "Shady":
+                bs.max_energy = 4
+                bs.add_log("[[Protocol — Shady]: +1 max energy.")
+            elif _proto == "Lab":
+                bs.max_energy = 4
+                bs.add_log("[[Protocol — Lab]: +1 max energy.")
         else:
             ## No class set (shouldn't happen in normal play) — safe defaults.
             bs.player_max_hp = 80
@@ -617,7 +659,16 @@ init python:
         ## Build draw pile from collected deck (full deck shuffled)
         if player_deck and player_deck.cards:
             bs.draw_pile = list(player_deck.cards)
-            _battle_rand.shuffle(bs.draw_pile)
+            __import__('random').shuffle(bs.draw_pile)
+
+        ## Event hook — ACD856 FAKE outcome leaves the player with a one-shot
+        ## Diarrhea status card in the NEXT battle. Inject at top of draw pile
+        ## so it lands in the opening hand; consumed on entry so it never
+        ## re-fires on subsequent battles.
+        if getattr(store, 'bh_pending_diarrhea', False):
+            bs.draw_pile.insert(0, "diarrhea")
+            bs.add_log("[[ACD856 hangover]: a Diarrhea status card slides onto your stack.")
+            store.bh_pending_diarrhea = False
 
         ## Powers no longer auto-fire at battle start — they live in the deck
         ## like any other card and must be played each combat for their buff
@@ -762,6 +813,28 @@ init python:
             bs.buffs["crash_next_turn"] = False
             bs.add_log("[[Stack crash]: the spike wears off. -2 energy this turn.")
 
+        ## Peak State per-turn trigger counter resets each player turn.
+        bs.buffs["peak_state_triggers_this_turn"] = 0
+
+        ## BH Wetware regen — Telomere / Telomere Reset write telomere_heal.
+        _th = bs.buffs.get("telomere_heal", 0)
+        if _th > 0:
+            bs.heal("player", _th)
+
+        ## BH Stimulant Power — Catecholamine Spike runs each turn.
+        if bs.buffs.get("catecholamine_active"):
+            bs.gain_energy(1)
+            bs.deal_damage("player", 3, bypass_block=True)
+            bs.add_log("[[Catecholamine]: +1 energy, -3 HP.")
+
+        ## BH ACD856 (event reward Power) — heal + block at start of each turn.
+        _a_heal = bs.buffs.get("acd856_heal", 0)
+        if _a_heal > 0:
+            bs.heal("player", _a_heal)
+        _a_block = bs.buffs.get("acd856_block", 0)
+        if _a_block > 0:
+            bs.gain_block("player", _a_block)
+
         ## --- Pre-draw wrinkles: modify draw pile or set buffs the draw sees ---
         ## Status injections insert at the TOP of the draw pile so they land
         ## in the player's hand THIS turn rather than waiting for reshuffle
@@ -825,7 +898,7 @@ init python:
             ## hit hardest when the player's deck was thinnest. Spacing the
             ## two fires out gives the player time to recover and time to
             ## anticipate the next one.
-            _victim = _battle_rand.choice(bs.hand)
+            _victim = __import__('random').choice(bs.hand)
             bs.discard(_victim)
             bs.draw_cards(1)
             bs.add_log("[[Reassigned]: lost {}, drew replacement.".format(_victim))

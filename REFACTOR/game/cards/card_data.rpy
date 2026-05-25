@@ -5,7 +5,9 @@
 ##   id        — stable string key (matches CARD_LIBRARY entry)
 ##   name      — display name
 ##   type      — "Attack" / "Skill" / "Power"
-##   color     — "Physical" / "Mental" / "Money" / "Logic" / "Police" / "Special"
+##   color     — DEPRECATED cosmetic field. Visual taxonomy is now driven by
+##               `card_visual_type()` (Attack/Skill/Power/Curse/Status). Left
+##               in defaults so old card definitions and saves don't fault.
 ##   cost      — energy cost (0-3, 'X' allowed for cost-all)
 ##   rarity    — "common" / "uncommon" / "rare" / "boss"
 ##   effect    — function name (string) resolved at play time. Signature:
@@ -105,6 +107,62 @@ init -1 python:
             return False
         return True
 
+    ## ── Visual taxonomy ──────────────────────────────────────────────────────
+    ## Five card categories drive every visual readout (frame color, peek chip,
+    ## deck-viewer grouping). Mirrors StS: Attack / Skill / Power / Curse /
+    ## Status. The legacy `color` field (Physical/Mental/Money/Logic/Police/
+    ## Special) is deprecated cosmetic data — left in the struct so old saves
+    ## and card definitions don't fault, but never read for display anymore.
+    ##
+    ## Mapping:
+    ##   Attack / Skill / Power → card.get("type")
+    ##   Curse                  → rage or compromise corruption (permanent)
+    ##   Status                 → enemy-injected single-fight curse (effect
+    ##                            prefix "status_")
+    CARD_VISUAL_TYPES = ("Attack", "Skill", "Power", "Curse", "Status")
+
+    TYPE_PALETTE = {
+        ## Saturated frame + darker border + dim inner-well for art zone.
+        ## Tuned to read distinctly at a glance in the hand row.
+        "Attack": {"frame": "#a01818", "border": "#5a0a0a", "art_bg": "#2a0606", "accent": "#ff5544"},
+        "Skill":  {"frame": "#1a4a8c", "border": "#0a2547", "art_bg": "#06122a", "accent": "#55a0ff"},
+        "Power":  {"frame": "#5a1a8c", "border": "#2a0a47", "art_bg": "#14062a", "accent": "#bb55ff"},
+        "Curse":  {"frame": "#1a1a1a", "border": "#000000", "art_bg": "#0a0a0a", "accent": "#7a7060"},
+        "Status": {"frame": "#5a5028", "border": "#2e2a10", "art_bg": "#1a160a", "accent": "#d4c47a"},
+    }
+    ## Beveled cost gem — orange flame palette, StS-like.
+    GEM_ORANGE       = "#e87820"
+    GEM_ORANGE_DARK  = "#5a2810"
+    ## Keyword highlight color (used by kw_highlight in card_effects.rpy).
+    KW_HIGHLIGHT_HEX = "#ffcc44"
+
+    def card_visual_type(card_or_id):
+        """Return one of CARD_VISUAL_TYPES for a card dict or id.
+
+        Curse beats Status beats Type so a Rage card that happens to also
+        have a status_-prefix effect (none today, but defensively) renders
+        as Curse — the more permanent corruption signal.
+        """
+        c = card_or_id
+        if isinstance(c, str):
+            c = CARD_LIBRARY.get(c) or {}
+        if not c:
+            return "Skill"
+        if c.get("is_rage") or c.get("is_compromise"):
+            return "Curse"
+        if (c.get("effect") or "").startswith("status_"):
+            return "Status"
+        t = c.get("type", "Skill")
+        if t not in ("Attack", "Skill", "Power"):
+            return "Skill"
+        return t
+
+    def card_type_color(card_or_id, key="frame"):
+        """Fetch a hex from the type palette. `key` ∈ frame/border/art_bg/accent.
+        Default 'frame' gives the dominant card color — what every legacy
+        per-screen `_COLORS[card.get('color')]` lookup wanted."""
+        return TYPE_PALETTE[card_visual_type(card_or_id)].get(key, "#888888")
+
 
     class PlayerDeck(object):
         """The player's accumulated deck across the 30-day run.
@@ -128,9 +186,6 @@ init -1 python:
             if card_id is None:
                 return len(self.cards)
             return self.cards.count(card_id)
-
-        def by_color(self, color):
-            return [c for c in self.cards if CARD_LIBRARY.get(c, {}).get("color") == color]
 
         def by_rarity(self, rarity):
             return [c for c in self.cards if CARD_LIBRARY.get(c, {}).get("rarity") == rarity]

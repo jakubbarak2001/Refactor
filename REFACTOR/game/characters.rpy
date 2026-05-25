@@ -49,6 +49,12 @@ image bg_bb_gym          = im.Scale("images/backgrounds/bb_gym.jpg", 1920, 1080)
 ## BH-flavoured grey-market supplier flat — used by activity_nootropics (BH-only)
 image bg_bh_supplier     = im.Scale("images/backgrounds/bh_supplier_flat.jpg", 1920, 1080)
 
+## BH recovery modalities — one randomly picked per activity_recovery run
+image bg_bh_rec_sauna       = im.Scale("images/backgrounds/bh_recovery_sauna.jpg", 1920, 1080)
+image bg_bh_rec_meditation  = im.Scale("images/backgrounds/bh_recovery_meditation.jpg", 1920, 1080)
+image bg_bh_rec_coldplunge  = im.Scale("images/backgrounds/bh_recovery_coldplunge.jpg", 1920, 1080)
+image bg_bh_rec_redlight    = im.Scale("images/backgrounds/bh_recovery_redlight.jpg", 1920, 1080)
+
 ## DE-flavoured Czech pub — Kovář's hospoda, used by DE class arc + DE-flavoured social activities
 image bg_de_kovar_pub    = im.Scale("images/backgrounds/de_kovar_pub.jpg", 1920, 1080)
 

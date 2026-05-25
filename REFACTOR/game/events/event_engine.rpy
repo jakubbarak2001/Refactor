@@ -44,6 +44,8 @@ init python:
             ]
             if stats is not None and stats.player_class == "bodybuilder":
                 _pool.append("ev_synthol_brothers")
+            if stats is not None and stats.player_class == "biohacker":
+                _pool.append("ev_bh_acd856_offer")
             store.random_event_pool = _pool
 
     ## ── Run-HP helpers ────────────────────────────────────────────────────

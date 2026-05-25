@@ -87,6 +87,7 @@ init python:
         rarity     = "uncommon",
         effect     = "stack_up",
         class_lock = "biohacker",
+        archetype  = "stimulant",
         flavor     = "+2 energy this turn. Crash next turn.",
     )
 
@@ -595,6 +596,7 @@ init python:
         rarity     = "uncommon",
         effect     = "racetam_burst",
         class_lock = "biohacker",
+        archetype  = "stimulant",
         flavor     = "+1 energy. Draw 1.",
     )
     register_card(
@@ -606,6 +608,7 @@ init python:
         rarity     = "rare",
         effect     = "flmodafinil_spike",
         class_lock = "biohacker",
+        archetype  = "stimulant",
         exhaust    = True,
         flavor     = "Deal 28. 50% chance: lose self for 1 turn.",
     )
@@ -717,6 +720,7 @@ init python:
         rarity     = "common",
         effect     = "hrv_spike",
         class_lock = "biohacker",
+        archetype  = "stimulant",
         flavor     = "Gain 2 energy. Lose 5 HP. The crash is data.",
     )
     register_card(
@@ -728,6 +732,7 @@ init python:
         rarity     = "uncommon",
         effect     = "cognitive_stack",
         class_lock = "biohacker",
+        archetype  = "neurochem",
         exhaust    = True,
         flavor     = "Draw 3 cards. Exhausts. The compound knows what to do.",
     )
@@ -740,6 +745,7 @@ init python:
         rarity     = "rare",
         effect     = "override",
         class_lock = "biohacker",
+        archetype  = "stimulant",
         exhaust    = True,
         flavor     = "Deal 40 damage. -2 max energy next turn. The body pays the bill, then keeps moving.",
     )
@@ -764,6 +770,7 @@ init python:
         rarity     = "boss",
         effect     = "the_compound",
         class_lock = "biohacker",
+        archetype  = "stimulant",
         exhaust    = True,
         flavor     = "Deal damage equal to current energy ×10. Lose 8 HP. The trial paid out.",
     )
@@ -777,6 +784,259 @@ init python:
         effect  = "took_the_heat",
         exhaust = True,
         flavor  = "Gain 10 block. Draw 1. You owned it. The next hit lands soft.",
+    )
+
+    ## ---------------------------------------------------------------------------
+    ## BH ARCHETYPE: STIMULANT — energy as currency. Ramp/spend/crash. Pair with
+    ## The Compound (energy×10) and Stack Up. Class-locked.
+    ## ---------------------------------------------------------------------------
+
+    register_card(
+        "microdose",
+        name       = "Microdose",
+        type       = "Skill",
+        color      = "Special",
+        cost       = 0,
+        rarity     = "common",
+        effect     = "microdose",
+        class_lock = "biohacker",
+        archetype  = "stimulant",
+        flavor     = "Half a capsule. Just enough to notice.",
+    )
+
+    register_card(
+        "adrenal_burst",
+        name       = "Adrenal Burst",
+        type       = "Skill",
+        color      = "Special",
+        cost       = 1,
+        rarity     = "uncommon",
+        effect     = "adrenal_burst",
+        class_lock = "biohacker",
+        archetype  = "stimulant",
+        flavor     = "Sublingual hit. Cortisol opens its eyes.",
+    )
+
+    register_card(
+        "megadose",
+        name       = "Megadose",
+        type       = "Skill",
+        color      = "Special",
+        cost       = 1,
+        rarity     = "rare",
+        effect     = "megadose",
+        class_lock = "biohacker",
+        archetype  = "stimulant",
+        flavor     = "Three caps stacked. The room ticks faster than the wall clock.",
+    )
+
+    register_card(
+        "burnout",
+        name       = "Burnout",
+        type       = "Attack",
+        color      = "Special",
+        cost       = 2,
+        rarity     = "rare",
+        effect     = "burnout",
+        class_lock = "biohacker",
+        archetype  = "stimulant",
+        flavor     = "You spent it all. The receipt comes later.",
+    )
+
+    register_card(
+        "catecholamine_spike",
+        name       = "Catecholamine Spike",
+        type       = "Power",
+        color      = "Special",
+        cost       = 1,
+        rarity     = "rare",
+        effect     = "catecholamine_spike",
+        class_lock = "biohacker",
+        archetype  = "stimulant",
+        flavor     = "Tap the well. The well taps back.",
+    )
+
+    ## ---------------------------------------------------------------------------
+    ## BH ARCHETYPE: NEUROCHEM — cognition, draw, deck mutation. NOT enemy-intent.
+    ## ---------------------------------------------------------------------------
+
+    register_card(
+        "pattern_match",
+        name       = "Pattern Match",
+        type       = "Skill",
+        color      = "Special",
+        cost       = 1,
+        rarity     = "common",
+        effect     = "pattern_match",
+        class_lock = "biohacker",
+        archetype  = "neurochem",
+        flavor     = "Two papers, same finding. The signal is real.",
+    )
+
+    register_card(
+        "n_of_one",
+        name       = "N-of-One",
+        type       = "Skill",
+        color      = "Special",
+        cost       = 0,
+        rarity     = "common",
+        effect     = "n_of_one",
+        class_lock = "biohacker",
+        archetype  = "neurochem",
+        flavor     = "Your own logbook. The cleanest dataset you'll ever read.",
+    )
+
+    register_card(
+        "recall_protocol",
+        name       = "Recall Protocol",
+        type       = "Skill",
+        color      = "Special",
+        cost       = 1,
+        rarity     = "uncommon",
+        effect     = "recall_protocol",
+        class_lock = "biohacker",
+        archetype  = "neurochem",
+        flavor     = "A note you left for yourself. It still works.",
+    )
+
+    register_card(
+        "lucid_window",
+        name       = "Lucid Window",
+        type       = "Skill",
+        color      = "Special",
+        cost       = 1,
+        rarity     = "rare",
+        effect     = "lucid_window",
+        class_lock = "biohacker",
+        archetype  = "neurochem",
+        exhaust    = True,
+        flavor     = "Dial in. Run it again, exactly the same.",
+    )
+
+    ## ---------------------------------------------------------------------------
+    ## BH ARCHETYPE: WETWARE — HP as resource, healing, body engineering. The
+    ## only archetype in the game with active in-fight HP regen.
+    ## ---------------------------------------------------------------------------
+
+    register_card(
+        "mitochondrial",
+        name       = "Mitochondrial",
+        type       = "Skill",
+        color      = "Special",
+        cost       = 0,
+        rarity     = "common",
+        effect     = "mitochondrial",
+        class_lock = "biohacker",
+        archetype  = "wetware",
+        flavor     = "ATP cycle. The cell knows what to do.",
+    )
+
+    register_card(
+        "telomere",
+        name       = "Telomere",
+        type       = "Power",
+        color      = "Special",
+        cost       = 1,
+        rarity     = "uncommon",
+        effect     = "telomere",
+        class_lock = "biohacker",
+        archetype  = "wetware",
+        flavor     = "Sleep, light, food. The boring stuff. It works.",
+    )
+
+    register_card(
+        "pain_threshold",
+        name       = "Pain Threshold",
+        type       = "Power",
+        color      = "Special",
+        cost       = 1,
+        rarity     = "rare",
+        effect     = "pain_threshold",
+        class_lock = "biohacker",
+        archetype  = "wetware",
+        flavor     = "Cold, fasted, heavy load. Your nervous system stops flinching.",
+    )
+
+    register_card(
+        "hyper_if",
+        name       = "Hyper-IF",
+        type       = "Skill",
+        color      = "Special",
+        cost       = 2,
+        rarity     = "uncommon",
+        effect     = "hyper_if",
+        class_lock = "biohacker",
+        archetype  = "wetware",
+        exhaust    = True,
+        flavor     = "Thirty-six hours dry. The autophagy receipt clears.",
+    )
+
+    ## ---------------------------------------------------------------------------
+    ## BH CAPSTONE — three rare Biohacker cards offered as choose-1-of-3 at
+    ## 10 total nootropic BUYs (research doesn't count). class_lock + pool_excluded:
+    ## only path to these is the activity_nootropics ladder. Non-upgradeable.
+    ## ---------------------------------------------------------------------------
+
+    register_card(
+        "peak_state",
+        name          = "Peak State",
+        type          = "Power",
+        color         = "Special",
+        cost          = 1,
+        rarity        = "rare",
+        effect        = "peak_state",
+        class_lock    = "biohacker",
+        archetype     = "stimulant",
+        pool_excluded = True,
+        flavor        = "Stack working. Hands steady. Words land.",
+    )
+
+    register_card(
+        "total_recall",
+        name          = "Total Recall",
+        type          = "Skill",
+        color         = "Special",
+        cost          = 2,
+        rarity        = "rare",
+        effect        = "total_recall",
+        class_lock    = "biohacker",
+        archetype     = "neurochem",
+        exhaust       = True,
+        pool_excluded = True,
+        flavor        = "Every protocol you've ever run. All of it, at once.",
+    )
+
+    register_card(
+        "telomere_reset",
+        name          = "Telomere Reset",
+        type          = "Power",
+        color         = "Special",
+        cost          = 1,
+        rarity        = "rare",
+        effect        = "telomere_reset",
+        class_lock    = "biohacker",
+        archetype     = "wetware",
+        pool_excluded = True,
+        flavor        = "Telomeres extended. The clock holds. For now.",
+    )
+
+    ## ---------------------------------------------------------------------------
+    ## BH EVENT REWARD — acd856_regen. Only obtainable via ev_bh_acd856_offer
+    ## REAL outcome (50% roll on a 10k CZK gamble). class-locked + pool_excluded.
+    ## ---------------------------------------------------------------------------
+
+    register_card(
+        "acd856_regen",
+        name          = "ACD856",
+        type          = "Power",
+        color         = "Special",
+        cost          = 1,
+        rarity        = "rare",
+        effect        = "acd856_regen",
+        class_lock    = "biohacker",
+        archetype     = "wetware",
+        pool_excluded = True,
+        flavor        = "It worked. The recovery numbers are unreal.",
     )
 
     ## ---------------------------------------------------------------------------
@@ -842,6 +1102,19 @@ init python:
         exhaust       = True,
         pool_excluded = True,
         flavor        = "Status. Deal 16. He hands every koruna back. Buy-In +2.",
+    )
+
+    register_card(
+        "diarrhea",
+        name          = "Diarrhea",
+        type          = "Skill",
+        color         = "Special",
+        cost          = 1,
+        rarity        = "common",
+        effect        = "status_diarrhea",
+        exhaust       = True,
+        pool_excluded = True,
+        flavor        = "Status. Three hours in the bathroom. Take 3.",
     )
 
     ## ---------------------------------------------------------------------------
@@ -1047,3 +1320,23 @@ init python:
     register_upgrade("ship_it",               effect="ship_it_plus",               flavor="Good enough ships. And reads itself back to you.")
     register_upgrade("code_review",           effect="code_review_plus",           flavor="Delete the dead lines. The diff gets honest, and lean.")
     register_upgrade("crunch_time",           effect="crunch_time_plus",           flavor="Every shortcut, every corner — all of it, due now.")
+
+    ## BH new-archetype cards — Stimulant. Powers upgrade by going free
+    ## (cost 0) per the refactor / cuff_em / see_red pattern.
+    register_upgrade("microdose",             effect="microdose_plus",             flavor="One more capsule. The notice gets louder.")
+    register_upgrade("adrenal_burst",         effect="adrenal_burst_plus",         flavor="Two hits sublingual. Cortisol stands up straight.")
+    register_upgrade("megadose",              effect="megadose",              cost=0, flavor="Three caps stacked. Free now. The room ticks faster anyway.")
+    register_upgrade("burnout",               effect="burnout_plus",               flavor="You spent more than you had. The receipt is still in the mail.")
+    register_upgrade("catecholamine_spike",   effect="catecholamine_spike", cost=0, flavor="Tap the well. The well taps back, harder. Costs you nothing.")
+
+    ## BH new-archetype cards — Neurochem
+    register_upgrade("pattern_match",         effect="pattern_match_plus",         flavor="Three papers, same finding. The signal won't shut up.")
+    register_upgrade("n_of_one",              effect="n_of_one_plus",              flavor="Your own logbook. Three pages this time.")
+    register_upgrade("recall_protocol",       effect="recall_protocol_plus",       flavor="A pinned note. You knew which one you'd need.")
+    register_upgrade("lucid_window",          effect="lucid_window",          cost=0, flavor="Dial in. Run it again. Free this time.")
+
+    ## BH new-archetype cards — Wetware. Powers upgrade by going free.
+    register_upgrade("mitochondrial",         effect="mitochondrial_plus",         flavor="ATP cycle holds. The cell wakes up.")
+    register_upgrade("telomere",              effect="telomere",              cost=0, flavor="Sleep, light, food. Free protocol. Still works.")
+    register_upgrade("pain_threshold",        effect="pain_threshold",        cost=0, flavor="Cold, fasted, free. Your nervous system signs the paperwork.")
+    register_upgrade("hyper_if",              effect="hyper_if_plus",              flavor="Forty-eight dry. The receipt gets bigger.")

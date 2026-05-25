@@ -220,6 +220,8 @@ label character_class_selection:
     ## Class-defining background under the "X selected" beat
     if stats.player_class == "bodybuilder":
         scene bg_bb_gym with Dissolve(0.6)
+    elif stats.player_class == "biohacker":
+        scene bg_bh_supplier with Dissolve(0.6)
 
     "[_class_msg]"
 
@@ -237,7 +239,7 @@ label character_class_selection:
         "You catalogue your colleagues in the morning briefing — who slept, who didn't, who is thinking about leaving but hasn't said it yet."
         "You don't speak unless asked. Speaking gives away too much."
     elif stats.player_class == "biohacker":
-        scene bg_police_interior with Dissolve(0.6)
+        scene bg_bh_supplier with Dissolve(0.6)
         "06:03 AM. HRV reading: 67ms. Sleep score: 8.2."
         "You stack the morning compounds — magnesium glycinate, L-theanine, modafinil — into a small glass tray. You photograph the dose. You log it."
         "You drink a litre of structured water before the first email arrives."
@@ -436,6 +438,32 @@ label soma_ten_reward:
 
     window hide
     call screen card_reward_trio_screen(cards=["roid_rage", "synthol", "pre_workout"])
+    python:
+        if _return and _return not in ("skip", None):
+            grant_card(_return, silent=False)
+    return
+
+
+## ---------------------------------------------------------------------------
+## PROTOCOL 10/10 capstone — choose 1 of 3 rare BH cards. Fires when the
+## total nootropic BUY count (sum of nootropic_uses) hits 10. Research
+## sessions are the upgrade lane and don't increment the counter. Gated
+## with a one-shot flag so re-call is a safe no-op.
+## ---------------------------------------------------------------------------
+
+label protocol_ten_reward:
+    if stats is None or stats.player_class != "biohacker":
+        return
+    if sum(getattr(store, 'nootropic_uses', [0,0,0,0,0])) < 10 or getattr(store, '_protocol_reward_given', False):
+        return
+    $ store._protocol_reward_given = True
+
+    "Ten compounds. Ten experiments. The body that walked in on Day 1 is not the body running this protocol."
+    "Your notebook is full of dose-response curves. You know your own physiology better than any doctor."
+    "Something the body learned. Pick what it becomes."
+
+    window hide
+    call screen card_reward_trio_screen(cards=["peak_state", "total_recall", "telomere_reset"])
     python:
         if _return and _return not in ("skip", None):
             grant_card(_return, silent=False)
@@ -701,32 +729,54 @@ label _run_card_upgrade_flow:
 
 ## ---------------------------------------------------------------------------
 ## ACTIVITY: RECOVERY (BIOHACKER ONLY)
-## Red light + sauna + cold plunge protocol. Pure relief, no card.
-## Doesn't increment the nootropic dose-counter — it's the body's own kit.
+## Random 1-of-4 modality: Sauna, Meditation, Cold Plunge, Red Light. Each
+## has its own image and stat profile. Daily mystery — same activity, can't
+## pre-pick the modality. Free, eats the daily slot.
+## Max HP bumps share the gym_max_hp_bonus store var so battle_init picks them
+## up (BH branch already adds _gym_b to player_max_hp).
 ## ---------------------------------------------------------------------------
 
 label activity_recovery:
 
-    scene bg_police_interior
-
     python:
-        _recovery_cost = adjusted_cost(500)
-        if not stats.try_spend_money(_recovery_cost):
-            renpy.say(None, "[[INSUFFICIENT FUNDS] The recovery clinic charges {:,} CZK. You don't have it.".format(_recovery_cost))
-            renpy.jump("select_activity")
+        _rec_mod = __import__('random').choice(["sauna", "meditation", "coldplunge", "redlight"])
 
-    "Twenty minutes in the red-light booth. Eight in the sauna. Two in the cold plunge — long enough that your respiratory rate normalizes back to baseline."
-    "You log everything. Heart-rate variability up four points. Cortisol curve flatter than yesterday."
-    "The data says you're recovering. Whether you {i}feel{/i} recovered is a separate question, but the data is the data."
-    "You sleep eleven hours that night. No dreams. The morning is a clean buffer."
+    if _rec_mod == "sauna":
+        scene bg_bh_rec_sauna with Dissolve(0.4)
+        "Eight minutes at 90°C. You finish on the cold tile, condensation everywhere, lungs still wide. Heat-shock proteins do the work."
+        python:
+            store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + 5
+            _restored = event_heal(20)
+            stats.increment_stats_pcr_hatred(-10)
+            _rec_out = "SAUNA  |  +{} HP  |  +5 MAX HP  |  -10 Hatred".format(_restored)
 
-    python:
-        ## Pure relief — no nootropic dose increment, no card.
-        stats.increment_stats_pcr_hatred(-30)
-        _recovery_outcome = "- {:,} CZK, -30 PCR HATRED".format(_recovery_cost)
+    elif _rec_mod == "meditation":
+        scene bg_bh_rec_meditation with Dissolve(0.4)
+        "Twenty minutes on the cushion. The Colonel-loop unhooks somewhere around minute eight. You don't notice until minute fifteen."
+        python:
+            _restored = event_heal(10)
+            stats.increment_stats_pcr_hatred(-30)
+            _rec_out = "MEDITATION  |  +{} HP  |  -30 Hatred".format(_restored)
+
+    elif _rec_mod == "coldplunge":
+        scene bg_bh_rec_coldplunge with Dissolve(0.4)
+        "Two minutes at 4°C. Your nervous system does the math and reboots without asking. HRV up six points by tomorrow."
+        python:
+            store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + 10
+            _restored = event_heal(25)
+            _rec_out = "COLD PLUNGE  |  +{} HP  |  +10 MAX HP".format(_restored)
+
+    else:  # redlight
+        scene bg_bh_rec_redlight with Dissolve(0.4)
+        "Twenty minutes under the panel. You log the wavelength. You log the duration. Mitochondria warm up."
+        python:
+            store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + 5
+            _restored = event_heal(15)
+            stats.increment_stats_pcr_hatred(-15)
+            _rec_out = "RED LIGHT  |  +{} HP  |  +5 MAX HP  |  -15 Hatred".format(_restored)
 
     window hide
-    show screen outcome_panel(_recovery_outcome)
+    show screen outcome_panel(_rec_out)
     pause
     hide screen outcome_panel
 
@@ -816,17 +866,10 @@ label activity_coding:
                 "class_relevant": _is_bh,
             },
         ]
-        if _is_bh:
-            _coding_options.append({
-                "label_name":     "activity_nootropics",
-                "title":          "NOOTROPICS LAB",
-                "accent":         _bh_accent,
-                "cost_text":      "VARIES",
-                "effect_text":    "+ Coding, +/- Hatred",
-                "flavor_text":    "Exact compound. Exact dose. Exact timing.",
-                "class_relevant": True,
-            })
-        else:
+        ## Bootcamp option — BH skips this lane (their Coding ramps via the
+        ## top-level Nootropics Lab instead). Other classes see the bootcamp
+        ## purchase tile, DE-discounted.
+        if not _is_bh:
             _coding_options.append({
                 "label_name":     _bc_label,
                 "title":          "JOIN BOOTCAMP",
@@ -1126,6 +1169,11 @@ label do_end_day:
         activity_selected = False
         # Per-day Fixer gate — new day, one new shred available.
         store._fixer_shredded_today = False
+        # Per-day Nootropics Lab gate — one dose OR one research session per day.
+        store.nootropics_done_today = False
+        # Defensive: scrub any stale module refs from older saves so the
+        # next quicksave doesn't crash pickle.
+        _bh_scrub_stale_module_refs()
         # Reset gym streak if player didn't go to gym today
         if not getattr(store, 'gym_day', False):
             store.gym_streak = 0
@@ -1177,6 +1225,12 @@ label salary_day:
 
 label activity_nootropics:
 
+    ## One nootropic action per day — applies to BOTH dose buys and Research
+    ## PubMed. Reset in do_end_day. Bounce back to the coding hub if already used.
+    if getattr(store, 'nootropics_done_today', False):
+        "You've already run today's protocol. The body needs a beat before the next dose."
+        jump activity_coding
+
     scene bg_bh_supplier
 
     python:
@@ -1184,32 +1238,33 @@ label activity_nootropics:
         if nootropic_dependency:
             _dep_warning = "\n\n[DEPENDENCY ACTIVE] — Skipping a dose costs -20 Coding, +20 Hatred."
 
+        ## 3-user-tier model: LEGAL (slot 1) / SHADY (slot 3) / LAB (slot 5).
+        ## Slots 2 and 4 stay as data for legacy references but are never
+        ## surfaced. Plus a 4th option: READ UP — free upgrade of a card.
         _NOOT_TITLES = {
-            1: "TIER 1 — DAILY",
-            2: "TIER 2 — STACK",
-            3: "TIER 3 — RACETAMS",
-            4: "TIER 4 — PEPTIDES",
-            5: "TIER 5 — RESEARCH",
+            1: "T1 — LEGAL ESHOP",
+            3: "T2 — SHADY SOURCE",
+            5: "T3 — LAB GRADE",
         }
+        ## Per-tier flavor escalates with how many times THIS tier has been
+        ## bought — see bh_tier_flavor() in python_logic.rpy. Voice goes from
+        ## "next-day delivery" → "Tom is reliable" → "labels are a formality".
         _NOOT_FLAVORS = {
-            1: "Omega-3, creatine, magnesium. The foundation.",
-            2: "L-theanine + caffeine. Alpha-GPC. Bacopa.",
-            3: "Aniracetam. Oxiracetam. Phenylpiracetam.",
-            4: "Noopept. Semax. Selank. Gray-market shelf.",
-            5: "FLModafinil. Wakefulness agent. Dose discipline.",
+            1: bh_tier_flavor(1),
+            3: bh_tier_flavor(3),
+            5: bh_tier_flavor(5),
         }
         _NOOT_VIS = {
             1: True,
-            2: nootropic_tier_max >= 2,
             3: nootropic_tier_max >= 3,
-            4: nootropic_tier_max >= 4,
             5: flmodafinil_unlocked or nootropic_tier_max >= 5,
         }
         _noot_options = []
-        for _tn in range(1, 6):
+        for _tn in (1, 3, 5):
             _ti = NOOTROPIC_TIERS[_tn]
             _hatred_sign = "+" if _ti["hatred"] >= 0 else ""
-            _eff = "+{} Coding, {}{} Hatred".format(_ti["coding"], _hatred_sign, _ti["hatred"])
+            _eff = "+{} Coding, {}{} Hatred, 1-of-3 card".format(
+                _ti["coding"], _hatred_sign, _ti["hatred"])
             _noot_options.append({
                 "label_name":     "_apply_noot_t{}".format(_tn),
                 "title":          _NOOT_TITLES[_tn],
@@ -1220,14 +1275,29 @@ label activity_nootropics:
                 "class_relevant": True,
                 "visible":        _NOOT_VIS[_tn],
             })
+        ## RESEARCH PUBMED — free upgrade lane. Always visible. Routes to the
+        ## deck upgrade picker (deck breadth vs deck quality is the BH axis).
+        _noot_options.append({
+            "label_name":     "_apply_research",
+            "title":          "RESEARCH PUBMED",
+            "accent":         class_accent_color("biohacker"),
+            "cost_text":      "FREE",
+            "effect_text":    "Upgrade 1 card",
+            "flavor_text":    bh_research_flavor(),
+            "class_relevant": True,
+            "visible":        True,
+        })
 
-    "You open the cabinet. The protocol is specific. Every compound has a purpose.[_dep_warning]"
+        _noot_open_line = bh_open_line()
+        _noot_subtitle  = bh_subtitle()
+
+    "[_noot_open_line][_dep_warning]"
 
     call screen activity_submenu(
-        title       = "NOOTROPICS — PICK A TIER",
-        subtitle    = "Exact compound. Exact dose. Exact timing.",
+        title       = "NOOTROPICS — PICK A PATH",
+        subtitle    = _noot_subtitle,
         options     = _noot_options,
-        back_label  = "activity_coding",
+        back_label  = "select_activity",
     )
 
 
@@ -1235,16 +1305,8 @@ label _apply_noot_t1:
     $ _tier = 1
     jump _apply_nootropic_tier
 
-label _apply_noot_t2:
-    $ _tier = 2
-    jump _apply_nootropic_tier
-
 label _apply_noot_t3:
     $ _tier = 3
-    jump _apply_nootropic_tier
-
-label _apply_noot_t4:
-    $ _tier = 4
     jump _apply_nootropic_tier
 
 label _apply_noot_t5:
@@ -1278,18 +1340,45 @@ label _apply_nootropic_tier:
         nootropic_uses[_tier - 1] += 1
         nootropic_last_tier = _tier
         ## BH PROTOCOL — current active stack maps to a name shown in HUD/log
-        _PROTOCOL_NAMES = {1: "Daily", 2: "Cognitive", 3: "Racetam", 4: "Peptide", 5: "Research"}
+        ## and read by battle_engine to drive the per-fight bonus (Legal: +1
+        ## starting block; Shady: +1 max energy; Lab: +1 max energy + 1
+        ## opening hand). Slot 1/3/5 = Legal/Shady/Lab.
+        _PROTOCOL_NAMES = {1: "Legal", 3: "Shady", 5: "Lab"}
         store.bh_protocol = _PROTOCOL_NAMES.get(_tier, None)
 
         # Check for new tier unlocks
         _unlock = check_nootropic_unlocks()
 
-        ## Card grants — T3+ offers Racetam, T5 offers FLModafinil
-        _noot_card = None
-        if _tier >= 5:
-            _noot_card = "flmodafinil"
-        elif _tier >= 3:
-            _noot_card = "racetam"
+        ## Card-grant trio for this tier. One card per archetype (stimulant /
+        ## neurochem / wetware), randomised within each archetype's pool at
+        ## the tier's rarity so repeated doses don't show the same trio.
+        ## Use __import__('random') inline — `import random as X` in a label's
+        ## python block leaves the module bound as a local that the next save
+        ## tries to pickle and crashes on. Same pattern as ev_pills uses.
+        _BH_GRANT_POOLS = {
+            1: {  # commons
+                "stimulant": ["microdose", "hrv_spike"],
+                "neurochem": ["pattern_match", "n_of_one"],
+                "wetware":   ["mitochondrial"],
+            },
+            3: {  # uncommons
+                "stimulant": ["stack_up", "adrenal_burst", "racetam"],
+                "neurochem": ["cognitive_stack", "recall_protocol"],
+                "wetware":   ["telomere", "hyper_if"],
+            },
+            5: {  # rares (event/boss cards excluded; ladder pool is the
+                  # standard rare draft)
+                "stimulant": ["megadose", "burnout", "catecholamine_spike", "flmodafinil", "override"],
+                "neurochem": ["lucid_window"],
+                "wetware":   ["pain_threshold"],
+            },
+        }
+        _pools = _BH_GRANT_POOLS.get(_tier, {})
+        _noot_trio = [
+            __import__('random').choice(_pools["stimulant"]),
+            __import__('random').choice(_pools["neurochem"]),
+            __import__('random').choice(_pools["wetware"]),
+        ]
 
         _outcome_str = "- {:,} CZK  |  +{} Coding  |  {} Hatred".format(
             _cost, _coding_gain,
@@ -1297,7 +1386,12 @@ label _apply_nootropic_tier:
         if nootropic_dependency and _tier == 5:
             _outcome_str += "  [TOLERANCE — reduced effect]"
 
-    "[_t['flavor']]"
+        ## Post-dose reflection escalates with per-tier use count. See
+        ## bh_postdose_flavor() — voice drifts from "next-day delivery" to
+        ## "Tom didn't say anything" to "Colonel's face is very clear today".
+        _postdose = bh_postdose_flavor(_tier)
+
+    "[_postdose]"
     window hide
     show screen outcome_panel(_outcome_str)
     pause
@@ -1318,27 +1412,87 @@ label _apply_nootropic_tier:
     if _has_crash:
         "[[NEXT-DAY EFFECT] [_crash_str]"
 
-    ## Tier unlock announcement
-    if _unlock == "T2_UNLOCKED":
-        "\nYou've been reading late at night. The forums mention something stronger than supplements.\n[[NEW TIER UNLOCKED: Cognitive Stack]"
+    ## Tier unlock announcement (3-user-tier model)
+    if _unlock == "SHADY_UNLOCKED":
+        "\nThe forums whispered a name. You added him on Telegram. He answers on the third ring.\n[[NEW TIER UNLOCKED: Shady Source]"
 
-    if _unlock == "T3_UNLOCKED":
-        "\nYou've gone deeper. The r/nootropics rabbit hole has no bottom.\n[[NEW TIER UNLOCKED: Racetams]"
+    if _unlock == "LAB_UNLOCKED":
+        "\nThree months of forum credibility paid off. You have an address. The vials are plain. The labelling is wrong on purpose.\n[[NEW TIER UNLOCKED: Lab Grade]"
 
-    if _unlock == "T4_UNLOCKED":
-        "\nThere's a gray market if you know where to look. You do.\n[[NEW TIER UNLOCKED: Peptides]"
+    ## Card grant — 1-of-3 trio per the tier's rarity pool, one card per archetype.
+    window hide
+    call screen card_reward_trio_screen(cards=_noot_trio)
+    python:
+        if _return and _return not in ("skip", None):
+            grant_card(_return, silent=False)
+        ## Lock the day — one nootropic action per day. Set even on skip;
+        ## the dose was paid for and committed regardless of card pick.
+        store.nootropics_done_today = True
 
-    if _unlock == "T5_UNLOCKED":
-        "\nYou've been deep enough in the forums to find the name. CRL-40,940. Eugeroic. Wakefulness agent.\nThe supplier is three steps removed from anything legal.\n[[NEW TIER UNLOCKED: FLModafinil (CRL-40,940)]"
+    ## Protocol 10/10 capstone — fires once when total nootropic BUYs hits 10.
+    ## Mirrors soma_ten_reward. Research (READ UP) is the upgrade lane and does
+    ## NOT increment nootropic_uses — only buys count toward the capstone.
+    if sum(getattr(store, 'nootropic_uses', [0,0,0,0,0])) >= 10:
+        call protocol_ten_reward
 
-    ## Dependency warning at 2 T5 uses (one before threshold)
+    ## Dependency warning — preserved at slot 5 (Lab). Old gate was "1 dose
+    ## before threshold" so warning fires after first Lab dose. Kept compatible
+    ## with the 3-user-tier model where slot 5 == Lab.
     python:
         _dep_warn = nootropic_uses[4] == 1 and _tier == 5
 
     if _dep_warn:
-        "[[WARNING] One more dose and your baseline changes permanently.\nFLModafinil (CRL-40,940) dependency triggers at 2 total uses."
+        "[[WARNING] One more Lab-grade dose and your baseline changes permanently.\nHard dependency triggers at 2 total Lab doses."
 
-    ## Nootropics do not consume the daily activity slot — jump back to coding menu
+    ## Nootropics is a top-level daily activity now — consumes the slot.
+    python:
+        activity_selected = True
+    jump end_day
+
+
+## ---------------------------------------------------------------------------
+## RESEARCH PUBMED — PubMed / forum deep-dive. The BH upgrade lane. Free in
+## cash; consumes the per-day nootropic action only on commit (cancel out of
+## the picker = no slot consumed, retry allowed). No stat bumps — pure card
+## upgrade is the entire payoff.
+## ---------------------------------------------------------------------------
+
+label _apply_research:
+
+    scene bg_bh_supplier
+
+    python:
+        _stg = bh_stage()
+        _research_lines = [
+            "You skip the cabinet. Three open tabs of papers. Two forum threads. A notebook with bad handwriting.",
+            "Cabinet stays open in the background. Twelve tabs. A spreadsheet you keep meaning to clean up.",
+            "The cabinet is in your peripheral vision. So is the dose schedule. You're reading anyway.",
+            "You don't bother closing the cabinet. The notebook has stopped being notes — it's a second baseline.",
+        ]
+        _research_close = [
+            "You close the tabs. You'll come back to it tomorrow.",
+            "Tabs minimised. Not closed. You'll be back inside an hour.",
+            "You leave the tabs open. The browser remembers things you don't anymore.",
+            "There's no closing it. The reading is the protocol now.",
+        ]
+        _research_open_line = _research_lines[_stg - 1]
+        _research_close_line = _research_close[_stg - 1]
+
+    "[_research_open_line]"
+
+    call _run_card_upgrade_flow
+    $ _research_result = _return
+
+    if _research_result is None:
+        "[_research_close_line]"
+        jump activity_coding
+
+    python:
+        store.nootropics_done_today = True
+    show screen outcome_panel("Card upgraded.")
+    pause
+    hide screen outcome_panel
+
     jump activity_coding
 
 

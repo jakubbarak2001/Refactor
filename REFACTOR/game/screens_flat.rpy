@@ -117,6 +117,12 @@ init python:
 
     # static props composited onto the flat: (image, left, top, width, height, rotate_deg, class_or_None).
     # class_or_None: if set, the prop only shows when stats.player_class == that string.
+    # Class identity rule: each class's home scene should signal who JB is via
+    # what's on the table. BB = whey jug. BH = (intentionally absent — JB's
+    # nootropic stack lives in the cabinet, not on display; the empty table IS
+    # the signal — minimalist optimiser, not gym-bro). DE = TBD when class ships.
+    # Future BH props (notebook / pill organiser / red-light panel) would slot
+    # in here with class_lock="biohacker".
     _P_WHEY = "images/jb_flat/whey.png"
     JB_PROPS = [
         (_P_WHEY, 1500, 440, 95, 144, 0, "bodybuilder"),

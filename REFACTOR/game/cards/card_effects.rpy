@@ -18,6 +18,42 @@
 
 init python:
 
+    ## ── Keyword highlighter ──────────────────────────────────────────────────
+    ## Wraps mechanic terms in the effect description with `{stshl=...}` so
+    ## the card renderer paints them in StS-style gold. Senior dev note: kept
+    ## intentionally tight (false-negative bias) so flavor text doesn't get
+    ## peppered with gold dust on every conjugation of "block".
+    _KW_TERMS = (
+        ## Damage / defense primitives
+        "Damage", "Block", "Heal",
+        ## Status conditions and run stats
+        "Vulnerable", "Weak", "Strength", "Bleed", "Hatred",
+        ## Resources / actions
+        "Energy", "Draw", "Exhaust", "Discard",
+        ## Card types (when referenced inside descriptions)
+        "Attack", "Attacks", "Skill", "Skills", "Power", "Powers",
+        ## Outcome verbs that read as keywords in StS
+        "Retaliate", "Cancel",
+    )
+    ## Compile inline — `import re as _kw_re_mod` would land the `re` module
+    ## on store, which is unpicklable (see python_logic.rpy scrubber lore).
+    ## Compiled regex objects ARE picklable in Python 3, so _KW_RE is safe.
+    _KW_RE = __import__('re').compile(r"\b(" + "|".join(_KW_TERMS) + r")\b")
+
+    def kw_highlight(text):
+        """Wrap every keyword occurrence in standard Ren'Py bold+color tags
+        so the card renderer paints them gold-bold. Safe on empty/None input.
+
+        AVOID the custom `{stshl=...}` tag: in `text` widgets the
+        self-substituting form unreliably swallowed the trailing text
+        ("Heal 8 HP" rendered as just "HEAL" with the "8 HP" eaten by
+        an implicit open span). The paired form would double-render the
+        word. Standard `{b}{color=#ffcc44}word{/color}{/b}` works in
+        every text context (dialogue, screens, buttons) without quirks."""
+        if not text:
+            return text
+        return _KW_RE.sub(lambda m: "{b}{color=#ffcc44}" + m.group(1) + "{/color}{/b}", text)
+
     ## ---------------------------------------------------------------------------
     ## EFFECT_DESCRIPTIONS — static tooltip text keyed by effect_id. Stat-scaling
     ## cards are resolved dynamically by effect_description() below instead.
@@ -156,6 +192,37 @@ init python:
         "ship_it_plus":            "Gain 1 energy for each Skill in your hand (max 3). Draw 1 card. Exhausts.",
         "code_review_plus":        "Exhaust your leftmost other card. Draw 2 cards. Gain 6 block.",
         "crunch_time_plus":        "Deal 5 damage for each card you've played this turn, including this one.",
+        ## BH Stimulant
+        "microdose":               "Gain 1 energy. Lose 2 HP.",
+        "microdose_plus":          "Gain 2 energy. Lose 2 HP.",
+        "adrenal_burst":           "Gain 2 energy this turn. Next turn, -1 max energy. (Shady: draw 1.)",
+        "adrenal_burst_plus":      "Gain 2 energy this turn. Draw 1. Next turn, -1 max energy. (Shady: draw 1 more.)",
+        "megadose":                "Gain 3 energy. Draw 2 cards. Next turn, -2 max energy.",
+        "burnout":                 "Deal 30 damage. -1 max energy this fight.",
+        "burnout_plus":            "Deal 34 damage. -1 max energy this fight.",
+        "catecholamine_spike":     "Power: at start of each turn, gain 1 energy and lose 3 HP.",
+        ## BH Neurochem
+        "pattern_match":           "Draw 2 cards. (Lab: draw 3.)",
+        "pattern_match_plus":      "Draw 3 cards. (Lab: draw 4.)",
+        "n_of_one":                "Draw 1 card. If it's a Skill, draw 1 more. Free.",
+        "n_of_one_plus":           "Draw 1 card. If it's a Skill, draw 2 more. Free.",
+        "recall_protocol":         "Return a random card from your discard pile to your hand.",
+        "recall_protocol_plus":    "Return 2 random cards from your discard pile to your hand.",
+        "lucid_window":            "Copy the effect of your leftmost other card. Exhausts.",
+        ## BH Wetware
+        "mitochondrial":           "Heal 5 HP. Gain 5 block. Free.",
+        "mitochondrial_plus":      "Heal 7 HP. Gain 7 block. Free.",
+        "telomere":                "Power: at start of each turn, heal 3 HP.",
+        "pain_threshold":          "Power: whenever you lose HP, gain block equal to HP lost. (Legal: also heal 2.)",
+        "hyper_if":                "Heal 15 HP. Gain 10 block. Exhausts.",
+        "hyper_if_plus":           "Heal 18 HP. Gain 13 block. Exhausts.",
+        ## BH Capstone
+        "peak_state":              "Power: whenever you gain energy this fight, deal 4 damage to the enemy.",
+        "total_recall":            "Return every card in your discard pile to your hand. Exhausts.",
+        "telomere_reset":          "Power: at start of each turn, heal 3 HP. Once per fight, when you would die, survive at 1 HP and heal 10.",
+        ## BH Event reward + Status
+        "acd856_regen":            "Power: at start of each turn, heal 5 HP and gain 3 block.",
+        "status_diarrhea":         "Status. Take 3. Exhausts.",
     }
 
     ## Counterweight converts the block wall into damage without consuming it,
@@ -485,7 +552,9 @@ init python:
     ## fires). Permanent in deck until removed by the Fixer.
     ## ---------------------------------------------------------------------------
 
-    import random as _rage_rand
+    ## Use `__import__('random')` inline at call sites — see scrubber lore
+    ## in python_logic.rpy. Module-level bindings of the random module land
+    ## on store and silently disappear across saves.
 
     def _other_cards_in_hand(state, self_id):
         """Hand cards excluding the card currently resolving (so a Rage card
@@ -511,7 +580,7 @@ init python:
         state.deal_damage(target, 16)
         _candidates = _other_cards_in_hand(state, "tunnel_vision") + list(state.draw_pile)
         if _candidates:
-            _victim = _rage_rand.choice(_candidates)
+            _victim = __import__('random').choice(_candidates)
             if _victim in state.hand:
                 state.discard(_victim)
             elif _victim in state.draw_pile:
@@ -528,7 +597,7 @@ init python:
         state.deal_damage(target, 10)
         _others = _other_cards_in_hand(state, "snap")
         if _others:
-            _victim = _rage_rand.choice(_others)
+            _victim = __import__('random').choice(_others)
             state.exhaust(_victim)
             _name = CARD_LIBRARY.get(_victim, {}).get("name", _victim)
             state.add_log("Snap: exhausted {} for this fight.".format(_name))
@@ -1026,3 +1095,227 @@ init python:
         ## Self-damage bypasses block — the jitters go through your veins.
         state.deal_damage(source, 3, bypass_block=True)
         state.add_log("Pre-Workout: +2 energy, draw 2, -3 HP.")
+
+    ## ---------------------------------------------------------------------------
+    ## BH ARCHETYPE: STIMULANT — energy ramp/spend/crash. max_energy_penalty_next_turn
+    ## reuses the existing FLMod-ebb buff. Direct max_energy decrement for burnout's
+    ## permanent-this-fight cost.
+    ## ---------------------------------------------------------------------------
+
+    @register_effect("microdose")
+    def _eff_microdose(state, source, target):
+        state.gain_energy(1)
+        state.deal_damage(source, 2, bypass_block=True)
+
+    @register_effect("microdose_plus")
+    def _eff_microdose_plus(state, source, target):
+        state.gain_energy(2)
+        state.deal_damage(source, 2, bypass_block=True)
+
+    @register_effect("adrenal_burst")
+    def _eff_adrenal_burst(state, source, target):
+        state.gain_energy(2)
+        state.buff(source, "max_energy_penalty_next_turn",
+                   max(state.buffs.get("max_energy_penalty_next_turn", 0), 1))
+        if getattr(store, 'bh_protocol', None) == "Shady":
+            state.draw_cards(1)
+            state.add_log("Adrenal Burst: Shady stack — drew 1.")
+
+    @register_effect("adrenal_burst_plus")
+    def _eff_adrenal_burst_plus(state, source, target):
+        state.gain_energy(2)
+        state.draw_cards(1)
+        state.buff(source, "max_energy_penalty_next_turn",
+                   max(state.buffs.get("max_energy_penalty_next_turn", 0), 1))
+        if getattr(store, 'bh_protocol', None) == "Shady":
+            state.draw_cards(1)
+            state.add_log("Adrenal Burst+: Shady stack — drew 1 more.")
+
+    @register_effect("megadose")
+    def _eff_megadose(state, source, target):
+        ## Big swing rare — +3 energy + 2 draw, pay 2 energy next turn.
+        ## Plus upgrade is cost 0 (reuses this effect), making it free burst.
+        state.gain_energy(3)
+        state.draw_cards(2)
+        state.buff(source, "max_energy_penalty_next_turn",
+                   max(state.buffs.get("max_energy_penalty_next_turn", 0), 2))
+
+    @register_effect("burnout")
+    def _eff_burnout(state, source, target):
+        state.deal_damage(target, 30)
+        ## Permanent for the fight — direct decrement, not the one-turn buff.
+        state.max_energy = max(0, state.max_energy - 1)
+        state.add_log("[[Burnout]: -1 max energy this fight.")
+
+    @register_effect("burnout_plus")
+    def _eff_burnout_plus(state, source, target):
+        state.deal_damage(target, 34)
+        state.max_energy = max(0, state.max_energy - 1)
+        state.add_log("[[Burnout+]: -1 max energy this fight.")
+
+    @register_effect("catecholamine_spike")
+    def _eff_catecholamine_spike(state, source, target):
+        ## Power — battle_start_player_turn reads catecholamine_active and
+        ## applies +1 energy / -3 HP each turn for the rest of the fight.
+        state.buff(source, "catecholamine_active", True)
+
+    ## ---------------------------------------------------------------------------
+    ## BH ARCHETYPE: NEUROCHEM — draw, conditional draw, recall, replay.
+    ## ---------------------------------------------------------------------------
+
+    @register_effect("pattern_match")
+    def _eff_pattern_match(state, source, target):
+        n = 3 if getattr(store, 'bh_protocol', None) == "Lab" else 2
+        state.draw_cards(n)
+        if n == 3:
+            state.add_log("Pattern Match: Lab stack — drew 3.")
+
+    @register_effect("pattern_match_plus")
+    def _eff_pattern_match_plus(state, source, target):
+        n = 4 if getattr(store, 'bh_protocol', None) == "Lab" else 3
+        state.draw_cards(n)
+        if n == 4:
+            state.add_log("Pattern Match+: Lab stack — drew 4.")
+
+    @register_effect("n_of_one")
+    def _eff_n_of_one(state, source, target):
+        pre = len(state.hand)
+        state.draw_cards(1)
+        if len(state.hand) > pre:
+            last = state.hand[-1]
+            if CARD_LIBRARY.get(last, {}).get("type") == "Skill":
+                state.draw_cards(1)
+                state.add_log("N-of-One: drew a Skill — drew 1 more.")
+
+    @register_effect("n_of_one_plus")
+    def _eff_n_of_one_plus(state, source, target):
+        pre = len(state.hand)
+        state.draw_cards(1)
+        if len(state.hand) > pre:
+            last = state.hand[-1]
+            if CARD_LIBRARY.get(last, {}).get("type") == "Skill":
+                state.draw_cards(2)
+                state.add_log("N-of-One+: drew a Skill — drew 2 more.")
+
+    ## Use `__import__('random')` inline at call sites — see scrubber lore.
+
+    @register_effect("recall_protocol")
+    def _eff_recall_protocol(state, source, target):
+        if state.discard_pile:
+            victim = __import__('random').choice(state.discard_pile)
+            state.discard_pile.remove(victim)
+            state.hand.append(victim)
+            state.add_log("Recall Protocol: returned {}.".format(
+                CARD_LIBRARY.get(victim, {}).get("name", victim)))
+
+    @register_effect("recall_protocol_plus")
+    def _eff_recall_protocol_plus(state, source, target):
+        for _ in range(2):
+            if not state.discard_pile:
+                break
+            victim = __import__('random').choice(state.discard_pile)
+            state.discard_pile.remove(victim)
+            state.hand.append(victim)
+            state.add_log("Recall Protocol+: returned {}.".format(
+                CARD_LIBRARY.get(victim, {}).get("name", victim)))
+
+    @register_effect("lucid_window")
+    def _eff_lucid_window(state, source, target):
+        ## Copy the leftmost OTHER card's effect. Filter both lucid_window and
+        ## lucid_window_plus so the upgrade can't self-target either.
+        pool = [c for c in state.hand if not c.startswith("lucid_window")]
+        if pool:
+            twin = pool[0]
+            twin_data = CARD_LIBRARY.get(twin, {})
+            twin_eff = twin_data.get("effect")
+            fn = card_effects.get(twin_eff)
+            if fn:
+                fn(state, source, target)
+                state.add_log("Lucid Window: copied {}.".format(twin_data.get("name", twin)))
+
+    ## ---------------------------------------------------------------------------
+    ## BH ARCHETYPE: WETWARE — HP regen, HP→block conversion, block+heal cards.
+    ## telomere_heal / pain_threshold_active read by battle_engine hooks.
+    ## ---------------------------------------------------------------------------
+
+    @register_effect("mitochondrial")
+    def _eff_mitochondrial(state, source, target):
+        state.heal(source, 5)
+        state.gain_block(source, 5)
+
+    @register_effect("mitochondrial_plus")
+    def _eff_mitochondrial_plus(state, source, target):
+        state.heal(source, 7)
+        state.gain_block(source, 7)
+
+    @register_effect("telomere")
+    def _eff_telomere(state, source, target):
+        ## Power — battle_start_player_turn reads telomere_heal and applies it.
+        state.buff(source, "telomere_heal",
+                   max(state.buffs.get("telomere_heal", 0), 3))
+
+    @register_effect("pain_threshold")
+    def _eff_pain_threshold(state, source, target):
+        ## Power — deal_damage(player) reads pain_threshold_active and converts
+        ## actual damage taken into block. Legal protocol also heals 2 per trigger.
+        state.buff(source, "pain_threshold_active", True)
+
+    @register_effect("hyper_if")
+    def _eff_hyper_if(state, source, target):
+        state.heal(source, 15)
+        state.gain_block(source, 10)
+
+    @register_effect("hyper_if_plus")
+    def _eff_hyper_if_plus(state, source, target):
+        state.heal(source, 18)
+        state.gain_block(source, 13)
+
+    ## ---------------------------------------------------------------------------
+    ## BH CAPSTONE EFFECTS — three rare cards offered at Protocol 10/10 (10 BUYs).
+    ## ---------------------------------------------------------------------------
+
+    @register_effect("peak_state")
+    def _eff_peak_state(state, source, target):
+        ## Power — gain_energy() reads peak_state_active and chips the enemy
+        ## for 4 each gain. Hatred-analog: Roid Rage but for energy.
+        state.buff(source, "peak_state_active", True)
+
+    @register_effect("total_recall")
+    def _eff_total_recall(state, source, target):
+        ## Dramatic Skill — pull every card in discard back into hand. Pairs
+        ## with The Compound (energy×10) for a final-turn cascade. Exhausts.
+        moved = list(state.discard_pile)
+        for cid in moved:
+            state.discard_pile.remove(cid)
+            state.hand.append(cid)
+        state.add_log("[[Total Recall]: pulled {} cards from discard.".format(len(moved)))
+
+    @register_effect("telomere_reset")
+    def _eff_telomere_reset(state, source, target):
+        ## Power — sustained regen + one-time death-save. deal_damage(player)
+        ## reads death_save_charges and death_save_heal when player_hp hits 0.
+        ## Heal-back capped at 10 (was 20) so the death-save can't double as
+        ## a hidden +25% max HP bar — survive at 1, heal back to 11.
+        state.buff(source, "telomere_heal",
+                   max(state.buffs.get("telomere_heal", 0), 3))
+        state.buff(source, "death_save_charges",
+                   state.buffs.get("death_save_charges", 0) + 1)
+        state.buff(source, "death_save_heal", 10)
+
+    ## ---------------------------------------------------------------------------
+    ## BH EVENT REWARD — acd856_regen. From ev_bh_acd856_offer REAL outcome.
+    ## ---------------------------------------------------------------------------
+
+    @register_effect("acd856_regen")
+    def _eff_acd856_regen(state, source, target):
+        ## Power — battle_start_player_turn reads these and applies each turn.
+        state.buff(source, "acd856_heal", 5)
+        state.buff(source, "acd856_block", 3)
+
+    ## ---------------------------------------------------------------------------
+    ## BH STATUS — diarrhea, injected by ACD856 FAKE outcome into next battle.
+    ## ---------------------------------------------------------------------------
+
+    @register_effect("status_diarrhea")
+    def _eff_status_diarrhea(state, source, target):
+        state.deal_damage(source, 3)

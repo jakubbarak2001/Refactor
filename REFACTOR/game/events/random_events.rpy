@@ -1120,3 +1120,89 @@ label ev_synthol_brothers:
 
     call screen event_outcome(title="THE SYNTHOL BROTHERS", art=_sb_art, result=_sb_res)
     return
+
+
+## ---------------------------------------------------------------------------
+## ACD856 OFFER [biohacker] — gray-market peptide gamble. 10k CZK, 50/50.
+## REAL: + 20 max HP and a rare Wetware Power (acd856_regen).
+## FAKE: - 25 HP, + 20 Hatred, next battle has a Diarrhea status card.
+## EV is slightly negative — true gamble, not a free pull. The +20 Hatred on
+## a bad roll is the real punishment. Pool-gated to BH in event_engine.rpy.
+## ---------------------------------------------------------------------------
+
+label ev_bh_acd856_offer:
+
+    scene bg_random_event
+    play music "audio/random_event_bed.wav" fadein 1.0
+
+    python:
+        _ac_art = "images/events/ev_bh_acd856_offer.jpg"
+        _ac_body = [
+            "Telegram, 02:14. An old contact from the longecity threads — three months silent — drops a single line: 'ACD856. Real batch. 10k. DM for address.'",
+            "ACD856. Neuroregenerative peptide. Russian lab originally, then a couple of unverified European reshippers. The papers exist. So do the receipts of three people who got saline. He doesn't refund.",
+            "You have ten thousand crowns and a body that hasn't been the same since Day One. The decision is roughly the size of a coin.",
+        ]
+        _ac_choices = [
+            {
+                "id": "pass",
+                "label": "[ PASS ]",
+                "desc": "Not worth the variance.  No effects.",
+            },
+            {
+                "id": "buy",
+                "label": "[ BUY (10,000 CZK) ]",
+                "desc": ek("50/50 gamble.") + "  " + eg("Real: + 20 max HP + rare Power card.") + "  " + ec("Fake: - 25 HP, + 20 Hatred, status card next fight."),
+                "enabled": stats.available_money >= 10000,
+                "locked": "Ten thousand crowns. You don't have it on you.",
+            },
+        ]
+
+    call screen event_screen(title="ACD856 OFFER", art=_ac_art, body=_ac_body, choices=_ac_choices)
+
+    python:
+        _ac_pick = _return
+        _ac_res = []
+
+    if _ac_pick == "buy":
+        python:
+            stats.increment_stats_value_money(-10000)
+            _ac_roll = __import__('random').randint(1, 100)
+
+        if _ac_roll <= 50:
+            python:
+                ## REAL — bump run_hp_max and current HP by 20, grant the
+                ## rare regen Power.
+                if getattr(store, 'run_hp_max', None) is None:
+                    store.run_hp_max = _event_class_max_hp()
+                if getattr(store, 'run_hp', None) is None:
+                    store.run_hp = store.run_hp_max
+                store.run_hp_max += 20
+                store.run_hp = min(store.run_hp_max, store.run_hp + 20)
+                grant_card("acd856_regen", silent=False)
+                _ac_res = [
+                    "The address is a flat above a pet-supply shop in Vršovice. The man who opens the door is wearing socks and a watch and nothing else worth mentioning. The vial is plain. The labelling is wrong on purpose.",
+                    "Three days in you sleep eight hours and wake up rebuilt. Resting heart rate down four. Recovery numbers you didn't think your body had in it anymore. The protocol works.",
+                    eg("- 10,000 CZK.") + "   " + eg("+ 20 max HP.") + "   " + eg("Gained: ACD856 (rare Power)."),
+                ]
+        else:
+            python:
+                _ac_lost = event_hurt(25)
+                stats.increment_stats_pcr_hatred(20)
+                store.bh_pending_diarrhea = True
+                _ac_res = [
+                    "The address is a flat above a pet-supply shop in Vršovice. The man who opens the door is wearing socks and a watch and nothing else worth mentioning. The vial is plain. The labelling is wrong on purpose.",
+                    "Three hours in the bathroom. Six hours of cold sweat. By morning you know it was saline at best, contaminated saline at worst. You call the number. It rings out. You call it again. It rings out forever.",
+                    "You memorize his face. The shop downstairs. The make of his watch. You memorize all of it, the way you memorize a license plate at a crash scene.",
+                    ec("- 10,000 CZK.") + "   " + ec("- {} HP.".format(_ac_lost)) + "   " + ec("+ 20 Hatred.") + "   " + ec("Status card injected into next battle."),
+                ]
+
+    else:
+        python:
+            _ac_res = [
+                "You don't reply. The Telegram bubble sits unread for twenty minutes. He doesn't follow up.",
+                "Somewhere in the next forty-eight hours another three people will read his message and one of them will say yes. You won't know which one. You won't know whether they got the real thing.",
+                "Probably for the best. The variance was too wide.",
+            ]
+
+    call screen event_outcome(title="ACD856 OFFER", art=_ac_art, result=_ac_res)
+    return

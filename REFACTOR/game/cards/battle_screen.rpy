@@ -33,7 +33,13 @@
 ## ---------------------------------------------------------------------------
 
 init python:
-    import math as _juice_math
+    ## DON'T bind `math` to a store name (`import math as _juice_math` OR
+    ## `_juice_math = __import__('math')` — same result, same bug). The
+    ## module lands on store and is unpicklable; saves silently drop the
+    ## name and on load every transform NameErrors. Same lesson as
+    ## `_battle_rand` / `_daily_music_rand`. Call via `__import__('math')`
+    ## inline at the call sites; sys.modules caches it so the 60fps cost
+    ## is a dict hit.
 
     def _colonel_shake_fn(trans, st, at):
         """Damped 2-axis oscillation on the enemy portrait (and anything else
@@ -58,8 +64,8 @@ init python:
         ## Decay envelope: amplitude tapers to 0 over 0.45s
         decay = 1.0 - age / 0.45
         ## Mixed-frequency oscillation feels chunkier than a clean sine
-        trans.xoffset = int(26.0 * decay * _juice_math.sin(age * 32.0))
-        trans.yoffset = int(14.0 * decay * _juice_math.sin(age * 47.0))
+        trans.xoffset = int(26.0 * decay * __import__('math').sin(age * 32.0))
+        trans.yoffset = int(14.0 * decay * __import__('math').sin(age * 47.0))
         return 0.016  ## ~60 fps refresh
 
     def _player_frame_shake_fn(trans, st, at):
@@ -78,7 +84,7 @@ init python:
             trans.xoffset = 0
             return None
         amp = 6.0 * (1.0 - age / 0.30)
-        trans.xoffset = int(amp * _juice_math.sin(age * 40.0))
+        trans.xoffset = int(amp * __import__('math').sin(age * 40.0))
         return 0.016
 
     def _enemy_idle_breath_fn(trans, st, at):
@@ -92,9 +98,9 @@ init python:
             trans.zoom = 1.0
             trans.yoffset = 0
             return None
-        phase = _juice_math.sin(st * (2.0 * _juice_math.pi / 3.2))
+        phase = __import__('math').sin(st * (2.0 * __import__('math').pi / 3.2))
         trans.zoom = 1.0 + 0.014 * phase
-        trans.yoffset = int(-2.5 * _juice_math.sin(st * (2.0 * _juice_math.pi / 3.2) + 0.4))
+        trans.yoffset = int(-2.5 * __import__('math').sin(st * (2.0 * __import__('math').pi / 3.2) + 0.4))
         return 0.033
 
     def _enemy_intent_stance_fn(trans, st, at):
@@ -459,13 +465,15 @@ screen damage_popup_player_inner(damage, delay=0.0, xoff=0):
         font "fonts/RobotoMono-Regular.ttf"
         at damage_popup_atl_delayed(delay)
 
-## Phase B juice — card hover lift. Cards in hand scale up + lift slightly
-## on mouse-hover, settle on idle. Smooth ease so the cursor's-on-this-card
-## affordance is unmistakable. ATL `on hover` / `on idle` blocks fire when
-## the parent button transitions states.
+## StS-style card hover. Hovered card scales up ~1.55× IN PLACE and lifts
+## ~140px so it reads clearly above the hand row. No overlay, no popup —
+## same card, just brought forward. The card's parent `button` keeps its
+## 220×316 slot footprint so neighbours don't get shoved around; the
+## scaled content bleeds outside the slot (intentional — neighbours may
+## be partially occluded, exactly like StS).
 transform card_hover_lift:
     on hover:
-        ease 0.14 zoom 1.07 yoffset -18
+        ease 0.14 zoom 1.55 yoffset -140
     on idle:
         ease 0.14 zoom 1.0 yoffset 0
 
@@ -632,14 +640,6 @@ screen battle_pile_peek():
 
     python:
         bs_p = battle_state
-        _PEEK_COLORS = {
-            "Physical": "#ff6633",
-            "Mental":   "#9944cc",
-            "Money":    "#ffd700",
-            "Logic":    "#00ccff",
-            "Police":   "#3388cc",
-            "Special":  "#00cc88",
-        }
         if bs_p:
             _peek_summary = "Draw {} · Discard {} · Exhaust {}".format(len(bs_p.draw_pile), len(bs_p.discard_pile), len(bs_p.exhaust_pile))
         else:
@@ -695,23 +695,15 @@ screen battle_pile_peek():
                                 spacing 8
                                 for _cid in _row:
                                     $ _c = CARD_LIBRARY.get(_cid, {})
-                                    $ _c_is_status     = (_c.get("effect") or "").startswith("status_")
-                                    $ _c_is_rage       = bool(_c.get("is_rage"))
-                                    $ _c_is_compromise = bool(_c.get("is_compromise"))
-                                    if _c_is_compromise:
-                                        $ _ccol = "#5a5550"
-                                        $ _c_prefix = "🚫 "
-                                        $ _c_name_color = "#a09890"
-                                    elif _c_is_rage:
-                                        $ _ccol = "#aa1a1a"
-                                        $ _c_prefix = "🔥 "
-                                        $ _c_name_color = "#ff8866"
-                                    elif _c_is_status:
-                                        $ _ccol = "#8a7a2a"
+                                    $ _c_vtype = card_visual_type(_c)
+                                    $ _ccol = card_type_color(_c, "frame")
+                                    if _c_vtype == "Curse":
+                                        $ _c_prefix = "🚫 " if _c.get("is_compromise") else "🔥 "
+                                        $ _c_name_color = "#a09890" if _c.get("is_compromise") else "#ff8866"
+                                    elif _c_vtype == "Status":
                                         $ _c_prefix = "☠ "
                                         $ _c_name_color = "#d4c47a"
                                     else:
-                                        $ _ccol = _PEEK_COLORS.get(_c.get("color", "Special"), "#888888")
                                         $ _c_prefix = ""
                                         ## Upgraded cards (clean — never corruption) → green name.
                                         $ _c_name_color = card_name_color(_c, "#ffffff")
@@ -745,20 +737,305 @@ screen battle_pile_peek():
     key "K_ESCAPE" action Hide("battle_pile_peek")
 
 
+## ---------------------------------------------------------------------------
+## Inspect-overlay entrance — quick fade + tiny zoom-up so the big hover-card
+## doesn't pop in jarringly. Paired with `_hover_card_cid` tracking on the
+## hand buttons (battle_screen sets it via hovered/unhovered actions) and the
+## `use battle_card_view(... mode="inspect")` call after the hand frame.
+## ---------------------------------------------------------------------------
+transform inspect_overlay_in:
+    alpha 0.0
+    zoom 0.88
+    parallel:
+        ease 0.10 alpha 1.0
+    parallel:
+        ease 0.10 zoom 1.0
+
+
+## ---------------------------------------------------------------------------
+## battle_card_view — single source of truth for card visuals.
+##
+## Drives the in-hand card AND the StS-style hover-inspect overlay. `mode`
+## picks the size table:
+##   "hand"    → 220×316 (fits in the bottom row, 8 cards across)
+##   "inspect" → ~400×572 (1.82× scale, readable at any monitor size)
+##
+## Card construction (top → bottom in z-order):
+##   1. Drop shadow (offset solid).
+##   2. Border frame (deep type-color outline).
+##   3. Frame body (saturated type color — Attack red / Skill blue / Power
+##      purple / Curse near-black / Status toxic-yellow).
+##   4. Inner well — vbox of four sections:
+##        a. Name plate (dark band, gold text)
+##        b. Art zone (illustration or glyph fallback over art_bg tone)
+##        c. Type tab (small centered grey banner: ATTACK / SKILL / POWER / …)
+##        d. Description panel (parchment tone, keyword-highlighted text)
+##   5. Cost gem (stacked-diamond, overlapping top-left, orange beveled).
+##   6. Combo glow (pulsing halo — only on cards with a LIVE combo bonus).
+##   7. Exhaust badge (conditional, bottom-center over the border).
+##
+## `playable` controls the dim-out branch — unplayable cards desaturate and
+## drop alpha so the eye skips them. Caller computes via bs.hand_playable.
+## ---------------------------------------------------------------------------
+screen battle_card_view(cid, mode="hand", playable=True):
+    python:
+        _card = CARD_LIBRARY.get(cid, {})
+        _vtype = card_visual_type(_card)
+        _palette = TYPE_PALETTE.get(_vtype, TYPE_PALETTE["Skill"])
+        _frame_c   = _palette["frame"]
+        _border_c  = _palette["border"]
+        _artbg_c   = _palette["art_bg"]
+        _accent_c  = _palette["accent"]
+
+        ## CLASS-LOCKED CARDS — override the type palette with the class
+        ## accent color so signature cards (MITOCHONDRIAL etc.) read as
+        ## "yours". Curse/Status never get class_lock, so the override is
+        ## always safe to apply on top of the type palette. Border + art_bg
+        ## are darkened sibling tones so the frame still has structural
+        ## hierarchy, not a flat slab of color.
+        _class_lock = _card.get("class_lock")
+        if _class_lock:
+            _cls_hex = class_accent_color(_class_lock)
+            _frame_c  = _cls_hex
+            _accent_c = _cls_hex
+            ## Drop the saturated frame down ~50% lightness for the border
+            ## and ~70% for the art_bg via simple hex-mix with black. Avoids
+            ## hard-coding per-class darker tones.
+            def _mix(hex_a, hex_b, t):
+                a = int(hex_a[1:3], 16), int(hex_a[3:5], 16), int(hex_a[5:7], 16)
+                b = int(hex_b[1:3], 16), int(hex_b[3:5], 16), int(hex_b[5:7], 16)
+                m = tuple(int(a[i] * (1 - t) + b[i] * t) for i in range(3))
+                return "#{:02x}{:02x}{:02x}".format(*m)
+            _border_c = _mix(_cls_hex, "#000000", 0.55)
+            _artbg_c  = _mix(_cls_hex, "#000000", 0.78)
+
+        _is_upgraded = bool(_card.get("is_upgraded"))
+
+        ## Inspect mode is a uniform 1.82× scale on every numeric dimension.
+        ## Single multiplier table keeps the two views layout-identical so the
+        ## hover-zoom feels like the SAME card, just bigger.
+        if mode == "inspect":
+            _W, _H        = 400, 572
+            _name_h       = 50
+            _art_h        = 200
+            _tab_h        = 36
+            _name_sz      = 26
+            _tab_sz       = 19
+            _desc_sz      = 22
+            _gem_outer    = 90
+            _gem_inner    = 72
+            _gem_sz       = 40
+            _gem_xpos     = -32
+            _gem_ypos     = -36
+            _shadow_off   = 14
+            _exhaust_w    = 200
+            _exhaust_h    = 38
+            _exhaust_sz   = 22
+            _exhaust_y    = 520
+            _exhaust_xpos = 100
+            _glyph_sz     = 110
+        else:
+            _W, _H        = 220, 316
+            _name_h       = 28
+            _art_h        = 110
+            _tab_h        = 22
+            _name_sz      = 15
+            _tab_sz       = 11
+            _desc_sz      = 13
+            _gem_outer    = 50
+            _gem_inner    = 40
+            _gem_sz       = 22
+            _gem_xpos     = -22
+            _gem_ypos     = -22
+            _shadow_off   = 8
+            _exhaust_w    = 110
+            _exhaust_h    = 22
+            _exhaust_sz   = 12
+            _exhaust_y    = 286
+            _exhaust_xpos = 55
+            _glyph_sz     = 60
+
+        ## Playability dim — desaturates the frame and drops opacity so
+        ## unplayable cards step back visually without disappearing.
+        if not playable:
+            _frame_c  = "#3a2020"
+            _border_c = "#1a0d0d"
+            _artbg_c  = "#1a1010"
+            _accent_c = "#664444"
+
+        ## Inner-well sizes (everything after the 4px border + 4px inset).
+        _inner_w = _W - 16   ## L,R: 4(border)+4(padding) = 8 each side
+        _inner_h = _H - 16
+
+        ## Combo glow predicate — Production Push after a Skill, Hotfix as 3rd+ card.
+        _combo_live = False
+        try:
+            _bs = battle_state
+            if _bs is not None and playable:
+                if cid in ("production_push", "production_push_plus") and _bs.skill_played_this_turn:
+                    _combo_live = True
+                elif cid in ("hotfix", "hotfix_plus") and _bs.cards_played_this_turn >= 2:
+                    _combo_live = True
+        except Exception:
+            _combo_live = False
+
+        _has_art   = renpy.loadable("images/cards/{}.png".format(cid))
+        _art_path  = "images/cards/{}.png".format(cid)
+        _art_glyph = _card.get("art_glyph") or {
+            "Attack": "⚔", "Skill": "✦", "Power": "★",
+            "Curse":  "🚫", "Status": "☠",
+        }.get(_vtype, "●")
+
+        _name_text = _card.get("name", cid)
+        ## Upgraded card sole signal: name flips bright green. Matches the
+        ## existing convention across reward / deck / fixer screens (per
+        ## card_name_color helper).
+        _name_color = "#44ee77" if (_is_upgraded and playable) else ("#f0d088" if playable else "#5a4a32")
+
+        _type_label = _vtype.upper()
+        _desc_raw   = effect_description(_card.get("effect")) or _card.get("flavor", "")
+        _desc       = kw_highlight(_desc_raw)
+        _desc_color = "#ece4d4" if playable else "#5a4f3f"
+
+        _cost_text  = str(_card.get("cost", 0))
+        _cost_color = "#ffffff" if playable else "#554a40"
+
+    fixed:
+        xysize (_W, _H)
+
+        ## L1: drop shadow — soft offset solid behind the card body.
+        add Solid("#000000aa") xpos _shadow_off ypos _shadow_off xysize (_W - _shadow_off - 2, _H - _shadow_off - 2)
+
+        ## L2 + L3: border frame wrapping frame body.
+        frame:
+            xpos 0
+            ypos 0
+            xysize (_W, _H)
+            background Frame(_border_c, 6, 6)
+            padding (4, 4)
+
+            frame:
+                xfill True
+                yfill True
+                background Frame(_frame_c, 4, 4)
+                padding (4, 4)
+
+                ## L4: inner content well (art_bg-toned).
+                frame:
+                    xfill True
+                    yfill True
+                    background Frame(_artbg_c, 4, 4)
+                    padding (6, 6)
+
+                    vbox:
+                        xfill True
+                        spacing 4
+
+                        ## (a) Name plate — dark band, gold serif-ish text.
+                        frame:
+                            xfill True
+                            ysize _name_h
+                            background Frame("#0a0806ee", 4, 4)
+                            text _name_text substitute False:
+                                color _name_color
+                                size _name_sz
+                                bold True
+                                xalign 0.5
+                                yalign 0.5
+                                xmaximum (_inner_w - 24)
+                                text_align 0.5
+                                font "fonts/RobotoMono-Regular.ttf"
+                                outlines [(1, "#000000", 0, 0)]
+
+                        ## (b) Art zone — illustration or glyph fallback.
+                        frame:
+                            xfill True
+                            ysize _art_h
+                            background Frame(_border_c + ("99" if playable else "55"), 2, 2)
+                            padding (2, 2)
+                            if _has_art:
+                                add Transform(_art_path, size=(_inner_w - 8, _art_h - 8)) xalign 0.5 yalign 0.5
+                            else:
+                                text _art_glyph:
+                                    xalign 0.5
+                                    yalign 0.5
+                                    color _accent_c
+                                    size _glyph_sz
+                                    outlines [(2, "#000000", 0, 0)]
+
+                        ## (c) Type tab — centered dark banner with type label.
+                        frame:
+                            xalign 0.5
+                            ysize _tab_h
+                            background Frame("#1a1a1aee", 4, 4)
+                            padding (14, 1)
+                            text _type_label:
+                                color "#e0e0e0"
+                                size _tab_sz
+                                bold True
+                                xalign 0.5
+                                yalign 0.5
+                                font "fonts/RobotoMono-Regular.ttf"
+
+                        ## (d) Description panel — parchment tone, keyword-highlighted text.
+                        frame:
+                            xfill True
+                            yfill True
+                            background Frame("#241d15ee", 4, 4)
+                            padding (6, 6)
+                            text _desc:
+                                color _desc_color
+                                size _desc_sz
+                                xalign 0.5
+                                yalign 0.5
+                                xmaximum (_inner_w - 16)
+                                text_align 0.5
+                                line_spacing 2
+
+        ## L5: combo glow — only when a bonus is LIVE right now. Pulses.
+        if _combo_live:
+            add Solid("#ffcc3344") xpos 0 ypos 0 xysize (_W, _H) at card_glow_pulse
+            add Solid("#ffcc3377") xpos 4 ypos 4 xysize (_W - 8, _H - 8) at card_glow_pulse
+
+        ## L6: cost gem — beveled diamond stack overlapping top-left corner.
+        ## Two rotated solids (dark outer + orange inner) give the StS-gem
+        ## bevel look without needing a circle asset.
+        fixed:
+            xpos _gem_xpos
+            ypos _gem_ypos
+            xysize (_gem_outer + 8, _gem_outer + 8)
+            add Transform(Solid(GEM_ORANGE_DARK if playable else "#2a1a10"), size=(_gem_outer, _gem_outer), rotate=45) xalign 0.5 yalign 0.5
+            add Transform(Solid(GEM_ORANGE if playable else "#553322"), size=(_gem_inner, _gem_inner), rotate=45) xalign 0.5 yalign 0.5
+            text _cost_text:
+                xalign 0.5
+                yalign 0.5
+                color _cost_color
+                size _gem_sz
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
+                outlines [(2, "#000000", 0, 0)]
+
+        ## L7: exhaust badge (conditional).
+        if _card.get("exhaust"):
+            frame:
+                xpos _exhaust_xpos
+                ypos _exhaust_y
+                xysize (_exhaust_w, _exhaust_h)
+                background Frame("#5a0000ee", 4, 4)
+                text "EXHAUST":
+                    color "#ff8866"
+                    size _exhaust_sz
+                    bold True
+                    xalign 0.5
+                    yalign 0.5
+                    font "fonts/RobotoMono-Regular.ttf"
+
+
 screen battle_screen():
     modal True
     zorder 600
 
-    ## Card-color palette (mirrors deck_viewer)
     python:
-        _CARD_COLORS = {
-            "Physical": "#ff6633",
-            "Mental":   "#9944cc",
-            "Money":    "#ffd700",
-            "Logic":    "#00ccff",
-            "Police":   "#3388cc",
-            "Special":  "#00cc88",
-        }
         bs = battle_state
         ## Per-enemy battle background.
         ##   Colonel: state-tracked office (smug/normal/angry/shaken) progressively
@@ -1455,17 +1732,13 @@ screen battle_screen():
             tooltip "How does this fight work?"
 
         ## ── HAND ──────────────────────────────────────────────────────────────
-        ## Multi-layer card construction per slot (220×316 each):
-        ##   L1: combo glow (only a card with a live bonus; pulsing gold)
-        ##   L2: drop shadow (offset solid behind border)
-        ##   L3: type-colored border (red=Attack/blue=Skill/purple=Power)
-        ##   L4: warm-dark inner panel (#1a1410 — card-stock tone)
-        ##   L5: zoned content (title band → art zone → type subtitle → description)
-        ##   L6: cost gem (rotated-square diamond, overlaps top-left)
-        ##   L7: exhaust badge (conditional, bottom-center)
-        ## All halo + shadow stays inside the 220px slot so adjacent cards never bleed.
-        ## xmaximum 1880 + spacing 2 gives headroom for hands up to 8 cards
-        ## (8×220 + 7×2 = 1774) without overflowing the 1920px screen.
+        ## Each card slot delegates to `battle_card_view(cid, mode="hand", ...)`
+        ## — the single source of truth for card visuals (also used by the
+        ## hover-inspect overlay below in mode="inspect"). The button wrapper
+        ## keeps Ren'Py focus/click semantics and pipes hover events into
+        ## `_hover_card_cid` so the overlay knows what to draw.
+        ## xmaximum 1880 + spacing 2 supports hands of up to 8 cards
+        ## (8×220 + 7×2 = 1774) within the 1920px screen.
         frame:
             xalign 0.5
             ypos 780
@@ -1478,65 +1751,7 @@ screen battle_screen():
                 xalign 0.5
 
                 for _cid in bs.hand:
-                    $ _card = CARD_LIBRARY.get(_cid, {})
-                    $ _ctype = _card.get("type", "Skill")
-                    ## Three corruption categories, each visually distinct:
-                    ##   Status     — enemy-injected, single-fight (paperwork/fumes/...).
-                    ##                Mustard #8a7a2a, ☠ glyph.
-                    ##   Rage       — hatred-injected at 40/60/80, permanent in deck.
-                    ##                Blood #aa1a1a, 🔥 glyph.
-                    ##   Compromise — loss-injected on 2nd+ ladder loss, permanent
-                    ##                AND unplayable (dead weight in hand).
-                    ##                Broken gray #5a5550, 🚫 glyph.
-                    $ _is_status     = (_card.get("effect") or "").startswith("status_")
-                    $ _is_rage       = bool(_card.get("is_rage"))
-                    $ _is_compromise = bool(_card.get("is_compromise"))
-                    ## Upgraded cards (`_plus` variants) — single signal: the
-                    ## name text flips to bright green. The "+" suffix on
-                    ## name (auto-emitted by register_upgrade) stays. No
-                    ## extra borders / halos / ribbons — they cluttered the
-                    ## card without adding readability. Green-on-dark reads
-                    ## from any zoom level. Upgrades and corruption never
-                    ## co-occur (register_upgrade refuses status / rage /
-                    ## compromise) so this branch is clean-cards only.
-                    $ _is_upgraded   = bool(_card.get("is_upgraded"))
-                    $ _UPGRADE_GREEN = "#44ee77"
-                    ## Type-driven palette: Attack=red, Skill=blue, Power=purple.
-                    ## Card "color" taxonomy (Physical/Mental/Money/...) reads as
-                    ## random tinting to playtesters; type is unambiguous.
-                    if _is_compromise:
-                        $ _color = "#5a5550"
-                    elif _is_rage:
-                        $ _color = "#aa1a1a"
-                    elif _is_status:
-                        $ _color = "#8a7a2a"
-                    else:
-                        $ _color = {"Attack": "#cc4422", "Skill": "#3388cc", "Power": "#aa44cc"}.get(_ctype, "#888888")
                     $ _ok, _reason = bs.hand_playable(_cid)
-                    $ _border = _color if _ok else "#3a2020"
-                    ## A card whose bonus is LIVE right now (Production Push
-                    ## after a Skill, Hotfix as the 3rd+ card) gets the only
-                    ## glow in the hand — so it actually stands out.
-                    $ _combo_live = (_cid in ("production_push", "production_push_plus") and bs.skill_played_this_turn) or (_cid in ("hotfix", "hotfix_plus") and bs.cards_played_this_turn >= 2)
-                    $ _effect_text = effect_description(_card.get("effect")) or _card.get("flavor", "")
-                    if _is_compromise:
-                        $ _subtitle = "COMPROMISE · DEAD WEIGHT"
-                    elif _is_rage:
-                        $ _subtitle = "RAGE · CORRUPTED"
-                    elif _is_status:
-                        $ _subtitle = "STATUS · CURSE"
-                    else:
-                        $ _subtitle = (_ctype.upper() + " · " + (_card.get("color") or "").upper()).strip(" ·")
-                    $ _art_path = "images/cards/{}.png".format(_cid)
-                    $ _has_art  = renpy.loadable(_art_path)
-                    if _is_compromise:
-                        $ _art_glyph = "🚫"
-                    elif _is_rage:
-                        $ _art_glyph = "🔥"
-                    elif _is_status:
-                        $ _art_glyph = "☠"
-                    else:
-                        $ _art_glyph = _card.get("art_glyph") or {"Attack": "⚔", "Skill": "✦", "Power": "★"}.get(_ctype, "●")
 
                     button:
                         xsize 220
@@ -1547,121 +1762,7 @@ screen battle_screen():
                         action [Function(battle_play_card, _cid), Function(renpy.restart_interaction)]
                         at card_hover_lift
 
-                        ## L1: combo glow — ONLY a card with a live bonus gets a
-                        ## halo. Playability is already shown by the border and
-                        ## the dimmed content, so a glow on every card was just
-                        ## redundant noise that drowned this one out.
-                        if _combo_live and _ok:
-                            add Solid("#ffcc3344") xpos 0 ypos 0 xysize (220, 316) at card_glow_pulse
-                            add Solid("#ffcc3377") xpos 4 ypos 4 xysize (212, 308) at card_glow_pulse
-
-                        ## L2: drop shadow — offset solid behind the card body.
-                        add Solid("#000000aa") xpos 16 ypos 14 xysize (200, 300)
-
-                        ## L3 + L4: type-colored border wrapping warm-dark inner panel.
-                        frame:
-                            xpos 10
-                            ypos 8
-                            xsize 200
-                            ysize 300
-                            background Frame(_border, 6, 6)
-                            padding (6, 6)
-
-                            frame:
-                                xfill True
-                                yfill True
-                                background Frame("#1a1410", 4, 4)
-                                padding (6, 4)
-
-                                vbox:
-                                    xfill True
-                                    spacing 4
-
-                                    ## ── TITLE BANNER — gold serif on dark ribbon.
-                                    ## Upgraded cards flip the name to bright green
-                                    ## (sole upgrade signal — keeps the layout clean).
-                                    frame:
-                                        xfill True
-                                        ysize 28
-                                        background Frame("#0a0806", 4, 4)
-                                        text _card.get("name", _cid):
-                                            color (_UPGRADE_GREEN if (_is_upgraded and _ok) else ("#e8c878" if _ok else "#554434"))
-                                            size 14
-                                            bold True
-                                            xalign 0.5
-                                            yalign 0.5
-                                            xmaximum 160
-                                            text_align 0.5
-                                            font "fonts/RobotoMono-Regular.ttf"
-
-                                    ## ── ART ZONE — illustration or glyph fallback ──
-                                    frame:
-                                        xfill True
-                                        ysize 100
-                                        background Frame(_color + "22", 4, 4)
-                                        if _has_art:
-                                            add Transform(_art_path, size=(168, 92)) xalign 0.5 yalign 0.5
-                                        else:
-                                            text _art_glyph:
-                                                xalign 0.5
-                                                yalign 0.5
-                                                color (_color if _ok else "#553333")
-                                                size 60
-                                                outlines [(2, "#000000", 0, 0)]
-
-                                    ## ── TYPE SUBTITLE — small-caps line under art ──
-                                    text _subtitle:
-                                        xalign 0.5
-                                        size 9
-                                        color (_color if _ok else "#554040")
-                                        bold True
-                                        font "fonts/RobotoMono-Regular.ttf"
-
-                                    ## ── DESCRIPTION — distinct parchment-tone band ──
-                                    frame:
-                                        xfill True
-                                        yminimum 72
-                                        background Frame("#241d15", 4, 4)
-                                        padding (6, 6)
-                                        text _effect_text:
-                                            color ("#e8e0d0" if _ok else "#554840")
-                                            size 12
-                                            xalign 0.5
-                                            yalign 0.5
-                                            xmaximum 168
-                                            text_align 0.5
-                                            line_spacing 2
-
-                        ## L6: cost gem — diamond (rotated square) overlapping
-                        ## card top-left. Number rendered un-rotated on top.
-                        fixed:
-                            xpos -11
-                            ypos -14
-                            xysize (50, 50)
-                            add Transform(Solid(_color if _ok else "#553333"), size=(32, 32), rotate=45) xalign 0.5 yalign 0.5
-                            text "[_card.get('cost', 0)]":
-                                xalign 0.5
-                                yalign 0.5
-                                color ("#0a0806" if _ok else "#221a1a")
-                                size 18
-                                bold True
-                                font "fonts/RobotoMono-Regular.ttf"
-
-                        ## L7: exhaust badge (conditional) — bottom-center over border.
-                        if _card.get("exhaust"):
-                            frame:
-                                xpos 55
-                                ypos 286
-                                xsize 110
-                                ysize 22
-                                background Frame("#5a0000ee", 4, 4)
-                                text "EXHAUST":
-                                    color "#ff8866"
-                                    size 12
-                                    bold True
-                                    xalign 0.5
-                                    yalign 0.5
-                                    font "fonts/RobotoMono-Regular.ttf"
+                        use battle_card_view(cid=_cid, mode="hand", playable=_ok)
 
         ## ── ROUND COUNTER ─────────────────────────────────────────────────────
         text "Round [bs.turn]":

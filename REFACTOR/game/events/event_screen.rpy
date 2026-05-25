@@ -231,64 +231,33 @@ screen event_card_picker(prompt, entries):
             size 14
             font DOSSIER_FONT
 
+        ## ── Grid of full StS card visuals (same renderer as deck_viewer
+        ## and deck_upgrade_picker). Click a card to pick it. Six per row.
         viewport:
-            xsize 1520
-            ysize 600
+            xsize 1600
+            ysize 700
             scrollbars "vertical"
             mousewheel True
             draggable True
 
             vbox:
-                spacing 8
+                spacing 28
                 xalign 0.5
 
                 python:
-                    _ecp_rows = [entries[_i:_i + 4] for _i in range(0, len(entries), 4)]
+                    _ecp_rows = [entries[_i:_i + 6] for _i in range(0, len(entries), 6)]
 
                 for _ecp_row in _ecp_rows:
                     hbox:
-                        spacing 8
+                        spacing 16
                         for _ecp_cid in _ecp_row:
-                            python:
-                                _ecp_c    = CARD_LIBRARY.get(_ecp_cid, {})
-                                _ecp_name = _ecp_c.get("name", _ecp_cid)
-                                _ecp_sub  = "{} · {} · {}".format(
-                                    _ecp_c.get("type", ""), _ecp_c.get("rarity", ""),
-                                    _ecp_c.get("color", "")).upper()
-                                _ecp_eff  = effect_description(_ecp_c.get("effect", ""))
-                                _ecp_cost = _ecp_c.get("cost", 0)
-
-                            button:
-                                xsize 366
-                                ysize 138
-                                background Frame("#0d0d0dee", 4, 4)
-                                hover_background Frame("#241d15", 4, 4)
-                                action Return(_ecp_cid)
-                                padding (13, 11)
-
-                                vbox:
-                                    spacing 4
-
-                                    hbox:
-                                        spacing 7
-                                        text "[ {} ]".format(_ecp_cost) substitute False:
-                                            color "#e8c878"
-                                            size 15
-                                            bold True
-                                            font DOSSIER_FONT
-                                        text _ecp_name substitute False:
-                                            color card_name_color(_ecp_c, "#ffffff")
-                                            size 17
-                                            bold True
-                                            font DOSSIER_FONT
-
-                                    text _ecp_sub substitute False:
-                                        color "#666666"
-                                        size 11
-                                        font DOSSIER_FONT
-
-                                    text _ecp_eff substitute False:
-                                        color "#c0d0e0"
-                                        size 13
-                                        font DOSSIER_FONT
-                                        xmaximum 338
+                            fixed:
+                                xysize (220, 320)
+                                button:
+                                    xsize 220
+                                    ysize 316
+                                    background None
+                                    hover_background None
+                                    action Return(_ecp_cid)
+                                    at card_hover_lift
+                                    use battle_card_view(cid=_ecp_cid, mode="hand", playable=True)
