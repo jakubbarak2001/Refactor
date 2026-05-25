@@ -105,7 +105,8 @@ init python:
         cost      = 0,
         rarity    = "common",
         effect    = "provoke",
-        archetype = "hatred",
+        archetype  = "hatred",
+        class_lock = "bodybuilder",
         flavor    = "You say the thing. You watch it land. Now he has to answer.",
     )
 
@@ -117,7 +118,8 @@ init python:
         cost      = 2,
         rarity    = "uncommon",
         effect    = "knuckle_down",
-        archetype = "hatred",
+        archetype  = "hatred",
+        class_lock = "bodybuilder",
         flavor    = "No windup. No speech. Just the decision to plant your feet.",
     )
 
@@ -129,7 +131,8 @@ init python:
         cost      = 1,
         rarity    = "uncommon",
         effect    = "snap_decision",
-        archetype = "hatred",
+        archetype  = "hatred",
+        class_lock = "bodybuilder",
         flavor    = "The thought and the fist arrive together.",
     )
 
@@ -141,7 +144,8 @@ init python:
         cost      = 1,
         rarity    = "uncommon",
         effect    = "red_mist",
-        archetype = "hatred",
+        archetype  = "hatred",
+        class_lock = "bodybuilder",
         flavor    = "Two seconds you won't remember. He'll remember them.",
     )
 
@@ -153,7 +157,8 @@ init python:
         cost      = 2,
         rarity    = "rare",
         effect    = "breaking_point",
-        archetype = "hatred",
+        archetype  = "hatred",
+        class_lock = "bodybuilder",
         flavor    = "Thirty years of swallowed orders. The hinge finally gives.",
     )
 
@@ -165,7 +170,8 @@ init python:
         cost      = 1,
         rarity    = "rare",
         effect    = "bottled_rage",
-        archetype = "hatred",
+        archetype  = "hatred",
+        class_lock = "bodybuilder",
         flavor    = "Everything you didn't say at every briefing. Uncapped.",
     )
 
@@ -177,7 +183,8 @@ init python:
         cost      = 1,
         rarity    = "rare",
         effect    = "see_red",
-        archetype = "hatred",
+        archetype  = "hatred",
+        class_lock = "bodybuilder",
         flavor    = "Anger isn't the problem. Anger is the armor.",
     )
 
@@ -189,7 +196,8 @@ init python:
         cost      = 1,
         rarity    = "rare",
         effect    = "thick_skull",
-        archetype = "hatred",
+        archetype  = "hatred",
+        class_lock = "bodybuilder",
         flavor    = "They called it a flaw at the academy. It's the only thing that held.",
     )
 
@@ -201,7 +209,8 @@ init python:
         cost      = 1,
         rarity    = "uncommon",
         effect    = "adrenaline_dump",
-        archetype = "hatred",
+        archetype  = "hatred",
+        class_lock = "bodybuilder",
         flavor    = "The shake leaves your hands. The clock in your chest resets.",
     )
 
@@ -213,7 +222,8 @@ init python:
         cost      = 0,
         rarity    = "common",
         effect    = "last_nerve",
-        archetype = "hatred",
+        archetype  = "hatred",
+        class_lock = "bodybuilder",
         flavor    = "He found it weeks ago. He's been standing on it since.",
     )
 
@@ -225,7 +235,8 @@ init python:
         cost      = 1,
         rarity    = "rare",
         effect    = "embrace_it",
-        archetype = "hatred",
+        archetype  = "hatred",
+        class_lock = "bodybuilder",
         flavor    = "Stop fighting the worst of yourself. Aim it.",
     )
 
