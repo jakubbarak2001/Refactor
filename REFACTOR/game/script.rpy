@@ -545,15 +545,10 @@ label activity_gym:
                 ## accurate. The init itself is non-destructive (it doesn't
                 ## change current HP unless run_hp_max was None).
                 if store.run_hp_max is None:
-                    if stats.player_class == "bodybuilder":
-                        _class_base = 115
-                    elif stats.player_class == "dark_empath":
-                        _class_base = 75
-                    elif stats.player_class == "biohacker":
-                        _class_base = 80
-                    else:
-                        _class_base = 80
-                    store.run_hp_max = _class_base + store.gym_max_hp_bonus
+                    ## Canonical helper — was inlined here with stale 80 for
+                    ## BH, missed in the 80→90 buff. class_max_hp() includes
+                    ## the gym bonus by default.
+                    store.run_hp_max = class_max_hp()
                     store.run_hp = store.run_hp_max
                 _heal_max_future = store.run_hp_max + _gym_max_bump
                 _gym_heal = int(round(_heal_max_future * 0.25))
@@ -855,32 +850,74 @@ label activity_coding:
         if _is_de:
             _bc_flavor = "Six weeks. You'll read the instructor for a discount. Study days roll high-tier cards after."
         _bh_accent = class_accent_color("biohacker")
-        _coding_options = [
-            {
-                "label_name":     "coding_study",
-                "title":          "STUDY",
-                "accent":         _bh_accent,
-                "cost_text":      "FREE",
-                "effect_text":    "Pick from a 3-card offer",
-                "flavor_text":    ("Bootcamp tier: high-rarity offers." if _bc_done else "An hour at the keyboard. The keyboard pays in cards."),
-                "class_relevant": _is_bh,
-            },
-        ]
-        ## Bootcamp option — BH skips this lane (their Coding ramps via the
-        ## top-level Nootropics Lab instead). Other classes see the bootcamp
-        ## purchase tile, DE-discounted.
-        if not _is_bh:
-            _coding_options.append({
-                "label_name":     _bc_label,
-                "title":          "JOIN BOOTCAMP",
-                "accent":         _bh_accent,
-                "cost_text":      _bc_cost_text,
-                "effect_text":    "Study days roll rare cards",
-                "flavor_text":    _bc_flavor,
-                "class_relevant": False,
-                "locked":         _bc_done,
-                "lock_text":      "Already enrolled. The buff is live.",
-            })
+
+        ## ── BH gets a SPLIT coding picker ──────────────────────────────
+        ## STUDY = invest (+Coding XP, no card, no money). FREELANCE CODE
+        ## = cash out (CZK scaled by tier, no XP, no card). Lane separation
+        ## clarifies the decision: long game vs immediate cash. Nootropic
+        ## doses remain the only path to new cards.
+        if _is_bh:
+            ## Freelance hireability + payout by current Coding tier.
+            _fc_skill   = stats.coding_skill
+            _fc_payout  = 0
+            _fc_locked  = False
+            _fc_lock_t  = ""
+            if _fc_skill >= 200:   _fc_payout = 22000
+            elif _fc_skill >= 150: _fc_payout = 13000
+            elif _fc_skill >= 100: _fc_payout = 7500
+            elif _fc_skill >=  35: _fc_payout = 3500
+            else:
+                _fc_locked = True
+                _fc_lock_t = "Need 35+ Coding. Nobody hires Tier 1 yet."
+
+            _coding_options = [
+                {
+                    "label_name":     "coding_study",
+                    "title":          "STUDY",
+                    "accent":         _bh_accent,
+                    "cost_text":      "FREE",
+                    "effect_text":    "+12 Coding XP",
+                    "flavor_text":    "Documentation tabs. A side project. No paycheck — pure investment.",
+                    "class_relevant": True,
+                },
+                {
+                    "label_name":     "coding_freelance",
+                    "title":          "FREELANCE",
+                    "accent":         _bh_accent,
+                    "cost_text":      "FREE",
+                    "effect_text":    ("+{:,} CZK".format(_fc_payout) if not _fc_locked else "Need 35+ Coding"),
+                    "flavor_text":    ("An hour of billable work. Coding tier sets the rate." if not _fc_locked else "Tier 1 can't price an hour yet. Study first."),
+                    "class_relevant": True,
+                    "locked":         _fc_locked,
+                    "lock_text":      _fc_lock_t,
+                },
+            ]
+        else:
+            ## Other classes — STUDY keeps the card-trio behaviour; bootcamp
+            ## option still available (BH skipped because their tier ramp
+            ## happens via the top-level Nootropics Lab).
+            _coding_options = [
+                {
+                    "label_name":     "coding_study",
+                    "title":          "STUDY",
+                    "accent":         _bh_accent,
+                    "cost_text":      "FREE",
+                    "effect_text":    "Pick from a 3-card offer",
+                    "flavor_text":    ("Bootcamp tier: high-rarity offers." if _bc_done else "An hour at the keyboard. The keyboard pays in cards."),
+                    "class_relevant": False,
+                },
+                {
+                    "label_name":     _bc_label,
+                    "title":          "JOIN BOOTCAMP",
+                    "accent":         _bh_accent,
+                    "cost_text":      _bc_cost_text,
+                    "effect_text":    "Study days roll rare cards",
+                    "flavor_text":    _bc_flavor,
+                    "class_relevant": False,
+                    "locked":         _bc_done,
+                    "lock_text":      "Already enrolled. The buff is live.",
+                },
+            ]
 
     call screen activity_submenu(
         title       = "CODING — PICK A PATH",
@@ -899,52 +936,90 @@ label activity_coding:
 
 label coding_study:
 
+    ## BH path: pure +Coding XP, no card, no money. Cards come from doses;
+    ## money comes from the FREELANCE tile. Lane split keeps each action
+    ## with one clear purpose.
+    if stats.player_class == "biohacker":
+        "An hour at the keyboard. No client, no deadline. You're paying yourself in skill."
+        python:
+            _bh_study_xp = 12
+            stats.increment_stats_coding_skill(_bh_study_xp)
+            _study_outcome = "+{} CODING SKILL.".format(_bh_study_xp)
+        window hide
+        show screen outcome_panel(_study_outcome)
+        pause
+        hide screen outcome_panel
+        python:
+            activity_selected = True
+        jump end_day
+
+    ## Other classes — original card-trio behaviour, scaled by day band
+    ## (or hard tier after Bootcamp).
     python:
         _study_tier = "hard" if bool(python_bootcamp) else _battle_ladder_band(day_cycle.current_day)
         _study_trio = pick_battle_rewards(_study_tier)
 
-        ## BH FREELANCE PAYOUT — coding-tier-scaled CZK on top of the card.
-        ## The "intelligent class" amplifier: studying isn't just for the
-        ## card, it's also a billable hour. Tier brackets mirror
-        ## get_coding_tier_info / coding_daily_income for consistency.
-        ##   T1 (0-34)    →     0 CZK    (you're not hireable yet)
-        ##   T2 (35-99)   → 1,500 CZK    (junior contract work)
-        ##   T3 (100-149) → 4,000 CZK    (solid mid-market freelance)
-        ##   T4 (150-199) → 8,000 CZK    (senior hourly rate)
-        ##   T5 (200+)    →15,000 CZK    (god-tier picks the project)
-        _study_bh_payout = 0
-        if stats.player_class == "biohacker":
-            _scs = stats.coding_skill
-            if _scs >= 200:   _study_bh_payout = 15000
-            elif _scs >= 150: _study_bh_payout = 8000
-            elif _scs >= 100: _study_bh_payout = 4000
-            elif _scs >=  35: _study_bh_payout = 1500
-
-    if _study_bh_payout > 0:
-        "An hour at the keyboard. A repo PR. An invoice. The skill ladder pays."
-    else:
-        "An hour at the keyboard. Documentation tabs open. You build something small that works, and it earns you something worth keeping."
+    "An hour at the keyboard. Documentation tabs open. You build something small that works, and it earns you something worth keeping."
 
     call screen card_reward_trio_screen(_study_trio)
 
     python:
         _study_card = _return
-        if _study_bh_payout > 0:
-            stats.increment_stats_value_money(_study_bh_payout)
         if _study_card and _study_card != "skip":
             grant_card(_study_card, silent=True)
-            if _study_bh_payout > 0:
-                _study_outcome = "+ Card.  + {:,} CZK [FREELANCE].".format(_study_bh_payout)
-            else:
-                _study_outcome = "+ Card."
+            _study_outcome = "+ Card."
         else:
-            if _study_bh_payout > 0:
-                _study_outcome = "Passed on the offer.  + {:,} CZK [FREELANCE].".format(_study_bh_payout)
-            else:
-                _study_outcome = "Passed on the offer."
+            _study_outcome = "Passed on the offer."
 
     window hide
     show screen outcome_panel(_study_outcome)
+    pause
+    hide screen outcome_panel
+    python:
+        activity_selected = True
+    jump end_day
+
+
+## ---------------------------------------------------------------------------
+## FREELANCE CODE — BH-only cash-out lane. Uses current coding tier to set
+## the payout. No card, no XP — pure billable hour. Locked at T1 (nobody
+## hires you yet); STUDY is the investment lane that unlocks this.
+## ---------------------------------------------------------------------------
+
+label coding_freelance:
+
+    scene bg_jb_flat
+
+    python:
+        _fc_skill = stats.coding_skill
+        if _fc_skill >= 200:   _fc_payout = 22000
+        elif _fc_skill >= 150: _fc_payout = 13000
+        elif _fc_skill >= 100: _fc_payout = 7500
+        elif _fc_skill >=  35: _fc_payout = 3500
+        else:                  _fc_payout = 0
+
+    if _fc_payout <= 0:
+        "You open the freelance board. Every post wants someone hireable. You aren't, yet."
+        jump activity_coding
+
+    python:
+        if _fc_skill >= 200:
+            _fc_line = "A six-figure US contract pings you direct. You bill the day at god-tier rates."
+        elif _fc_skill >= 150:
+            _fc_line = "A senior contractor gig. You quote your real hourly rate without flinching."
+        elif _fc_skill >= 100:
+            _fc_line = "A solid mid-market freelance ticket. You ship the feature before lunch."
+        else:
+            _fc_line = "A junior bug-fix on a small repo. The pay is small but it's clean money."
+
+    "[_fc_line]"
+
+    python:
+        stats.increment_stats_value_money(_fc_payout)
+        _fc_outcome = "+ {:,} CZK [FREELANCE].".format(_fc_payout)
+
+    window hide
+    show screen outcome_panel(_fc_outcome)
     pause
     hide screen outcome_panel
     python:
@@ -1211,6 +1286,11 @@ label do_end_day:
         activity_selected = False
         # Per-day Fixer gate — new day, one new shred available.
         store._fixer_shredded_today = False
+        # Snapshot whether today's nootropics action was used BEFORE the
+        # per-day reset — the bh_random_spending event roll reads this
+        # next morning to skip a day after a dose (no double-punishment
+        # for using the class identity). Cleared / refreshed each rollover.
+        store._bh_dosed_yesterday = bool(getattr(store, 'nootropics_done_today', False))
         # Per-day Nootropics Lab gate — one dose OR one research session per day.
         store.nootropics_done_today = False
         # Defensive: scrub any stale module refs from older saves so the

@@ -101,7 +101,7 @@ screen stats_bar():
         _run_hp_show = getattr(store, 'run_hp', None)
         _run_hp_max_show = getattr(store, 'run_hp_max', None)
         if _run_hp_show is None or _run_hp_max_show is None:
-            _run_hp_max_show = 115 if (stats and stats.player_class == "bodybuilder") else (75 if (stats and stats.player_class == "dark_empath") else 90)
+            _run_hp_max_show = class_max_hp(include_gym_bonus=False) if stats else 90
             _run_hp_show = _run_hp_max_show
         _hp_ratio = (_run_hp_show / float(_run_hp_max_show)) if _run_hp_max_show > 0 else 1.0
         if _hp_ratio >= 0.75:
@@ -3791,10 +3791,12 @@ screen class_selection_screen():
                 add Solid(_accent if not _locked else "#666666"):
                     xysize (CLASS_COL_W, 6)
 
-                ## Class name — centred on a scrim band over the upper portrait
+                ## Class name — centred on a scrim band over the upper portrait.
+                ## Anchored higher (ypos 20 was 70) so the name sits just under
+                ## the top accent bar and out of the portrait's face area.
                 frame:
                     xfill True
-                    ypos 70
+                    ypos 20
                     background "#000000aa"
                     padding (0, 14)
                     text _cd["name"]:

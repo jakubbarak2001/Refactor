@@ -1152,7 +1152,7 @@ init python:
                    max(state.buffs.get("max_energy_penalty_next_turn", 0), 1))
         if getattr(store, 'bh_protocol', None) == "Shady":
             state.draw_cards(1)
-            state.add_log("Adrenal Burst: Shady stack — drew 1.")
+            state.add_log("Tyrosine: Shady stack — drew 1.")
 
     @register_effect("adrenal_burst_plus")
     def _eff_adrenal_burst_plus(state, source, target):
@@ -1162,7 +1162,7 @@ init python:
                    max(state.buffs.get("max_energy_penalty_next_turn", 0), 1))
         if getattr(store, 'bh_protocol', None) == "Shady":
             state.draw_cards(1)
-            state.add_log("Adrenal Burst+: Shady stack — drew 1 more.")
+            state.add_log("Tyrosine+: Shady stack — drew 1 more.")
 
     @register_effect("megadose")
     def _eff_megadose(state, source, target):
@@ -1201,14 +1201,14 @@ init python:
         n = 3 if getattr(store, 'bh_protocol', None) == "Lab" else 2
         state.draw_cards(n)
         if n == 3:
-            state.add_log("Pattern Match: Lab stack — drew 3.")
+            state.add_log("Piracetam: Lab stack — drew 3.")
 
     @register_effect("pattern_match_plus")
     def _eff_pattern_match_plus(state, source, target):
         n = 4 if getattr(store, 'bh_protocol', None) == "Lab" else 3
         state.draw_cards(n)
         if n == 4:
-            state.add_log("Pattern Match+: Lab stack — drew 4.")
+            state.add_log("Piracetam+: Lab stack — drew 4.")
 
     @register_effect("n_of_one")
     def _eff_n_of_one(state, source, target):

@@ -589,11 +589,13 @@ init python:
         bs.enemy_sprite_id = _enemy.get("sprite_id", "colonel")
         bs.enemy_log_name = _enemy.get("log_name", "Colonel")
 
-        ## Player HP by class (+ permanent gym-session bonus folded in)
+        ## Player HP by class — single source of truth is class_max_hp()
+        ## in python_logic.rpy (includes gym bonus by default). _gym_b kept
+        ## as a local for the few sites below that need it standalone.
         _gym_b = getattr(store, 'gym_max_hp_bonus', 0)
         if stats and stats.player_class == "bodybuilder":
-            bs.player_max_hp = 115 + _gym_b
-            bs.player_hp = 115 + _gym_b
+            bs.player_max_hp = class_max_hp("bodybuilder")
+            bs.player_hp = bs.player_max_hp
             ## SOMA bonus: +1 starting block per turn for every 3 SOMA stacks
             ## (was every 2 — nerfed so ladder fights actually test the player).
             ## Lives on its own buff key (`soma_starting_block`) so it doesn't
@@ -607,8 +609,8 @@ init python:
             bs.buffs["presence_charges"] = 1
             bs.add_log("[[PRESENCE x1]: One free +3 block on your opening turn. After that the room shrinks again.")
         elif stats and stats.player_class == "dark_empath":
-            bs.player_max_hp = 75 + _gym_b
-            bs.player_hp = 75 + _gym_b
+            bs.player_max_hp = class_max_hp("dark_empath")
+            bs.player_hp = bs.player_max_hp
             ## DE init kept minimal — class is locked (BB-only scope per
             ## feedback_bb_only_scope). The original peek-intents perk was
             ## removed per feedback_no_peek_intent; no replacement designed
@@ -621,8 +623,8 @@ init python:
             ## early-game runback survivable. Combined with new Recovery
             ## +max-HP modalities (sauna +5, cold plunge +10, red light +5)
             ## a regen-focused BH can hit 120+ effective HP by day 20.
-            bs.player_max_hp = 90 + _gym_b
-            bs.player_hp = 90 + _gym_b
+            bs.player_max_hp = class_max_hp("biohacker")
+            bs.player_hp = bs.player_max_hp
             bs.buffs["kick_charges"] = 3
             bs.add_log("[[KICK x3]: The compound kicking in. Each turn it's running, you draw one extra card. He's still finishing the sentence; you've already chosen.")
             ## BH per-fight bonus is driven by today's PROTOCOL (the most recent

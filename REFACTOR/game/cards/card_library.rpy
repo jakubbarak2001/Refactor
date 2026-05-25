@@ -738,7 +738,7 @@ init python:
     )
     register_card(
         "override",
-        name       = "Override",
+        name       = "Bromantane",
         type       = "Attack",
         color      = "Special",
         cost       = 2,
@@ -806,7 +806,7 @@ init python:
 
     register_card(
         "adrenal_burst",
-        name       = "Adrenal Burst",
+        name       = "Tyrosine",
         type       = "Skill",
         color      = "Special",
         cost       = 1,
@@ -819,7 +819,7 @@ init python:
 
     register_card(
         "megadose",
-        name       = "Megadose",
+        name       = "Modafinil",
         type       = "Skill",
         color      = "Special",
         cost       = 1,
@@ -832,7 +832,7 @@ init python:
 
     register_card(
         "burnout",
-        name       = "Burnout",
+        name       = "Phenibut",
         type       = "Attack",
         color      = "Special",
         cost       = 2,
@@ -845,7 +845,7 @@ init python:
 
     register_card(
         "catecholamine_spike",
-        name       = "Catecholamine Spike",
+        name       = "NALT",
         type       = "Power",
         color      = "Special",
         cost       = 1,
@@ -862,7 +862,7 @@ init python:
 
     register_card(
         "pattern_match",
-        name       = "Pattern Match",
+        name       = "Piracetam",
         type       = "Skill",
         color      = "Special",
         cost       = 1,
@@ -1044,7 +1044,7 @@ init python:
 
     register_card(
         "peak_state",
-        name          = "Peak State",
+        name          = "Selank",
         type          = "Power",
         color         = "Special",
         cost          = 1,
@@ -1058,7 +1058,7 @@ init python:
 
     register_card(
         "total_recall",
-        name          = "Total Recall",
+        name          = "Vasopressin",
         type          = "Skill",
         color         = "Special",
         cost          = 2,

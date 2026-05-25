@@ -13,8 +13,23 @@ init python:
     def check_bh_spending_event():
         """Roll for a BH-only spending event on non-event days.
         Returns a label name to call, or None.
+
+        Tuned 2026-05-25 — once BH had freelance income / STUDY cash / Big
+        Tech Offer added in the balance overhaul, the original 30%/day rate
+        compounded with the chemical-dependency penalties into a near-daily
+        tax. Two changes:
+
+          1. Rate 30 → 18% so it feels like an occasional hit, not a tax.
+          2. Skip the day after a dose buy (`_bh_dosed_yesterday` latch set
+             in do_end_day) — the player already paid the cost of using
+             their class identity yesterday, no double-punishment.
         """
         _rand = __import__('random')
+
+        ## Post-dose gate — yesterday's dose IS the cost-of-optimizing beat
+        ## for that day pair. Spending events resume on the next non-dose day.
+        if getattr(store, '_bh_dosed_yesterday', False):
+            return None
 
         if not hasattr(store, '_bh_spending_pool') or not store._bh_spending_pool:
             store._bh_spending_pool = [
@@ -26,7 +41,7 @@ init python:
             ]
             _rand.shuffle(store._bh_spending_pool)
 
-        if _rand.randint(1, 100) <= 30:
+        if _rand.randint(1, 100) <= 18:
             return store._bh_spending_pool.pop(0)
 
         return None
@@ -134,6 +149,18 @@ label bh_spend_bacopa:
             pause
             hide screen outcome_panel
 
+        ## High-coding free skip — at T3+ the player has internalised the
+        ## practice and the compound was always just a crutch. Pure flavor
+        ## win: smart-class fantasy converts a punishment beat into a
+        ## "you've outgrown this" beat.
+        "Wave it off. (Coding 100+: you've internalised the practice — no penalty)" if stats.coding_skill >= 100:
+            "You sit with the empty bottle for a minute. You realise the working-memory drill you've been doing for two months is the actual mechanism."
+            "You don't reorder. The bottle goes in the bin."
+            window hide
+            show screen outcome_panel("No change. The compound was the scaffold; the skill is yours.")
+            pause
+            hide screen outcome_panel
+
     return
 
 
@@ -218,6 +245,17 @@ label bh_spend_hrv_battery:
             "There's no number. The number is not the night. You repeat that to yourself."
             window hide
             show screen outcome_panel("+4 PCR HATRED.")
+            pause
+            hide screen outcome_panel
+
+        ## High-coding free skip — at T3+ the player has stopped needing
+        ## the dashboard to know how they slept. Body literacy beats
+        ## quantified-self at scale. Same flavor pattern as BACOPA.
+        "Sleep without it. (Coding 100+: you've learned to read recovery without the data — no penalty)" if stats.coding_skill >= 100:
+            "You leave the strap on the desk. You wake up and rate your recovery 7/10 before checking anything."
+            "Later you put the battery in just to verify. Sleep score: 71. You were within 1%."
+            window hide
+            show screen outcome_panel("No change. You don't need the strap anymore. You'll keep wearing it anyway.")
             pause
             hide screen outcome_panel
 

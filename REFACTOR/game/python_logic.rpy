@@ -85,6 +85,39 @@ init python:
     config.after_load_callbacks.append(_scrub_misclassed_rage)
     config.start_callbacks.append(_scrub_misclassed_rage)
 
+    ## ── Stale run_hp_max scrubber ────────────────────────────────────────
+    ## Saves made before the BH HP buff (80 → 90) carry a persisted
+    ## store.run_hp_max = 80 + gym_bonus. The lazy-init paths early-return
+    ## when the field isn't None, so Recovery / event_heal silently no-op'd
+    ## because the clamp was below the new class base. On load, if the
+    ## stored cap is below the canonical class_max_hp(), raise it AND lift
+    ## current run_hp by the same delta (so the player sees the heal
+    ## headroom they're entitled to). Never lowers — gym +max-HP modalities
+    ## stack legitimately above the base.
+    def _scrub_stale_run_hp_max():
+        try:
+            if stats is None:
+                return
+            ## Helper not necessarily resolved here yet (init order); guard.
+            _fn = globals().get("class_max_hp")
+            if _fn is None:
+                return
+            _canonical = _fn()
+            _stored    = getattr(store, 'run_hp_max', None)
+            if _stored is None:
+                return
+            if _stored < _canonical:
+                _delta = _canonical - _stored
+                store.run_hp_max = _canonical
+                _cur = getattr(store, 'run_hp', None)
+                if _cur is not None:
+                    store.run_hp = min(_canonical, _cur + _delta)
+        except Exception:
+            pass
+
+    config.after_load_callbacks.append(_scrub_stale_run_hp_max)
+    config.start_callbacks.append(_scrub_stale_run_hp_max)
+
 
     class Stats:
         """Core stat container for JB. Ported from stats.py."""
@@ -241,6 +274,29 @@ init python:
         if stats is None or stats.difficulty is None:
             return default
         return DIFFICULTY_SETTINGS.get(stats.difficulty, {}).get(key, default)
+
+    ## ── Single source of truth for class HP caps ─────────────────────────
+    ## Multiple sites used to inline `115 if bb else 75 if de else 80` —
+    ## when the BH base bumped to 90, the inline copies went stale and
+    ## Recovery / event_heal silently no-op'd because their lazy-init
+    ## clamped run_hp_max at the old 80. Every site that needs a class HP
+    ## must now call this helper.
+    CLASS_BASE_HP = {
+        "bodybuilder": 115,
+        "dark_empath": 75,
+        "biohacker":   90,
+    }
+
+    def class_max_hp(player_class=None, include_gym_bonus=True):
+        """Canonical max HP for a class. Adds gym_max_hp_bonus by default
+        (the Recovery / gym +max-HP modalities stack here). Pass
+        include_gym_bonus=False for the raw class base."""
+        if player_class is None and stats is not None:
+            player_class = stats.player_class
+        base = CLASS_BASE_HP.get(player_class, 80)
+        if include_gym_bonus:
+            base += getattr(store, 'gym_max_hp_bonus', 0)
+        return base
 
     def class_accent_color(player_class=None):
         """Return the class accent color hex string. Falls back to neutral grey

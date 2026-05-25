@@ -54,15 +54,10 @@ init python:
     ## before any battle, so these init it from the class max on demand.
 
     def _event_class_max_hp():
-        _gym = getattr(store, 'gym_max_hp_bonus', 0)
-        _cls = stats.player_class if stats is not None else None
-        if _cls == "bodybuilder":
-            return 115 + _gym
-        if _cls == "dark_empath":
-            return 75 + _gym
-        if _cls == "biohacker":
-            return 80 + _gym
-        return 80 + _gym
+        ## Thin wrapper around the canonical class_max_hp helper in
+        ## python_logic.rpy. Previously inlined a stale `80 + _gym` for
+        ## BH, which silently broke event_heal after the HP buff to 90.
+        return class_max_hp()
 
     def _event_ensure_run_hp():
         if getattr(store, 'run_hp_max', None) is None:
