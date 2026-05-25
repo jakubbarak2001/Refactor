@@ -921,7 +921,7 @@ init python:
 
     register_card(
         "n_of_one",
-        name       = "N-of-One",
+        name       = "Coffee Tablets",
         type       = "Skill",
         color      = "Special",
         cost       = 0,

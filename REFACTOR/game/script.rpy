@@ -738,57 +738,111 @@ label _run_card_upgrade_flow:
 
 label activity_recovery:
 
+    ## Pick a modality. Each one is a different combat-prep buff for the
+    ## next fight — sauna for heal builds, meditation for energy, cold
+    ## plunge for tank fights, red light for regen. Random rolling here
+    ## stopped making sense once the buffs became build-defining (player
+    ## reported "you said I choose, but it's random — what?").
     python:
-        _rec_mod = __import__('random').choice(["sauna", "meditation", "coldplunge", "redlight"])
+        _bh_accent = class_accent_color("biohacker")
+        _rec_options = [
+            {
+                "label_name":     "_apply_rec_sauna",
+                "title":          "SAUNA",
+                "accent":         _bh_accent,
+                "cost_text":      "FREE",
+                "effect_text":    "+20 HP  ·  +5 max  ·  -10 Hatred",
+                "flavor_text":    "Heat-shock proteins.  Next fight: all heals +50%.",
+                "class_relevant": True,
+            },
+            {
+                "label_name":     "_apply_rec_meditation",
+                "title":          "MEDITATION",
+                "accent":         _bh_accent,
+                "cost_text":      "FREE",
+                "effect_text":    "+10 HP  ·  -30 Hatred",
+                "flavor_text":    "Twenty minutes on the cushion.  Next fight: +1 max energy.",
+                "class_relevant": True,
+            },
+            {
+                "label_name":     "_apply_rec_coldplunge",
+                "title":          "COLD PLUNGE",
+                "accent":         _bh_accent,
+                "cost_text":      "FREE",
+                "effect_text":    "+25 HP  ·  +10 max",
+                "flavor_text":    "Nervous-system reboot.  Next fight: +12 starting block.",
+                "class_relevant": True,
+            },
+            {
+                "label_name":     "_apply_rec_redlight",
+                "title":          "RED LIGHT",
+                "accent":         _bh_accent,
+                "cost_text":      "FREE",
+                "effect_text":    "+15 HP  ·  +5 max  ·  -15 Hatred",
+                "flavor_text":    "Twenty minutes under the panel.  Next fight: +2 HP/turn regen.",
+                "class_relevant": True,
+            },
+        ]
 
-    ## Each modality sets a `pending_recovery_buff` consumed by the next
-    ## battle's battle_init (BH branch). This turns Recovery from "emergency
-    ## heal button" into "combat-prep choice" — pick the modality that
-    ## matches the next ladder fight (block-heavy, regen-heavy, etc.).
-    ## Buff applies to ONE fight then clears.
-    if _rec_mod == "sauna":
-        scene bg_bh_rec_sauna with Dissolve(0.4)
-        "Eight minutes at 90°C. You finish on the cold tile, condensation everywhere, lungs still wide. Heat-shock proteins do the work."
-        python:
-            store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + 5
-            _restored = event_heal(20)
-            stats.increment_stats_pcr_hatred(-10)
-            store.pending_recovery_buff = {"type": "heal_boost", "value": 1.5}
-            _rec_out = "SAUNA  |  +{} HP  |  +5 MAX HP  |  -10 Hatred  |  NEXT FIGHT: heals +50%".format(_restored)
+    call screen activity_submenu(
+        title       = "RECOVERY — PICK A PROTOCOL",
+        subtitle    = "Each modality preps a different combat edge for the next fight.",
+        options     = _rec_options,
+        back_label  = "select_activity",
+    )
 
-    elif _rec_mod == "meditation":
-        scene bg_bh_rec_meditation with Dissolve(0.4)
-        "Twenty minutes on the cushion. The Colonel-loop unhooks somewhere around minute eight. You don't notice until minute fifteen."
-        python:
-            _restored = event_heal(10)
-            stats.increment_stats_pcr_hatred(-30)
-            store.pending_recovery_buff = {"type": "extra_energy"}
-            _rec_out = "MEDITATION  |  +{} HP  |  -30 Hatred  |  NEXT FIGHT: +1 max energy".format(_restored)
 
-    elif _rec_mod == "coldplunge":
-        scene bg_bh_rec_coldplunge with Dissolve(0.4)
-        "Two minutes at 4°C. Your nervous system does the math and reboots without asking. HRV up six points by tomorrow."
-        python:
-            store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + 10
-            _restored = event_heal(25)
-            store.pending_recovery_buff = {"type": "starting_block", "value": 12}
-            _rec_out = "COLD PLUNGE  |  +{} HP  |  +10 MAX HP  |  NEXT FIGHT: +12 starting block".format(_restored)
+label _apply_rec_sauna:
+    scene bg_bh_rec_sauna with Dissolve(0.4)
+    "Eight minutes at 90°C. You finish on the cold tile, condensation everywhere, lungs still wide. Heat-shock proteins do the work."
+    python:
+        store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + 5
+        _restored = event_heal(20)
+        stats.increment_stats_pcr_hatred(-10)
+        store.pending_recovery_buff = {"type": "heal_boost", "value": 1.5}
+        _rec_out = "SAUNA  |  +{} HP  |  +5 MAX HP  |  -10 Hatred  |  NEXT FIGHT: heals +50%".format(_restored)
+    jump _recovery_finish
 
-    else:  # redlight
-        scene bg_bh_rec_redlight with Dissolve(0.4)
-        "Twenty minutes under the panel. You log the wavelength. You log the duration. Mitochondria warm up."
-        python:
-            store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + 5
-            _restored = event_heal(15)
-            stats.increment_stats_pcr_hatred(-15)
-            store.pending_recovery_buff = {"type": "regen", "value": 2}
-            _rec_out = "RED LIGHT  |  +{} HP  |  +5 MAX HP  |  -15 Hatred  |  NEXT FIGHT: +2 HP/turn regen".format(_restored)
 
+label _apply_rec_meditation:
+    scene bg_bh_rec_meditation with Dissolve(0.4)
+    "Twenty minutes on the cushion. The Colonel-loop unhooks somewhere around minute eight. You don't notice until minute fifteen."
+    python:
+        _restored = event_heal(10)
+        stats.increment_stats_pcr_hatred(-30)
+        store.pending_recovery_buff = {"type": "extra_energy"}
+        _rec_out = "MEDITATION  |  +{} HP  |  -30 Hatred  |  NEXT FIGHT: +1 max energy".format(_restored)
+    jump _recovery_finish
+
+
+label _apply_rec_coldplunge:
+    scene bg_bh_rec_coldplunge with Dissolve(0.4)
+    "Two minutes at 4°C. Your nervous system does the math and reboots without asking. HRV up six points by tomorrow."
+    python:
+        store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + 10
+        _restored = event_heal(25)
+        store.pending_recovery_buff = {"type": "starting_block", "value": 12}
+        _rec_out = "COLD PLUNGE  |  +{} HP  |  +10 MAX HP  |  NEXT FIGHT: +12 starting block".format(_restored)
+    jump _recovery_finish
+
+
+label _apply_rec_redlight:
+    scene bg_bh_rec_redlight with Dissolve(0.4)
+    "Twenty minutes under the panel. You log the wavelength. You log the duration. Mitochondria warm up."
+    python:
+        store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + 5
+        _restored = event_heal(15)
+        stats.increment_stats_pcr_hatred(-15)
+        store.pending_recovery_buff = {"type": "regen", "value": 2}
+        _rec_out = "RED LIGHT  |  +{} HP  |  +5 MAX HP  |  -15 Hatred  |  NEXT FIGHT: +2 HP/turn regen".format(_restored)
+    jump _recovery_finish
+
+
+label _recovery_finish:
     window hide
     show screen outcome_panel(_rec_out)
     pause
     hide screen outcome_panel
-
     python:
         activity_selected = True
     jump end_day
