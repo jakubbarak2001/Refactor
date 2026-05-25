@@ -972,6 +972,71 @@ init python:
     )
 
     ## ---------------------------------------------------------------------------
+    ## BH CODING-SCALED — "intelligence weaponized." Class-locked, eligible
+    ## for the ladder reward pool. The Coding ramp now visibly pays out in
+    ## combat: Compile damage scales with tier, Algorithm draw scales with
+    ## tier, Big Tech Offer prints CZK mid-fight. Pairs with the new
+    ## coding_daily_income + STUDY payouts to close the brain→cash loop.
+    ## ---------------------------------------------------------------------------
+
+    register_card(
+        "compile",
+        name       = "Compile",
+        type       = "Attack",
+        color      = "Logic",
+        cost       = 1,
+        rarity     = "common",
+        effect     = "compile",
+        class_lock = "biohacker",
+        archetype  = "neurochem",
+        flavor     = "It builds. It runs. Damage scales with what you know.",
+        upgrade    = {"effect": "compile_plus"},
+    )
+
+    register_card(
+        "algorithm",
+        name       = "Algorithm",
+        type       = "Skill",
+        color      = "Logic",
+        cost       = 1,
+        rarity     = "uncommon",
+        effect     = "algorithm",
+        class_lock = "biohacker",
+        archetype  = "neurochem",
+        flavor     = "The right pattern. Pulled from memory. Draws scale with tier.",
+        upgrade    = {"effect": "algorithm_plus"},
+    )
+
+    register_card(
+        "big_tech_offer",
+        name       = "Big Tech Offer",
+        type       = "Skill",
+        color      = "Money",
+        cost       = 0,
+        rarity     = "rare",
+        effect     = "big_tech_offer",
+        class_lock = "biohacker",
+        archetype  = "neurochem",
+        exhaust    = True,
+        flavor     = "A recruiter pinged your inbox mid-fight. You close the deal one-handed.",
+        upgrade    = {"effect": "big_tech_offer_plus"},
+    )
+
+    register_card(
+        "open_source_pr",
+        name       = "Open Source PR",
+        type       = "Power",
+        color      = "Logic",
+        cost       = 1,
+        rarity     = "rare",
+        effect     = "open_source_pr",
+        class_lock = "biohacker",
+        archetype  = "neurochem",
+        flavor     = "Push to main. The repo loves you. Next Power is free.",
+        upgrade    = {"effect": "open_source_pr_plus"},
+    )
+
+    ## ---------------------------------------------------------------------------
     ## BH CAPSTONE — three rare Biohacker cards offered as choose-1-of-3 at
     ## 10 total nootropic BUYs (research doesn't count). class_lock + pool_excluded:
     ## only path to these is the activity_nootropics ladder. Non-upgradeable.

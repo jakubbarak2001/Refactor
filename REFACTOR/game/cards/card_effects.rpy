@@ -223,6 +223,11 @@ init python:
         ## BH Event reward + Status
         "acd856_regen":            "Power: at start of each turn, heal 5 HP and gain 3 block.",
         "status_diarrhea":         "Status. Take 3. Exhausts.",
+        ## BH coding-scaled cards (the "intelligence weaponized" lane)
+        "compile":                 "Deal damage equal to your Coding tier × 2.",
+        "algorithm":               "Draw cards equal to your Coding tier − 1 (min 1).",
+        "big_tech_offer":          "Gain CZK equal to Coding × 50. Exhausts.",
+        "open_source_pr":          "Power: +1 max energy this fight. Your next Power costs 0.",
     }
 
     ## Counterweight converts the block wall into damage without consuming it,
@@ -237,10 +242,38 @@ init python:
     ## from every UI site instead of EFFECT_DESCRIPTIONS.get().
     ## ---------------------------------------------------------------------------
 
+    def _coding_tier_int():
+        """1-5 integer derived from current coding skill. Used by BH
+        coding-scaled card descriptions (compile / algorithm / etc.)
+        so the card hover surfaces the live damage / draw / payout."""
+        if stats is None:
+            return 1
+        s = stats.coding_skill
+        if s >= 200: return 5
+        if s >= 150: return 4
+        if s >= 100: return 3
+        if s >=  35: return 2
+        return 1
+
     def effect_description(effect_id):
         if not effect_id:
             return ""
         h = stats.pcr_hatred if stats else 0
+        ## BH coding-scaled cards — live numbers in the description.
+        if effect_id == "compile":
+            return "Deal {} damage. (Coding tier × 2)".format(_coding_tier_int() * 2)
+        if effect_id == "compile_plus":
+            return "Deal {} damage. (Coding tier × 3)".format(_coding_tier_int() * 3)
+        if effect_id == "algorithm":
+            return "Draw {} card(s). (Coding tier − 1, min 1, cap 3)".format(min(3, max(1, _coding_tier_int() - 1)))
+        if effect_id == "algorithm_plus":
+            return "Draw {} card(s). (Coding tier, cap 4)".format(min(4, _coding_tier_int()))
+        if effect_id == "big_tech_offer":
+            _cs = stats.coding_skill if stats else 0
+            return "Gain {:,} CZK. (Coding × 30) Exhausts.".format(_cs * 30)
+        if effect_id == "big_tech_offer_plus":
+            _cs = stats.coding_skill if stats else 0
+            return "Gain {:,} CZK. (Coding × 50) Exhausts.".format(_cs * 50)
         if effect_id == "heavy_set":
             return "Deal {} damage.".format(6 + h // 5)
         if effect_id == "heavy_set_plus":
@@ -1269,6 +1302,91 @@ init python:
     def _eff_hyper_if_plus(state, source, target):
         state.heal(source, 18)
         state.gain_block(source, 13)
+
+    ## ---------------------------------------------------------------------------
+    ## BH CODING-SCALED EFFECTS — "intelligence weaponized." The smart class's
+    ## fantasy is that the COURSE WORK pays off mid-combat. Each card reads
+    ## the player's current Coding tier (or raw skill) and scales the effect
+    ## accordingly. Make a smart-build BH a real win condition.
+    ## ---------------------------------------------------------------------------
+
+    def _bh_coding_tier():
+        """Mirror of card_effects.effect_description's _coding_tier_int —
+        kept inline here so battle-time effect resolution doesn't have to
+        import across module boundaries. 1-5 integer."""
+        if stats is None:
+            return 1
+        s = stats.coding_skill
+        if s >= 200: return 5
+        if s >= 150: return 4
+        if s >= 100: return 3
+        if s >=  35: return 2
+        return 1
+
+    @register_effect("compile")
+    def _eff_compile(state, source, target):
+        ## Tier 1=2, T2=4, T3=6, T4=8, T5=10 damage. Cheap, repeatable,
+        ## scales with the BH ramp. A T5-capped BH gets a 1-cost Attack
+        ## that hits for 10 — equivalent to Strike+ but earned through play.
+        state.deal_damage(target, _bh_coding_tier() * 2)
+
+    @register_effect("compile_plus")
+    def _eff_compile_plus(state, source, target):
+        ## Upgrade — tier × 3. T5 = 15 damage, 1 cost. Big swing for the
+        ## late-game smart build.
+        state.deal_damage(target, _bh_coding_tier() * 3)
+
+    @register_effect("algorithm")
+    def _eff_algorithm(state, source, target):
+        ## Tier 1=1, T2=1, T3=2, T4=3, T5=3 cards drawn at 1 cost (capped
+        ## at 3 per balance-judge — uncapped T5=4 was 2× Stack Trace at
+        ## same cost/rarity and enabled 0-cost 4-draw turn 1 via Lab
+        ## first-card-free).
+        state.draw_cards(min(3, max(1, _bh_coding_tier() - 1)))
+
+    @register_effect("algorithm_plus")
+    def _eff_algorithm_plus(state, source, target):
+        ## Upgrade — full tier count, hard-capped at 4 (T1=1, T5=4). Still
+        ## meaningfully better than base at every tier; doesn't break the
+        ## first-card-free combo cap that balance-judge flagged.
+        state.draw_cards(min(4, max(1, _bh_coding_tier())))
+
+    @register_effect("big_tech_offer")
+    def _eff_big_tech_offer(state, source, target):
+        ## Pure money — coding × 30 (capped from × 50 per balance-judge).
+        ## At T5/250 = 7,500 CZK; sits below the 150k Safety Net gate so
+        ## drafting two copies doesn't trivialize the run economy.
+        if stats is not None:
+            _payout = stats.coding_skill * 30
+            stats.increment_stats_value_money(_payout)
+            state.add_log("[[Big Tech Offer]: +{:,} CZK from a recruiter ping.".format(_payout))
+
+    @register_effect("big_tech_offer_plus")
+    def _eff_big_tech_offer_plus(state, source, target):
+        ## Upgrade — coding × 50 (capped from × 80). T5/250 = 12,500 CZK.
+        if stats is not None:
+            _payout = stats.coding_skill * 50
+            stats.increment_stats_value_money(_payout)
+            state.add_log("[[Big Tech Offer+]: +{:,} CZK. They beat their own offer.".format(_payout))
+
+    @register_effect("open_source_pr")
+    def _eff_open_source_pr(state, source, target):
+        ## Power — bumps max energy permanently this fight AND makes the
+        ## next Power free. Doesn't proc on itself (open_source_pr already
+        ## resolving). Reads via "next_power_free" buff in battle_play_card
+        ## (TODO: needs a tiny engine hook — see comment below).
+        state.max_energy += 1
+        state.energy += 1
+        state.buff(source, "next_power_free", 1)
+        state.add_log("[[Open Source PR]: +1 max energy. Next Power is free.")
+
+    @register_effect("open_source_pr_plus")
+    def _eff_open_source_pr_plus(state, source, target):
+        ## Upgrade — +1 max energy, next TWO Powers free.
+        state.max_energy += 1
+        state.energy += 1
+        state.buff(source, "next_power_free", 2)
+        state.add_log("[[Open Source PR+]: +1 max energy. Next two Powers are free.")
 
     ## ---------------------------------------------------------------------------
     ## BH CAPSTONE EFFECTS — three rare cards offered at Protocol 10/10 (10 BUYs).

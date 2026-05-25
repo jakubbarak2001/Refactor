@@ -101,7 +101,7 @@ screen stats_bar():
         _run_hp_show = getattr(store, 'run_hp', None)
         _run_hp_max_show = getattr(store, 'run_hp_max', None)
         if _run_hp_show is None or _run_hp_max_show is None:
-            _run_hp_max_show = 115 if (stats and stats.player_class == "bodybuilder") else (75 if (stats and stats.player_class == "dark_empath") else 80)
+            _run_hp_max_show = 115 if (stats and stats.player_class == "bodybuilder") else (75 if (stats and stats.player_class == "dark_empath") else 90)
             _run_hp_show = _run_hp_max_show
         _hp_ratio = (_run_hp_show / float(_run_hp_max_show)) if _run_hp_max_show > 0 else 1.0
         if _hp_ratio >= 0.75:

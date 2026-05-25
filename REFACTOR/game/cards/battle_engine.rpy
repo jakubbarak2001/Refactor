@@ -615,8 +615,14 @@ init python:
             ## here since DE isn't currently playable. If/when DE ships,
             ## design a non-peek class identity perk in this slot.
         elif stats and stats.player_class == "biohacker":
-            bs.player_max_hp = 80 + _gym_b
-            bs.player_hp = 80 + _gym_b
+            ## 90 base (was 80). The protocol bonuses are good, KICK is good,
+            ## but at 80 HP a single Day-15+ ladder enemy combo could one-shot
+            ## a fresh BH. 90 keeps him below BB (115) while making the
+            ## early-game runback survivable. Combined with new Recovery
+            ## +max-HP modalities (sauna +5, cold plunge +10, red light +5)
+            ## a regen-focused BH can hit 120+ effective HP by day 20.
+            bs.player_max_hp = 90 + _gym_b
+            bs.player_hp = 90 + _gym_b
             bs.buffs["kick_charges"] = 3
             bs.add_log("[[KICK x3]: The compound kicking in. Each turn it's running, you draw one extra card. He's still finishing the sentence; you've already chosen.")
             ## BH per-fight bonus is driven by today's PROTOCOL (the most recent
@@ -625,14 +631,33 @@ init python:
             ## Hatred to acquire is the cost). None = no dose yet.
             _proto = getattr(store, 'bh_protocol', None)
             if _proto == "Legal":
+                ## Legal — foundational steadiness. Every turn opens with
+                ## an extra cushion of block. Cheap, durable, boring.
                 bs.buffs["starting_block_+1"] = True
                 bs.add_log("[[Protocol — Legal]: +1 starting block each turn.")
             elif _proto == "Shady":
+                ## Shady — focus juice. +1 max energy AND opening hand draws
+                ## one extra (folded via kick_charges bump). The "I can do
+                ## one more thing per turn" feel.
                 bs.max_energy = 4
-                bs.add_log("[[Protocol — Shady]: +1 max energy.")
+                bs.buffs["kick_charges"] = bs.buffs.get("kick_charges", 0) + 1
+                bs.add_log("[[Protocol — Shady]: +1 max energy. +1 opening draw for 4 turns.")
             elif _proto == "Lab":
-                bs.max_energy = 4
-                bs.add_log("[[Protocol — Lab]: +1 max energy.")
+                ## Lab — peak cognitive output. +2 max energy AND the first
+                ## card you play each turn costs 0 (recurring discount,
+                ## reset via the new lab_first_free_per_turn buff which the
+                ## play hook reads + resets at turn start).
+                bs.max_energy = 5
+                bs.buffs["lab_first_free_per_turn"] = True
+                bs.add_log("[[Protocol — Lab]: +2 max energy. First card each turn is free.")
+            elif _proto == "Black Market":
+                ## Black Market — endgame. All of Lab's perks plus +2 starting
+                ## block per turn. The money-built BH steamroller. Hatred
+                ## cost (+10 per dose) and the unlock gate keep it honest.
+                bs.max_energy = 5
+                bs.buffs["starting_block_+1"] = True
+                bs.buffs["lab_first_free_per_turn"] = True
+                bs.add_log("[[Protocol — Black Market]: +2 max energy. +1 starting block. First card each turn is free.")
         else:
             ## No class set (shouldn't happen in normal play) — safe defaults.
             bs.player_max_hp = 80
@@ -736,6 +761,11 @@ init python:
         ## cards_cap_next_turn, latch that into the live cap and consume.
         bs.cards_played_this_turn = 0
         bs.skill_played_this_turn = False
+        ## BH Lab/Black Market first-card-free latch resets each turn.
+        ## Buff itself (lab_first_free_per_turn) persists; only the per-turn
+        ## "used" marker clears.
+        if bs.buffs.get("lab_first_free_used"):
+            bs.buffs["lab_first_free_used"] = False
         if bs.buffs.get("cards_cap_next_turn"):
             bs.current_turn_max_cards = bs.buffs["cards_cap_next_turn"]
             bs.buffs["cards_cap_next_turn"] = 0
@@ -931,6 +961,29 @@ init python:
 
         c = CARD_LIBRARY.get(card_id, {})
         cost = c.get("cost", 0)
+        ## Open Source PR (BH coding card) leaves a `next_power_free` charge.
+        ## Each subsequent Power card consumes one charge and plays for 0.
+        ## Self doesn't consume its own buff — the buff is set AFTER play
+        ## resolves on Open Source PR itself.
+        if c.get("type") == "Power" and bs.buffs.get("next_power_free", 0) > 0:
+            cost = 0
+            bs.buffs["next_power_free"] -= 1
+            bs.add_log("[[Open Source PR]: Power discounted to 0 energy.")
+        ## BH Lab / Black Market protocol — first card played each turn is
+        ## free. lab_first_free_used is the per-turn latch; reset in
+        ## battle_start_player_turn. The buff key itself stays set the
+        ## whole fight (driven by the protocol bonus).
+        ## EXCLUDES Powers — balance-judge caught the open_source_pr combo
+        ## (Lab + first-free + PR → free 4-draw → free Power chain →
+        ## Colonel solo'd turn 2-3). Powers must spend energy normally so
+        ## the chain breaks.
+        if (bs.buffs.get("lab_first_free_per_turn") and
+            not bs.buffs.get("lab_first_free_used") and
+            c.get("type") != "Power" and
+            isinstance(cost, int) and cost > 0):
+            cost = 0
+            bs.buffs["lab_first_free_used"] = True
+            bs.add_log("[[Lab protocol]: first card of the turn is free.")
         if isinstance(cost, int):
             bs.spend_energy(cost)
 

@@ -903,17 +903,45 @@ label coding_study:
         _study_tier = "hard" if bool(python_bootcamp) else _battle_ladder_band(day_cycle.current_day)
         _study_trio = pick_battle_rewards(_study_tier)
 
-    "An hour at the keyboard. Documentation tabs open. You build something small that works, and it earns you something worth keeping."
+        ## BH FREELANCE PAYOUT — coding-tier-scaled CZK on top of the card.
+        ## The "intelligent class" amplifier: studying isn't just for the
+        ## card, it's also a billable hour. Tier brackets mirror
+        ## get_coding_tier_info / coding_daily_income for consistency.
+        ##   T1 (0-34)    →     0 CZK    (you're not hireable yet)
+        ##   T2 (35-99)   → 1,500 CZK    (junior contract work)
+        ##   T3 (100-149) → 4,000 CZK    (solid mid-market freelance)
+        ##   T4 (150-199) → 8,000 CZK    (senior hourly rate)
+        ##   T5 (200+)    →15,000 CZK    (god-tier picks the project)
+        _study_bh_payout = 0
+        if stats.player_class == "biohacker":
+            _scs = stats.coding_skill
+            if _scs >= 200:   _study_bh_payout = 15000
+            elif _scs >= 150: _study_bh_payout = 8000
+            elif _scs >= 100: _study_bh_payout = 4000
+            elif _scs >=  35: _study_bh_payout = 1500
+
+    if _study_bh_payout > 0:
+        "An hour at the keyboard. A repo PR. An invoice. The skill ladder pays."
+    else:
+        "An hour at the keyboard. Documentation tabs open. You build something small that works, and it earns you something worth keeping."
 
     call screen card_reward_trio_screen(_study_trio)
 
     python:
         _study_card = _return
+        if _study_bh_payout > 0:
+            stats.increment_stats_value_money(_study_bh_payout)
         if _study_card and _study_card != "skip":
             grant_card(_study_card, silent=True)
-            _study_outcome = "+ Card."
+            if _study_bh_payout > 0:
+                _study_outcome = "+ Card.  + {:,} CZK [FREELANCE].".format(_study_bh_payout)
+            else:
+                _study_outcome = "+ Card."
         else:
-            _study_outcome = "Passed on the offer."
+            if _study_bh_payout > 0:
+                _study_outcome = "Passed on the offer.  + {:,} CZK [FREELANCE].".format(_study_bh_payout)
+            else:
+                _study_outcome = "Passed on the offer."
 
     window hide
     show screen outcome_panel(_study_outcome)
@@ -1157,6 +1185,10 @@ label do_end_day:
     ## already on the channel and no-ops, so the same loop continues.
     "END OF DAY [day_cycle.current_day]"
 
+    ## Apply nightly stat changes FIRST, then compute + display the BH
+    ## freelance paycheck so the preview line matches the actual payout.
+    ## (Bug noted by refactor-judge: bootcamp +5 Coding crossing a tier
+    ## boundary made the preview undercount the real amount.)
     python:
         # Base nightly hatred scales with difficulty (Easy 4, Hard 5, Insane 6, Ultra 7-8)
         _nightly_base = int(round(5 * diff_setting("nightly_hatred_mult", 1.0)))
@@ -1164,6 +1196,16 @@ label do_end_day:
         if python_bootcamp:
             stats.increment_stats_coding_skill(5) # bootcamp buff
 
+        ## BH freelance income — paid overnight, scaled by current (POST-
+        ## bootcamp-bump) coding tier. No-op for non-BH classes.
+        _coding_paycheck = coding_daily_income()
+        if _coding_paycheck > 0:
+            stats.increment_stats_value_money(_coding_paycheck)
+
+    if _coding_paycheck > 0:
+        "[[FREELANCE] A client paid out overnight — [_coding_paycheck:,] CZK in the account by morning."
+
+    python:
         # Advance day
         day_cycle.next_day()
         activity_selected = False
@@ -1238,29 +1280,39 @@ label activity_nootropics:
         if nootropic_dependency:
             _dep_warning = "\n\n[DEPENDENCY ACTIVE] — Skipping a dose costs -20 Coding, +20 Hatred."
 
-        ## 3-user-tier model: LEGAL (slot 1) / SHADY (slot 3) / LAB (slot 5).
-        ## Slots 2 and 4 stay as data for legacy references but are never
-        ## surfaced. Plus a 4th option: READ UP — free upgrade of a card.
+        ## 4-tile lineup: T1 LEGAL / T2 SHADY / T3 LAB / T4 BLACK MARKET.
+        ## (Slots 2 and 4 in NOOTROPIC_TIERS remain as legacy data for
+        ## martin_meeting / class_arcs / colonel_event references but are
+        ## never surfaced.) BLACK MARKET unlocks at 100 Coding — you have
+        ## to BE somebody to know somebody. Pure money-to-power; the
+        ## endgame sink that lets a flush BH skip the slow Lab grind.
         _NOOT_TITLES = {
             1: "T1 — LEGAL ESHOP",
             3: "T2 — SHADY SOURCE",
             5: "T3 — LAB GRADE",
+            6: "T4 — BLACK MARKET",
         }
         ## Per-tier flavor escalates with how many times THIS tier has been
         ## bought — see bh_tier_flavor() in python_logic.rpy. Voice goes from
         ## "next-day delivery" → "Tom is reliable" → "labels are a formality".
+        ## Tier 6 (black market) has its own static flavor since it's a
+        ## premium one-off, not a habit.
         _NOOT_FLAVORS = {
             1: bh_tier_flavor(1),
             3: bh_tier_flavor(3),
             5: bh_tier_flavor(5),
+            6: NOOTROPIC_TIERS[6]["flavor"],
         }
         _NOOT_VIS = {
             1: True,
             3: nootropic_tier_max >= 3,
             5: flmodafinil_unlocked or nootropic_tier_max >= 5,
+            ## Black market shows up once your reputation is real.
+            ## 100 Coding = T3 "Solid Developer" — the chemist takes you seriously.
+            6: stats.coding_skill >= 100,
         }
         _noot_options = []
-        for _tn in (1, 3, 5):
+        for _tn in (1, 3, 5, 6):
             _ti = NOOTROPIC_TIERS[_tn]
             _hatred_sign = "+" if _ti["hatred"] >= 0 else ""
             _eff = "+{} Coding, {}{} Hatred, 1-of-3 card".format(
@@ -1313,6 +1365,10 @@ label _apply_noot_t5:
     $ _tier = 5
     jump _apply_nootropic_tier
 
+label _apply_noot_t6:
+    $ _tier = 6
+    jump _apply_nootropic_tier
+
 
 label _apply_nootropic_tier:
 
@@ -1336,14 +1392,19 @@ label _apply_nootropic_tier:
         stats.increment_stats_coding_skill(_coding_gain)
         stats.increment_stats_pcr_hatred(_t["hatred"])
 
-        # Track usage
-        nootropic_uses[_tier - 1] += 1
+        # Track usage. nootropic_uses is a 5-length array (one slot per
+        # legacy T1-T5). Tier 6 (Black Market) is tracked separately on
+        # store.bh_blackmarket_uses so it doesn't index out of bounds.
+        if _tier <= 5:
+            nootropic_uses[_tier - 1] += 1
+        else:
+            store.bh_blackmarket_uses = getattr(store, 'bh_blackmarket_uses', 0) + 1
         nootropic_last_tier = _tier
         ## BH PROTOCOL — current active stack maps to a name shown in HUD/log
         ## and read by battle_engine to drive the per-fight bonus (Legal: +1
         ## starting block; Shady: +1 max energy; Lab: +1 max energy + 1
         ## opening hand). Slot 1/3/5 = Legal/Shady/Lab.
-        _PROTOCOL_NAMES = {1: "Legal", 3: "Shady", 5: "Lab"}
+        _PROTOCOL_NAMES = {1: "Legal", 3: "Shady", 5: "Lab", 6: "Black Market"}
         store.bh_protocol = _PROTOCOL_NAMES.get(_tier, None)
 
         # Check for new tier unlocks
@@ -1368,6 +1429,14 @@ label _apply_nootropic_tier:
             },
             5: {  # rares (event/boss cards excluded; ladder pool is the
                   # standard rare draft)
+                "stimulant": ["megadose", "burnout", "catecholamine_spike", "flmodafinil", "override"],
+                "neurochem": ["lucid_window"],
+                "wetware":   ["pain_threshold"],
+            },
+            ## Black market draws from the rare T5 pool with one upgrade
+            ## promotion roll baked in — buying at 25k should feel like the
+            ## money chose for you. Same pools as T5, evaluated identically.
+            6: {
                 "stimulant": ["megadose", "burnout", "catecholamine_spike", "flmodafinil", "override"],
                 "neurochem": ["lucid_window"],
                 "wetware":   ["pain_threshold"],

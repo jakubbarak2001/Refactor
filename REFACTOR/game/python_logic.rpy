@@ -330,6 +330,31 @@ init python:
         return marks
 
     # ---------------------------------------------------------------------------
+    # Coding daily income — Biohacker freelance fantasy. Coding-tier-scaled
+    # CZK paid passively at start of every day. The smart class's loop closure:
+    # dose → +Coding → tier-up → bigger daily income → fund bigger doses.
+    # Over a 30-day run, T5-capped BH earns 75k passive — material in late game.
+    # Other classes get nothing — this is BH's identity. BB earns via Bouncer,
+    # DE via cold-read pacing; BH earns by being smart.
+    # ---------------------------------------------------------------------------
+    def coding_daily_income():
+        """Per-day CZK from coding skill, biohacker-only. Pays out at the
+        start of each day in do_end_day. Tier brackets mirror the existing
+        get_coding_tier_info ladder. Returns 0 for non-BH or below T2."""
+        if stats is None or stats.player_class != "biohacker":
+            return 0
+        s = stats.coding_skill
+        if s < 35:
+            return 0       # Still Learning — nobody pays you yet
+        if s < 100:
+            return 200     # T2 Junior — a small recurring gig
+        if s < 150:
+            return 600     # T3 Solid — steady freelance
+        if s < 200:
+            return 1200    # T4 Senior — pricing your hours properly
+        return 2500        # T5 God-tier — pick your clients
+
+    # ---------------------------------------------------------------------------
     # Coding tier helper (mirroring game_rules.py get_coding_tier_info)
     # ---------------------------------------------------------------------------
     def get_coding_tier_info(coding_skill):
@@ -594,12 +619,17 @@ init python:
     ## User-visible tier names: T1 LEGAL eshop, T3 SHADY source, T5 LAB grade.
     ## Cost curve: 2k / 5k / 10k. Coding ramp: +3 / +6 / +10. Hatred:
     ## -3 / -2 net / +5 (lab grade is paranoia + cost + body strain).
+    ## Coding numbers tripled in the BH balance pass (2026-05-25). At the old
+    ## +3/+6/+10 per dose, hitting the 200 Coding tier required ~25 doses —
+    ## impossible in 30 days with 1 action/day. New +8/+15/+25 makes the T5
+    ## tier reachable by day 15-20 if the player commits to the protocol lane,
+    ## which is the BH fantasy. Hatred costs unchanged — Hatred is the brake.
     NOOTROPIC_TIERS = {
         1: {
             "name":          "Legal Supplements",
             "compounds":     "Omega-3, Creatine, Magnesium, Vitamin D — eshop next-day.",
             "cost":          2000,
-            "coding":        3,
+            "coding":        8,
             "hatred":        -3,
             "crash_coding":  0,
             "crash_hatred":  0,
@@ -610,7 +640,7 @@ init python:
             "name":          "Cognitive Stack",
             "compounds":     "L-Theanine + Caffeine, Alpha-GPC, Bacopa Monnieri",
             "cost":          750,
-            "coding":        8,
+            "coding":        12,
             "hatred":        -5,
             "crash_coding":  0,
             "crash_hatred":  0,
@@ -621,7 +651,7 @@ init python:
             "name":          "Shady Source",
             "compounds":     "Modafinil, racetams — Telegram dealer, brown envelope.",
             "cost":          5000,
-            "coding":        6,
+            "coding":        15,
             "hatred":        -5,
             "crash_coding":  -1,
             "crash_hatred":  3,
@@ -643,12 +673,27 @@ init python:
             "name":          "Lab Grade",
             "compounds":     "DIHEXA, FLModafinil, custom peptides — gray-market lab.",
             "cost":          10000,
-            "coding":        10,
+            "coding":        25,
             "hatred":        5,
             "crash_coding":  -5,
             "crash_hatred":  10,
             "flavor":        "The vial is plain. The labelling is wrong on purpose.",
             "crash_flavor":  "Crash hits like a reboot with corrupted memory. The Colonel's face is very clear this morning.",
+        },
+        ## TIER 6 — BLACK MARKET. Pure money-to-power; gated behind 100 Coding
+        ## (you have to BE somebody to know somebody). Adds the "I've made it
+        ## and I'm escalating" tier to BH's money sink. Surfaced as a 4th
+        ## option in activity_nootropics when stats.coding_skill >= 100.
+        6: {
+            "name":          "Black Market Procurement",
+            "compounds":     "Bespoke synthesis. The chemist works on referral only.",
+            "cost":          25000,
+            "coding":        30,
+            "hatred":        10,
+            "crash_coding":  -8,
+            "crash_hatred":  15,
+            "flavor":        "Cash up front. Address sent fifteen minutes before pickup. He doesn't shake your hand.",
+            "crash_flavor":  "You wake up sideways on the floor. The notebook in your handwriting predicted this exact angle.",
         },
     }
 
@@ -666,6 +711,8 @@ init python:
     ##   4: 10+ uses — cabinet IS the room, dose IS the language
     def bh_stage():
         n = sum(nootropic_uses) if nootropic_uses else 0
+        ## Black market doses count toward the rabbit-hole stage too.
+        n += getattr(store, 'bh_blackmarket_uses', 0)
         if n <= 2:
             return 1
         if n <= 6:
@@ -733,6 +780,14 @@ init python:
             "You can feel the membrane uptake now. That's not supposed to be a thing you can feel.",
             "The Colonel's face is very clear today. Useful. The dose is doing its job.",
         ],
+        ## Black market — premium one-off, escalation tracked separately on
+        ## store.bh_blackmarket_uses (NOT nootropic_uses[5] which is T5).
+        6: [
+            "Cash up front, address fifteen minutes ahead. He doesn't shake your hand.",
+            "Second time he texts you the address from a different number. You don't ask.",
+            "The chemist starts a conversation. Halfway through, you realise it's a job interview.",
+            "He calls you by your first name now. You never told him.",
+        ],
     }
 
     def bh_open_line():
@@ -754,10 +809,14 @@ init python:
         return pool[min(idx, len(pool) - 1)]
 
     def bh_postdose_flavor(tier):
-        ## Fires AFTER a dose lands. nootropic_uses[tier-1] has just been
-        ## incremented at this point, so dose #1 → idx 0 in the flavor list
-        ## (subtract 1 to compensate).
-        used = nootropic_uses[tier - 1] if 0 <= tier - 1 < len(nootropic_uses) else 0
+        ## Fires AFTER a dose lands. Counter has just been incremented at
+        ## this point, so dose #1 → idx 0 in the flavor list (subtract 1).
+        ## Tier 6 (Black Market) tracks separately on store.bh_blackmarket_uses
+        ## since nootropic_uses is a fixed 5-length T1-T5 array.
+        if tier == 6:
+            used = getattr(store, 'bh_blackmarket_uses', 0)
+        else:
+            used = nootropic_uses[tier - 1] if 0 <= tier - 1 < len(nootropic_uses) else 0
         idx = max(0, used - 1)
         pool = _BH_POSTDOSE_FLAVORS.get(tier, [])
         if not pool:

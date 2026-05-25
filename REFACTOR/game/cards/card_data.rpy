@@ -701,6 +701,14 @@ init -1 python:
             player_deck.add("read_him")
         elif cls == "biohacker":
             player_deck.add("stack_up")
+            ## BH ships with TWO Compile cards in the starter. The coding
+            ## ramp is BH's identity; the player needs to feel that
+            ## scaling from turn 1, not draft-gate it behind random reward
+            ## rolls. At T1/35 below, Compile is just 2 damage — barely
+            ## better than Strike — so it's not a power-creep concern.
+            ## Becomes the build's spine as Coding climbs.
+            player_deck.add("compile")
+            player_deck.add("compile")
 
         ## Universal baseline — muscle memory for the fight that's coming.
         for _ in range(4):
