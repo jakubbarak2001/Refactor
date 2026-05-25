@@ -675,17 +675,23 @@ init python:
     ## User-visible tier names: T1 LEGAL eshop, T3 SHADY source, T5 LAB grade.
     ## Cost curve: 2k / 5k / 10k. Coding ramp: +3 / +6 / +10. Hatred:
     ## -3 / -2 net / +5 (lab grade is paranoia + cost + body strain).
-    ## Coding numbers tripled in the BH balance pass (2026-05-25). At the old
-    ## +3/+6/+10 per dose, hitting the 200 Coding tier required ~25 doses —
-    ## impossible in 30 days with 1 action/day. New +8/+15/+25 makes the T5
-    ## tier reachable by day 15-20 if the player commits to the protocol lane,
-    ## which is the BH fantasy. Hatred costs unchanged — Hatred is the brake.
+    ## Coding numbers — second tuning pass (2026-05-25, post-playthrough).
+    ## First pass tripled gains (+3/+6/+10 → +8/+15/+25) which made dosing
+    ## the dominant strategy: 3× more XP per slot than STUDY, AND a card,
+    ## AND a protocol bonus. Player feedback: "spam nootropics, ignore
+    ## everything else." Cut ~40% so STUDY (+18 XP/day after companion
+    ## buff) is a real competing lane:
+    ##   T1 LEGAL:  +8  → +5
+    ##   T3 SHADY:  +15 → +9
+    ##   T5 LAB:    +25 → +15
+    ##   T6 BLACK MARKET: +30 → +20
+    ## Hatred costs unchanged — Hatred is still the brake on dose spam.
     NOOTROPIC_TIERS = {
         1: {
             "name":          "Legal Supplements",
             "compounds":     "Omega-3, Creatine, Magnesium, Vitamin D — eshop next-day.",
             "cost":          2000,
-            "coding":        8,
+            "coding":        5,
             "hatred":        -3,
             "crash_coding":  0,
             "crash_hatred":  0,
@@ -707,7 +713,7 @@ init python:
             "name":          "Shady Source",
             "compounds":     "Modafinil, racetams — Telegram dealer, brown envelope.",
             "cost":          5000,
-            "coding":        15,
+            "coding":        9,
             "hatred":        -5,
             "crash_coding":  -1,
             "crash_hatred":  3,
@@ -729,7 +735,7 @@ init python:
             "name":          "Lab Grade",
             "compounds":     "DIHEXA, FLModafinil, custom peptides — gray-market lab.",
             "cost":          10000,
-            "coding":        25,
+            "coding":        15,
             "hatred":        5,
             "crash_coding":  -5,
             "crash_hatred":  10,
@@ -744,7 +750,7 @@ init python:
             "name":          "Black Market Procurement",
             "compounds":     "Bespoke synthesis. The chemist works on referral only.",
             "cost":          25000,
-            "coding":        30,
+            "coding":        20,
             "hatred":        10,
             "crash_coding":  -8,
             "crash_hatred":  15,
@@ -885,7 +891,17 @@ init python:
         Called at the start of each new day before the daily menu.
         Reads nootropic_last_tier, applies crash/withdrawal, resets the tracker.
         Returns a tuple (tag, flavor_text) or None if nothing to report.
-        Tags: 'crash', 'withdrawal', 'dependency_triggered', 'soft_dependency'
+        Tags: 'crash', 'withdrawal', 'dependency_triggered', 'soft_dependency',
+              'dependency_cleared'
+
+        Dependency model (rebalanced 2026-05-25):
+          - Lock-in threshold raised 2 → 5 T5 LAB doses. The old 2-dose
+            trigger was a trap once T5 was buffed to +25 Coding/dose —
+            hitting it was inevitable for any BH using the class identity.
+          - Withdrawal penalty halved (-20/+20 → -8/+10) so a missed day
+            stings but doesn't cripple.
+          - 3 consecutive no-dose days clears the latch. The body adapts;
+            the player can break free if they're disciplined.
         """
         global nootropic_last_tier, nootropic_dependency
 
@@ -895,13 +911,29 @@ init python:
         if tier == 0:
             # Nothing taken yesterday
             if nootropic_dependency:
-                stats.increment_stats_coding_skill(-20)
-                stats.increment_stats_pcr_hatred(20)
+                stats.increment_stats_coding_skill(-8)
+                stats.increment_stats_pcr_hatred(10)
+                ## Track consecutive no-dose days. After 3 in a row the
+                ## body adapts and the dependency latch clears — gives the
+                ## disciplined player a path out instead of a forever-tax.
+                _streak = getattr(store, '_bh_nodose_streak', 0) + 1
+                store._bh_nodose_streak = _streak
+                if _streak >= 3:
+                    nootropic_dependency = False
+                    store._bh_nodose_streak = 0
+                    return ("dependency_cleared",
+                            "Day three off. The shake in your hands is gone.\n"
+                            "Your body found a new baseline. The dependency is broken.\n"
+                            "(Dependency cleared. You can resume on your own terms.)")
                 return ("withdrawal",
-                        "Your body revolts without the compound.\n"
-                        "Every thought feels like pushing through wet concrete.\n"
-                        "(-20 Coding Skill, +20 Police Hatred)")
+                        "Your body misses the compound.\n"
+                        "Thinking is slower. Patience is shorter.\n"
+                        "(-8 Coding Skill, +10 Police Hatred)\n"
+                        "({} more no-dose day(s) to break the dependency.)".format(3 - _streak))
             return None
+
+        ## A dose landed → reset the no-dose streak.
+        store._bh_nodose_streak = 0
 
         t = NOOTROPIC_TIERS[tier]
         effects = []
@@ -913,11 +945,11 @@ init python:
             stats.increment_stats_pcr_hatred(t["crash_hatred"])
             effects.append("+{} Hatred".format(t["crash_hatred"]))
 
-        # T5 hard dependency trigger
-        if tier == 5 and nootropic_uses[4] >= 2 and not nootropic_dependency:
+        # T5 hard dependency trigger — raised 2 → 5 doses (see docstring).
+        if tier == 5 and nootropic_uses[4] >= 5 and not nootropic_dependency:
             nootropic_dependency = True
             return ("dependency_triggered",
-                    "Two doses. You crossed the line.\n"
+                    "Five doses. You crossed the line.\n"
                     "FLModafinil (CRL-40,940) has rewritten your baseline.\n"
                     "You will feel its absence now.\n\n" + t["crash_flavor"])
 

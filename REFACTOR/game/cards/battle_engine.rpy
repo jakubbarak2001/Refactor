@@ -399,6 +399,14 @@ init python:
             if target == "enemy":
                 self.enemy_hp = min(self.enemy_max_hp, self.enemy_hp + amount)
             else:
+                ## Recovery Sauna pre-fight buff multiplies player heals
+                ## by heal_multiplier (default 1.0). Stacks with all heal
+                ## sources: cards, Telomere regen, retaliation healing,
+                ## Stoic Anchor passive. One-fight only — consumed at
+                ## battle_finish.
+                _mult = self.buffs.get("heal_multiplier", 1.0)
+                if _mult != 1.0 and amount > 0:
+                    amount = int(round(amount * _mult))
                 self.player_hp = min(self.player_max_hp, self.player_hp + amount)
                 self.add_log("JB heals {} HP.".format(amount))
 
@@ -660,6 +668,31 @@ init python:
                 bs.buffs["starting_block_+1"] = True
                 bs.buffs["lab_first_free_per_turn"] = True
                 bs.add_log("[[Protocol — Black Market]: +2 max energy. +1 starting block. First card each turn is free.")
+
+            ## ── PENDING RECOVERY BUFF ────────────────────────────────────
+            ## activity_recovery sets store.pending_recovery_buff for the
+            ## next fight, scaled by modality. Apply + consume here so the
+            ## buff covers exactly one fight (no leak into a second).
+            _rb = getattr(store, 'pending_recovery_buff', None)
+            if _rb:
+                _rb_type = _rb.get("type")
+                if _rb_type == "heal_boost":
+                    ## Sauna — heals scale by N (typically 1.5).
+                    bs.buffs["heal_multiplier"] = _rb.get("value", 1.5)
+                    bs.add_log("[[Recovery — Sauna]: healing this fight is +{}%.".format(int((_rb.get("value", 1.5) - 1.0) * 100)))
+                elif _rb_type == "extra_energy":
+                    ## Meditation — +1 max energy this fight only.
+                    bs.max_energy += 1
+                    bs.add_log("[[Recovery — Meditation]: +1 max energy this fight.")
+                elif _rb_type == "starting_block":
+                    ## Cold Plunge — bulk block on turn 1.
+                    bs.starting_block += _rb.get("value", 12)
+                    bs.add_log("[[Recovery — Cold Plunge]: +{} block on opening turn.".format(_rb.get("value", 12)))
+                elif _rb_type == "regen":
+                    ## Red Light — Telomere-style per-turn HP regen.
+                    bs.buffs["telomere_heal"] = max(bs.buffs.get("telomere_heal", 0), _rb.get("value", 2))
+                    bs.add_log("[[Recovery — Red Light]: +{} HP regen each turn this fight.".format(_rb.get("value", 2)))
+                store.pending_recovery_buff = None  ## consume — one fight only
         else:
             ## No class set (shouldn't happen in normal play) — safe defaults.
             bs.player_max_hp = 80

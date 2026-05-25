@@ -812,7 +812,42 @@ init python:
         effect     = "microdose",
         class_lock = "biohacker",
         archetype  = "stimulant",
-        flavor     = "Half a capsule. Just enough to notice.",
+        exhaust    = True,
+        flavor     = "Half a capsule. Just enough to notice. You don't redose mid-fight.",
+    )
+
+    ## Common T1-pool attack. Legal-tier stimulant that converts the kick
+    ## into a punch — every shop-bought dose tier should grant at least one
+    ## attack so the protocol actually translates into combat power.
+    register_card(
+        "caffeine",
+        name       = "Caffeine",
+        type       = "Attack",
+        color      = "Special",
+        cost       = 1,
+        rarity     = "common",
+        effect     = "caffeine",
+        class_lock = "biohacker",
+        archetype  = "stimulant",
+        flavor     = "Double espresso. The room sharpens. The fist follows.",
+        upgrade    = {"effect": "caffeine_plus"},
+    )
+
+    ## Uncommon T3-pool attack — gray-market focus stim. Damage + draw,
+    ## the "I take it before the deadline" archetype. Pairs the SHADY
+    ## tier ramp with a card that actually translates to hits.
+    register_card(
+        "ritalin",
+        name       = "Ritalin",
+        type       = "Attack",
+        color      = "Special",
+        cost       = 1,
+        rarity     = "uncommon",
+        effect     = "ritalin",
+        class_lock = "biohacker",
+        archetype  = "stimulant",
+        flavor     = "Methylphenidate. The screen blurs, the target sharpens.",
+        upgrade    = {"effect": "ritalin_plus"},
     )
 
     register_card(
@@ -894,7 +929,8 @@ init python:
         effect     = "n_of_one",
         class_lock = "biohacker",
         archetype  = "neurochem",
-        flavor     = "Your own logbook. The cleanest dataset you'll ever read.",
+        exhaust    = True,
+        flavor     = "Your own logbook. One referral per fight — you only get one self.",
     )
 
     register_card(
@@ -931,7 +967,7 @@ init python:
 
     register_card(
         "mitochondrial",
-        name       = "Mitochondrial",
+        name       = "Creatine",
         type       = "Skill",
         color      = "Special",
         cost       = 0,

@@ -787,25 +787,36 @@ screen battle_card_view(cid, mode="hand", playable=True):
         _artbg_c   = _palette["art_bg"]
         _accent_c  = _palette["accent"]
 
-        ## CLASS-LOCKED CARDS — override the type palette with the class
-        ## accent color so signature cards (MITOCHONDRIAL etc.) read as
-        ## "yours". Curse/Status never get class_lock, so the override is
-        ## always safe to apply on top of the type palette. Border + art_bg
-        ## are darkened sibling tones so the frame still has structural
-        ## hierarchy, not a flat slab of color.
-        _class_lock = _card.get("class_lock")
-        if _class_lock:
-            _cls_hex = class_accent_color(_class_lock)
+        ## CLASS-COLOR OVERRIDE — every card in the player's deck takes on
+        ## their class color so the deck reads as "theirs" at a glance.
+        ## BB = orange, DE = purple, BH = green. Resolution order:
+        ##   1. Curse / Status keep the type palette (corruption signal must
+        ##      stay visually distinct — black for Curse, toxic for Status).
+        ##   2. Otherwise: prefer the active player's class color. This
+        ##      covers basic Strike / Defend AND class-locked signatures.
+        ##   3. Fall back to the card's own `class_lock` when no player
+        ##      class is set (character-select previews etc.).
+        ##   4. Final fallback: the type palette already loaded above.
+        def _mix(hex_a, hex_b, t):
+            a = int(hex_a[1:3], 16), int(hex_a[3:5], 16), int(hex_a[5:7], 16)
+            b = int(hex_b[1:3], 16), int(hex_b[3:5], 16), int(hex_b[5:7], 16)
+            m = tuple(int(a[i] * (1 - t) + b[i] * t) for i in range(3))
+            return "#{:02x}{:02x}{:02x}".format(*m)
+
+        _override_cls = None
+        if _vtype not in ("Curse", "Status"):
+            if stats is not None and stats.player_class in ("bodybuilder", "dark_empath", "biohacker"):
+                _override_cls = stats.player_class
+            elif _card.get("class_lock"):
+                _override_cls = _card.get("class_lock")
+
+        if _override_cls:
+            _cls_hex = class_accent_color(_override_cls)
             _frame_c  = _cls_hex
             _accent_c = _cls_hex
-            ## Drop the saturated frame down ~50% lightness for the border
-            ## and ~70% for the art_bg via simple hex-mix with black. Avoids
-            ## hard-coding per-class darker tones.
-            def _mix(hex_a, hex_b, t):
-                a = int(hex_a[1:3], 16), int(hex_a[3:5], 16), int(hex_a[5:7], 16)
-                b = int(hex_b[1:3], 16), int(hex_b[3:5], 16), int(hex_b[5:7], 16)
-                m = tuple(int(a[i] * (1 - t) + b[i] * t) for i in range(3))
-                return "#{:02x}{:02x}{:02x}".format(*m)
+            ## Border ~50% darker than frame, art_bg ~70% darker — same
+            ## structural hierarchy the type palette had, just keyed off
+            ## the class color instead.
             _border_c = _mix(_cls_hex, "#000000", 0.55)
             _artbg_c  = _mix(_cls_hex, "#000000", 0.78)
 

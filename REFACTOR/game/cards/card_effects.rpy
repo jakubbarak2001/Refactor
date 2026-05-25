@@ -223,6 +223,16 @@ init python:
         ## BH Event reward + Status
         "acd856_regen":            "Power: at start of each turn, heal 5 HP and gain 3 block.",
         "status_diarrhea":         "Status. Take 3. Exhausts.",
+        ## BH legal-tier common attack — the "double-espresso punch."
+        ## Removed the +1 energy refund — combined with 0-cost generators
+        ## it made the card cost-neutral and the deck cycled infinitely.
+        ## Draw 1 keeps the "next play feels primed" vibe without breaking
+        ## the energy economy.
+        "caffeine":                "Deal 7 damage. Draw 1.",
+        "caffeine_plus":           "Deal 10 damage. Draw 1.",
+        ## BH shady-tier uncommon attack — methylphenidate, focus + hit.
+        "ritalin":                 "Deal 10 damage. Draw 1.",
+        "ritalin_plus":            "Deal 14 damage. Draw 1.",
         ## BH coding-scaled cards (the "intelligence weaponized" lane)
         "compile":                 "Deal damage equal to your Coding tier × 2.",
         "algorithm":               "Draw cards equal to your Coding tier − 1 (min 1).",
@@ -1144,6 +1154,32 @@ init python:
     def _eff_microdose_plus(state, source, target):
         state.gain_energy(2)
         state.deal_damage(source, 2, bypass_block=True)
+
+    ## Caffeine — T1 LEGAL common attack. Damage + draw is the "primed for
+    ## the next play" feel without an energy refund (which combined with
+    ## microdose / stack_up turned the deck into an infinite cycle).
+    @register_effect("caffeine")
+    def _eff_caffeine(state, source, target):
+        state.deal_damage(target, 7)
+        state.draw_cards(1)
+
+    @register_effect("caffeine_plus")
+    def _eff_caffeine_plus(state, source, target):
+        state.deal_damage(target, 10)
+        state.draw_cards(1)
+
+    ## Ritalin — T2 SHADY uncommon attack. Damage + draw is the methylphenidate
+    ## fantasy: the page sharpens AND the deadline closes. Slightly above
+    ## Strike's curve to justify the gray-market access cost.
+    @register_effect("ritalin")
+    def _eff_ritalin(state, source, target):
+        state.deal_damage(target, 10)
+        state.draw_cards(1)
+
+    @register_effect("ritalin_plus")
+    def _eff_ritalin_plus(state, source, target):
+        state.deal_damage(target, 14)
+        state.draw_cards(1)
 
     @register_effect("adrenal_burst")
     def _eff_adrenal_burst(state, source, target):

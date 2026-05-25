@@ -337,6 +337,11 @@ label day_start:
         "[[AFTEREFFECTS]"
         "[_noot_flavor]"
 
+    if _noot_tag == "dependency_cleared":
+        scene bg_jb_flat
+        "[[DEPENDENCY CLEARED]"
+        "[_noot_flavor]"
+
     ## Special events. Top-level `call ... from _xxx` (NOT renpy.call inside a
     ## python block) so saves taken mid-call survive future line-shifting edits
     ## to script.rpy — the `from` clause creates a named return label that's
@@ -736,6 +741,11 @@ label activity_recovery:
     python:
         _rec_mod = __import__('random').choice(["sauna", "meditation", "coldplunge", "redlight"])
 
+    ## Each modality sets a `pending_recovery_buff` consumed by the next
+    ## battle's battle_init (BH branch). This turns Recovery from "emergency
+    ## heal button" into "combat-prep choice" — pick the modality that
+    ## matches the next ladder fight (block-heavy, regen-heavy, etc.).
+    ## Buff applies to ONE fight then clears.
     if _rec_mod == "sauna":
         scene bg_bh_rec_sauna with Dissolve(0.4)
         "Eight minutes at 90°C. You finish on the cold tile, condensation everywhere, lungs still wide. Heat-shock proteins do the work."
@@ -743,7 +753,8 @@ label activity_recovery:
             store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + 5
             _restored = event_heal(20)
             stats.increment_stats_pcr_hatred(-10)
-            _rec_out = "SAUNA  |  +{} HP  |  +5 MAX HP  |  -10 Hatred".format(_restored)
+            store.pending_recovery_buff = {"type": "heal_boost", "value": 1.5}
+            _rec_out = "SAUNA  |  +{} HP  |  +5 MAX HP  |  -10 Hatred  |  NEXT FIGHT: heals +50%".format(_restored)
 
     elif _rec_mod == "meditation":
         scene bg_bh_rec_meditation with Dissolve(0.4)
@@ -751,7 +762,8 @@ label activity_recovery:
         python:
             _restored = event_heal(10)
             stats.increment_stats_pcr_hatred(-30)
-            _rec_out = "MEDITATION  |  +{} HP  |  -30 Hatred".format(_restored)
+            store.pending_recovery_buff = {"type": "extra_energy"}
+            _rec_out = "MEDITATION  |  +{} HP  |  -30 Hatred  |  NEXT FIGHT: +1 max energy".format(_restored)
 
     elif _rec_mod == "coldplunge":
         scene bg_bh_rec_coldplunge with Dissolve(0.4)
@@ -759,7 +771,8 @@ label activity_recovery:
         python:
             store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + 10
             _restored = event_heal(25)
-            _rec_out = "COLD PLUNGE  |  +{} HP  |  +10 MAX HP".format(_restored)
+            store.pending_recovery_buff = {"type": "starting_block", "value": 12}
+            _rec_out = "COLD PLUNGE  |  +{} HP  |  +10 MAX HP  |  NEXT FIGHT: +12 starting block".format(_restored)
 
     else:  # redlight
         scene bg_bh_rec_redlight with Dissolve(0.4)
@@ -768,7 +781,8 @@ label activity_recovery:
             store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + 5
             _restored = event_heal(15)
             stats.increment_stats_pcr_hatred(-15)
-            _rec_out = "RED LIGHT  |  +{} HP  |  +5 MAX HP  |  -15 Hatred".format(_restored)
+            store.pending_recovery_buff = {"type": "regen", "value": 2}
+            _rec_out = "RED LIGHT  |  +{} HP  |  +5 MAX HP  |  -15 Hatred  |  NEXT FIGHT: +2 HP/turn regen".format(_restored)
 
     window hide
     show screen outcome_panel(_rec_out)
@@ -939,10 +953,14 @@ label coding_study:
     ## BH path: pure +Coding XP, no card, no money. Cards come from doses;
     ## money comes from the FREELANCE tile. Lane split keeps each action
     ## with one clear purpose.
+    ## XP bumped 12 → 18 (2026-05-25, post-playthrough) so STUDY beats T1
+    ## LEGAL (+5) and matches T3 SHADY (+9) on raw XP per slot. Combined
+    ## with the dose nerf, STUDY is the dominant Coding-ramp lane again
+    ## — protocol / cards come from dosing, raw skill comes from study.
     if stats.player_class == "biohacker":
         "An hour at the keyboard. No client, no deadline. You're paying yourself in skill."
         python:
-            _bh_study_xp = 12
+            _bh_study_xp = 18
             stats.increment_stats_coding_skill(_bh_study_xp)
             _study_outcome = "+{} CODING SKILL.".format(_bh_study_xp)
         window hide
@@ -1496,26 +1514,33 @@ label _apply_nootropic_tier:
         ## Use __import__('random') inline — `import random as X` in a label's
         ## python block leaves the module bound as a local that the next save
         ## tries to pickle and crashes on. Same pattern as ev_pills uses.
+        ## Tier-pool retier (2026-05-25):
+        ##   - Piracetam (pattern_match) → T2 SHADY. It's a racetam — gray
+        ##     market, not eshop-legal.
+        ##   - Caffeine added to T1 STIM so every tier has at least one
+        ##     attack option (T1 was previously all Skills).
+        ##   - Ritalin added to T3 STIM for the same reason — methylphenidate
+        ##     fits the SHADY-source flavor.
+        ##   - Creatine (renamed mitochondrial) stays at T1 — foundational
+        ##     wetware, matches the canonical T1 ingredient list.
         _BH_GRANT_POOLS = {
-            1: {  # commons
-                "stimulant": ["microdose", "hrv_spike"],
-                "neurochem": ["pattern_match", "n_of_one"],
+            1: {  # commons (LEGAL ESHOP — basic supplements)
+                "stimulant": ["microdose", "hrv_spike", "caffeine"],
+                "neurochem": ["n_of_one"],
                 "wetware":   ["mitochondrial"],
             },
-            3: {  # uncommons
-                "stimulant": ["stack_up", "adrenal_burst", "racetam"],
-                "neurochem": ["cognitive_stack", "recall_protocol"],
+            3: {  # uncommons (SHADY — Telegram-tier compounds)
+                "stimulant": ["stack_up", "adrenal_burst", "racetam", "ritalin"],
+                "neurochem": ["pattern_match", "cognitive_stack", "recall_protocol"],
                 "wetware":   ["telomere", "hyper_if"],
             },
-            5: {  # rares (event/boss cards excluded; ladder pool is the
-                  # standard rare draft)
+            5: {  # rares (LAB GRADE — gray-market exotics)
                 "stimulant": ["megadose", "burnout", "catecholamine_spike", "flmodafinil", "override"],
                 "neurochem": ["lucid_window"],
                 "wetware":   ["pain_threshold"],
             },
-            ## Black market draws from the rare T5 pool with one upgrade
-            ## promotion roll baked in — buying at 25k should feel like the
-            ## money chose for you. Same pools as T5, evaluated identically.
+            ## Black market draws from the rare T5 pool — buying at 25k
+            ## should feel like the money chose for you. Same shape as T5.
             6: {
                 "stimulant": ["megadose", "burnout", "catecholamine_spike", "flmodafinil", "override"],
                 "neurochem": ["lucid_window"],
@@ -1529,9 +1554,10 @@ label _apply_nootropic_tier:
             __import__('random').choice(_pools["wetware"]),
         ]
 
-        _outcome_str = "- {:,} CZK  |  +{} Coding  |  {} Hatred".format(
+        _outcome_str = "- {:,} CZK  |  +{} Coding  |  {} Hatred  |  STACK → {}".format(
             _cost, _coding_gain,
-            "{}".format(_t["hatred"]) if _t["hatred"] < 0 else "+{}".format(_t["hatred"]))
+            "{}".format(_t["hatred"]) if _t["hatred"] < 0 else "+{}".format(_t["hatred"]),
+            store.bh_protocol or "—")
         if nootropic_dependency and _tier == 5:
             _outcome_str += "  [TOLERANCE — reduced effect]"
 
@@ -1638,11 +1664,15 @@ label _apply_research:
 
     python:
         store.nootropics_done_today = True
+        ## PubMed research consumes the daily activity slot just like a
+        ## dose buy. Cancel path (the `if _research_result is None` branch
+        ## above) still bounces back to activity_coding with no slot used.
+        activity_selected = True
     show screen outcome_panel("Card upgraded.")
     pause
     hide screen outcome_panel
 
-    jump activity_coding
+    jump end_day
 
 
 ## ---------------------------------------------------------------------------
