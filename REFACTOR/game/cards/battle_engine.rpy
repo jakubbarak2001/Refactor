@@ -1277,7 +1277,9 @@ init python:
         ## == basename in audio/sfx/<id>.{ogg,mp3,wav}.
         if ic.get("id") in ("gas_throw", "flare_throw", "paper_wall", "spray_blind"):
             _play_battle_sfx(ic["id"], channel="battle_card_sfx")
-        elif ic.get("id") in ("rvac_swing", "clear_room"):
+        elif ic.get("id") == "rvac_swing":
+            _play_battle_sfx(ic["id"], channel="battle_card_sfx", volume=1.5625)
+        elif ic.get("id") == "clear_room":
             _play_battle_sfx(ic["id"], channel="battle_card_sfx", volume=1.25)
 
         ## Resolve intent by type

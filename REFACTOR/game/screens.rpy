@@ -518,9 +518,12 @@ screen deck_viewer():
                         $ _grp_cards = _deck_by_group[_grp]
 
                         ## Group header — type label, color-coded, with count.
+                        ## xoffset matches the row offset below so the header
+                        ## color bar lines up with the first card's left edge.
                         hbox:
                             spacing 12
                             yalign 0.5
+                            xoffset 28
                             ## Color bar to the left of the label gives the
                             ## header weight and matches the card frames below.
                             frame:
@@ -535,12 +538,15 @@ screen deck_viewer():
                                 outlines [(1, "#000000", 0, 0)]
 
                         ## Six cards per row, full StS card visuals via the
-                        ## canonical battle_card_view renderer. Top padding
-                        ## on the first card slot reserves room for the cost
-                        ## gem's -12px overhang.
+                        ## canonical battle_card_view renderer. xoffset 28
+                        ## reserves room for the cost-gem overhang on the
+                        ## leftmost card in each row (gem hangs xpos -22
+                        ## from the card frame; without the shift the row's
+                        ## first gem gets clipped at the viewport edge).
                         $ _rows = [_grp_cards[i:i+6] for i in range(0, len(_grp_cards), 6)]
                         vbox:
                             spacing 28
+                            xoffset 28
                             for _row in _rows:
                                 hbox:
                                     spacing 16
@@ -670,7 +676,7 @@ default _ACT_DEFAULT_GLYPHS = {
     "VISIT FIXER": "✂",
 }
 
-screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effect_chips=None, locked=False, lock_text="", class_relevant=False, flavor_text="", art_glyph="", cost_unaffordable=False):
+screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effect_chips=None, locked=False, lock_text="", class_relevant=False, flavor_text="", art_glyph="", cost_unaffordable=False, stat_lines=None):
     ## Layered construction mirrors the StS card render:
     ##   L2: drop shadow
     ##   L3: accent-colored border
@@ -788,8 +794,14 @@ screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effe
                     ## parameters are kept on the signature so existing
                     ## call sites don't break, but they no longer render.
 
-                    ## FLAVOR / LOCK NOTE — italic at the bottom.
-                    null height 2
+                    ## STAT LINES — structured per-stat readout. Pass
+                    ## stat_lines=[(label, value), ...] in the option dict
+                    ## when the tile should show explicit stat deltas
+                    ## instead of prose flavor. Used by Recovery so each
+                    ## modality shows BATTLE BONUS / HP / HATRED on its
+                    ## own line. Value polarity drives color: HP+ green,
+                    ## HP- red, HATRED- green (relief), HATRED+ red.
+                    null height 4
                     if locked and lock_text:
                         text lock_text:
                             color "#554434"
@@ -798,6 +810,35 @@ screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effe
                             xalign 0.5
                             text_align 0.5
                             xmaximum 280
+                    elif stat_lines:
+                        for _sl_label, _sl_value in stat_lines:
+                            python:
+                                _sl_sign = _sl_value[0] if _sl_value else ""
+                                if _sl_label == "BATTLE BONUS":
+                                    _sl_color = "#ffd700"
+                                elif _sl_value in ("", "—"):
+                                    _sl_color = "#777777"
+                                elif _sl_label == "HP":
+                                    _sl_color = "#55dd66" if _sl_sign == "+" else ("#dd5544" if _sl_sign == "-" else "#cccccc")
+                                elif _sl_label == "HATRED":
+                                    _sl_color = "#55dd66" if _sl_sign == "-" else ("#dd5544" if _sl_sign == "+" else "#cccccc")
+                                else:
+                                    _sl_color = "#cccccc"
+                            hbox:
+                                xfill True
+                                spacing 6
+                                text _sl_label:
+                                    color "#888070"
+                                    size 12
+                                    bold True
+                                    font "fonts/RobotoMono-Regular.ttf"
+                                    xsize 110
+                                text _sl_value:
+                                    color _sl_color
+                                    size 13
+                                    bold True
+                                    font "fonts/RobotoMono-Regular.ttf"
+                                    xalign 1.0
                     elif flavor_text:
                         text flavor_text:
                             color "#aaa090"
@@ -835,10 +876,19 @@ screen activity_submenu(title, options, subtitle="", back_label="daily_menu"):
 
     add "#0a0a0acc"
 
+    ## Title, subtitle, and tile grid live in a single vbox so the subtitle
+    ## can't overlap the cards (it used to: title was top-pinned, grid was
+    ## yalign 0.5 → on a 4-tile 2x2 the grid climbed into the subtitle).
+    python:
+        _opts_visible = [o for o in options if o.get("visible", True)]
+        ## 4 options → 2x2 (symmetric). Anything else → 3-wide.
+        _per_row = 2 if len(_opts_visible) == 4 else 3
+        _rows = [_opts_visible[i:i + _per_row] for i in range(0, len(_opts_visible), _per_row)]
+
     vbox:
         xalign 0.5
-        ypos 140
-        spacing 6
+        ypos 110
+        spacing 22
 
         text title:
             xalign 0.5
@@ -858,35 +908,32 @@ screen activity_submenu(title, options, subtitle="", back_label="daily_menu"):
                 text_align 0.5
                 font "fonts/RobotoMono-Regular.ttf"
 
-    ## Tile grid - auto-wrap to a 3-wide layout
-    vbox:
-        xalign 0.5
-        yalign 0.5
-        spacing 28
+        null height 14
 
-        python:
-            _opts_visible = [o for o in options if o.get("visible", True)]
-            _per_row = 3
-            _rows = [_opts_visible[i:i + _per_row] for i in range(0, len(_opts_visible), _per_row)]
+        vbox:
+            xalign 0.5
+            spacing 28
 
-        for _row in _rows:
-            hbox:
-                spacing 28
-                xalign 0.5
+            for _row in _rows:
+                hbox:
+                    spacing 28
+                    xalign 0.5
 
-                for _opt in _row:
-                    use _activity_tile(
-                        label_name        = _opt.get("label_name", back_label),
-                        title             = _opt.get("title", "?"),
-                        accent            = _opt.get("accent", "#cccccc"),
-                        cost_text         = _opt.get("cost_text", ""),
-                        cost_unaffordable = _opt.get("cost_unaffordable", False),
-                        effect_text       = _opt.get("effect_text", ""),
-                        locked            = _opt.get("locked", False),
-                        lock_text         = _opt.get("lock_text", ""),
-                        class_relevant    = _opt.get("class_relevant", False),
-                        flavor_text       = _opt.get("flavor_text", ""),
-                    )
+                    for _opt in _row:
+                        use _activity_tile(
+                            label_name        = _opt.get("label_name", back_label),
+                            title             = _opt.get("title", "?"),
+                            accent            = _opt.get("accent", "#cccccc"),
+                            cost_text         = _opt.get("cost_text", ""),
+                            cost_unaffordable = _opt.get("cost_unaffordable", False),
+                            effect_text       = _opt.get("effect_text", ""),
+                            locked            = _opt.get("locked", False),
+                            lock_text         = _opt.get("lock_text", ""),
+                            class_relevant    = _opt.get("class_relevant", False),
+                            flavor_text       = _opt.get("flavor_text", ""),
+                            art_glyph         = _opt.get("art_glyph", ""),
+                            stat_lines        = _opt.get("stat_lines", None),
+                        )
 
     ## Floating BACK button - same spot as the parent screen for muscle memory.
     textbutton "[[ ← BACK ]":
@@ -1162,72 +1209,27 @@ screen daily_hub_screen():
 
     python:
         _today        = day_cycle.current_day if day_cycle is not None else 1
-        _phone_msgs   = getattr(store, '_phone_notifications', [])
-        _phone_count  = len(_phone_msgs)
         _hub_class_color = class_accent_color()
-        ## Brackets render dimmer than the word so the verb (TRAIN/READ/STACK)
-        ## reads as the hot focal point and the brackets frame it without
-        ## competing for attention.
-        _hub_cta_dim   = _hub_class_color + "aa"
-        ## Dossier tag — case-file stamp on the day's marquee. Precomputed
-        ## as a plain string so we don't lean on Ren'Py format-spec syntax
-        ## inside the displayable.
-        _dossier_tag       = "JBKZ-{:02d}".format(_today)
+        ## Dossier tag — case-file stamp used by the lock-in state's footer.
+        _dossier_tag        = "JBKZ-{:02d}".format(_today)
         _dossier_tag_closed = _dossier_tag + " · CLOSED"
 
         if stats and stats.player_class == "bodybuilder":
             _hub_cta_word  = "TRAIN"
-            _hub_cta_sub   = "The body is the argument. Pick the rep."
             _hub_cta_color = _hub_class_color
             _hub_cta_hover = "#ff8855"
         elif stats and stats.player_class == "dark_empath":
             _hub_cta_word  = "READ"
-            _hub_cta_sub   = "The room is the data. Pick what you watch."
             _hub_cta_color = _hub_class_color
             _hub_cta_hover = "#bb66dd"
         elif stats and stats.player_class == "biohacker":
             _hub_cta_word  = "STACK"
-            _hub_cta_sub   = "The protocol is the answer. Pick the input."
             _hub_cta_color = _hub_class_color
             _hub_cta_hover = "#55ee88"
         else:
             _hub_cta_word  = "PICK YOUR MOVE"
-            _hub_cta_sub   = "One choice. Earn cards. Build the deck."
             _hub_cta_color = "#cc2200"
             _hub_cta_hover = "#ff4422"
-
-    ## ── Sidebar — PHONE (gated on unread notifications) ─────────────────────
-    if _phone_msgs:
-        frame:
-            xpos 1700
-            ypos 240
-            xsize 200
-            padding (14, 14)
-            background Frame("#0a0a0aee", 4, 4)
-
-            vbox:
-                spacing 8
-                xfill True
-
-                textbutton "PHONE · [_phone_count]":
-                    xalign 0.5
-                    action Show("phone_screen")
-                    text_color "#ffd700"
-                    text_hover_color "#ffffff"
-                    text_size 18
-                    text_bold True
-                    text_font "fonts/RobotoMono-Regular.ttf"
-                    background "#00000000"
-                    hover_background Frame("#1f1808dd", 3, 3)
-                    padding (10, 8)
-                    xfill True
-
-                text "Unread.":
-                    xalign 0.5
-                    color "#888888"
-                    size 12
-                    italic True
-                    font "fonts/RobotoMono-Regular.ttf"
 
     ## ── Sidebar — FIXER (day 10+; one shred per day; free time, doesn't
     ## burn your daily activity). Dimmed and disabled after today's shred.
@@ -1235,7 +1237,7 @@ screen daily_hub_screen():
         $ _fixer_done = bool(getattr(store, '_fixer_shredded_today', False))
         frame:
             xpos 1700
-            ypos (380 if _phone_msgs else 240)
+            ypos 240
             xsize 200
             padding (14, 14)
             background Frame("#0a0a0aee", 4, 4)
@@ -1326,60 +1328,26 @@ screen daily_hub_screen():
                     spacing 10
                     xalign 0.5
 
-                    text "TODAY · DAY [_today] / 30":
+                    text "DAY [_today] / 30":
                         color _hub_class_color
                         size 14
                         bold True
                         xalign 0.5
                         font DOSSIER_FONT
 
-                    ## Split-bracket CTA — dim brackets frame the bright verb.
-                    hbox:
+                    textbutton _hub_cta_word:
                         xalign 0.5
-                        spacing 8
-
-                        text "[[":
-                            color _hub_cta_dim
-                            size 64
-                            bold True
-                            yalign 0.5
-                            font DOSSIER_FONT
-
-                        textbutton _hub_cta_word:
-                            yalign 0.5
-                            action Jump("select_activity")
-                            text_color _hub_cta_color
-                            text_hover_color _hub_cta_hover
-                            text_size 64
-                            text_bold True
-                            text_font DOSSIER_FONT
-                            text_outlines [(3, "#000000", 0, 0)]
-                            background "#00000000"
-                            hover_background "#00000000"
-                            padding (12, 6)
-                            at _today_cta_lift
-
-                        text "]":
-                            color _hub_cta_dim
-                            size 64
-                            bold True
-                            yalign 0.5
-                            font DOSSIER_FONT
-
-                    text _hub_cta_sub:
-                        color "#a0a0a0"
-                        size 17
-                        italic True
-                        xalign 0.5
-                        font DOSSIER_FONT
-
-                    null height 2
-
-                    text "[DOSSIER_GLYPH] DOSSIER · [_dossier_tag]":
-                        color DOSSIER_INK_DIM
-                        size 11
-                        xalign 0.5
-                        font DOSSIER_FONT
+                        action Jump("select_activity")
+                        text_color _hub_cta_color
+                        text_hover_color _hub_cta_hover
+                        text_size 64
+                        text_bold True
+                        text_font DOSSIER_FONT
+                        text_outlines [(3, "#000000", 0, 0)]
+                        background "#00000000"
+                        hover_background "#00000000"
+                        padding (12, 6)
+                        at _today_cta_lift
 
             ## Bottom class-color hairline
             frame:
@@ -1712,37 +1680,194 @@ transform _outcome_continue_pulse:
     linear 0.7 alpha 0.4
     repeat
 
+## Parse a flat outcome string into per-line chunks with semantic colors.
+## Paren-aware split so "TOOK THE HEAT (1E, exhaust — gain 10 block, draw 1)"
+## stays as one chunk and only TOP-LEVEL stat boundaries get broken out.
+## Split rules (in order): explicit pipe " | "; OR comma+space followed by a
+## delta marker (+, -, +card, ✓, [). Naked commas inside numbers (-3,500)
+## or paren groups never split.
+##
+## NOTE: `re` is accessed inline via __import__('re'), never bound to a store
+## name. Importing modules at init python: scope binds them to the save store,
+## and Ren'Py's pickle pass on save then crashes ("Could not pickle <module
+## 're'>"). Same pattern the codebase uses for random everywhere.
+##
+## SAVE-RECOVERY: an earlier version of this file did `import re as _outcome_re`
+## at init python and shipped that into player saves. Loading such a save
+## restores the bad binding to the store and the next save crashes on pickle.
+## We strip the legacy names on every save load so legacy saves heal in place.
+init python:
+    def _outcome_cleanup_stale_re():
+        for _name in ("_outcome_re", "_OUTCOME_SPLIT_RE"):
+            if hasattr(store, _name):
+                delattr(store, _name)
+    _outcome_cleanup_stale_re()
+    config.after_load_callbacks.append(_outcome_cleanup_stale_re)
+
+    def _outcome_parse(text):
+        if not text:
+            return []
+        re = __import__('re')
+        parens = []
+        def _mask(m):
+            parens.append(m.group(0))
+            return "\x00{}\x00".format(len(parens) - 1)
+        masked = re.sub(r'\([^)]*\)|\[[^\]]*\]', _mask, text)
+        ## Split on (a) pipe, (b) comma + delta marker, (c) 3+ spaces (the
+        ## call-site convention some outcomes use instead of commas).
+        raw = re.split(r'\s*\|\s*|,\s+(?=[+\-]|\+\s*card|\+\s*CARD|✓|\[)|\s{3,}', masked)
+        out = []
+        for chunk in raw:
+            for i, p in enumerate(parens):
+                chunk = chunk.replace("\x00{}\x00".format(i), p)
+            chunk = chunk.strip().rstrip('.').strip()
+            if chunk:
+                out.append((chunk, _outcome_chunk_color(chunk)))
+        return out
+
+    def _outcome_chunk_color(chunk):
+        up = chunk.upper()
+        sign = chunk[0] if chunk else ""
+        ## Card grants — always gold. Match early so a card-name chunk
+        ## that happens to contain "HP"/"CODING" doesn't get reclassified.
+        if "CARD" in up and ("+" in chunk[:3] or "TAKEN" in up or "GAINED" in up):
+            return "#ffd24a"
+        ## Coding stat — canonical Skill-blue. Hoisted above the money
+        ## branch so "Coding/night" type strings color as code, not cash.
+        if "CODING" in up:
+            return "#55a0ff"
+        ## Money / HP / block gains read green up, red down.
+        if any(k in up for k in ("CZK", "CASH", "MONEY", "HP", "SKILL", "BLOCK")):
+            if sign == "+":
+                return "#55dd66"
+            if sign == "-":
+                return "#dd5544"
+        ## Hatred polarity inverts — gaining hatred is bad.
+        if "HATRED" in up:
+            if sign == "+":
+                return "#dd5544"
+            if sign == "-":
+                return "#55dd66"
+        ## Bracketed tag chunks ("[Kovář profile +1]") — accent gold.
+        if chunk.startswith("[") and "]" in chunk:
+            return "#e8c878"
+        ## Fallback — readable cream.
+        return "#e0e0d0"
+
+
 screen outcome_panel(outcome_text):
     layer "screens"
     zorder 200
 
+    python:
+        _op_chunks = _outcome_parse(outcome_text)
+
     ## Single frame > vbox > text-children — the canonical pattern. Earlier
     ## nested-frames-containing-text-directly + ATL-on-vbox combinations
     ## tripped Ren'Py's screen layout into ui.interact stack-imbalance
-    ## crashes (seen on gym/coding card-offer flows). Visual stays flat
-    ## (no green border, no header) so it doesn't look like a choice menu.
+    ## crashes (seen on gym/coding card-offer flows).
     frame:
         xalign 0.5
         yalign 0.86
-        padding (28, 10)
-        background Frame("#0a0a0acc", 0, 0)
+        padding (32, 14)
+        background Frame("#0a0a0add", 0, 0)
 
         vbox:
-            spacing 4
+            spacing 8
             xalign 0.5
 
-            text outcome_text substitute False:
-                color "#ffffff"
-                size 22
-                bold True
-                xalign 0.5
-                outlines [(2, "#000000aa", 0, 0)]
+            ## STAT CHUNKS — one line each, colored by polarity. Falls back
+            ## to the raw text rendered flat when parsing yields nothing
+            ## (pure-prose outcomes like "No change. You don't need it.").
+            if _op_chunks:
+                for _chunk, _color in _op_chunks:
+                    text _chunk substitute False:
+                        color _color
+                        size 22
+                        bold True
+                        xalign 0.5
+                        outlines [(2, "#000000aa", 0, 0)]
+                        font "fonts/RobotoMono-Regular.ttf"
+            else:
+                text outcome_text substitute False:
+                    color "#e0e0d0"
+                    size 20
+                    italic True
+                    xalign 0.5
+                    xmaximum 900
+                    text_align 0.5
+                    outlines [(2, "#000000aa", 0, 0)]
+
+            null height 4
 
             text "› click to continue":
                 color "#88aa88"
                 size 11
                 italic True
                 xalign 0.5
+
+
+## ---------------------------------------------------------------------------
+## Card Grant — celebration screen for an already-granted card. Modal, click
+## to dismiss. Use AFTER `grant_card(card_id, silent=True)` so the player
+## sees what entered their deck on its own beat instead of buried inside
+## an outcome string. For interactive TAKE/PASS, use card_solo_offer_screen.
+## ---------------------------------------------------------------------------
+
+screen card_grant_screen(card_id):
+    modal True
+    zorder 700
+    layer "screens"
+
+    python:
+        _gr_card = CARD_LIBRARY.get(card_id, {})
+
+    add "#0a0a0aee"
+
+    vbox:
+        xalign 0.5
+        yalign 0.08
+        spacing 6
+
+        text "+ CARD GAINED":
+            xalign 0.5
+            color "#ffd24a"
+            size 28
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+            outlines [(3, "#000000", 0, 0)]
+
+        text "Added to your deck.":
+            xalign 0.5
+            color "#888888"
+            size 14
+            italic True
+            font "fonts/RobotoMono-Regular.ttf"
+
+    fixed:
+        xalign 0.5
+        yalign 0.5
+        xysize (420, 580)
+        use card_visual(_gr_card)
+
+    textbutton "[[ CONTINUE ]":
+        xalign 0.5
+        yalign 0.92
+        action Return(True)
+        text_color "#ffffff"
+        text_hover_color "#ffd24a"
+        text_size 22
+        text_bold True
+        text_font "fonts/RobotoMono-Regular.ttf"
+        text_xalign 0.5
+        background Frame("#1a1a1aee", 4, 4)
+        hover_background Frame("#2a2a2aee", 4, 4)
+        padding (22, 12)
+
+    key "K_RETURN" action Return(True)
+    key "K_KP_ENTER" action Return(True)
+    key "K_SPACE" action Return(True)
+    key "K_ESCAPE" action Return(True)
 
 
 ## ---------------------------------------------------------------------------
@@ -5840,7 +5965,7 @@ screen confirm(message, yes_action, no_action):
                 spacing 80
 
                 textbutton _("►  yes") action yes_action
-                textbutton _("◄  no") action no_action
+                textbutton _("►  no") action no_action
 
     ## Right-click and escape answer "no".
     key "game_menu" action no_action

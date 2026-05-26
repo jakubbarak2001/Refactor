@@ -301,20 +301,23 @@ label ev_designer_of_forms:
 
     python:
         _df_art = "images/events/ev_designer_of_forms.jpg"
-        _df_up_avail = any(is_upgradeable(c) for c in player_deck.cards)
-        _df_rem_avail = any(c not in CLASS_SIGNATURE_CARDS for c in player_deck.cards)
+        _df_up_pool   = [c for c in player_deck.cards if is_upgradeable(c)]
+        _df_up_count  = len(_df_up_pool)
 
-        _df_grieve_ok = (stats.available_money >= 4000) and _df_up_avail
-        if stats.available_money < 4000:
-            _df_grieve_lock = "Records do not move for less than 4,000 CZK."
-        else:
-            _df_grieve_lock = "Nothing in your file can be sharpened further."
+        _df_grieve_ok = _df_up_count >= 1
+        _df_grieve_lock = "Nothing in your file can be sharpened further."
 
-        _df_full_ok = (stats.available_money >= 10000) and _df_rem_avail
-        if stats.available_money < 10000:
-            _df_full_lock = "Full reprocessing runs 10,000 CZK. It is not negotiable."
+        _df_exp_ok = (stats.available_money >= 2500) and _df_up_count >= 1
+        if stats.available_money < 2500:
+            _df_exp_lock = "Expedited filing runs 2,500 CZK."
         else:
-            _df_full_lock = "Your file holds nothing he is permitted to strike."
+            _df_exp_lock = "Nothing in your file can be sharpened further."
+
+        _df_full_ok = (stats.available_money >= 7500) and _df_up_count >= 1
+        if stats.available_money < 7500:
+            _df_full_lock = "Full reprocessing runs 7,500 CZK."
+        else:
+            _df_full_lock = "Nothing in your file can be sharpened further."
 
         _df_body = [
             "Records, sub-basement. The man behind the desk has been redrawing the same arrest form since 2007. Box 4b has moved nine times.",
@@ -325,28 +328,23 @@ label ev_designer_of_forms:
             {
                 "id": "grievance",
                 "label": "[ FILE A GRIEVANCE ]",
-                "desc": ec("4,000 CZK") + ".  " + eg("He upgrades a card."),
+                "desc": ec("FREE") + ".  " + eg("Pick 1 card. He sharpens it."),
                 "enabled": _df_grieve_ok,
                 "locked": _df_grieve_lock,
             },
             {
-                "id": "resubmit",
-                "label": "[ RESUBMIT IN TRIPLICATE ]",
-                "desc": ec("7,000 CZK") + ".  " + eg("You pick 2 cards; each becomes a random card of the same rarity."),
-                "enabled": (stats.available_money >= 7000),
-                "locked": "Triplicate filing runs 7,000 CZK.",
+                "id": "expedited",
+                "label": "[ EXPEDITED FILING ]",
+                "desc": ec("2,500 CZK") + ".  " + eg("He sharpens 2 random cards."),
+                "enabled": _df_exp_ok,
+                "locked": _df_exp_lock,
             },
             {
                 "id": "full",
                 "label": "[ FULL REPROCESSING ]",
-                "desc": ec("10,000 CZK") + ".  " + eg("Remove a card you choose. Upgrade another at random."),
+                "desc": ec("7,500 CZK") + ".  " + eg("He sharpens 3 random cards."),
                 "enabled": _df_full_ok,
                 "locked": _df_full_lock,
-            },
-            {
-                "id": "fine",
-                "label": "[ TELL HIM THE FORM IS FINE ]",
-                "desc": ec("Lose 6 HP") + ".  He has given nineteen years to box 4b.",
             },
         ]
 
@@ -357,7 +355,6 @@ label ev_designer_of_forms:
         _df_res = []
 
     if _df_pick == "grievance":
-        $ stats.try_spend_money(4000)
         python:
             _df_up = [c for c in player_deck.cards if is_upgradeable(c)]
         call screen event_card_picker("CHOOSE A CARD TO SHARPEN", _df_up)
@@ -366,52 +363,37 @@ label ev_designer_of_forms:
             _df_res = [
                 "He takes your file into the back. Machine sounds — a stapler, or teeth. He returns it warmer than paper should be.",
                 "It came back sharper than it went in. He has already forgotten you.",
-                ec("- 4,000 CZK.") + "   " + eg("Upgraded a card."),
+                eg("Upgraded a card."),
             ]
 
-    elif _df_pick == "resubmit":
-        $ stats.try_spend_money(7000)
+    elif _df_pick == "expedited":
+        $ stats.try_spend_money(2500)
         python:
-            _df_deck = list(player_deck.cards)
-        call screen event_card_picker("CHOOSE A CARD TO RESUBMIT", _df_deck)
-        python:
-            event_transform_card(_return)
-            _df_deck = list(player_deck.cards)
-        call screen event_card_picker("CHOOSE ANOTHER CARD TO RESUBMIT", _df_deck)
-        python:
-            event_transform_card(_return)
+            _df_up = [c for c in player_deck.cards if is_upgradeable(c)]
+            __import__('random').shuffle(_df_up)
+            _df_done = 0
+            for _df_cid in _df_up[:2]:
+                if upgrade_card_in_deck(_df_cid):
+                    _df_done += 1
             _df_res = [
-                "He does not fix what you brought him. He files it under a heading you did not know existed and hands you back something else entirely.",
-                "Two cards went in. Two different cards came out. He calls this correct.",
-                ec("- 7,000 CZK.") + "   " + eg("Transformed 2 cards."),
+                "He stamps the file twice without reading it. Two pages come out of the machine with serial numbers that did not exist five minutes ago.",
+                "You do not get to choose what he sharpened. You get what he decides you need.",
+                ec("- 2,500 CZK.") + "   " + eg("Upgraded {} card(s).".format(_df_done)),
             ]
 
     elif _df_pick == "full":
-        $ stats.try_spend_money(10000)
+        $ stats.try_spend_money(7500)
         python:
-            _df_rem = [c for c in player_deck.cards if c not in CLASS_SIGNATURE_CARDS]
-        call screen event_card_picker("CHOOSE A CARD TO STRIKE FROM THE RECORD", _df_rem)
-        python:
-            player_deck.remove(_return)
             _df_up = [c for c in player_deck.cards if is_upgradeable(c)]
-            _df_upid = None
-            if _df_up:
-                _df_upid = __import__('random').choice(_df_up)
-                upgrade_card_in_deck(_df_upid)
+            __import__('random').shuffle(_df_up)
+            _df_done = 0
+            for _df_cid in _df_up[:3]:
+                if upgrade_card_in_deck(_df_cid):
+                    _df_done += 1
             _df_res = [
-                "He reads the whole file this time. Every box. Then he removes a page, feeds it to something under the desk, and it is gone the way only paperwork can be gone.",
-                "One thing struck from the record. One thing, chosen by him, made sharper.",
-                ec("- 10,000 CZK.") + "   " + eg("Removed a card.") + ("   " + eg("Upgraded a card.") if _df_upid else ""),
-            ]
-
-    else:
-        python:
-            _df_lost = event_hurt(6)
-            _df_res = [
-                "'The form,' you say, 'is fine.'",
-                "He stops. He looks at you the way you would look at a man kicking a dog. Nineteen years of box 4b, and you have called it fine.",
-                "Something lands, somewhere under your ribs, and decides to stay.",
-                ec("- {} HP.".format(_df_lost)),
+                "He reads the whole file this time. Every box. He pulls three pages, feeds them to the machine, and they come back warmer than paper should be.",
+                "Three things made sharper. You did not pick which. You will live with all of them.",
+                ec("- 7,500 CZK.") + "   " + eg("Upgraded {} card(s).".format(_df_done)),
             ]
 
     call screen event_outcome(title="THE DESIGNER OF FORMS", art=_df_art, result=_df_res)

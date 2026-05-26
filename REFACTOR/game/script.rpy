@@ -332,11 +332,6 @@ label day_start:
         "[[TOLERANCE WARNING]"
         "[_noot_flavor]"
 
-    if _noot_tag == "crash":
-        scene bg_jb_flat
-        "[[AFTEREFFECTS]"
-        "[_noot_flavor]"
-
     if _noot_tag == "dependency_cleared":
         scene bg_jb_flat
         "[[DEPENDENCY CLEARED]"
@@ -751,36 +746,52 @@ label activity_recovery:
                 "title":          "SAUNA",
                 "accent":         _bh_accent,
                 "cost_text":      "FREE",
-                "effect_text":    "+20 HP  ·  +5 max  ·  -10 Hatred",
-                "flavor_text":    "Heat-shock proteins.  Next fight: all heals +50%.",
                 "class_relevant": True,
+                "art_glyph":      "❉",
+                "stat_lines": [
+                    ("BATTLE BONUS", "All heals +50%"),
+                    ("HP",           "+20 (max +5)"),
+                    ("HATRED",       "-10"),
+                ],
             },
             {
                 "label_name":     "_apply_rec_meditation",
                 "title":          "MEDITATION",
                 "accent":         _bh_accent,
                 "cost_text":      "FREE",
-                "effect_text":    "+10 HP  ·  -30 Hatred",
-                "flavor_text":    "Twenty minutes on the cushion.  Next fight: +1 max energy.",
                 "class_relevant": True,
+                "art_glyph":      "◯",
+                "stat_lines": [
+                    ("BATTLE BONUS", "+1 max energy"),
+                    ("HP",           "+10"),
+                    ("HATRED",       "-30"),
+                ],
             },
             {
                 "label_name":     "_apply_rec_coldplunge",
                 "title":          "COLD PLUNGE",
                 "accent":         _bh_accent,
                 "cost_text":      "FREE",
-                "effect_text":    "+25 HP  ·  +10 max",
-                "flavor_text":    "Nervous-system reboot.  Next fight: +12 starting block.",
                 "class_relevant": True,
+                "art_glyph":      "❅",
+                "stat_lines": [
+                    ("BATTLE BONUS", "+12 starting block"),
+                    ("HP",           "+25 (max +10)"),
+                    ("HATRED",       "—"),
+                ],
             },
             {
                 "label_name":     "_apply_rec_redlight",
                 "title":          "RED LIGHT",
                 "accent":         _bh_accent,
                 "cost_text":      "FREE",
-                "effect_text":    "+15 HP  ·  +5 max  ·  -15 Hatred",
-                "flavor_text":    "Twenty minutes under the panel.  Next fight: +2 HP/turn regen.",
                 "class_relevant": True,
+                "art_glyph":      "❂",
+                "stat_lines": [
+                    ("BATTLE BONUS", "+2 HP/turn regen"),
+                    ("HP",           "+15 (max +5)"),
+                    ("HATRED",       "-15"),
+                ],
             },
         ]
 
@@ -1114,9 +1125,10 @@ label coding_bootcamp:
     python:
         stats.increment_stats_coding_skill(25)
         grant_card("production_push", silent=True)
-        _bc_outcome = "- {:,} CZK   +25 CODING   +5 Coding/night   [+ Production Push]".format(_bc_cost)
+        _bc_outcome = "- {:,} CZK, +25 CODING, +5 Coding/night".format(_bc_cost)
 
     window hide
+    call screen card_grant_screen(card_id="production_push")
     show screen outcome_panel(_bc_outcome)
     pause
     hide screen outcome_panel
@@ -1140,9 +1152,10 @@ label coding_bootcamp_de:
     python:
         stats.increment_stats_coding_skill(25)
         grant_card("production_push", silent=True)
-        _bc_outcome = "- {:,} CZK [DE DISCOUNT]   +25 CODING   +5 Coding/night   [+ Production Push]".format(_bc_cost)
+        _bc_outcome = "- {:,} CZK [DE DISCOUNT], +25 CODING, +5 Coding/night".format(_bc_cost)
 
     window hide
+    call screen card_grant_screen(card_id="production_push")
     show screen outcome_panel(_bc_outcome)
     pause
     hide screen outcome_panel
@@ -1590,14 +1603,14 @@ label _apply_nootropic_tier:
             },
             5: {  # rares (LAB GRADE — gray-market exotics)
                 "stimulant": ["megadose", "burnout", "catecholamine_spike", "flmodafinil", "override"],
-                "neurochem": ["lucid_window"],
+                "neurochem": ["big_tech_offer", "open_source_pr"],
                 "wetware":   ["pain_threshold"],
             },
             ## Black market draws from the rare T5 pool — buying at 25k
             ## should feel like the money chose for you. Same shape as T5.
             6: {
                 "stimulant": ["megadose", "burnout", "catecholamine_spike", "flmodafinil", "override"],
-                "neurochem": ["lucid_window"],
+                "neurochem": ["big_tech_offer", "open_source_pr"],
                 "wetware":   ["pain_threshold"],
             },
         }
@@ -1625,21 +1638,6 @@ label _apply_nootropic_tier:
     show screen outcome_panel(_outcome_str)
     pause
     hide screen outcome_panel
-
-    ## Crash/next-day preview
-    python:
-        _has_crash = _t["crash_coding"] != 0 or _t["crash_hatred"] != 0
-        _crash_str = ""
-        if _has_crash:
-            parts = []
-            if _t["crash_coding"] != 0:
-                parts.append("{} Coding tomorrow".format(_t["crash_coding"]))
-            if _t["crash_hatred"] != 0:
-                parts.append("+{} Hatred tomorrow".format(_t["crash_hatred"]))
-            _crash_str = "  |  ".join(parts)
-
-    if _has_crash:
-        "[[NEXT-DAY EFFECT] [_crash_str]"
 
     ## Tier unlock announcement (3-user-tier model)
     if _unlock == "SHADY_UNLOCKED":

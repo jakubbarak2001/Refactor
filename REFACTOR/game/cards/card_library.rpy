@@ -946,20 +946,6 @@ init python:
         flavor     = "A note you left for yourself. It still works.",
     )
 
-    register_card(
-        "lucid_window",
-        name       = "Lucid Window",
-        type       = "Skill",
-        color      = "Special",
-        cost       = 1,
-        rarity     = "rare",
-        effect     = "lucid_window",
-        class_lock = "biohacker",
-        archetype  = "neurochem",
-        exhaust    = True,
-        flavor     = "Dial in. Run it again, exactly the same.",
-    )
-
     ## ---------------------------------------------------------------------------
     ## BH ARCHETYPE: WETWARE — HP as resource, healing, body engineering. The
     ## only archetype in the game with active in-fight HP regen.
@@ -1445,7 +1431,6 @@ init python:
     register_upgrade("pattern_match",         effect="pattern_match_plus",         flavor="Three papers, same finding. The signal won't shut up.")
     register_upgrade("n_of_one",              effect="n_of_one_plus",              flavor="Your own logbook. Three pages this time.")
     register_upgrade("recall_protocol",       effect="recall_protocol_plus",       flavor="A pinned note. You knew which one you'd need.")
-    register_upgrade("lucid_window",          effect="lucid_window",          cost=0, flavor="Dial in. Run it again. Free this time.")
 
     ## BH new-archetype cards — Wetware. Powers upgrade by going free.
     register_upgrade("mitochondrial",         effect="mitochondrial_plus",         flavor="ATP cycle holds. The cell wakes up.")

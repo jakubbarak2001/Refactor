@@ -693,10 +693,7 @@ init python:
             "cost":          2000,
             "coding":        5,
             "hatred":        -3,
-            "crash_coding":  0,
-            "crash_hatred":  0,
             "flavor":        "Boring. Legal. The foundation any serious protocol starts from.",
-            "crash_flavor":  "",
         },
         2: {
             "name":          "Cognitive Stack",
@@ -704,10 +701,7 @@ init python:
             "cost":          750,
             "coding":        12,
             "hatred":        -5,
-            "crash_coding":  0,
-            "crash_hatred":  0,
             "flavor":        "[DEPRECATED visible tier — kept as data for legacy references.]",
-            "crash_flavor":  "",
         },
         3: {
             "name":          "Shady Source",
@@ -715,10 +709,7 @@ init python:
             "cost":          5000,
             "coding":        9,
             "hatred":        -5,
-            "crash_coding":  -1,
-            "crash_hatred":  3,
             "flavor":        "The dealer answers on the third ring. He doesn't say his name.",
-            "crash_flavor":  "Mild crash. Hands twitchy this morning.",
         },
         4: {
             "name":          "Peptides",
@@ -726,10 +717,7 @@ init python:
             "cost":          2000,
             "coding":        18,
             "hatred":        -12,
-            "crash_coding":  -5,
-            "crash_hatred":  8,
             "flavor":        "[DEPRECATED visible tier — kept as data for legacy references.]",
-            "crash_flavor":  "",
         },
         5: {
             "name":          "Lab Grade",
@@ -737,10 +725,7 @@ init python:
             "cost":          10000,
             "coding":        15,
             "hatred":        5,
-            "crash_coding":  -5,
-            "crash_hatred":  10,
             "flavor":        "The vial is plain. The labelling is wrong on purpose.",
-            "crash_flavor":  "Crash hits like a reboot with corrupted memory. The Colonel's face is very clear this morning.",
         },
         ## TIER 6 — BLACK MARKET. Pure money-to-power; gated behind 100 Coding
         ## (you have to BE somebody to know somebody). Adds the "I've made it
@@ -752,10 +737,7 @@ init python:
             "cost":          25000,
             "coding":        20,
             "hatred":        10,
-            "crash_coding":  -8,
-            "crash_hatred":  15,
             "flavor":        "Cash up front. Address sent fifteen minutes before pickup. He doesn't shake your hand.",
-            "crash_flavor":  "You wake up sideways on the floor. The notebook in your handwriting predicted this exact angle.",
         },
     }
 
@@ -935,23 +917,13 @@ init python:
         ## A dose landed → reset the no-dose streak.
         store._bh_nodose_streak = 0
 
-        t = NOOTROPIC_TIERS[tier]
-        effects = []
-
-        if t["crash_coding"] != 0:
-            stats.increment_stats_coding_skill(t["crash_coding"])
-            effects.append("{} Coding".format(t["crash_coding"]))
-        if t["crash_hatred"] != 0:
-            stats.increment_stats_pcr_hatred(t["crash_hatred"])
-            effects.append("+{} Hatred".format(t["crash_hatred"]))
-
         # T5 hard dependency trigger — raised 2 → 5 doses (see docstring).
         if tier == 5 and nootropic_uses[4] >= 5 and not nootropic_dependency:
             nootropic_dependency = True
             return ("dependency_triggered",
                     "Five doses. You crossed the line.\n"
                     "FLModafinil (CRL-40,940) has rewritten your baseline.\n"
-                    "You will feel its absence now.\n\n" + t["crash_flavor"])
+                    "You will feel its absence now.")
 
         # T4 soft dependency (extra penalty after 4 uses, no hard lock)
         if tier == 4 and nootropic_uses[3] >= 4:
@@ -959,10 +931,8 @@ init python:
             stats.increment_stats_pcr_hatred(5)
             return ("soft_dependency",
                     "The edge is dulling. Your body is adapting.\n"
-                    "This is what tolerance looks like.\n\n" + t["crash_flavor"])
+                    "This is what tolerance looks like.")
 
-        if effects:
-            return ("crash", t["crash_flavor"])
         return None
 
     def check_nootropic_unlocks():

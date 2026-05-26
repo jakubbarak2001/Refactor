@@ -208,7 +208,6 @@ init python:
         "n_of_one_plus":           "Draw 1 card. If it's a Skill, draw 2 more. Free.",
         "recall_protocol":         "Return a random card from your discard pile to your hand.",
         "recall_protocol_plus":    "Return 2 random cards from your discard pile to your hand.",
-        "lucid_window":            "Copy the effect of your leftmost other card. Exhausts.",
         ## BH Wetware
         "mitochondrial":           "Heal 5 HP. Gain 5 block. Free.",
         "mitochondrial_plus":      "Heal 7 HP. Gain 7 block. Free.",
@@ -238,6 +237,7 @@ init python:
         "algorithm":               "Draw cards equal to your Coding tier − 1 (min 1).",
         "big_tech_offer":          "Gain CZK equal to Coding × 50. Exhausts.",
         "open_source_pr":          "Power: +1 max energy this fight. Your next Power costs 0.",
+        "open_source_pr_plus":     "Power: +1 max energy this fight. Your next two Powers cost 0.",
     }
 
     ## Counterweight converts the block wall into damage without consuming it,
@@ -1287,20 +1287,6 @@ init python:
             state.hand.append(victim)
             state.add_log("Recall Protocol+: returned {}.".format(
                 CARD_LIBRARY.get(victim, {}).get("name", victim)))
-
-    @register_effect("lucid_window")
-    def _eff_lucid_window(state, source, target):
-        ## Copy the leftmost OTHER card's effect. Filter both lucid_window and
-        ## lucid_window_plus so the upgrade can't self-target either.
-        pool = [c for c in state.hand if not c.startswith("lucid_window")]
-        if pool:
-            twin = pool[0]
-            twin_data = CARD_LIBRARY.get(twin, {})
-            twin_eff = twin_data.get("effect")
-            fn = card_effects.get(twin_eff)
-            if fn:
-                fn(state, source, target)
-                state.add_log("Lucid Window: copied {}.".format(twin_data.get("name", twin)))
 
     ## ---------------------------------------------------------------------------
     ## BH ARCHETYPE: WETWARE — HP regen, HP→block conversion, block+heal cards.
