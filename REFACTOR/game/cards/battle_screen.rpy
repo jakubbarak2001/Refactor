@@ -890,8 +890,14 @@ screen battle_card_view(cid, mode="hand", playable=True):
         except Exception:
             _combo_live = False
 
-        _has_art   = renpy.loadable("images/cards/{}.png".format(cid))
         _art_path  = "images/cards/{}.png".format(cid)
+        _has_art   = renpy.loadable(_art_path)
+        ## Upgrade fallback — `<id>_plus` reuses the base card's art when no
+        ## dedicated upgrade illustration exists. Matches StS convention; the
+        ## green "+" suffix on the name plate is the only required upgrade tell.
+        if not _has_art and cid.endswith("_plus"):
+            _art_path = "images/cards/{}.png".format(cid[:-5])
+            _has_art = renpy.loadable(_art_path)
         _art_glyph = _card.get("art_glyph") or {
             "Attack": "⚔", "Skill": "✦", "Power": "★",
             "Curse":  "🚫", "Status": "☠",

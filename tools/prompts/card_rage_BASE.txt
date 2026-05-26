@@ -1,0 +1,13 @@
+STYLE BLOCK — REFACTOR Rage card illustration.
+
+Painterly semi-realistic illustration, 2:1 widescreen composition (approximately 800×400). Tight, claustrophobic crop on a single body-action subject. No text, no UI elements, no logos, no card frames, no characters' faces — only hands, fists, jaw, neck, sweat-on-skin, knuckles, veins. Body-as-weapon iconography.
+
+Palette: deep oxblood red dominant, hot amber and orange highlights for impact heat, charcoal-black bruise tones in the shadows, a single cool steel-grey or muted concrete tone in the background for contrast. Heavy chiaroscuro. The red feels muscular and hateful, not glamorous.
+
+Mood: a freeze-frame in the middle of an action that just snapped. Strain visible. Sweat droplets in motion. Faint motion blur on the leading edge of the gesture. Aftermath traces — a smudge of blood on a knuckle, a vein standing out on a forearm, sweat trailing off jawline.
+
+Style match: soft painterly brushwork, semi-realistic, slightly diffused edges, lived-in. Same artist hand as the REFACTOR backgrounds (police_parking_lot.jpg, police_station_interior.jpg, bb_gym.jpg). NOT photorealistic. NOT anime. NOT 3D render. NOT illustration-software-default. Hand-painted feel.
+
+Banned: weapons of any kind (these are body-only Rage cards), gore beyond bruising/sweat/blood-on-knuckles, named-character faces, modern game-art glow effects, neon, magic, fantasy elements, anything that breaks the grounded mundane-Czech-cop tone of the rest of the game.
+
+Camera: tight crop, mid-action, single subject fills the frame edge to edge. No vignette. No letterbox. No border.

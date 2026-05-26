@@ -32,6 +32,7 @@ from google import genai
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BG_DIR = REPO_ROOT / "REFACTOR" / "game" / "images" / "backgrounds"
 SPRITES_DIR = REPO_ROOT / "REFACTOR" / "game" / "images" / "sprites"
+CARDS_DIR = REPO_ROOT / "REFACTOR" / "game" / "images" / "cards"
 
 DEFAULT_MODEL = "gemini-3.1-flash-image-preview"
 
@@ -69,6 +70,8 @@ def main() -> int:
                    help="reference image path(s) for style transfer; pass --ref multiple times")
     p.add_argument("--sprites", action="store_true",
                    help="output to sprites/ folder instead of backgrounds/ (and save as PNG, not JPG)")
+    p.add_argument("--cards", action="store_true",
+                   help="output to images/cards/ as PNG (battle_card_view picks these up by card_id filename)")
     args = p.parse_args()
 
     for ref in args.ref:
@@ -85,8 +88,12 @@ def main() -> int:
         print("Then in PowerShell:  setx GEMINI_API_KEY \"your-key\"  (restart shell after)", file=sys.stderr)
         return 1
 
-    out_dir = SPRITES_DIR if args.sprites else BG_DIR
-    ext = "png" if args.sprites else "jpg"
+    if args.cards:
+        out_dir, ext = CARDS_DIR, "png"
+    elif args.sprites:
+        out_dir, ext = SPRITES_DIR, "png"
+    else:
+        out_dir, ext = BG_DIR, "jpg"
     out_dir.mkdir(parents=True, exist_ok=True)
     client = genai.Client(api_key=api_key)
 
