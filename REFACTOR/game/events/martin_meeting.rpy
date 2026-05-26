@@ -134,9 +134,10 @@ label martin_phase1_preparation:
             pause
             hide screen outcome_panel
 
-        "[[BIOHACKER] STACK UP — [bh_protocol] protocol an hour before. (+1 AFFECTION, free)" if stats.player_class == "biohacker" and bh_protocol is not None:
+        "[[BIOHACKER] Dose [bh_protocol] first. (+1 AFFECTION, free)" if stats.player_class == "biohacker" and bh_protocol is not None:
             python:
                 martin_affection += 1
+                mm_outfit = "collar"
             "Pattern-recognition sharp. Anxiety metabolized into clarity. He notices the focus."
             window hide
             show screen outcome_panel("+1 AFFECTION [BIOHACKER].")
