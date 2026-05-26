@@ -12,7 +12,8 @@
 ##
 ## choices: list of dicts —
 ##   {"id": str, "label": str, "desc": str,
-##    "enabled": bool = True, "locked": str = ""}
+##    "enabled": bool = True, "locked": str = "",
+##    "preview_card": str = ""}   ## card_id — floats a full card view on hover
 ## body / result: list of paragraph strings. All text is substitute-False —
 ## pass literal strings; {color=...}/{stshl=...} tags still render.
 ################################################################################
@@ -59,6 +60,10 @@ screen event_screen(title, art, body, choices):
     modal True
     zorder 700
 
+    ## Hover-inspect: the currently-hovered choice's preview_card, or None.
+    ## Bound by hovered/unhovered actions on each choice button below.
+    default _ev_hover_card = None
+
     add "#0a0a0aee"
     use class_color_frame(thickness=3, alpha_suffix="aa")
 
@@ -103,9 +108,10 @@ screen event_screen(title, art, body, choices):
 
             for _ev_c in choices:
                 python:
-                    _ev_en  = _ev_c.get("enabled", True)
-                    _ev_lbl = _ev_c.get("label", "")
-                    _ev_dsc = _ev_c.get("desc", "") if _ev_en else _ev_c.get("locked", "")
+                    _ev_en   = _ev_c.get("enabled", True)
+                    _ev_lbl  = _ev_c.get("label", "")
+                    _ev_dsc  = _ev_c.get("desc", "") if _ev_en else _ev_c.get("locked", "")
+                    _ev_prev = _ev_c.get("preview_card") or None
 
                 button:
                     xsize 1080
@@ -115,6 +121,8 @@ screen event_screen(title, art, body, choices):
                     hover_background Frame("#24242eee", 4, 4)
                     insensitive_background Frame("#101012aa", 4, 4)
                     padding (22, 13)
+                    hovered SetScreenVariable("_ev_hover_card", _ev_prev)
+                    unhovered SetScreenVariable("_ev_hover_card", None)
 
                     vbox:
                         spacing 4
@@ -130,6 +138,19 @@ screen event_screen(title, art, body, choices):
                             size 16
                             font DOSSIER_FONT
                             xmaximum 1030
+
+    ## Floating card preview — when a choice with a `preview_card` is hovered,
+    ## render the full StS card view pinned to the right margin of the screen,
+    ## past the choice column. 400×572 (inspect mode) fits in the ~415px gutter
+    ## between the choice column's right edge (~x=1505) and the screen edge.
+    if _ev_hover_card:
+        frame:
+            xalign 1.0
+            yalign 0.5
+            xoffset -10
+            background None
+            padding (0, 0)
+            use battle_card_view(cid=_ev_hover_card, mode="inspect", playable=True)
 
     ## Number-key shortcuts — one key bound per present, enabled choice.
     ## Built in a loop: a hardcoded key referencing choices[N] would eval that

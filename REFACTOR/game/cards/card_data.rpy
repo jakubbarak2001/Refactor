@@ -401,12 +401,17 @@ init -1 python:
 
 
     def _ladder_pool_eligible(c):
-        """Filter for the battle-reward pool: no class-lock, not boss-rarity,
-        not pool-excluded (status / rage / compromise opt out), and not a
-        basic starter — Strike / Defend / Heavy Set are never worth offering
-        as a fight prize."""
-        if c.get("class_lock"):
-            return False
+        """Filter for the battle-reward pool: locked to a different class
+        is out, boss-rarity is out, pool-excluded (status / rage / compromise
+        opt out) is out, basic starters (Strike / Defend / Heavy Set) are
+        out. A card class-locked to the *current* player's class IS eligible
+        — that's how BB's Hatred lane, DE's empath lane, and BH's nootropic
+        lane reach their owner via random rewards."""
+        _lock = c.get("class_lock")
+        if _lock:
+            _pc = stats.player_class if stats is not None else None
+            if _lock != _pc:
+                return False
         if c.get("rarity") == "boss":
             return False
         if c.get("pool_excluded"):

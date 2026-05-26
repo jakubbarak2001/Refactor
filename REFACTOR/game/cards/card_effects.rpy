@@ -63,17 +63,22 @@ init python:
         ## Basic & signature
         "strike":                  "Deal 7 damage.",
         "defend":                  "Gain 6 block.",
+        ## Event-grant (ev_colonel_regards)
+        "colonel_gift":            "Deal 14 damage. Lose 2 HP.",
+        "ashes":                   "Deal 6 damage. Exhausts.",
+        "pills_probably":          "50%: heal 25 HP.\n50%: lose 22 HP, gain Compromise.\nExhausts.",
         ## Hatred archetype
         "provoke":                 "Gain 8 Hatred. Draw 1 card.",
-        "knuckle_down":            "Deal 14 damage. Gain 6 Hatred.",
+        "knuckle_down":            "Deal 16 damage. Gain 6 Hatred.",
         "red_mist":                "Deal 8 damage twice. Gain 4 Hatred.",
         "see_red":                 "Power: each time you gain Hatred this fight, gain 2 block.",
         "thick_skull":             "Power: the first Hatred gain that would break you this fight is caught — Hatred is held at 80 and you gain 20 block.",
-        "adrenaline_dump":         "Lose 10 Hatred. Gain 2 energy.",
-        "last_nerve":              "Deal 4 damage.",
+        "adrenaline_dump":         "Lose 10 Hatred. Gain 1 energy.",
+        "last_nerve":              "Deal 4 damage. Gain 2 Hatred.",
         "embrace_it":              "Exhaust a Rage card in your hand: gain 15 block and draw 2 cards.",
+        "sparring_partner":        "Lose 5 HP. Gain 10 Hatred. Draw 2 cards.",
         ## Stoic archetype
-        "bracing":                 "Gain 9 block.",
+        "bracing":                 "Gain 5 block. Free.",
         "backup":                  "Gain 10 block.",
         "chain_of_command":        "Gain 8 block. Draw 1 card.",
         "iron_posture":            "Power: at the start of each turn, keep half your remaining block instead of losing all of it.",
@@ -141,7 +146,7 @@ init python:
         ## ─── Upgraded (`_plus`) variants ───
         "strike_plus":             "Deal 9 damage.",
         "defend_plus":             "Gain 8 block.",
-        "bracing_plus":            "Gain 11 block.",
+        "bracing_plus":            "Gain 7 block. Free.",
         "backup_plus":             "Gain 14 block.",
         "chain_of_command_plus":   "Gain 11 block. Draw 1 card.",
         "iron_stance_plus":        "Power: gain 16 block. When an enemy attack hits you, strike back — 4 damage, rising +2 each round (max 12).",
@@ -181,11 +186,12 @@ init python:
         ## New-archetype `_plus` variants (the See Red / Thick Skull / Iron
         ## Posture Powers upgrade to cost 0 and reuse the base effect/text).
         "provoke_plus":            "Gain 8 Hatred. Draw 2 cards.",
-        "knuckle_down_plus":       "Deal 18 damage. Gain 6 Hatred.",
+        "knuckle_down_plus":       "Deal 20 damage. Gain 6 Hatred.",
         "red_mist_plus":           "Deal 10 damage twice. Gain 4 Hatred.",
         "adrenaline_dump_plus":    "Lose 10 Hatred. Gain 2 energy. Draw 1 card.",
-        "last_nerve_plus":         "Deal 6 damage.",
+        "last_nerve_plus":         "Deal 6 damage. Gain 2 Hatred.",
         "embrace_it_plus":         "Exhaust a Rage card in your hand: gain 20 block and draw 2 cards.",
+        "sparring_partner_plus":   "Lose 4 HP. Gain 12 Hatred. Draw 2 cards.",
         "hold_the_line_plus":      "Gain 4 block for every Skill in your hand.",
         "brick_wall_plus":         "Deal 12 damage. Gain block equal to the damage dealt.",
         "hotfix_plus":             "Deal 8 damage. Draw 1 card. Deal 17 instead if this is the 3rd+ card you've played this turn.",
@@ -324,6 +330,30 @@ init python:
     def _eff_defend(state, source, target):
         state.gain_block(source, 6)
 
+    @register_effect("colonel_gift")
+    def _eff_colonel_gift(state, source, target):
+        state.deal_damage(target, 14)
+        ## Self-damage bypasses block — the gift cuts the hand that wields it.
+        state.deal_damage(source, 2, bypass_block=True)
+
+    @register_effect("ashes")
+    def _eff_ashes(state, source, target):
+        state.deal_damage(target, 6)
+
+    @register_effect("pills_probably")
+    def _eff_pills_probably(state, source, target):
+        ## True coin flip. Heal big or hurt big + permanent Compromise.
+        ## Rolled here (combat moment) rather than at the event screen — the
+        ## whole point of confiscating the bag is deferring the gamble until
+        ## the night JB actually reaches for it.
+        if __import__('random').randint(1, 100) <= 50:
+            state.heal(source, 25)
+            state.add_log("Pills: healed 25 HP.")
+        else:
+            state.deal_damage(source, 22, bypass_block=True)
+            grant_card("compromise", silent=True)
+            state.add_log("Pills: -22 HP, gained Compromise.")
+
     @register_effect("heavy_set")
     def _eff_heavy_set(state, source, target):
         ## BB signature — damage scales with the run-stat pcr_hatred.
@@ -344,7 +374,7 @@ init python:
 
     @register_effect("knuckle_down")
     def _eff_knuckle_down(state, source, target):
-        state.deal_damage(target, 14)
+        state.deal_damage(target, 16)
         state.gain_hatred(6)
 
     @register_effect("snap_decision")
@@ -391,11 +421,12 @@ init python:
     @register_effect("adrenaline_dump")
     def _eff_adrenaline_dump(state, source, target):
         state.gain_hatred(-10)
-        state.gain_energy(2)
+        state.gain_energy(1)
 
     @register_effect("last_nerve")
     def _eff_last_nerve(state, source, target):
         state.deal_damage(target, 4)
+        state.gain_hatred(2)
 
     @register_effect("embrace_it")
     def _eff_embrace_it(state, source, target):
@@ -408,13 +439,22 @@ init python:
         state.gain_block(source, 15)
         state.draw_cards(2)
 
+    @register_effect("sparring_partner")
+    def _eff_sparring_partner(state, source, target):
+        ## Self-damage via deal_damage("player", ...) — bypass_block so block
+        ## doesn't soak the hit (the spar is consensual, your guard is down),
+        ## floor-clamped to 1 HP by the engine's source_kind="effect" path.
+        state.deal_damage("player", 5, bypass_block=True)
+        state.gain_hatred(10)
+        state.draw_cards(2)
+
     ## ---------------------------------------------------------------------------
     ## ARCHETYPE: STOIC WALL
     ## ---------------------------------------------------------------------------
 
     @register_effect("bracing")
     def _eff_bracing(state, source, target):
-        state.gain_block(source, 9)
+        state.gain_block(source, 5)
 
     @register_effect("backup")
     def _eff_backup(state, source, target):
@@ -813,7 +853,7 @@ init python:
 
     @register_effect("bracing_plus")
     def _eff_bracing_plus(state, source, target):
-        state.gain_block(source, 11)
+        state.gain_block(source, 7)
 
     @register_effect("backup_plus")
     def _eff_backup_plus(state, source, target):
@@ -1022,7 +1062,7 @@ init python:
 
     @register_effect("knuckle_down_plus")
     def _eff_knuckle_down_plus(state, source, target):
-        state.deal_damage(target, 18)
+        state.deal_damage(target, 20)
         state.gain_hatred(6)
 
     @register_effect("snap_decision_plus")
@@ -1062,6 +1102,7 @@ init python:
     @register_effect("last_nerve_plus")
     def _eff_last_nerve_plus(state, source, target):
         state.deal_damage(target, 6)
+        state.gain_hatred(2)
 
     @register_effect("embrace_it_plus")
     def _eff_embrace_it_plus(state, source, target):
@@ -1070,6 +1111,12 @@ init python:
             state.exhaust(_rage)
             state.add_log("Embrace It+: exhausted {}.".format(CARD_LIBRARY.get(_rage, {}).get("name", _rage)))
         state.gain_block(source, 20)
+        state.draw_cards(2)
+
+    @register_effect("sparring_partner_plus")
+    def _eff_sparring_partner_plus(state, source, target):
+        state.deal_damage("player", 4, bypass_block=True)
+        state.gain_hatred(12)
         state.draw_cards(2)
 
     @register_effect("counterweight_plus")

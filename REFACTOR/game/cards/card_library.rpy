@@ -240,6 +240,19 @@ init python:
         flavor    = "Stop fighting the worst of yourself. Aim it.",
     )
 
+    register_card(
+        "sparring_partner",
+        name      = "Sparring Partner",
+        type      = "Skill",
+        color     = "Physical",
+        cost      = 1,
+        rarity    = "uncommon",
+        effect    = "sparring_partner",
+        archetype  = "hatred",
+        class_lock = "bodybuilder",
+        flavor    = "He doesn't pull. You stopped wanting him to.",
+    )
+
     ## ---------------------------------------------------------------------------
     ## ARCHETYPE: STOIC WALL — low Hatred, patient, turn defense into offense.
     ## ---------------------------------------------------------------------------
@@ -249,7 +262,7 @@ init python:
         name      = "Bracing",
         type      = "Skill",
         color     = "Physical",
-        cost      = 1,
+        cost      = 0,
         rarity    = "common",
         effect    = "bracing",
         archetype = "stoic",
@@ -357,7 +370,7 @@ init python:
         name      = "Stoic Anchor",
         type      = "Power",
         color     = "Mental",
-        cost      = 1,
+        cost      = 2,
         rarity    = "uncommon",
         effect    = "stoic_anchor",
         archetype = "stoic",
@@ -534,14 +547,15 @@ init python:
 
     register_card(
         "body_check",
-        name      = "Body Check",
-        type      = "Attack",
-        color     = "Physical",
-        cost      = 2,
-        rarity    = "uncommon",
-        effect    = "body_check",
-        archetype = "neutral",
-        flavor    = "Drop your full weight through them.",
+        name       = "Body Check",
+        type       = "Attack",
+        color      = "Physical",
+        cost       = 2,
+        rarity     = "uncommon",
+        effect     = "body_check",
+        archetype  = "neutral",
+        class_lock = "bodybuilder",
+        flavor     = "Drop your full weight through them.",
     )
 
     register_card(
@@ -1331,6 +1345,50 @@ init python:
     )
 
     ## ---------------------------------------------------------------------------
+    ## EVENT-GRANT cards — granted only by ev_colonel_regards. Never appear in
+    ## the random reward pool. The KEEP branch grants colonel_gift (and pays
+    ## for it with +50 HP on the boss). The BURN branch grants ashes.
+    ## ---------------------------------------------------------------------------
+
+    register_card(
+        "colonel_gift",
+        name          = "Colonel's Gift",
+        type          = "Attack",
+        color         = "Police",
+        cost          = 1,
+        rarity        = "rare",
+        effect        = "colonel_gift",
+        pool_excluded = True,
+        flavor        = "Hand-picked. Better than anything you'd have drawn for yourself. That's the part that goes cold.",
+    )
+
+    register_card(
+        "ashes",
+        name          = "Ashes",
+        type          = "Attack",
+        color         = "Physical",
+        cost          = 0,
+        rarity        = "uncommon",
+        effect        = "ashes",
+        exhaust       = True,
+        pool_excluded = True,
+        flavor        = "The smell stays in the wood for a week. Long after the burn.",
+    )
+
+    register_card(
+        "pills_probably",
+        name          = "Pills, Probably",
+        type          = "Skill",
+        color         = "Physical",
+        cost          = 0,
+        rarity        = "uncommon",
+        effect        = "pills_probably",
+        exhaust       = True,
+        pool_excluded = True,
+        flavor        = "No markings. No two of them quite the same. No way to know until you take one.",
+    )
+
+    ## ---------------------------------------------------------------------------
     ## UPGRADE TABLE — `_plus` variants for every upgradeable base card.
     ## New-archetype cards get their `_plus` variants in a later pass; status /
     ## rage / compromise cards are intentionally non-upgradeable.
@@ -1406,6 +1464,7 @@ init python:
     register_upgrade("adrenaline_dump",       effect="adrenaline_dump_plus",       flavor="The shake leaves your hands. A card finds them.")
     register_upgrade("last_nerve",            effect="last_nerve_plus",            flavor="He's still standing on it. You stopped flinching.")
     register_upgrade("embrace_it",            effect="embrace_it_plus",            flavor="Stop fighting the worst of yourself. Aim it better.")
+    register_upgrade("sparring_partner",      effect="sparring_partner_plus",      flavor="He still doesn't pull. You stopped flinching first.")
 
     ## New-archetype cards — Stoic
     register_upgrade("iron_posture",          effect="iron_posture",          cost=0, flavor="You never learned to drop your guard. Now it's reflex.")

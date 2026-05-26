@@ -822,6 +822,16 @@ screen battle_card_view(cid, mode="hand", playable=True):
 
         _is_upgraded = bool(_card.get("is_upgraded"))
 
+        ## Rarity tint on the name plate background. StS-style signal: common
+        ## stays dark, uncommon goes steel-blue, rare goes gold-bronze, boss
+        ## goes deep red. Subtle enough to coexist with the gold name text.
+        _rarity = (_card.get("rarity") or "common").lower()
+        _name_bg = {
+            "uncommon": "#1a2030ee",
+            "rare":     "#3a2810ee",
+            "boss":     "#3a0a0aee",
+        }.get(_rarity, "#0a0806ee")
+
         ## Inspect mode is a uniform 1.82× scale on every numeric dimension.
         ## Single multiplier table keeps the two views layout-identical so the
         ## hover-zoom feels like the SAME card, just bigger.
@@ -836,8 +846,8 @@ screen battle_card_view(cid, mode="hand", playable=True):
             _gem_outer    = 90
             _gem_inner    = 72
             _gem_sz       = 40
-            _gem_xpos     = -32
-            _gem_ypos     = -36
+            _gem_xpos     = -42
+            _gem_ypos     = -44
             _shadow_off   = 14
             _exhaust_w    = 200
             _exhaust_h    = 38
@@ -948,11 +958,11 @@ screen battle_card_view(cid, mode="hand", playable=True):
                         xfill True
                         spacing 4
 
-                        ## (a) Name plate — dark band, gold serif-ish text.
+                        ## (a) Name plate — rarity-tinted band, gold serif-ish text.
                         frame:
                             xfill True
                             ysize _name_h
-                            background Frame("#0a0806ee", 4, 4)
+                            background Frame(_name_bg, 4, 4)
                             text _name_text substitute False:
                                 color _name_color
                                 size _name_sz
@@ -965,13 +975,18 @@ screen battle_card_view(cid, mode="hand", playable=True):
                                 outlines [(1, "#000000", 0, 0)]
 
                         ## (b) Art zone — illustration or glyph fallback.
-                        frame:
+                        ## Three-sided border (top + left + bottom). The right
+                        ## edge is intentionally open — gives the art a slight
+                        ## "page bleeds off" feel toward the card's outer trim.
+                        fixed:
                             xfill True
                             ysize _art_h
-                            background Frame(_border_c + ("99" if playable else "55"), 2, 2)
-                            padding (2, 2)
                             if _has_art:
-                                add Transform(_art_path, size=(_inner_w - 8, _art_h - 8)) xalign 0.5 yalign 0.5
+                                ## size=() stretches to fill the panel without
+                                ## preserving aspect. The aspect mismatch is
+                                ## kept tiny by standardizing all card art on
+                                ## ~2:1 (panel is 1.92:1) at gen/crop time.
+                                add Transform(_art_path, size=(_inner_w - 4, _art_h - 4)) xpos 2 ypos 2 xoffset -6
                             else:
                                 text _art_glyph:
                                     xalign 0.5
@@ -979,6 +994,10 @@ screen battle_card_view(cid, mode="hand", playable=True):
                                     color _accent_c
                                     size _glyph_sz
                                     outlines [(2, "#000000", 0, 0)]
+                            add Solid(_border_c + ("99" if playable else "55")) xysize (_inner_w, 2) xpos -6 ypos 0
+                            add Solid(_border_c + ("99" if playable else "55")) xysize (2, _art_h) xpos -6 ypos 0
+                            add Solid(_border_c + ("99" if playable else "55")) xysize (_inner_w, 2) xpos -6 ypos (_art_h - 2)
+                            add Solid(_border_c + ("99" if playable else "55")) xysize (2, _art_h) xpos (_inner_w - 8) ypos 0
 
                         ## (c) Type tab — centered dark banner with type label.
                         frame:
@@ -1177,6 +1196,10 @@ screen battle_screen():
                         text "■ [bs.enemy_block]":
                             color "#88aaff"
                             size 18
+                    else:
+                        text "■ 0":
+                            color "#445566"
+                            size 18
 
                     ## Permanent Strength badge — flags the ramp boss intent.
                     ## Reads "STR +N" in red-orange, only visible when stacked.
@@ -1271,18 +1294,38 @@ screen battle_screen():
                         idx = bs.intent_index + _i
                         if 0 <= idx < len(bs.intent_queue):
                             _peek.append(ENEMY_DECK_LIBRARY.get(bs.intent_queue[idx]))
-                    _enemy_atk_bonus = bs.buffs.get("enemy_attack_bonus", 0)
-                    ## Wrinkle damage bonuses that the display must reflect to
-                    ## stay honest with the engine. Mirror the engine math from
-                    ## _resolve_intent. Hooligan crew rage at low HP is the
-                    ## only current case (garda formation is +above-50%, not a
-                    ## per-hit bump on a single intent — applied silently).
-                    _wrinkle_bonus = 0
+                    ## Mirror battle_resolve_enemy damage math so the intent
+                    ## badge shows the REAL incoming hit, not just the base
+                    ## value. The player should never have to add Strength +
+                    ## drawer-stack + crew-rage in their head.
+                    ##
+                    ## _atk_flat_bonus: applies to any single-attack peek.
+                    ## _cmp_per_hit_bonus: applies per hit on compound peeks.
+                    ## Current-intent-only bonuses (sprejeri tag spend, vlk
+                    ## margin, paragraph cite, one-shot enemy_attack_bonus) are
+                    ## applied at the use-site below, gated on _is_current.
+                    _atk_flat_bonus = bs.enemy_strength
+                    _cmp_per_hit_bonus = bs.enemy_strength
                     if bs.enemy_id == "fanousek":
                         _fwd = ENEMY_LIBRARY.get("fanousek", {}).get("wrinkle_data", {})
                         _fthr = _fwd.get("hp_threshold", 0.5)
                         if bs.enemy_hp <= int(bs.enemy_max_hp * _fthr):
-                            _wrinkle_bonus = _fwd.get("bonus_dmg", 4)
+                            _fbonus = _fwd.get("bonus_dmg", 4)
+                            _atk_flat_bonus += _fbonus
+                            _cmp_per_hit_bonus += _fbonus
+                    if bs.enemy_id == "rvac" and bs.enemy_hp <= bs.enemy_max_hp // 2:
+                        _atk_flat_bonus += 3
+                    if bs.enemy_id == "garda" and bs.enemy_hp > bs.enemy_max_hp // 2:
+                        _atk_flat_bonus += 3
+                    if bs.enemy_id == "estebak":
+                        _atk_flat_bonus += bs.buffs.get("estebak_drawers", 0)
+                    _atk_current_bonus = bs.buffs.get("enemy_attack_bonus", 0)
+                    _lawyer_cite_bonus = 0
+                    if bs.enemy_id == "lawyer":
+                        _lwd = ENEMY_LIBRARY.get("lawyer", {}).get("wrinkle_data", {})
+                        _cad = _lwd.get("cadence", 3)
+                        if bs.turn > 0 and bs.turn % _cad == 0:
+                            _lawyer_cite_bonus = _lwd.get("bonus_dmg", 6)
 
                 if _peek:
                     hbox:
@@ -1299,25 +1342,36 @@ screen battle_screen():
                                     if _itype == "attack":
                                         _icon = "🗡"
                                         _ic_color = "#ff4422"
-                                        _base = _intent.get("value", 0) + _wrinkle_bonus
-                                        ## Vlk Margin Call — gated on THIS peeked
-                                        ## intent so the Buy-In scaling never
-                                        ## leaks onto a peeked vlk_hard_sell.
-                                        ## Mirrors battle_engine.rpy resolve math.
-                                        if bs.enemy_id == "vlk" and _intent.get("id") == "vlk_margin_call":
-                                            _mc_per = ENEMY_LIBRARY.get("vlk", {}).get("wrinkle_data", {}).get("margin_per_buyin", 5)
-                                            _base += _mc_per * bs.buffs.get("vlk_buyin", 0)
+                                        ## Engine: base - next_attack_reduction (floor 1)
+                                        ## then + flat bonuses. Mirror exactly so a
+                                        ## just-played Breath Test visibly drops the
+                                        ## displayed hit on the current intent.
+                                        _raw = _intent.get("value", 0)
+                                        _red = bs.buffs.get("next_attack_reduction", 0) if _is_current else 0
+                                        _base = max(1 if _raw > 0 else 0, _raw - _red) + _atk_flat_bonus
+                                        if _is_current:
+                                            _base += _atk_current_bonus
+                                            _base += _lawyer_cite_bonus
+                                            if bs.enemy_id == "sprejeri":
+                                                _tags = bs.buffs.get("sprejeri_tags", 0)
+                                                _thr = 1 if bs.enemy_hp <= bs.enemy_max_hp // 2 else 3
+                                                if _tags >= _thr:
+                                                    _base += _tags
+                                            if bs.enemy_id == "vlk" and _intent.get("id") == "vlk_margin_call":
+                                                _mc_per = ENEMY_LIBRARY.get("vlk", {}).get("wrinkle_data", {}).get("margin_per_buyin", 5)
+                                                _base += _mc_per * bs.buffs.get("vlk_buyin", 0)
+                                        _val_text = "{}".format(_base)
                                         _dmg_for_threat = _base
-                                        if _is_current and _enemy_atk_bonus > 0:
-                                            _val_text = "{} (+{})".format(_base, _enemy_atk_bonus)
-                                            _dmg_for_threat = _base + _enemy_atk_bonus
-                                        else:
-                                            _val_text = "{}".format(_base)
                                     elif _itype == "compound":
                                         _icon = "⚔"
                                         _ic_color = "#ff6644"
-                                        _per_hit = _intent.get("value", 0) + _wrinkle_bonus
+                                        _raw = _intent.get("value", 0)
                                         _hits = _intent.get("value2", 1)
+                                        ## Engine spreads damage_reduction across hits.
+                                        _red = (bs.buffs.get("next_attack_reduction", 0) // max(1, _hits)) if _is_current else 0
+                                        _per_hit = max(1 if _raw > 0 else 0, _raw - _red) + _cmp_per_hit_bonus
+                                        if _is_current and _lawyer_cite_bonus > 0:
+                                            _per_hit += max(1, _lawyer_cite_bonus // max(1, _hits))
                                         _val_text = "{}×{}".format(_per_hit, _hits)
                                         _dmg_for_threat = _per_hit * _hits
                                     elif _itype == "block":
@@ -1371,48 +1425,87 @@ screen battle_screen():
                                         _val_text = "?"
                                         _dmg_for_threat = 0
 
-                                    ## Threat tier — current intent only.
-                                    if _is_current and _dmg_for_threat >= 15:
-                                        _val_size = 24
+                                    ## Threat tier — current intent only. Damage value
+                                    ## is the primary readout (huge, bold, color-coded);
+                                    ## icon stays smaller as a label; name is flavour.
+                                    ## Numeric-damage intents (attack/compound) get the
+                                    ## big ramp; non-attack labels are long strings and
+                                    ## blow out the chip at 40-56px, so they get a
+                                    ## moderate bump only.
+                                    _is_numeric = _itype in ("attack", "compound")
+                                    if _is_current and _is_numeric and _dmg_for_threat >= 15:
+                                        _val_size = 56
                                         _val_color = "#ff2222"
                                         _panel_bg = "#3a0000ee"
-                                        _icon_size = 26
-                                    elif _is_current and _dmg_for_threat >= 8:
-                                        _val_size = 22
+                                        _icon_size = 34
+                                        _name_size = 13
+                                        _panel_pad = (22, 12)
+                                        _icon_spacing = 12
+                                        _val_outlines = [(2, "#000000", 0, 0)]
+                                    elif _is_current and _is_numeric and _dmg_for_threat >= 8:
+                                        _val_size = 48
                                         _val_color = "#ffcc44"
                                         _panel_bg = "#2a1a00dd"
-                                        _icon_size = 24
-                                    elif _is_current:
-                                        _val_size = 20
+                                        _icon_size = 30
+                                        _name_size = 12
+                                        _panel_pad = (20, 10)
+                                        _icon_spacing = 10
+                                        _val_outlines = [(2, "#000000", 0, 0)]
+                                    elif _is_current and _is_numeric:
+                                        _val_size = 40
                                         _val_color = "#ffffff"
                                         _panel_bg = "#1a1a1add"
-                                        _icon_size = 22
+                                        _icon_size = 26
+                                        _name_size = 12
+                                        _panel_pad = (16, 8)
+                                        _icon_spacing = 10
+                                        _val_outlines = [(2, "#000000", 0, 0)]
+                                    elif _is_current:
+                                        ## Non-attack current intent: label is a string,
+                                        ## not a number. Moderate bump only so e.g.
+                                        ## "Max 1 card(s)" or "+8 HP" fits the chip.
+                                        _val_size = 24
+                                        _val_color = _ic_color
+                                        _panel_bg = "#1a1a1add"
+                                        _icon_size = 26
+                                        _name_size = 12
+                                        _panel_pad = (16, 8)
+                                        _icon_spacing = 8
+                                        _val_outlines = [(2, "#000000", 0, 0)]
                                     else:
-                                        _val_size = 16
+                                        _val_size = 18
                                         _val_color = "#888888"
                                         _panel_bg = "#1a1a1add"
                                         _icon_size = 18
+                                        _name_size = 10
+                                        _panel_pad = (10, 6)
+                                        _icon_spacing = 6
+                                        _val_outlines = []
 
                                 frame:
                                     background Frame(_panel_bg, 4, 4)
-                                    padding (10, 6)
+                                    padding _panel_pad
                                     vbox:
-                                        spacing 1
+                                        spacing 2
                                         xalign 0.5
                                         hbox:
-                                            spacing 6
+                                            spacing _icon_spacing
                                             xalign 0.5
+                                            yalign 0.5
                                             text _icon:
                                                 color _ic_color
                                                 size _icon_size
+                                                yalign 0.5
                                             text "[_val_text]":
                                                 color _val_color
                                                 size _val_size
                                                 bold _is_current
+                                                yalign 0.5
                                                 font "fonts/RobotoMono-Regular.ttf"
+                                                outlines _val_outlines
                                         text "[_label]":
                                             color "#888888"
-                                            size 11
+                                            size _name_size
                                             italic True
                                             xalign 0.5
                                             font "fonts/RobotoMono-Regular.ttf"
@@ -1488,11 +1581,16 @@ screen battle_screen():
                 if bs.player_block > 0:
                     ## Phase E — block_gain_pulse pumps zoom 1.0 -> 1.3 -> 1.0
                     ## over 0.4s after gain_block fires. No-op when no recent gain.
-                    text "🛡 [bs.player_block]":
+                    text "■ [bs.player_block]":
                         color "#88aaff"
                         size 18
                         bold True
                         at block_gain_pulse
+                else:
+                    text "■ 0":
+                        color "#445566"
+                        size 18
+                        bold True
 
                 ## Card-play restriction banner — appears when a 'restrict'
                 ## intent has capped the player's plays this turn. Shows the
@@ -1569,7 +1667,7 @@ screen battle_screen():
                         "kick_charges":        "Kick",
                         "mental_dr_50":        "Stoic Refactor",
                         "iron_stance_active":  "Iron Stance",
-                        "single_retaliate_dmg":"Iron Body",
+                        "single_retaliate_dmg":"Bouncer Door",
                         "vigil_next_turn_block":"Vigil",
                         "insight_block":       "Insight",
                         "insight_turns_left":  "Insight (turns)",
@@ -1597,7 +1695,7 @@ screen battle_screen():
                         "kick_charges":         "Kick (Biohacker): draw 1 extra card at the start of each of your next {v} turn(s).",
                         "mental_dr_50":         "Stoic Refactor: MENTAL-typed enemy attacks deal half damage to you.",
                         "iron_stance_active":   "Iron Stance: when you take damage, retaliate for damage that grows each round (4 on round 1, +2 per round after).",
-                        "single_retaliate_dmg": "Iron Body: the next time you take damage, retaliate for {v} damage (one use).",
+                        "single_retaliate_dmg": "Bouncer Door: when the enemy's next attack arrives, retaliate for {v} damage (one use, fires even if your block soaks the hit).",
                         "vigil_next_turn_block":"Vigil: gain +{v} block at the start of your next turn.",
                         "insight_block":        "Insight: gain bonus block at the start of your turn.",
                         "insight_turns_left":   "Insight: {v} more turn(s) of bonus block.",
@@ -1662,38 +1760,34 @@ screen battle_screen():
                                 padding (6, 3)
 
         ## ── ENERGY (right side) ───────────────────────────────────────────────
-        frame:
-            xpos 1700
-            ypos 580
-            xsize 200
-            padding (16, 12)
-            background None
+        ## Cracked-badge icon (REFACTOR/game/images/ui/ui_energy_badge.png) with
+        ## the energy number rendered over the central empty inset. The whole
+        ## fixed pulses on card-spend via energy_pulse (zoom 1.0 -> 1.25 -> 1.0
+        ## over 0.35s) so badge and number bounce together. Stack: badge 180×180
+        ## sits ABOVE the END TURN button at ypos 700; number offset slightly
+        ## down because the inset isn't dead-center vertically in the artwork.
+        fixed:
+            xpos 1710
+            ypos 510
+            xysize (180, 180)
+            at energy_pulse
 
-            vbox:
-                spacing 4
+            add "images/ui/ui_energy_badge.png" xalign 0.5 yalign 0.5 size (180, 180)
+
+            text "[bs.energy]/[bs.max_energy]":
+                color "#ffffff"
+                size 32
+                bold True
                 xalign 0.5
-
-                text "ENERGY":
-                    color "#ffdd44"
-                    size 14
-                    bold True
-                    xalign 0.5
-                    font "fonts/RobotoMono-Regular.ttf"
-
-                ## Phase B — energy_pulse scales 1.0 -> 1.25 -> 1.0 over 0.35s
-                ## after a card spend. No-op when no recent spend.
-                text "[bs.energy] / [bs.max_energy]":
-                    color "#ffffff"
-                    size 38
-                    bold True
-                    xalign 0.5
-                    at energy_pulse
+                yalign 0.5
+                yoffset 4
+                outlines [(3, "#000000", 0, 0)]
 
         ## ── END TURN BUTTON — pulses yellow when energy is unspent so the
         ## playtester stops ending the turn with cards still playable.
         python:
             _et_has_energy = bs.energy > 0
-            _et_label = "[[ END TURN — {} ENERGY LEFT ]".format(bs.energy) if _et_has_energy else "[[ END TURN ]"
+            _et_label = "[[ END TURN ]"
             _et_color  = "#ffaa00" if _et_has_energy else "#cc2200"
             _et_hover  = "#ffdd55" if _et_has_energy else "#ff4422"
             _et_bg     = Frame("#1a1500ee", 4, 4) if _et_has_energy else Frame("#1a0000ee", 4, 4)
@@ -1720,11 +1814,13 @@ screen battle_screen():
             _disc_n = len(bs.discard_pile)
             _exh_n  = len(bs.exhaust_pile)
 
-        ## Click the pile counter to open a peek modal
-        textbutton "Draw: [_draw_n]   Discard: [_disc_n]   Exhaust: [_exh_n]":
+        ## Click the pile counter to open a peek modal. Round count rides
+        ## along here (used to float mid-right, but it's meta-info and groups
+        ## better with the other pile readouts at the bottom-left).
+        textbutton "Round [bs.turn]   ·   Draw: [_draw_n]   Discard: [_disc_n]   Exhaust: [_exh_n]":
             xpos 30
             ypos 1010
-            action ShowMenu("battle_pile_peek")
+            action Show("battle_pile_peek")
             text_color "#888888"
             text_hover_color "#ffffff"
             text_size 14
@@ -1732,21 +1828,6 @@ screen battle_screen():
             background Frame("#1a1a1add", 4, 4)
             hover_background Frame("#2a2a2add", 4, 4)
             padding (10, 6)
-
-        ## ── HELP "?" button ──────────────────────────────────────────────────
-        textbutton "?":
-            xpos 1860
-            ypos 20
-            action ShowMenu("battle_help")
-            text_color "#888888"
-            text_hover_color "#ffdd00"
-            text_size 28
-            text_bold True
-            text_font "fonts/RobotoMono-Regular.ttf"
-            background Frame("#0a0a0acc", 4, 4)
-            hover_background Frame("#1a1a00cc", 4, 4)
-            padding (12, 4)
-            tooltip "How does this fight work?"
 
         ## ── HAND ──────────────────────────────────────────────────────────────
         ## Each card slot delegates to `battle_card_view(cid, mode="hand", ...)`
@@ -1781,15 +1862,7 @@ screen battle_screen():
 
                         use battle_card_view(cid=_cid, mode="hand", playable=_ok)
 
-        ## ── ROUND COUNTER ─────────────────────────────────────────────────────
-        text "Round [bs.turn]":
-            xalign 0.95
-            yalign 0.45
-            color "#666666"
-            size 13
-            font "fonts/RobotoMono-Regular.ttf"
-
-        ## ── Active tooltip text — buff chips / "?" button. Placed here (after
+        ## ── Active tooltip text — buff chips. Placed here (after
         ## the hand in document order) so it layers on top; sits just above
         ## the hand frame.
         $ _tt = GetTooltip()

@@ -20,11 +20,16 @@
 ##   wrinkle       per-enemy mechanic key resolved inside battle_engine.rpy
 ##                 (None for Colonel)
 ##   wrinkle_data  dict of params for the wrinkle (turn timers, stack thresholds…)
-##   intro_lines   [slide-1, slide-2] pre-battle cinematic narration — slide 1 is
-##                 the location/why-you're-here over the bg, slide 2 the enemy
-##                 reveal. Empty list skips the intro (Colonel — own event).
+##   intro_lines   pre-battle cinematic narration list. Slide 1 is the
+##                 location/why-you're-here over the bg; slide 2 is the enemy
+##                 reveal (sprite enters); slides 3+ are extra beats over the
+##                 same sprite/bg, used when one reveal slide would overflow
+##                 the text-box. <2 entries skips the intro (Colonel — own event).
 ##   detour_lines  forced-detour narration on loss (empty for Colonel — his loss
 ##                 routes to reunion_ending, not the shared detour label)
+##   victory_lines post-victory narration shown before the cash receipt; each
+##                 entry is one narrator say-line. Empty list falls back to the
+##                 bare cash payout with no flavor (Colonel — own event)
 ################################################################################
 
 init -1 python:
@@ -45,6 +50,7 @@ init -1 python:
             "wrinkle_data":  {},
             "intro_lines":   [],
             "detour_lines":  [],
+            "victory_lines": [],
         }
         defaults.update(fields)
         defaults["id"] = enemy_id
@@ -119,6 +125,10 @@ init -1 python:
             "The brawler clocks you. You wake up in the alley behind the bar with a split lip.",
             "The watch commander writes it up wrong on purpose. The bar gets a warning. You get the blame.",
         ],
+        victory_lines = [
+            "The brawler goes down on the bar mat. There's a roll in his back pocket — the night's takings he was about to walk out the door with.",
+            "The barman watches you find it and decides he never had a register. Two and a half thousand, off the books on the way in, off the books on the way out.",
+        ],
     )
 
     register_enemy(
@@ -137,6 +147,10 @@ init -1 python:
         detour_lines = [
             "They scatter through the panelák stairwells. You chase one to the third floor. He vanishes through a corridor that was never on the plan.",
             "Three more tags appear by morning. One of them looks like your face.",
+        ],
+        victory_lines = [
+            "Two of them you book. The third drops a backpack and runs — twenty cans of Montana inside, fresh from the shop in Liberec that doesn't ask for ID.",
+            "The shop in Liberec also doesn't ask where the cans came back from. Two and a half thousand crowns, paid out in fifties, paint still rattling.",
         ],
     )
 
@@ -158,6 +172,10 @@ init -1 python:
             "His crew finds you behind the bus station. They take turns on your kidneys.",
             "You file the report from the ER. The match was a draw, they tell each other.",
         ],
+        victory_lines = [
+            "You cuff him on the curb. His wallet's still fat with match-day drinking money he never got the chance to spend.",
+            "Evidence bag for the flare. Pocket for the cash. Nobody at the station counts it twice.",
+        ],
     )
 
     register_enemy(
@@ -176,6 +194,10 @@ init -1 python:
         detour_lines = [
             "The file folds itself shut. The kid in it walks at 4 PM.",
             "Your name ends up on the cover. Misfiled. They don't fix it.",
+        ],
+        victory_lines = [
+            "The folder closes itself once you've signed every page in the right column. An envelope was clipped inside — pre-filled, untraceable, the kid's lawyer's way of speeding things along.",
+            "The envelope didn't make it into the dossier. The kid still walks at four. Two and a half thousand, processing fee, call it what you like.",
         ],
     )
 
@@ -200,6 +222,10 @@ init -1 python:
             "He smiles. The stánkaři close ranks. You're walked back to the parking lot.",
             "The next morning the warehouse is empty. The case files itself as 'no evidence'.",
         ],
+        victory_lines = [
+            "He pays the fine before you've written it — exact change, in fifties, smile unchanged. The receipt he hands you back is in Vietnamese.",
+            "You don't ask for a translation. Five thousand crowns; the warehouse stays open another month; everybody got something they wanted.",
+        ],
     )
 
     register_enemy(
@@ -212,7 +238,7 @@ init -1 python:
         max_hp       = 125,
         deck_template = ["fume_swipe", "chem_burn", "chem_stoke", "lab_check", "gas_release"],
         wrinkle      = "lab_timer",
-        wrinkle_data = {"detonation_turn": 7, "detonation_dmg": 20},
+        wrinkle_data = {"detonation_turn": 5, "detonation_dmg": 30},
         intro_lines  = [
             "A tip, an address, three flights of stairs. You smelled what was up here before you reached the door — and you climbed anyway. Somebody's mother cooked dinner in this kitchen once. Tonight it cooks something else.",
             "Grundza doesn't look up from the rig. He's cooked through two raids in this kitchen and neither one rushed him. He knows to the minute when the batch turns — and when the room stops being a room. You have until then.",
@@ -220,6 +246,10 @@ init -1 python:
         detour_lines = [
             "The lab door slams. Half the squad's gear comes back contaminated.",
             "Internal Affairs pencils your name in the column marked 'incident'.",
+        ],
+        victory_lines = [
+            "The rig goes cold. There's a tin taped under the sink — vendor float, five-hundred-crown notes bricked together, the kind of money nobody reports missing from a kitchen that wasn't supposed to exist.",
+            "Three notes go into evidence. The rest goes down the stairs with you, before the next shift gets here to inventory the room.",
         ],
     )
 
@@ -242,6 +272,10 @@ init -1 python:
             "The judge nods at his closing. Your statement gets read back to you in his voice, two octaves lower. You sign whatever's slid across the bench.",
             "He shakes your lieutenant's hand on the way out. The case is dismissed before the door closes.",
         ],
+        victory_lines = [
+            "The judge awards costs against his client. By the time payroll routes it through the right ledgers half of it has evaporated into processing — you get the half the paperwork couldn't catch.",
+            "Procházka shakes your hand on the way out anyway. For him this was a Tuesday. Five thousand crowns; he'll make it back before the elevator hits the ground floor.",
+        ],
     )
 
     register_enemy(
@@ -260,6 +294,10 @@ init -1 python:
         detour_lines = [
             "Your case is reassigned to someone who won't read it. Three priority changes before lunch.",
             "The radio goes quiet for two hours. You sit in the car, looking at the wrong street.",
+        ],
+        victory_lines = [
+            "The speakers cut out mid-sentence. A hazard-pay form is already in the printer when you turn around — wrong code, right amount, signed off by a hand you don't recognise.",
+            "You don't ask which voice authorised it. The cheque clears Monday. Five thousand crowns for a shift that, on paper, you were never on.",
         ],
     )
 
@@ -280,6 +318,10 @@ init -1 python:
         detour_lines = [
             "He shakes your hand on the way out. Your account is lighter and you can't say exactly when that happened.",
             "The case closes itself. He's already three towns over, in another rented room, in front of people who haven't met him yet.",
+        ],
+        victory_lines = [
+            "He's already packing the projector when one of the pensioners catches you at the door. She presses an envelope into your hand — finder's fee, she calls it, for getting her deposit back before he reached the next town.",
+            "You try to refuse. She's already gone. Five thousand crowns of her own pension money, handed back to the man who stopped him taking it.",
         ],
     )
 
@@ -307,6 +349,10 @@ init -1 python:
             "He doesn't raise his voice. He slides three forms across the table. Sign here. Initial. Here.",
             "You're at a desk job by Monday. The badge stays in your drawer for now.",
         ],
+        victory_lines = [
+            "He stacks the signed forms into a neat pile. Three months of suspended overtime get released the same afternoon — the figure was already typed into the slip before you sat down.",
+            "Seventy-five hundred crowns of your own money, handed back the moment you agreed to behave. He doesn't call it a bribe. He doesn't have to.",
+        ],
     )
 
     register_enemy(
@@ -329,6 +375,10 @@ init -1 python:
             "The breach team puts you face-down on the parking-lot asphalt. They were never your team.",
             "You sign whatever paperwork they slide under you. The Colonel doesn't have to be in the room.",
         ],
+        victory_lines = [
+            "The last balaclava goes down on the asphalt. The op-fund envelope is in the lead van's glovebox — cash for informants, fuel, receipts that were never going to be filed.",
+            "You take what was always going to disappear. Seventy-five hundred crowns of the Colonel's own operating budget, walking out of the lot in your jacket.",
+        ],
     )
 
     register_enemy(
@@ -345,12 +395,17 @@ init -1 python:
         wrinkle      = "golden_handcuffs",
         wrinkle_data = {"strength_per_stall": 2},
         intro_lines  = [
-            "Past midnight, the station long emptied out. You came back for the last of your things and stopped at the mirror over the washroom sinks — the one you've walked past a thousand times without once looking into.",
-            "The reflection doesn't move when you do. It wears the dress uniform they hand you at twenty years' service, and it has filled out comfortably inside it. It holds out a pair of gold handcuffs — your size — and waits, patient and kind, for you to stop being silly and put them on.",
+            "Past midnight. You came back for the last of your things and stopped at the washroom mirror — the one you've walked past a thousand times without ever looking in.",
+            "The reflection doesn't move when you do. Then it puts a hand on the rim of the sink and climbs out through the glass, and you know it before fear has time to catch up — the way you know a voice on the phone.",
+            "It holds out a pair of handcuffs your size and waits, patient and kind, for you to stop being silly.",
         ],
         detour_lines = [
-            "You put them on yourself. They're lighter than you expected. Warm, even.",
-            "The transfer paperwork goes back in the drawer. The desk is comfortable. It was always going to be comfortable.",
+            "You put them on yourself. Lighter than expected. Warm, even.",
+            "The transfer paperwork goes back in the drawer. The desk was always going to be comfortable.",
+        ],
+        victory_lines = [
+            "The reflection lowers the cuffs and steps back into the mirror. A retirement lump-sum slip is on the counter when you come out — signed in a handwriting almost yours.",
+            "You leave the slip on the tile. The money clears anyway. Seventy-five hundred crowns of a pension you haven't earned.",
         ],
     )
 
@@ -368,11 +423,16 @@ init -1 python:
         wrinkle      = "the_file",
         wrinkle_data = {"drawer_cap": 6},
         intro_lines  = [
-            "You went looking for the file the Colonel keeps over you — the car accident, the thing he buried for you. The trail led down: past the basement, past the boiler room, to an archive door with no number on it.",
-            "The records down here run back further than the Republic does, and the archive kept someone. He rises out of the card-index stacks with a censor's bar where his face should be and a wall of drawers for a chest — and every drawer has your name in it somewhere. He has read you cover to cover, and he would like to close the file.",
+            "You went looking for the file the Colonel keeps over you — the car accident, the thing he buried. The trail led down past the basement, past the boiler room, to an archive door with no number.",
+            "The records here run further back than the Republic, and the archive kept someone. He rises from the card-index without hurry, and you feel it the way you feel a draft from a door that shouldn't be open.",
+            "He has read you cover to cover, and he'd like, very politely, to close the file.",
         ],
         detour_lines = [
-            "A drawer slides shut somewhere in the dark, and the part of you that wanted out gets suddenly, quietly hard to remember.",
+            "A drawer slides shut somewhere in the dark. The part of you that wanted out gets suddenly, quietly hard to remember.",
             "You climb back up the stairs empty-handed. The file stays down there — and so, in a way you can't name, do you.",
+        ],
+        victory_lines = [
+            "He goes down into his own card-index. A drawer falls open on the way and the money lands at your feet — old hundred-crown notes, pre-Republic, somehow still legal tender.",
+            "You don't count them in the archive. You count them upstairs, in the boiler-room light, where the air remembers what year it is. Seventy-five hundred crowns the Republic forgot about.",
         ],
     )

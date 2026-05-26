@@ -85,12 +85,12 @@ label ev_the_vending_machine:
         ## Tier ladder: (cost CZK, +Max HP, +Hatred). Each take heals current
         ## HP by the same amount as the Max HP bump. After 3 takes the
         ## machine stops; the player can also kick out at any tier. HP gain
-        ## escalates 6/8/10 so tier 3 isn't strictly worse ROI than tier 1 —
+        ## escalates 6/8/11 so tier 3 isn't strictly worse ROI than tier 1 —
         ## press-your-luck needs reward-for-risk, not just cost-for-risk.
         _vm_ladder = [
             (1500, 6, 0),
             (3500, 8, 5),
-            (7000, 10, 12),
+            (7000, 11, 12),
         ]
         _vm_step = 0
         _vm_total_cost = 0
@@ -495,8 +495,10 @@ label ev_lost_and_found:
 
 
 ## ---------------------------------------------------------------------------
-## THE COLONEL SENDS HIS REGARDS [surreal] — a strong card now, the next fight
-## harder; or burn it (HP); or refuse it (CZK + Hatred relief).
+## THE COLONEL SENDS HIS REGARDS [surreal] — a Faustian deal. KEEP grants
+## Colonel's Gift (1E / 16 dmg) AND adds +50 HP to the Colonel at the boss.
+## BURN: -10 HP, grant Ashes (0E / 8 dmg / exhaust). RETURN: 7,000 CZK, -15
+## Hatred. Only KEEP touches day 30; the other two are refusals at cost.
 ## ---------------------------------------------------------------------------
 
 label ev_colonel_regards:
@@ -505,7 +507,10 @@ label ev_colonel_regards:
     play music "audio/random_event_bed.wav" fadein 1.0
 
     python:
-        _cr_art = "images/events/ev_colonel_regards.jpg"
+        _cr_art      = "images/events/ev_colonel_regards.jpg"
+        _cr_art_keep = "images/events/ev_colonel_regards_keep.jpg"
+        _cr_art_burn = "images/events/ev_colonel_regards_burn.jpg"
+        _cr_art_ret  = "images/events/ev_colonel_regards_return.jpg"
         _cr_body = [
             "There is a box outside your door. No courier waited. No label, no stamp — just your name, in handwriting you have spent ten years learning to read upside down across a desk.",
             "Inside: one card, face-down. And a note.",
@@ -515,17 +520,19 @@ label ev_colonel_regards:
             {
                 "id": "keep",
                 "label": "[ KEEP IT ]",
-                "desc": eg("Gain a strong card") + ".  " + ec("Next enemy: + 3 Strength."),
+                "desc": eg("Gain Colonel's Gift.") + "   " + ec("The Colonel: + 50 HP at day 30."),
+                "preview_card": "colonel_gift",
             },
             {
                 "id": "burn",
                 "label": "[ BURN IT IN THE SINK ]",
-                "desc": ec("Lose 10 HP") + ".  You will watch it the whole way down.",
+                "desc": ec("- 10 HP.") + "   " + ec("Gain Ashes."),
+                "preview_card": "ashes",
             },
             {
                 "id": "return",
                 "label": "[ COURIER IT BACK, UNOPENED ]",
-                "desc": ec("7,000 CZK") + ".  " + eg("- 15 Hatred") + ".  A clean refusal, and not a cheap one.",
+                "desc": ec("- 7,000 CZK.") + "   " + eg("- 15 Hatred.") + "   A clean refusal.",
                 "enabled": (stats.available_money >= 7000),
                 "locked": "A courier across the country costs 7,000 CZK. You do not have it.",
             },
@@ -534,38 +541,39 @@ label ev_colonel_regards:
     call screen event_screen(title="THE COLONEL SENDS HIS REGARDS", art=_cr_art, body=_cr_body, choices=_cr_choices)
 
     python:
-        _cr_pick = _return
-        _cr_res = []
+        _cr_pick    = _return
+        _cr_res     = []
+        _cr_art_out = _cr_art
 
     if _cr_pick == "keep":
         python:
-            _cr_trio = pick_battle_rewards("hard")
-        call screen card_reward_trio_screen(_cr_trio)
-        python:
-            _cr_card = _return
-            if _cr_card and _cr_card != "skip":
-                grant_card(_cr_card, silent=True)
-            store._next_enemy_strength_bonus = 3
+            grant_card("colonel_gift", silent=True)
+            store._colonel_gift_taken = True
+            _cr_art_out = _cr_art_keep
             _cr_res = [
                 "You take it out of the box. It is good — better than good. It is exactly the thing you would have chosen for yourself, which is the part that makes your hands cold.",
                 "He knows what you are building. He has always known.",
-                "Somewhere, a file with your name on it gets a note added to it, and the next man he sends will have read that note.",
-                (eg("Gained a card.") + "   " if (_cr_card and _cr_card != "skip") else "") + ec("The next fight: enemy +3 Strength."),
+                "Somewhere, a file with your name on it gets a note added to it. When he comes for you on day thirty, he will come wearing what you accepted.",
+                eg("Gained Colonel's Gift.") + "   " + ec("The Colonel: + 50 HP at day 30."),
             ]
 
     elif _cr_pick == "burn":
         python:
             _cr_lost = event_hurt(10)
+            grant_card("ashes", silent=True)
+            _cr_art_out = _cr_art_burn
             _cr_res = [
                 "You hold it under the tap, strike a match, and watch. It does not burn like paper. It takes its time.",
                 "You do not sleep. You sit with the smell of it until the window goes grey, turning over every reason a man like that sends a gift, and finding the same answer each time.",
-                ec("- {} HP.".format(_cr_lost)),
+                "The ash is yours now. You scrape it into an envelope. You keep it.",
+                ec("- {} HP.".format(_cr_lost)) + "   " + ec("Gained Ashes."),
             ]
 
     else:
         python:
             stats.try_spend_money(7000)
             stats.increment_stats_pcr_hatred(-15)
+            _cr_art_out = _cr_art_ret
             _cr_res = [
                 "You do not open it. You pay a courier the better part of a week's wage to drive it back across the country and put it in his hands exactly as it came.",
                 "He will understand the message. It cost you to send it. That is the message.",
@@ -573,13 +581,18 @@ label ev_colonel_regards:
                 ec("- 7,000 CZK.") + "   " + eg("- 15 Hatred."),
             ]
 
-    call screen event_outcome(title="THE COLONEL SENDS HIS REGARDS", art=_cr_art, result=_cr_res)
+    call screen event_outcome(title="THE COLONEL SENDS HIS REGARDS", art=_cr_art_out, result=_cr_res)
     return
 
 
 ## ---------------------------------------------------------------------------
-## PILLS, PROBABLY [grounded-absurd] — swallow one (hidden roll: heal or
-## hurt + curse), sell them (CZK + Hatred), or flush them (HP).
+## PILLS, PROBABLY — three verbs on a found bag of unmarked pills:
+##   CONFISCATE: pocket the bag off the books — gain the Pills, Probably card.
+##               The gamble (50/50 heal 25 / hurt 22 + Compromise) lives in
+##               your deck now and resolves in some future fight, not here.
+##   LEAVE:      shut the bag back in the seat well, walk away. -6 Hatred.
+##   REPORT:     book the driver by the book. +3,000 CZK, +8 Hatred. Doing
+##               your job inside a rotten precinct grinds you, not heals you.
 ## ---------------------------------------------------------------------------
 
 label ev_pills:
@@ -592,23 +605,24 @@ label ev_pills:
         _pl_body = [
             "Vehicle search, routine, one in the morning. Under the passenger seat: a sandwich bag of pills. No markings. No two of them quite the same.",
             "The driver swears they aren't his. They are never anyone's.",
-            "Your hand closes around the bag. The shift has six hours left in it and you have not slept properly since March.",
+            "Your hand hovers over the bag. The shift has six hours left in it and you have not slept properly since March.",
         ]
         _pl_choices = [
             {
-                "id": "swallow",
-                "label": "[ SWALLOW ONE ]",
-                "desc": ek("A gamble.") + "  " + eg("Best case: + 30 HP.") + "  " + ec("Worst: - 14 HP, gain a dead card.") + "  Roughly even odds.",
+                "id": "confiscate",
+                "label": "[ CONFISCATE THE PILLS ]",
+                "desc": ec("Gain Pills, Probably.") + "  Evidence collected. Off the books.",
+                "preview_card": "pills_probably",
             },
             {
-                "id": "sell",
-                "label": "[ SELL THEM ]",
-                "desc": eg("+ 6,000 CZK") + ".  " + ec("+ 10 Hatred") + ".  You know a man. You wish you didn't.",
+                "id": "leave",
+                "label": "[ LEAVE IT ]",
+                "desc": eg("- 6 Hatred.") + "  Shut the bag back in the seat well. Pretend you didn't see it.",
             },
             {
-                "id": "flush",
-                "label": "[ FLUSH THEM ]",
-                "desc": ec("Lose 4 HP") + ".  You stand over the bowl longer than the act requires.",
+                "id": "report",
+                "label": "[ REPORT IT ]",
+                "desc": eg("+ 3,000 CZK.") + "   " + ec("+ 8 Hatred.") + "  Bench duty until dawn, filling forms while the Colonel reads.",
             },
         ]
 
@@ -618,44 +632,34 @@ label ev_pills:
         _pl_pick = _return
         _pl_res = []
 
-    if _pl_pick == "swallow":
+    if _pl_pick == "confiscate":
         python:
-            _pl_roll = __import__('random').randint(1, 100)
-        if _pl_roll <= 55:
-            python:
-                _pl_healed = event_heal(30)
-                _pl_res = [
-                    "It is small and white and tastes of nothing. For twenty minutes nothing happens.",
-                    "Then the night goes soft at the edges. The radio is far away. The cold is far away. You finish the shift like a man walking downhill, and you sleep like the dead and wake up repaired.",
-                    eg("+ {} HP.".format(_pl_healed)),
-                ]
-        else:
-            python:
-                _pl_lost = event_hurt(14)
-                grant_card("compromise", silent=True)
-                _pl_res = [
-                    "It is small and white and tastes of nothing. For twenty minutes nothing happens.",
-                    "Then your heart does something a heart should not do, twice, and your hands stop being yours for a while. You finish the shift on a kind of autopilot you will not be able to account for later.",
-                    "Something moves into you on the comeback down and does not pay rent.",
-                    ec("- {} HP.".format(_pl_lost)) + "   " + ec("Gained a dead card."),
-                ]
-
-    elif _pl_pick == "sell":
-        python:
-            stats.increment_stats_value_money(6000)
-            stats.increment_stats_pcr_hatred(10)
+            grant_card("pills_probably", silent=True)
             _pl_res = [
-                "You know a man who buys things with no markings and asks no questions, and the worst part is how easy his number was to find in your own phone.",
-                "Six thousand crowns for a bag you logged as empty. The driver was right: they were never anyone's. Now they are someone's problem, and you chose who.",
-                eg("+ 6,000 CZK.") + "   " + ec("+ 10 Hatred."),
+                "You slide the bag into the inside pocket of your jacket and finish the shift like a man who has just decided something. You do not write up the search.",
+                "The bag rides home with you. It rides into the kitchen, into the drawer with the gas-bill receipts, and then it rides somewhere you do not look at for a while.",
+                "You will know when you reach for it. Some night you have not picked yet.",
+                ec("Gained Pills, Probably."),
+            ]
+
+    elif _pl_pick == "leave":
+        python:
+            stats.increment_stats_pcr_hatred(-6)
+            _pl_res = [
+                "You shut the bag back in the well under the seat, close the door, and tell the driver his offside tire is low. He nods, the panic going out of his face by degrees, and you watch him drive away under the speed limit all the way to the next streetlight and past it.",
+                "Walking back to your car you find that some old, tight thing in your chest has slipped a notch. The bag was never going to be yours. You made the absence of a choice into a choice.",
+                eg("- 6 Hatred."),
             ]
 
     else:
         python:
-            _pl_lost = event_hurt(4)
+            stats.increment_stats_value_money(3000)
+            stats.increment_stats_pcr_hatred(8)
             _pl_res = [
-                "You tip the bag into the bowl and flush, and then you stand there longer than the act requires, because some tired animal part of you wanted those, badly, and is not done being angry about it.",
-                ec("- {} HP.".format(_pl_lost)),
+                "You bring him in. The paperwork eats the rest of the shift and most of the morning, and a slow rotation of older men come to the bench you are sitting on to ask the same three questions in slightly different shapes.",
+                "At the end of it: a stamped commendation slip, a small bonus, and a quiet certainty that the Colonel has read the file before lunch.",
+                "You did your job. The job, today, was the wrong shape for a man like you, and you can feel where it bent you.",
+                eg("+ 3,000 CZK.") + "   " + ec("+ 8 Hatred."),
             ]
 
     call screen event_outcome(title="PILLS, PROBABLY", art=_pl_art, result=_pl_res)
@@ -832,8 +836,11 @@ label ev_karaoke:
 
 
 ## ---------------------------------------------------------------------------
-## THE INTERVIEW [grounded-absurd] — the coding puzzle minigame. Pass: heal +
-## card + Hatred relief. Fail: Hatred + curse. Reschedule / hang up cost too.
+## THE INTERVIEW — coding-skill check (no puzzle minigame). Pass rate scales
+## with stats.coding_skill: 15% floor at skill 0, 95% ceiling at skill ≥ 80.
+##   TAKE THE CALL — roll. Pass: +20 HP, -12 Hatred, gain Job Offer card.
+##                          Fail: +15 Hatred, gain Compromise.
+##   HANG UP        — -10 HP, +10 Hatred. The bail-out costs you both ways.
 ## ---------------------------------------------------------------------------
 
 label ev_the_interview:
@@ -843,6 +850,9 @@ label ev_the_interview:
 
     python:
         _iv_art = "images/events/ev_the_interview.jpg"
+        ## Linear roll: 15% base + 1% per coding_skill point, capped at 95%.
+        ## Skill 0 → 15% (cold-start gamble); skill 50 → 65%; skill 80+ → 95%.
+        _iv_pass_chance = max(15, min(95, 15 + stats.coding_skill))
         _iv_body = [
             "A number you applied to three weeks ago, calling back now, nine in the evening, while you are parked behind the Albert with the engine off.",
             "'Quick technical screen. Thirty minutes. Is now bad?'",
@@ -852,17 +862,13 @@ label ev_the_interview:
             {
                 "id": "take",
                 "label": "[ TAKE THE CALL ]",
-                "desc": ek("Coding puzzle.") + "  " + eg("Pass: + 20 HP, - 12 Hatred, gain a card.") + "  " + ec("Fail: + 15 Hatred, gain a dead card."),
-            },
-            {
-                "id": "resched",
-                "label": "[ ASK TO RESCHEDULE ]",
-                "desc": ec("+ 10 Hatred") + ".  They will offer you a day, and the day will be a shift.",
+                "desc": ek("Coding-skill check ({}%).".format(_iv_pass_chance)) + "  " + eg("Pass: + 20 HP, - 12 Hatred, gain Job Offer.") + "  " + ec("Fail: + 15 Hatred, gain Compromise."),
+                "preview_card": "job_offer",
             },
             {
                 "id": "hang",
                 "label": "[ HANG UP ]",
-                "desc": ec("Lose 6 HP") + ".  Sit in the dark behind the supermarket a while.",
+                "desc": ec("- 10 HP.") + "   " + ec("+ 10 Hatred.") + "  Sit in the dark behind the supermarket a while.",
             },
         ]
 
@@ -870,37 +876,24 @@ label ev_the_interview:
 
     python:
         _iv_pick = _return
-        _iv_tier = _battle_ladder_band(day_cycle.current_day)
         _iv_res = []
 
     if _iv_pick == "take":
         python:
-            if getattr(store, '_puzzles_solved', None) is None:
-                store._puzzles_solved = []
-            _iv_pid = pick_puzzle_for_skill(stats.coding_skill, exclude=store._puzzles_solved)
-            if _iv_pid is None:
-                _iv_pid = "p_medium_sum_even"
-            puzzle_init(_iv_pid, max_attempts=1 + diff_setting("minigame_retries", 1))
-        call screen coding_puzzle_screen
-        python:
-            _iv_pass = (_return == "pass")
+            _iv_roll = __import__('random').randint(1, 100)
+            _iv_pass = _iv_roll <= _iv_pass_chance
+
         if _iv_pass:
             python:
-                store._puzzles_solved.append(_iv_pid)
                 store.coding_interview_passed = True
                 _iv_healed = event_heal(20)
                 stats.increment_stats_pcr_hatred(-12)
-                _iv_trio = pick_battle_rewards(_iv_tier)
-            call screen card_reward_trio_screen(_iv_trio)
-            python:
-                _iv_card = _return
-                if _iv_card and _iv_card != "skip":
-                    grant_card(_iv_card, silent=True)
+                grant_card("job_offer", silent=True)
                 _iv_res = [
                     "You answer the question. Then the follow-up. Then the one underneath that, the one they ask to see what you do when you don't know.",
                     "A pause on the line — the good kind. 'That's... yeah. Can you come in properly next week?'",
                     "For thirty minutes you were not a cop. You were a person being asked what you could do.",
-                    eg("+ {} HP.".format(_iv_healed)) + "   " + eg("- 12 Hatred.") + ("   " + eg("Gained a card.") if (_iv_card and _iv_card != "skip") else ""),
+                    eg("+ {} HP.".format(_iv_healed)) + "   " + eg("- 12 Hatred.") + "   " + eg("Gained Job Offer."),
                 ]
         else:
             python:
@@ -910,25 +903,17 @@ label ev_the_interview:
                     "Generators. Decorators. A thing about the global interpreter lock. You hear yourself put words in a confident order that do not, in the end, add up to an answer.",
                     "'We'll let you know.' They will not let you know.",
                     "The impostor in the car was you the whole time. He rides home with you and does not get out.",
-                    ec("+ 15 Hatred.") + "   " + ec("Gained a dead card."),
+                    ec("+ 15 Hatred.") + "   " + ec("Gained Compromise."),
                 ]
-
-    elif _iv_pick == "resched":
-        python:
-            stats.increment_stats_pcr_hatred(10)
-            _iv_res = [
-                "'Could we do Friday?' you ask. They can do Friday.",
-                "Friday is a twelve-hour shift. You know this as the words leave your mouth. You say 'Friday is perfect' anyway, and you hang up, and you have rescheduled nothing — only postponed the same impossible evening.",
-                ec("+ 10 Hatred."),
-            ]
 
     else:
         python:
-            _iv_lost = event_hurt(6)
+            _iv_lost = event_hurt(10)
+            stats.increment_stats_pcr_hatred(10)
             _iv_res = [
                 "You end the call before the first question. The screen says 00:00 and then goes dark.",
                 "You sit behind the supermarket with the engine off until the cold gets all the way into your hands, thinking about the version of the evening where you were brave.",
-                ec("- {} HP.".format(_iv_lost)),
+                ec("- {} HP.".format(_iv_lost)) + "   " + ec("+ 10 Hatred."),
             ]
 
     call screen event_outcome(title="THE INTERVIEW", art=_iv_art, result=_iv_res)
@@ -1101,6 +1086,10 @@ label ev_synthol_brothers:
             ]
 
     call screen event_outcome(title="THE SYNTHOL BROTHERS", art=_sb_art, result=_sb_res)
+    ## SOMA 10/10 capstone — guarded no-op when sub-10 or already given.
+    ## Mirrors the gym/heavy-session calls so synthol-pumped runs don't have
+    ## to detour through the gym to claim the capstone card.
+    call soma_ten_reward from _call_soma_ten_reward_synthol
     return
 
 

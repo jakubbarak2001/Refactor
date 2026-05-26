@@ -21,6 +21,15 @@ default _ladder_skip_tomorrow = False
 
 init python:
 
+    ## Cash on ladder victory. Closes the post-battle reward loop — card draft
+    ## remains the strategic reward; CZK is the sim-feel reward. Sized to sit
+    ## under Day-14 minimum salary (20k): three hard wins ≈ one salary day.
+    BATTLE_MONEY_REWARD = {
+        "easy":   2500,
+        "medium": 5000,
+        "hard":   7500,
+    }
+
     def _battle_ladder_band(day):
         if day <= 9:
             return "easy"
@@ -73,11 +82,15 @@ init python:
 
 
 ## ---------------------------------------------------------------------------
-## battle_intro — two-slide pre-fight cinematic.
+## battle_intro — multi-slide pre-fight cinematic.
 ##   Slide 1: location background + "why you're here" narration.
 ##   Slide 2: the enemy sprite rises into frame + reveal narration.
-## Reads intro_lines / bg_id / sprite_id from ENEMY_LIBRARY. Enemies with no
-## intro_lines (Colonel — own event) are skipped: the fight begins at once.
+##   Slides 3+ (optional): extra reveal beats over the same sprite/bg, used
+##                         when a single reveal slide would overflow the
+##                         text-box (lifer, estebak).
+## Reads intro_lines / bg_id / sprite_id from ENEMY_LIBRARY. Enemies with
+## fewer than two intro_lines (Colonel — own event) are skipped: the fight
+## begins at once.
 ## ---------------------------------------------------------------------------
 
 transform battle_intro_enemy_enter:
@@ -116,6 +129,12 @@ label battle_intro(enemy_id):
     show expression _spr_tag as battle_intro_enemy at battle_intro_enemy_enter
     narrator "[_intro_line2]"
 
+    ## Slides 3+ — extra reveal beats over the same sprite/bg.
+    if len(_intro) > 2:
+        python:
+            for _ln in list(_intro[2:]):
+                renpy.say(narrator, _ln)
+
     return
 
 
@@ -149,6 +168,20 @@ label battle_with(enemy_id, tier):
     if _outcome == "defeat":
         call forced_detour(enemy_id, tier) from _call_forced_detour
         return
+
+    python:
+        _reward_cash = BATTLE_MONEY_REWARD.get(tier, 0)
+        if _reward_cash > 0 and stats is not None:
+            stats.increment_stats_value_money(_reward_cash)
+        _victory_lines = ENEMY_LIBRARY.get(enemy_id, {}).get("victory_lines", [])
+
+    if _victory_lines:
+        python:
+            for _line in _victory_lines:
+                renpy.say(None, _line)
+
+    if _reward_cash > 0:
+        "[_reward_cash:,] CZK."
 
     python:
         _rewards = pick_battle_rewards(tier)

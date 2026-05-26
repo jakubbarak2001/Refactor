@@ -33,6 +33,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 BG_DIR = REPO_ROOT / "REFACTOR" / "game" / "images" / "backgrounds"
 SPRITES_DIR = REPO_ROOT / "REFACTOR" / "game" / "images" / "sprites"
 CARDS_DIR = REPO_ROOT / "REFACTOR" / "game" / "images" / "cards"
+EVENTS_DIR = REPO_ROOT / "REFACTOR" / "game" / "images" / "events"
 
 DEFAULT_MODEL = "gemini-3.1-flash-image-preview"
 
@@ -72,6 +73,8 @@ def main() -> int:
                    help="output to sprites/ folder instead of backgrounds/ (and save as PNG, not JPG)")
     p.add_argument("--cards", action="store_true",
                    help="output to images/cards/ as PNG (battle_card_view picks these up by card_id filename)")
+    p.add_argument("--events", action="store_true",
+                   help="output to images/events/ as JPG (event_screen / event_outcome art panels)")
     args = p.parse_args()
 
     for ref in args.ref:
@@ -92,6 +95,8 @@ def main() -> int:
         out_dir, ext = CARDS_DIR, "png"
     elif args.sprites:
         out_dir, ext = SPRITES_DIR, "png"
+    elif args.events:
+        out_dir, ext = EVENTS_DIR, "jpg"
     else:
         out_dir, ext = BG_DIR, "jpg"
     out_dir.mkdir(parents=True, exist_ok=True)

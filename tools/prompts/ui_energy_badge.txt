@@ -1,0 +1,19 @@
+SUBJECT (REFACTOR battle UI — energy resource icon, "CRACKED BADGE"; rendered ~256-512px, will sit in the bottom-right of the combat screen with the energy NUMBER drawn separately by the game engine over its center):
+
+A weathered Czech-style police badge filling the frame, centered, slightly Dutch-angled so it has character rather than sitting flat-on. Octagonal-into-circular silhouette (eight-pointed star core fading into a circular outer wreath, the way Central European service badges read). Heavy hairline cracks fracturing across the metal face — not shattered, but compromised: one major fissure running diagonally top-left to bottom-right, two smaller cracks branching off it, and a chip taken out of the outer rim. The metal is bent but holding.
+
+DEAD CENTER of the badge: a flat dark circular inset, charcoal/oxblood-black, occupying roughly 40-45% of the badge's diameter. This inset MUST be uniform, unornamented, and free of any text, lettering, glyph, lion, eagle, star, numeral, runic mark, or central emblem. It is a blank dark disc — empty by design, because the game will render a white number over it at runtime. Treat the inset as a deliberate void, not a place where an emblem has worn away.
+
+Around the inset, on the badge's outer ring: faint embossed laurel-wreath motif, oxidized into the recesses. NO readable text, NO numerals, NO Cyrillic, NO Latin — only suggested ornamental relief that reads as "ceremonial detail" at a glance and resolves to abstract pattern up close.
+
+Material: tarnished brass and gunmetal. Greenish-black verdigris collecting in the cracks and recessed laurel grooves. Scratches, nicks, and small dings along the outer edge — the kind of wear that comes from years pinned to a wool tunic and dropped on duty-room tile more than once. The metal has weight.
+
+Lighting: cold overhead light from upper-left. Hard shadow falls along the lower-right rim. A single hot highlight runs along one edge of the major diagonal crack — that crack catches the light like a wound.
+
+Background: deep oxblood-black, nearly uniform, no environmental detail. The badge floats against it. Small soft contact shadow under the lower-right edge so it doesn't look pasted on. (If alpha is possible, transparent background is preferred — but the dark oxblood works.)
+
+Style: heavy painterly brushwork matching the REFACTOR card-art hand. Visible texture especially along the cracks and the laurel relief. Oxblood-red dominant shadows, gunmetal/brass mid-tones, single hot amber highlight on the crack. NOT photorealistic. NOT 3D-rendered. NOT vector-clean. NOT modern game-UI bevel. NOT neon. NOT shiny-new. Match the attached reference cards' skin/metal treatment and palette exactly.
+
+Mood: an oath broken in slow motion. The badge still exists. Something inside it has given way and won't seal back up. A working tool of a job the wearer is finishing with.
+
+Banned: any text, letters, numbers, Cyrillic, runes, or readable script anywhere on the badge or in the frame. Central emblem in the dark inset (lion, eagle, star, hammer-and-sickle, ČR coat of arms — none of these). Heroic glow, halo, sunbeams, magic sparkles, fantasy effects. Clean undamaged finish. Card frames, UI chrome, watermarks, signatures.

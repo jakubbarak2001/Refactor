@@ -748,17 +748,14 @@ init python:
         ## Ladder enemies use ENEMY_LIBRARY max_hp.
         if enemy_id == "colonel":
             bs.enemy_max_hp = 150
+            ## Event hook — KEEP branch of ev_colonel_regards: he wore the
+            ## gift, now he's stronger for it. +50 max HP at the boss only.
+            if getattr(store, '_colonel_gift_taken', False):
+                bs.enemy_max_hp += 50
+                bs.add_log("[[Setup]: the Colonel's gift returns with him. +50 HP.")
         else:
             bs.enemy_max_hp = _enemy.get("max_hp") or 80
         bs.enemy_hp = bs.enemy_max_hp
-
-        ## Event hook — a random event (ev_colonel_regards) can leave the next
-        ## fight's enemy with bonus Strength. One-shot: consumed on entry.
-        _next_str = getattr(store, '_next_enemy_strength_bonus', 0)
-        if _next_str:
-            bs.enemy_strength += _next_str
-            bs.add_log("[[Setup]: {} starts with +{} Strength.".format(bs.enemy_log_name, _next_str))
-            store._next_enemy_strength_bonus = 0
 
         ## Vlk — Buy-In counter starts at 0. It drives Margin Call's damage
         ## and is surfaced as the BUY-IN badge in battle_screen.
@@ -906,8 +903,19 @@ init python:
         ## (which on a 20-card deck could be 4+ turns away).
         _eid = getattr(bs, 'enemy_id', 'colonel')
         if _eid == "spis" and bs.turn >= 2:
-            bs.draw_pile.insert(0, "paperwork")
-            bs.add_log("[[Paper-clog]: a form files itself onto your stack.")
+            ## Cap paperwork at 3 across all piles — without this, long fights
+            ## (and the bloodied double-inject below) accumulate enough copies
+            ## to soft-lock the player's hand. Cap = "pressure, not lockout."
+            _paper_total = (bs.hand + bs.draw_pile + bs.discard_pile).count("paperwork")
+            if _paper_total < 3:
+                bs.draw_pile.insert(0, "paperwork")
+                bs.add_log("[[Paper-clog]: a form files itself onto your stack.")
+                _paper_total += 1
+            ## Bloodied case file — the room thickens. Second paperwork
+            ## copy when he's at half HP or less (still respects the cap).
+            if bs.enemy_hp <= bs.enemy_max_hp // 2 and _paper_total < 3:
+                bs.draw_pile.insert(0, "paperwork")
+                bs.add_log("[[Paper-clog]: another one, while the file is open.")
         if _eid == "sprejeri":
             ## Tag stack: +1 per player turn (capped at 4 to avoid feel-bad
             ## end-game nukes from extended block/debuff streaks).
@@ -1302,16 +1310,25 @@ init python:
             ## Permanent enemy Strength buff (StS analog) — adds to every
             ## attack/compound hit. Granted by 'strength' intent type.
             dmg += bs.enemy_strength
-            ## --- Sprejeri tag stack spend: +tags dmg on attack when stack >= 3 ---
+            ## --- Sprejeri tag stack spend: +tags dmg on attack when stack >= 3.
+            ## Bloodied phase (<= half HP): every attack spends the stack
+            ## regardless of size — the third tagger joins, no patience left.
             if bs.enemy_id == "sprejeri":
                 _tags = bs.buffs.get("sprejeri_tags", 0)
-                if _tags >= 3:
+                _spend_thr = 1 if bs.enemy_hp <= bs.enemy_max_hp // 2 else 3
+                if _tags >= _spend_thr:
                     dmg += _tags
                     bs.buffs["sprejeri_tags"] = 0
                     bs.add_log("[[Tag stack x{}]: +{} damage, stack reset.".format(_tags, _tags))
             ## --- Garda formation strength: +3 dmg while above 50% HP ---
             if bs.enemy_id == "garda" and bs.enemy_hp > bs.enemy_max_hp // 2:
                 dmg += 3
+            ## --- Rvac drunk fury: bloodied <= half HP, +3 attack damage.
+            ## Stacks with the reshuffle double-down so a late-fight Haymaker
+            ## can land 28 instead of 22. Punishes the "stall the drunk" build.
+            if bs.enemy_id == "rvac" and bs.enemy_hp <= bs.enemy_max_hp // 2:
+                dmg += 3
+                bs.add_log("[[Drunk fury]: bloodied — +3 damage.")
             ## --- Estébák the file: every open drawer makes the case against
             ## you heavier. Single hits only — the compound (Surveillance
             ## Photos) is left flat so the ramp can't run away on it.
@@ -1350,7 +1367,7 @@ init python:
             per_hit += bs.enemy_strength
             ## --- Hooligan crew rage on compound (pile_in): +bonus_dmg per
             ## hit when bloodied. Compound is the spike — pile_in goes from
-            ## 3×4 to 7×4 at low HP. This is the threat tell.
+            ## 4×4 to 7×4 at low HP. This is the threat tell.
             if bs.enemy_id == "fanousek":
                 _wd = ENEMY_LIBRARY.get("fanousek", {}).get("wrinkle_data", {})
                 _thr = _wd.get("hp_threshold", 0.5)
@@ -1444,12 +1461,17 @@ init python:
             bs.deal_damage("enemy", _retaliate)
             bs.add_log("[[Iron Stance]: retaliated for {} dmg (turn {}).".format(_retaliate, bs.turn))
 
-        ## Iron Body single-shot retaliate (BB common) — fires once on next hit
-        if bs.buffs.get("single_retaliate_dmg", 0) > 0 and bs.last_damage_to_player > 0:
+        ## Bouncer Door single-shot retaliate (BB) — fires when the next enemy
+        ## attack ARRIVES (cancelled / mirrored intents short-circuited above
+        ## with an early return, so reaching here means the attack landed).
+        ## Gating on `_intent_was_attack` instead of `last_damage_to_player`
+        ## fixes the self-defeat where Bouncer Door's own 18 block soaked the
+        ## hit and suppressed the retaliate the same card promised.
+        if bs.buffs.get("single_retaliate_dmg", 0) > 0 and _intent_was_attack:
             _sr = bs.buffs["single_retaliate_dmg"]
             bs.buffs["single_retaliate_dmg"] = 0
             bs.deal_damage("enemy", _sr)
-            bs.add_log("[[Iron Body]: retaliated for {} dmg.".format(_sr))
+            bs.add_log("[[Bouncer Door]: retaliated for {} dmg.".format(_sr))
 
         ## Phase 1A safety-net — self-report if an attack intent landed but
         ## did 0 damage despite no early-return branch firing AND the player

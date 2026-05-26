@@ -489,9 +489,9 @@ init python:
         ## the Overtime activity (no repeats across either). None here so
         ## _ensure_random_event_pool refills it fresh each run.
         store.random_event_pool = None
-        ## Event hook — a random event can leave the NEXT battle's enemy with
-        ## bonus Strength (ev_colonel_regards). Consumed in battle_init.
-        store._next_enemy_strength_bonus = 0
+        ## Event hook — taking the KEEP branch of ev_colonel_regards leaves
+        ## the Colonel +50 max HP at the day-30 fight. Run-permanent.
+        store._colonel_gift_taken = False
         ## Persistent run HP — carries across ladder battles + into the Colonel.
         ## None = first battle hasn't fired yet (battle_init will lazy-init to
         ## the class max). After each victory, battle_finish writes the
