@@ -1680,6 +1680,12 @@ transform _outcome_continue_pulse:
     linear 0.7 alpha 0.4
     repeat
 
+transform _outcome_arrow_nudge:
+    xoffset 0
+    easeout 0.55 xoffset 5
+    easein 0.55 xoffset 0
+    repeat
+
 ## Parse a flat outcome string into per-line chunks with semantic colors.
 ## Paren-aware split so "TOOK THE HEAT (1E, exhaust — gain 10 block, draw 1)"
 ## stays as one chunk and only TOP-LEVEL stat boundaries get broken out.
@@ -1800,11 +1806,17 @@ screen outcome_panel(outcome_text):
 
             null height 4
 
-            text "› click to continue":
-                color "#88aa88"
-                size 11
-                italic True
+            hbox:
+                spacing 3
                 xalign 0.5
+                text "›" at _outcome_arrow_nudge:
+                    color "#88aa88"
+                    size 11
+                    italic True
+                text "click to continue":
+                    color "#88aa88"
+                    size 11
+                    italic True
 
 
 ## ---------------------------------------------------------------------------
@@ -4859,21 +4871,6 @@ screen main_menu():
 
     ## Navigation column — case-file commands.
     use main_menu_navigation
-
-    ## Dev-only quick-jump to the Colonel deck-fight. Hidden in ship builds.
-    ## ypos 50 keeps it clear of the 36-px top status strip.
-    if config.developer:
-        textbutton "[[DEV] SKIP TO COLONEL FIGHT":
-            xalign 0.98
-            ypos 50
-            action Start("dev_skip_to_colonel")
-            text_color "#444444"
-            text_hover_color "#ffcc00"
-            text_size 13
-            text_font "fonts/RobotoMono-Regular.ttf"
-            background "#00000000"
-            hover_background Frame("#1a1a00aa", 3, 3)
-            padding (10, 6)
 
 
 screen dossier_top_bar(left_text="REFACTOR  //  case-file-jb", right_text=None):

@@ -91,29 +91,14 @@ label good_ending:
             unlock_achievement("i_dont_need_it")
 
     scene bg_police_office
-    show colonel shaken at char_right
+    show colonel angry at char_right
     show jb smirk at char_left
 
-    "You start to laugh. Quiet at first. Then not."
-
-    show colonel angry at char_right with dissolve
-
-    colonel "'YOU THINK THIS IS FUNNY?! YOUR LIFE IS OVER!'"
-
-    jb "'No, Colonel.'"
-
-    pause 1.0
+    colonel "'YOUR LIFE IS OVER!'"
 
     jb "'It's just {stshl=compiling}.'"
 
-    pause 1.5
-
-    "You turn your back on him and walk to the door."
-    "The heavy metal door of the station. Supposed to be locked. Supposed to be hard to leave."
-
-    pause 0.6
-
-    "You push it open with one hand."
+    pause 0.8
 
     $ renpy.movie_cutscene("video/jb_good_ending.webm")
 

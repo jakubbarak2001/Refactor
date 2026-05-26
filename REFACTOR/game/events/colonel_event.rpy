@@ -212,57 +212,20 @@ label colonel_glitch_phase:
 
     pause 0.5
 
-    "He stumbles. His mouth opens, closes. No breath behind it."
-
-    pause 0.6
-
-    scene bg_black with glitch_transition
-
-    "[[ERROR]: NPC_STATE.integrity = CRITICAL. Reverting to cached state."
-
-    pause 0.8
-
     scene bg_police_office with glitch_transition
     show colonel normal at char_right
 
-    "The room reassembles — but the geometry is too clean, the light has no source."
-    "He is looping. {i}police_bureaucracy.exe{/i} — runtime: 32 years."
-
-    pause 0.6
-
     colonel "'You are a {b}COWARD{/b}, JB! You were never fit for this force!'"
 
-    "The opening line. Word for word. He isn't waiting for your answer. He never was."
-
-    pause 0.8
+    "Word for word. The opening line. {i}police_bureaucracy.exe{/i} — runtime: 32 years."
 
     $ unlock_achievement("wake_up_call")
 
-    scene bg_black with glitch_transition
+    pause 0.6
 
-    "You take one breath. It is yours — just air, a lung that is alive."
-    "You stop performing for him. The argument dissolves like smoke. It never had any weight."
-
-    pause 0.7
-
-    scene bg_police_office with dissolve
-    show colonel normal at char_right
     show jb smirk at char_left
 
-    "The office is just an office again. A man behind a desk, mouth still moving."
-
-    pause 0.5
-
     jb "'I'm done.'"
-
-    "Two words. No volume. No anger."
-
-    pause 0.6
-
-    "You take out your resignation letter, smooth it against the edge of his desk, and place it in his hand."
-    "His fingers close on muscle memory. His eyes don't change. His mouth keeps moving."
-
-    pause 0.6
 
     jump colonel_victory_resolution
 
