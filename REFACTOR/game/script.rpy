@@ -1660,7 +1660,7 @@ label _apply_nootropic_tier:
     ## Mirrors soma_ten_reward. Research (READ UP) is the upgrade lane and does
     ## NOT increment nootropic_uses — only buys count toward the capstone.
     if sum(getattr(store, 'nootropic_uses', [0,0,0,0,0])) >= 10:
-        call protocol_ten_reward
+        call protocol_ten_reward from _call_protocol_ten_reward
 
     ## Dependency warning — preserved at slot 5 (Lab). Old gate was "1 dose
     ## before threshold" so warning fires after first Lab dose. Kept compatible
@@ -1707,7 +1707,7 @@ label _apply_research:
 
     "[_research_open_line]"
 
-    call _run_card_upgrade_flow
+    call _run_card_upgrade_flow from _call__run_card_upgrade_flow_2
     $ _research_result = _return
 
     if _research_result is None:
