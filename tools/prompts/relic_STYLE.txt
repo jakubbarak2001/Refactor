@@ -22,24 +22,32 @@ glance — centered single object, dark vignette, strong silhouette. The CARD pr
 (card_*.txt) are 3:4 scene compositions; relics are 1:1 object icons. Same palette,
 same grain, same dark humour — different framing.
 
-HOW TO GENERATE (from repo root, GEMINI_API_KEY in env or .env):
+HOW TO GENERATE (from repo root, GEMINI_API_KEY in env). gen_bg.py takes the output
+NAME as the first positional arg, the prompt via --prompt-file, and --relics routes
+output straight to REFACTOR/game/images/relics/<name>.png (the path RELIC_LIBRARY's
+`art` field expects — no manual move needed):
 
-  python tools/gen_bg.py --file tools/prompts/relic_protein_tub.txt --out protein_tub.png
+  python tools/gen_bg.py protein_tub --prompt-file tools/prompts/relic_protein_tub.txt --relics --variants 4
 
-  Outputs to REFACTOR/game/images/generated/ by default. Move keepers to
-  REFACTOR/game/images/relics/ (the path RELIC_LIBRARY's `art` field expects).
+  --variants 4 writes protein_tub_1.png ... protein_tub_4.png. Pick the best, rename
+  it to protein_tub.png (drop the _N), delete the rest.
 
-STYLE LOCK (do this after the first 1-2 look right): pass the approved relics back as
---ref so the model copies their exact lighting/palette/grain — same trick used for
-sprites. Example once protein_tub.png + service_pistol.png are good:
+STYLE LOCK (do this after the first 1-2 look right): pass an approved relic back as
+--ref so the model copies its exact lighting/palette/grain — same trick used for
+sprites. Example once protein_tub.png is good:
 
-  python tools/gen_bg.py --file tools/prompts/relic_taser.txt \
+  python tools/gen_bg.py taser --prompt-file tools/prompts/relic_taser.txt --relics \
       --ref REFACTOR/game/images/relics/protein_tub.png \
-      --ref REFACTOR/game/images/relics/service_pistol.png \
-      --out taser.png
+      --ref REFACTOR/game/images/relics/service_pistol.png
 
 Generate ~3-4 variants per relic, pick one, ship it (same cadence as sprites).
 
 ROSTER (14): protein_tub, gym_keycard, barbell, weightlifting_belt, colonel_mugshot,
 brass_knuckles, taser, evidence_bag, cold_case_file, cracked_laptop, service_pistol,
 red_bull_crate, lucky_koruna, golden_handcuffs.
+
+NOTE: of these 14, 9 are wired into RELIC_LIBRARY (cards/relics.rpy) and live:
+protein_tub, gym_keycard, colonel_mugshot, brass_knuckles, evidence_bag,
+cold_case_file, red_bull_crate, service_pistol, lucky_koruna. The other 5 (barbell,
+weightlifting_belt, taser, cracked_laptop, golden_handcuffs) have prompts + designs
+ready but still need register_relic entries + effects before their art is used.
