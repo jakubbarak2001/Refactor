@@ -138,6 +138,41 @@ init python:
         hook="Heal 6 HP after each victory.",
         flavor="Bent. Pre-1993. Your dad's. You don't spend it.",
     )
+    register_relic(
+        "barbell",
+        name="Olympic Barbell (20kg)",
+        archetype="iron", rarity="rare",
+        hook="+5 block at the start of each turn.",
+        flavor="Twenty kilos of knurled steel. It has never once lied to you.",
+    )
+    register_relic(
+        "weightlifting_belt",
+        name="Lifting Belt",
+        archetype="iron", rarity="uncommon",
+        hook="Heal 10 HP at the start of each fight.",
+        flavor="Cracked leather, set in a permanent bend. It holds you together when nothing else does.",
+    )
+    register_relic(
+        "taser",
+        name="Taser (X26)",
+        archetype="generic", rarity="uncommon",
+        hook="The enemy's first attack each fight is skipped.",
+        flavor="Fifty thousand volts of conversation-ender. Standard issue, non-standard use.",
+    )
+    register_relic(
+        "cracked_laptop",
+        name="Cracked Laptop",
+        archetype="stack", rarity="rare",
+        hook="Your Coding counts as one tier higher (Git Blame, Refactor budget).",
+        flavor="The screen's a spiderweb. The compiler doesn't care. Neither do you.",
+    )
+    register_relic(
+        "golden_handcuffs",
+        name="Golden Handcuffs",
+        archetype="generic", rarity="rare",
+        hook="+2 max energy every fight. Lose 4 HP at the start of each fight.",
+        flavor="Gold plating, flaking already. The steel underneath is regulation. They never come off.",
+    )
 
     ## ── Engine hooks ───────────────────────────────────────────────────────
 

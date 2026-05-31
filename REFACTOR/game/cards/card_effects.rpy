@@ -266,16 +266,20 @@ init python:
 
     def _coding_tier_int():
         """1-5 integer derived from current coding skill. Used by BH
-        coding-scaled card descriptions (compile / algorithm / etc.)
-        so the card hover surfaces the live damage / draw / payout."""
+        coding-scaled card descriptions (compile / algorithm / etc.) and the
+        REFACTOR budget so the card hover / action surfaces the live value.
+        The Cracked Laptop relic bumps the effective tier by 1 (cap 5)."""
         if stats is None:
             return 1
         s = stats.coding_skill
-        if s >= 200: return 5
-        if s >= 150: return 4
-        if s >= 100: return 3
-        if s >=  35: return 2
-        return 1
+        if s >= 200: _t = 5
+        elif s >= 150: _t = 4
+        elif s >= 100: _t = 3
+        elif s >=  35: _t = 2
+        else: _t = 1
+        if "cracked_laptop" in (getattr(store, "player_relics", None) or []):
+            _t = min(5, _t + 1)
+        return _t
 
     def effect_description(effect_id):
         if not effect_id:
@@ -1430,15 +1434,19 @@ init python:
     def _bh_coding_tier():
         """Mirror of card_effects.effect_description's _coding_tier_int —
         kept inline here so battle-time effect resolution doesn't have to
-        import across module boundaries. 1-5 integer."""
+        import across module boundaries. 1-5 integer. Cracked Laptop relic
+        bumps the effective tier by 1 (cap 5), matching _coding_tier_int."""
         if stats is None:
             return 1
         s = stats.coding_skill
-        if s >= 200: return 5
-        if s >= 150: return 4
-        if s >= 100: return 3
-        if s >=  35: return 2
-        return 1
+        if s >= 200: _t = 5
+        elif s >= 150: _t = 4
+        elif s >= 100: _t = 3
+        elif s >=  35: _t = 2
+        else: _t = 1
+        if "cracked_laptop" in (getattr(store, "player_relics", None) or []):
+            _t = min(5, _t + 1)
+        return _t
 
     @register_effect("compile")
     def _eff_compile(state, source, target):
