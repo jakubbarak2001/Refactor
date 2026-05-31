@@ -118,6 +118,26 @@ screen say(who, what):
     ## trade-off is accepted to keep play crash-free.
     use say_dossier(who, what)
 
+    ## Idle click-to-continue nudge. The say screen re-shows per line, so
+    ## the timer restarts each line — it only fires on genuine inactivity
+    ## and resets the moment the player advances. Lives here (not in the
+    ## use'd say_dossier) so SetScreenVariable hits this screen's own scope.
+    default _ctc_idle = False
+    timer 4.0 action SetScreenVariable("_ctc_idle", True)
+    showif _ctc_idle:
+        frame:
+            background Frame("#000000bb", 6, 6)
+            padding (18, 7)
+            xalign 0.5
+            yalign 1.0
+            yoffset -300
+            at ctc_idle_bob
+            text "press space to continue":
+                style "mm_status"
+                size 18
+                color "#eaeaea"
+                outlines [(2, "#000000", 0, 0)]
+
 
 ## Make the namebox available for styling through the Character object.
 init python:
@@ -234,6 +254,15 @@ screen dossier_hud():
 ## here — so it stays fixed when the strip is on screen, and is silent
 ## otherwise. Per-character namebox color comes from `Character(color=)`.
 ## ---------------------------------------------------------------------------
+transform ctc_idle_bob:
+    alpha 0.0 yoffset 0
+    easein 0.45 alpha 0.9
+    block:
+        easeout 1.0 yoffset -5
+        easein 1.0 yoffset 0
+        repeat
+
+
 screen say_dossier(who, what):
     ## Uppercase the speaker name in Python — text-widget [var!u]
     ## substitution doesn't apply to screen parameters reliably, which
