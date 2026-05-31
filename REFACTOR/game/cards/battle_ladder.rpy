@@ -186,14 +186,21 @@ screen encounter_choice(enemy_id, can_flee=True):
     add Solid("#000000bb")
     use class_color_frame(thickness=6)
 
-    ## JB on the left, the enemy on the right — a face-off.
+    ## Run stat readout (money / coding / hatred / day) so the player can weigh
+    ## the -25 Hatred flee against their current Hatred before deciding.
+    use stats_bar
+
+    ## JB on the left, the enemy on the right — a face-off. Enemy sits in the
+    ## right strip: left edge past the choice buttons (which end at x~1250) but
+    ## not so far it clips off the 1920-wide screen.
     add _enc_jb xpos 40 yalign 1.0 zoom 0.98
     if renpy.has_image(_enc_spr, exact=True):
-        add _enc_spr xpos 1150 yalign 1.0 zoom 0.62
+        add _enc_spr xpos 1340 yalign 1.0 zoom 0.62
 
+    ## Name + subtitle sit below the stat bar (54px) with headroom.
     text "[_enc_name!u]":
         xalign 0.5
-        ypos 70
+        ypos 150
         color "#ff2a2a"
         size 46
         bold True
@@ -202,7 +209,7 @@ screen encounter_choice(enemy_id, can_flee=True):
 
     text "The case is in front of you.":
         xalign 0.5
-        ypos 138
+        ypos 220
         color "#cdbd97"
         size 20
         italic True
