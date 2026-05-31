@@ -1,0 +1,45 @@
+RELIC ICON STYLE — REFACTOR (read me)
+
+All relic icons share ONE style header so the set reads as a coherent collection,
+exactly like the BB card prompts (card_*.txt). Each relic_<id>.txt is a complete,
+standalone prompt = this shared header + one object sentence. Feed any of them
+straight to gen_bg.py.
+
+SHARED STYLE HEADER (do not edit per-relic — only the object sentence changes):
+
+  Editorial-illustration style game relic icon, square 1:1 framing. A single worn
+  object, centered and filling most of the frame, three-quarter view, with a strong
+  readable silhouette. Dramatic low-key lighting and a warm rim-light separating the
+  object from a dark, softly vignetted neutral background (deep charcoal with a faint
+  institutional-green undertone). Muted desaturated palette: institutional green,
+  beige, nicotine-yellow, gunmetal grey. Heavy film grain and scuffed print texture,
+  like a worn trading-card relic. The object is real and used — JB's own possession,
+  not a clean product shot. No text, no logos, no lettering, no UI, no border.
+  Painterly, cinematic, melancholic, darkly funny.
+
+WHY ICON, NOT CARD-ART: relics render small (44px tray chip) and need to read at a
+glance — centered single object, dark vignette, strong silhouette. The CARD prompts
+(card_*.txt) are 3:4 scene compositions; relics are 1:1 object icons. Same palette,
+same grain, same dark humour — different framing.
+
+HOW TO GENERATE (from repo root, GEMINI_API_KEY in env or .env):
+
+  python tools/gen_bg.py --file tools/prompts/relic_protein_tub.txt --out protein_tub.png
+
+  Outputs to REFACTOR/game/images/generated/ by default. Move keepers to
+  REFACTOR/game/images/relics/ (the path RELIC_LIBRARY's `art` field expects).
+
+STYLE LOCK (do this after the first 1-2 look right): pass the approved relics back as
+--ref so the model copies their exact lighting/palette/grain — same trick used for
+sprites. Example once protein_tub.png + service_pistol.png are good:
+
+  python tools/gen_bg.py --file tools/prompts/relic_taser.txt \
+      --ref REFACTOR/game/images/relics/protein_tub.png \
+      --ref REFACTOR/game/images/relics/service_pistol.png \
+      --out taser.png
+
+Generate ~3-4 variants per relic, pick one, ship it (same cadence as sprites).
+
+ROSTER (14): protein_tub, gym_keycard, barbell, weightlifting_belt, colonel_mugshot,
+brass_knuckles, taser, evidence_bag, cold_case_file, cracked_laptop, service_pistol,
+red_bull_crate, lucky_koruna, golden_handcuffs.

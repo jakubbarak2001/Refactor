@@ -516,6 +516,10 @@ init python:
         ## Fixer visits don't consume the daily activity, but they're
         ## rate-limited so you can't bulk-shred a whole deck with cash.
         store._fixer_shredded_today = False
+        ## Relics — personal-effects/gear carried this run (StS-relic role).
+        ## List of relic ids; build-defining passives applied in battle_init.
+        ## See cards/relics.rpy. Reset per run.
+        store.player_relics = []
 
         ## --- Class progression state ---
         ## BB: SOMA stack (each gym session +1, max 10). 5+ unlocks Iron Body buff in fight.

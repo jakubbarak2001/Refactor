@@ -139,6 +139,104 @@ label battle_intro(enemy_id):
 
 
 ## ---------------------------------------------------------------------------
+## encounter_choice — pre-battle standoff. JB meets the enemy and decides:
+## FIGHT (engage → rewards + risk) or LET THEM GO (-25 Hatred, walk away,
+## forfeit all rewards). The relief valve is the cop choosing not to escalate;
+## the cost is the cards/cash/relic you don't get. Bosses set no_flee so the
+## option is hidden — you can't walk away from a reckoning.
+## Returns "fight" or "flee".
+## ---------------------------------------------------------------------------
+
+screen encounter_choice(enemy_id, can_flee=True):
+    modal True
+    zorder 550
+
+    python:
+        _enc_e      = ENEMY_LIBRARY.get(enemy_id, {}) or {}
+        _enc_name   = _enc_e.get("display_name", enemy_id)
+        _enc_spr    = "{} neutral".format(_enc_e.get("sprite_id") or enemy_id)
+        _enc_bg_id  = _enc_e.get("bg_id") or _enc_e.get("sprite_id") or enemy_id
+        _enc_bg     = "images/backgrounds/bg_{}.jpg".format(_enc_bg_id)
+        ## JB runs visibly hotter at high Hatred — the standoff reads angrier.
+        _enc_jb     = "jb angry" if (stats and stats.pcr_hatred >= 60) else "jb determined"
+
+    add "#0a0a0a"
+    if renpy.loadable(_enc_bg):
+        add Transform(_enc_bg, size=(config.screen_width, config.screen_height))
+    ## Dim the bg so the two figures + choices read (mockup: "lower opacity").
+    add Solid("#000000bb")
+    use class_color_frame(thickness=6)
+
+    ## JB on the left, the enemy on the right — a face-off.
+    add _enc_jb xpos 40 yalign 1.0 zoom 0.98
+    if renpy.has_image(_enc_spr, exact=True):
+        add _enc_spr xpos 1150 yalign 1.0 zoom 0.62
+
+    text "[_enc_name!u]":
+        xalign 0.5
+        ypos 70
+        color "#ff2a2a"
+        size 46
+        bold True
+        font "fonts/RobotoMono-Regular.ttf"
+        outlines [ (3, "#000000", 0, 0) ]
+
+    text "The case is in front of you.":
+        xalign 0.5
+        ypos 138
+        color "#cdbd97"
+        size 20
+        italic True
+        font "fonts/RobotoMono-Regular.ttf"
+
+    vbox:
+        xpos 690
+        yalign 0.62
+        spacing 26
+
+        button:
+            xysize (560, 92)
+            background Frame(Solid("#3a0e0e"), 4, 4)
+            hover_background Frame(Solid("#6a1414"), 4, 4)
+            action Return("fight")
+            vbox:
+                yalign 0.5
+                xfill True
+                text "FIGHT":
+                    xalign 0.5
+                    color "#ff5a4a"
+                    size 32
+                    bold True
+                    font "fonts/RobotoMono-Regular.ttf"
+                text "Take the case. Rewards on the table.":
+                    xalign 0.5
+                    color "#caa"
+                    size 16
+                    font "fonts/RobotoMono-Regular.ttf"
+
+        if can_flee:
+            button:
+                xysize (560, 92)
+                background Frame(Solid("#102a18"), 4, 4)
+                hover_background Frame(Solid("#1d5230"), 4, 4)
+                action Return("flee")
+                vbox:
+                    yalign 0.5
+                    xfill True
+                    text "LET THEM GO":
+                        xalign 0.5
+                        color "#6fdd92"
+                        size 32
+                        bold True
+                        font "fonts/RobotoMono-Regular.ttf"
+                    text "Walk away.  -25 Hatred.  No rewards.":
+                        xalign 0.5
+                        color "#9ac0a6"
+                        size 16
+                        font "fonts/RobotoMono-Regular.ttf"
+
+
+## ---------------------------------------------------------------------------
 ## battle_with — generalised entry point for any ENEMY_LIBRARY enemy.
 ## Colonel keeps colonel_event; this wrapper handles ladder rungs only.
 ## ---------------------------------------------------------------------------
@@ -154,6 +252,19 @@ label battle_with(enemy_id, tier):
     $ renpy.save("auto-ladder", "Ladder — {}".format(enemy_id))
 
     call battle_intro(enemy_id) from _call_battle_intro
+
+    ## Pre-battle standoff — engage or walk away. Bosses set no_flee.
+    $ _enc_can_flee = not ENEMY_LIBRARY.get(enemy_id, {}).get("no_flee", False)
+    call screen encounter_choice(enemy_id, _enc_can_flee)
+
+    if _return == "flee":
+        $ stats.increment_stats_pcr_hatred(-25)
+        "You look at them. You look at the paperwork it would become."
+        "Not tonight. You let it go — and the pressure behind your eyes drops a notch."
+        show screen outcome_panel("- 25 Hatred")
+        pause 1.0
+        hide screen outcome_panel
+        return
 
     python:
         battle_init(enemy_id)
@@ -173,6 +284,10 @@ label battle_with(enemy_id, tier):
         _reward_cash = BATTLE_MONEY_REWARD.get(tier, 0)
         if _reward_cash > 0 and stats is not None:
             stats.increment_stats_value_money(_reward_cash)
+        try:
+            relic_on_victory()
+        except NameError:
+            pass
         _victory_lines = ENEMY_LIBRARY.get(enemy_id, {}).get("victory_lines", [])
 
     if _victory_lines:
@@ -191,5 +306,28 @@ label battle_with(enemy_id, tier):
         python:
             if _return and _return not in ("skip", None):
                 grant_card(_return, silent=False)
+
+    ## Hard-tier enemies are the ladder's elites — they drop gear. One relic
+    ## per hard win, a random piece JB doesn't already carry. (Act bosses will
+    ## grant guaranteed/chosen relics in a later slice; this is the baseline
+    ## drip so relics are reachable in a normal run.)
+    ## Relic drops — gear off the ladder's tougher cases. Hard wins always
+    ## drop (these are the elites); medium wins drop at 50% so the first relic
+    ## can land ~day 10-14 and actually SHAPE the back half of the run instead
+    ## of arriving as day-18 garnish. Easy tier never drops — a turn-1 relic on
+    ## a 10-card starter deck would flatten the early-game decision texture.
+    ## (Act bosses will later grant guaranteed/chosen relics on top of this.)
+    python:
+        _relic_drop = None
+        _relic_roll = (tier == "hard") or (tier == "medium" and __import__("random").random() < 0.5)
+        if _relic_roll:
+            _relic_drop = random_unowned_relic()
+            if _relic_drop:
+                grant_relic(_relic_drop, silent=True)
+                _relic_meta = RELIC_LIBRARY.get(_relic_drop, {})
+
+    if _relic_drop:
+        "You pocket something from the scene: [_relic_meta[name]]."
+        "[_relic_meta[hook]]"
 
     return

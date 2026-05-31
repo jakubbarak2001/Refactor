@@ -1118,6 +1118,14 @@ screen battle_screen():
     ## Class-color top + bottom border framing the entire fight.
     use class_color_frame(thickness=6)
 
+    ## Relic tray — owned gear, top-left (StS convention). Tooltips surface
+    ## via the GetTooltip() consumer below the hand. Empty = renders nothing.
+    frame:
+        xpos 24
+        ypos 24
+        background None
+        use relic_tray(size=44)
+
     if bs is None:
         text "[[BATTLE STATE NULL]" xalign 0.5 yalign 0.5 color "#ff0000" size 32
     else:

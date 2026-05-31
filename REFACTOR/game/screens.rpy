@@ -496,6 +496,21 @@ screen deck_viewer():
             color "#888888"
             size 18
 
+        ## Owned relics — gear strip under the deck header. Hover a chip for
+        ## its name + effect (tooltip consumer below).
+        if owned_relics():
+            hbox:
+                xalign 0.5
+                spacing 10
+                use relic_tray(size=40)
+            $ _deck_relic_tt = GetTooltip()
+            if _deck_relic_tt:
+                text "[_deck_relic_tt]":
+                    xalign 0.5
+                    color "#cdbd97"
+                    size 15
+                    font "fonts/RobotoMono-Regular.ttf"
+
         ## ── Grid layout ───────────────────────────────────────────────────
         ## Six cards per row at hand-mode size (220×316). Row pitch leaves
         ## clearance for the cost-gem overhang (-12px above each card) so

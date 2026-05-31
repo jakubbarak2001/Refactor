@@ -764,6 +764,15 @@ init python:
         if enemy_id == "vlk":
             bs.buffs["vlk_buyin"] = 0
 
+        ## Relics — apply per-fight gear effects (block / energy / strength /
+        ## first-free / extra-draw / opening shot / pre-fight Hatred). Runs
+        ## after class setup + enemy HP so service_pistol and gym_keycard see
+        ## final values. Defined in cards/relics.rpy.
+        try:
+            relic_apply_battle_init(bs)
+        except NameError:
+            pass
+
         ## Sanity guard — ensure player HP is never <= 0 at battle start.
         ## Power-card auto-fire effects + BH withdrawal could in theory push
         ## HP negative if max_hp was tiny.
@@ -954,7 +963,7 @@ init python:
         ## enemy turn's debuff intents (authority_display, spray_blind,
         ## file_swap, gas_release, audit). Floor at 1 so stacked penalties
         ## can't soft-lock the player to zero cards.
-        _draw_count = 5
+        _draw_count = 5 + bs.buffs.get("relic_extra_draw", 0)
         _dp = bs.buffs.get("player_draw_penalty", 0)
         if _dp > 0:
             _draw_count = max(1, _draw_count - _dp)
