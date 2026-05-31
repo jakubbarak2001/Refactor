@@ -571,6 +571,23 @@ init python:
         flavor    = "Every shortcut you took this turn, cashed at once.",
     )
 
+    ## Coding-scaled BB attack — the STACK lane's in-fight payoff for pumping
+    ## Coding. Damage = max(5, tier x3); upgraded max(7, tier x4). BB-locked,
+    ## pool-eligible (STUDY trios + battle rewards). Mirrors BH's Compile.
+    register_card(
+        "git_blame",
+        name       = "Git Blame",
+        type       = "Attack",
+        color      = "Logic",
+        cost       = 1,
+        rarity     = "uncommon",
+        effect     = "git_blame",
+        class_lock = "bodybuilder",
+        archetype  = "tech",
+        flavor     = "You walk the history back to the exact line where it all went wrong. His name is on the commit.",
+        upgrade    = {"effect": "git_blame_plus"},
+    )
+
     ## ---------------------------------------------------------------------------
     ## NEUTRAL — flexible cards every build is happy to pick.
     ## ---------------------------------------------------------------------------
@@ -1521,7 +1538,6 @@ init python:
     register_upgrade("ship_it",               effect="ship_it_plus",               flavor="Good enough ships. And reads itself back to you.")
     register_upgrade("code_review",           effect="code_review_plus",           flavor="Delete the dead lines. The diff gets honest, and lean.")
     register_upgrade("crunch_time",           effect="crunch_time_plus",           flavor="Every shortcut, every corner — all of it, due now.")
-    register_upgrade("git_blame",             effect="git_blame_plus",             flavor="You don't just find the line. You find every line he ever touched.")
 
     ## BH new-archetype cards — Stimulant. Powers upgrade by going free
     ## (cost 0) per the refactor / cuff_em / see_red pattern.
