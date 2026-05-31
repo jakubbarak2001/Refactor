@@ -287,8 +287,9 @@ label battle_with(enemy_id, tier):
         $ stats.increment_stats_pcr_hatred(-25)
         "You look at them. You look at the paperwork it would become."
         "Not tonight. You let it go — and the pressure behind your eyes drops a notch."
+        window hide
         show screen outcome_panel("- 25 Hatred")
-        pause 1.0
+        pause
         hide screen outcome_panel
         return
 
