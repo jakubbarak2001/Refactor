@@ -62,6 +62,19 @@ init python:
         flavor     = "Every plate you've ever loaded. Stacked on the bar. Aimed at him.",
     )
 
+    register_card(
+        "norwegian_4x4",
+        name       = "Norwegian 4x4",
+        type       = "Attack",
+        color      = "Physical",
+        cost       = 1,
+        rarity     = "uncommon",
+        effect     = "norwegian_4x4",
+        class_lock = "bodybuilder",
+        archetype  = "neutral",
+        flavor     = "Four by four, all out. The bike does not survive it.",
+    )
+
     ## ---------------------------------------------------------------------------
     ## CLASS STARTERS — DE / BH signatures (out of scope, left untouched).
     ## ---------------------------------------------------------------------------
@@ -1401,6 +1414,7 @@ init python:
     register_upgrade("strike",                effect="strike_plus",                flavor="The simplest argument: hit harder. Then a little harder.")
     register_upgrade("defend",                effect="defend_plus",                flavor="Don't take the bait. Don't take the punch.")
     register_upgrade("heavy_set",             effect="heavy_set_plus",             flavor="Every plate you've ever loaded. Aimed at him. Plus one more.")
+    register_upgrade("norwegian_4x4",         effect="norwegian_4x4_plus",         flavor="You've done it enough times. The bike still burns. You don't.")
 
     ## Class starters (out of scope)
     register_upgrade("read_him",              effect="read_him_plus",              flavor="You hold for a half-second longer. He swings at empty air.")

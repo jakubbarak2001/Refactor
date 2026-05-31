@@ -71,6 +71,7 @@ init python:
         "provoke":                 "Gain 8 Hatred. Draw 1 card.",
         "knuckle_down":            "Deal 16 damage. Gain 6 Hatred.",
         "red_mist":                "Deal 8 damage twice. Gain 4 Hatred.",
+        "norwegian_4x4":           "Deal 4 damage 4 times. Lose 3 HP.",
         "see_red":                 "Power: each time you gain Hatred this fight, gain 2 block.",
         "thick_skull":             "Power: the first Hatred gain that would break you this fight is caught — Hatred is held at 80 and you gain 20 block.",
         "adrenaline_dump":         "Lose 10 Hatred. Gain 1 energy.",
@@ -188,6 +189,7 @@ init python:
         "provoke_plus":            "Gain 8 Hatred. Draw 2 cards.",
         "knuckle_down_plus":       "Deal 20 damage. Gain 6 Hatred.",
         "red_mist_plus":           "Deal 10 damage twice. Gain 4 Hatred.",
+        "norwegian_4x4_plus":      "Deal 4 damage 4 times.",
         "adrenaline_dump_plus":    "Lose 10 Hatred. Gain 2 energy. Draw 1 card.",
         "last_nerve_plus":         "Deal 6 damage. Gain 2 Hatred.",
         "embrace_it_plus":         "Exhaust a Rage card in your hand: gain 20 block and draw 2 cards.",
@@ -390,6 +392,17 @@ init python:
         ## Stagger + zigzag the 2nd popup so the double-hit reads as two numbers.
         state.deal_damage(target, 8, popup_delay=0.22, popup_xoffset=_zigzag_x(1))
         state.gain_hatred(4)
+
+    @register_effect("norwegian_4x4")
+    def _eff_norwegian_4x4(state, source, target):
+        for _i in range(4):
+            state.deal_damage(target, 4, popup_delay=_i * 0.22, popup_xoffset=_zigzag_x(_i))
+        state.deal_damage("player", 3, bypass_block=True)
+
+    @register_effect("norwegian_4x4_plus")
+    def _eff_norwegian_4x4_plus(state, source, target):
+        for _i in range(4):
+            state.deal_damage(target, 4, popup_delay=_i * 0.22, popup_xoffset=_zigzag_x(_i))
 
     @register_effect("breaking_point")
     def _eff_breaking_point(state, source, target):
