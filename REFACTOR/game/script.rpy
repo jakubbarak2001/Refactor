@@ -1897,6 +1897,27 @@ label random_event_check:
             day_cycle.next_day()
         jump random_event_check_done
 
+    ## Act bosses fire first — fixed-day reckonings, priority over the roll.
+    ## Each act's boss fires once (boss_check marks the act done after).
+    python:
+        _boss_eid, _boss_tier, _boss_act = boss_check(day_cycle.current_day)
+    if _boss_eid:
+        call battle_with(_boss_eid, _boss_tier) from _call_act_boss_fight
+        python:
+            if getattr(store, '_act_bosses_done', None) is None:
+                store._act_bosses_done = set()
+            store._act_bosses_done.add(_boss_act)
+            if stats.pcr_hatred >= 75:
+                renpy.music.play("audio/tension_theme.mp3", fadein=1.5)
+            else:
+                play_daily_music(fadein=1.5)
+            _re_nightly = int(round(5 * diff_setting("nightly_hatred_mult", 1.0)))
+            stats.increment_stats_pcr_hatred(_re_nightly)
+            if python_bootcamp:
+                stats.increment_stats_coding_skill(5)
+            day_cycle.next_day()
+        jump random_event_check_done
+
     ## Battle vs event roll. Returns 'battle' / 'event' / None.
     $ _slot_kind, _slot_eid, _slot_tier = roll_ladder_or_event(day_cycle.current_day)
 

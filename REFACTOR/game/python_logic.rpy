@@ -520,6 +520,9 @@ init python:
         ## List of relic ids; build-defining passives applied in battle_init.
         ## See cards/relics.rpy. Reset per run.
         store.player_relics = []
+        ## Act bosses already faced this run — set of act numbers (1/2). Drives
+        ## boss_check() so each act boss fires once. See cards/battle_ladder.rpy.
+        store._act_bosses_done = set()
 
         ## --- Class progression state ---
         ## BB: SOMA stack (each gym session +1, max 10). 5+ unlocks Iron Body buff in fight.

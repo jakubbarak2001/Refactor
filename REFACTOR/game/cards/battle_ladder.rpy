@@ -37,13 +37,32 @@ init python:
             return "medium"
         return "hard"
 
+    ## Act bosses — fixed-day reckonings that cap each act, fired with priority
+    ## over the random ladder/event roll. Each is an existing, fully-arted enemy
+    ## promoted to boss (higher HP, no_flee, guaranteed relic). Returns
+    ## (enemy_id, reward_tier, act) or (None, None, None). reward_tier feeds the
+    ## existing money/card-reward tables (no "boss" tier needed downstream).
+    ##   Act I  (day 10+): Grundza        — the meth lab, the first real wall.
+    ##   Act II (day 20+): Colonel's Guard — his elite intercepts you.
+    ##   Act III (day 30): the Colonel (own event).
+    def boss_check(day):
+        done = getattr(store, "_act_bosses_done", None) or set()
+        if 1 not in done and day >= 10:
+            return ("grundza", "medium", 1)
+        if 2 not in done and day >= 20:
+            return ("garda", "hard", 2)
+        return (None, None, None)
+
     def _ladder_init_pool():
         """Lazy-init the per-run drainable ladder pool."""
         if not hasattr(store, 'battle_ladder_pool') or store.battle_ladder_pool is None:
+            ## grundza (Act I) and garda (Act II) are pulled from the random
+            ## pool — they fire as fixed-day act bosses via boss_check(), not
+            ## as drainable ladder rungs.
             store.battle_ladder_pool = {
                 "easy":   ["rvac", "sprejeri", "fanousek", "spis"],
-                "medium": ["nguyen", "grundza", "lawyer", "dispatcher", "vlk"],
-                "hard":   ["inspekce", "garda", "lifer", "estebak"],
+                "medium": ["nguyen", "lawyer", "dispatcher", "vlk"],
+                "hard":   ["inspekce", "lifer", "estebak"],
             }
 
     def roll_ladder_or_event(day):
@@ -319,7 +338,9 @@ label battle_with(enemy_id, tier):
     ## (Act bosses will later grant guaranteed/chosen relics on top of this.)
     python:
         _relic_drop = None
-        _relic_roll = (tier == "hard") or (tier == "medium" and __import__("random").random() < 0.5)
+        _is_boss = ENEMY_LIBRARY.get(enemy_id, {}).get("is_boss", False)
+        ## Bosses ALWAYS drop a relic; hard wins always; medium 50%; easy none.
+        _relic_roll = _is_boss or (tier == "hard") or (tier == "medium" and __import__("random").random() < 0.5)
         if _relic_roll:
             _relic_drop = random_unowned_relic()
             if _relic_drop:

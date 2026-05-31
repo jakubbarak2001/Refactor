@@ -51,6 +51,13 @@ init -1 python:
             "intro_lines":   [],
             "detour_lines":  [],
             "victory_lines": [],
+            ## Act bosses — fired on fixed days by boss_check(), not the random
+            ## pool. is_boss drives the boss banner + guaranteed relic reward;
+            ## no_flee hides the "let them go" option (you can't walk away from
+            ## a reckoning). act marks which act this boss caps (1/2).
+            "is_boss":       False,
+            "no_flee":       False,
+            "act":           0,
         }
         defaults.update(fields)
         defaults["id"] = enemy_id
@@ -234,11 +241,14 @@ init -1 python:
         sprite_id    = "grundza",
         bg_id        = "varic",
         log_name     = "Grundza",
-        tier         = "medium",
-        max_hp       = 125,
+        tier         = "boss",
+        is_boss      = True,
+        no_flee      = True,
+        act          = 1,
+        max_hp       = 160,
         deck_template = ["fume_swipe", "chem_burn", "chem_stoke", "lab_check", "gas_release"],
         wrinkle      = "lab_timer",
-        wrinkle_data = {"detonation_turn": 5, "detonation_dmg": 30},
+        wrinkle_data = {"detonation_turn": 6, "detonation_dmg": 32},
         intro_lines  = [
             "A tip, an address, three flights of stairs. You smelled what was up here before you reached the door — and you climbed anyway. Somebody's mother cooked dinner in this kitchen once. Tonight it cooks something else.",
             "Grundza doesn't look up from the rig. He's cooked through two raids in this kitchen and neither one rushed him. He knows to the minute when the batch turns — and when the room stops being a room. You have until then.",
@@ -360,8 +370,11 @@ init -1 python:
         display_name = "Colonel's Guard",
         sprite_id    = "garda",
         log_name     = "Guard",
-        tier         = "hard",
-        max_hp       = 180,
+        tier         = "boss",
+        is_boss      = True,
+        no_flee      = True,
+        act          = 2,
+        max_hp       = 210,
         deck_template = [
             "breach_swing", "shield_wall", "gas_throw",
             "baton_combo", "formation_buff", "phalanx_block", "clear_room",
