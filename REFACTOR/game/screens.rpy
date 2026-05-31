@@ -3775,7 +3775,7 @@ init python:
     CLASS_CROP = {
         "bodybuilder": (50, 0, 749, 1264),
         "dark_empath": (70, 0, 749, 1264),
-        "biohacker":   (75, 0, 749, 1264),
+        "biohacker":   (75, -50, 749, 1264),
     }
     CLASS_HOVER_SFX = {
         "bodybuilder": "audio/sfx/gym_plates.mp3",
@@ -3929,11 +3929,10 @@ screen class_selection_screen():
                     xysize (CLASS_COL_W, 6)
 
                 ## Class name — centred on a scrim band over the upper portrait.
-                ## Anchored higher (ypos 20 was 70) so the name sits just under
                 ## the top accent bar and out of the portrait's face area.
                 frame:
                     xfill True
-                    ypos 20
+                    ypos 40
                     background "#000000aa"
                     padding (0, 14)
                     text _cd["name"]:
@@ -3984,7 +3983,7 @@ screen class_selection_screen():
                                         size 25
                                         bold True
                                         font "fonts/RobotoMono-Regular.ttf"
-                                    text ("PREVIEW ONLY — CAN'T SELECT YET" if _focus == _i else "IN DEVELOPMENT"):
+                                    text ("IN DEVELOPMENT"):
                                         color ("#bdbdbd" if _focus == _i else "#9a9a9a")
                                         size 14
                                         font "fonts/RobotoMono-Regular.ttf"
@@ -4017,12 +4016,12 @@ screen class_selection_screen():
             background "#1a0606ee"
             padding (28, 12)
             at _deny_msg
-            text "[_deny_name] is still in development — BODYBUILDER is the only class you can take right now.":
+            text "[_deny_name] is still in development — Select ANOTHER class.":
                 color "#dd9d8c"
                 size 16
                 xalign 0.5
                 font "fonts/RobotoMono-Regular.ttf"
-        timer 1.2 action SetScreenVariable("_denied", -1)
+        timer 2.0 action SetScreenVariable("_denied", -1)
 
     ## Keyboard nav is Ren'Py's built-in button focus: Left/Right move focus
     ## between the three columns, Enter activates the focused one (same path as
