@@ -102,7 +102,7 @@ init python:
         "hotfix":                  "Deal 5 damage. Draw 1 card. Deal 13 instead if this is the 3rd+ card you've played this turn.",
         "ship_it":                 "Gain 1 energy for each Skill in your hand (max 3). Exhausts.",
         "code_review":             "Exhaust your leftmost other card. Draw 2 cards. Gain 3 block.",
-        "crunch_time":             "Deal 4 damage for each card you've played this turn, including this one.",
+        "crunch_time":             "Deal 4 damage for each card you've played this turn (max 6), including this one.",
         ## Neutral
         "gut_punch":               "Deal 9 damage.",
         "body_check":              "Deal 16 damage.",
@@ -201,7 +201,7 @@ init python:
         "hotfix_plus":             "Deal 8 damage. Draw 1 card. Deal 17 instead if this is the 3rd+ card you've played this turn.",
         "ship_it_plus":            "Gain 1 energy for each Skill in your hand (max 3). Draw 1 card. Exhausts.",
         "code_review_plus":        "Exhaust your leftmost other card. Draw 2 cards. Gain 6 block.",
-        "crunch_time_plus":        "Deal 5 damage for each card you've played this turn, including this one.",
+        "crunch_time_plus":        "Deal 5 damage for each card you've played this turn (max 6), including this one.",
         ## BH Stimulant
         "microdose":               "Gain 1 energy. Lose 2 HP.",
         "microdose_plus":          "Gain 2 energy. Lose 2 HP.",
@@ -295,26 +295,26 @@ init python:
             _cs = stats.coding_skill if stats else 0
             return "Gain {:,} CZK. (Coding × 50) Exhausts.".format(_cs * 50)
         if effect_id == "heavy_set":
-            return "Deal {} damage.".format(6 + h // 5)
+            return "Deal {} damage. (+1 per 5 Hatred)".format(6 + h // 5)
         if effect_id == "heavy_set_plus":
-            return "Deal {} damage.".format(8 + h // 5)
+            return "Deal {} damage. (+1 per 5 Hatred)".format(8 + h // 5)
         if effect_id == "breaking_point":
-            return "Deal {} damage.".format(10 + h // 4)
+            return "Deal {} damage. (+1 per 4 Hatred)".format(10 + h // 4)
         if effect_id == "bottled_rage":
-            return "Deal {} damage. Lose 25 Hatred.".format(h // 2)
+            return "Deal {} damage (half your Hatred). Lose 25 Hatred.".format(h // 2)
         if effect_id == "snap_decision":
-            return "Deal {} damage.".format(18 if h >= 60 else 9)
+            return "Deal {} damage. (18 at 60+ Hatred)".format(18 if h >= 60 else 9)
         if effect_id == "counterweight":
             if battle_state is not None:
                 return "Deal {} damage (your block, max {}).".format(
                     min(battle_state.player_block, COUNTERWEIGHT_CAP), COUNTERWEIGHT_CAP)
             return "Deal damage equal to your current block (max {}).".format(COUNTERWEIGHT_CAP)
         if effect_id == "breaking_point_plus":
-            return "Deal {} damage.".format(13 + h // 3)
+            return "Deal {} damage. (+1 per 3 Hatred)".format(13 + h // 3)
         if effect_id == "bottled_rage_plus":
-            return "Deal {} damage. Lose 25 Hatred.".format(h // 2 + 6)
+            return "Deal {} damage (half your Hatred +6). Lose 25 Hatred.".format(h // 2 + 6)
         if effect_id == "snap_decision_plus":
-            return "Deal {} damage.".format(24 if h >= 60 else 12)
+            return "Deal {} damage. (24 at 60+ Hatred)".format(24 if h >= 60 else 12)
         if effect_id == "counterweight_plus":
             if battle_state is not None:
                 return "Deal {} damage (your block + 4).".format(
@@ -615,7 +615,11 @@ init python:
     @register_effect("crunch_time")
     def _eff_crunch_time(state, source, target):
         ## 4 per card played this turn — counter already includes this card.
-        _n = state.cards_played_this_turn
+        ## Capped at 6 cards (24 dmg): the STACK relic trio (evidence_bag free
+        ## card + cold_case_file +draw + red_bull_crate +energy) could push the
+        ## raw count to 8-9 for a 35-45 dmg single card. The cap keeps the
+        ## combo strong without a near-one-shot.
+        _n = min(6, state.cards_played_this_turn)
         state.deal_damage(target, 4 * _n)
         state.add_log("Crunch Time: {} cards played -> {} damage.".format(_n, 4 * _n))
 
@@ -1185,7 +1189,8 @@ init python:
 
     @register_effect("crunch_time_plus")
     def _eff_crunch_time_plus(state, source, target):
-        _n = state.cards_played_this_turn
+        ## Cap at 6 cards (30 dmg) — see crunch_time note on the STACK trio.
+        _n = min(6, state.cards_played_this_turn)
         state.deal_damage(target, 5 * _n)
         state.add_log("Crunch Time+: {} cards played -> {} damage.".format(_n, 5 * _n))
 
