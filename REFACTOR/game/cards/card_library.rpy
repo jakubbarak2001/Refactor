@@ -75,6 +75,35 @@ init python:
         flavor     = "Four by four, all out. The bike does not survive it.",
     )
 
+    register_card(
+        "an_idea",
+        name       = "An Idea",
+        type       = "Skill",
+        color      = "Physical",
+        cost       = 2,
+        rarity     = "rare",
+        effect     = "an_idea",
+        exhaust    = True,
+        class_lock = "bodybuilder",
+        archetype  = "neutral",
+        flavor     = "He smiles. Somewhere, a leg-press machine should be afraid.",
+    )
+
+    register_card(
+        "the_final_set",
+        name          = "The Final Set",
+        type          = "Attack",
+        color         = "Physical",
+        cost          = 1,
+        rarity        = "rare",
+        effect        = "the_final_set",
+        exhaust       = True,
+        class_lock    = "bodybuilder",
+        archetype     = "neutral",
+        pool_excluded = True,
+        flavor        = "Plates ran out. So the car goes on the sled.",
+    )
+
     ## ---------------------------------------------------------------------------
     ## CLASS STARTERS — DE / BH signatures (out of scope, left untouched).
     ## ---------------------------------------------------------------------------
@@ -1415,6 +1444,7 @@ init python:
     register_upgrade("defend",                effect="defend_plus",                flavor="Don't take the bait. Don't take the punch.")
     register_upgrade("heavy_set",             effect="heavy_set_plus",             flavor="Every plate you've ever loaded. Aimed at him. Plus one more.")
     register_upgrade("norwegian_4x4",         effect="norwegian_4x4_plus",         flavor="You've done it enough times. The bike still burns. You don't.")
+    register_upgrade("an_idea",               cost=1,                              flavor="The idea comes faster now. The car never had a chance.")
 
     ## Class starters (out of scope)
     register_upgrade("read_him",              effect="read_him_plus",              flavor="You hold for a half-second longer. He swings at empty air.")

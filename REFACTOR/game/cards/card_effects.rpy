@@ -72,6 +72,8 @@ init python:
         "knuckle_down":            "Deal 16 damage. Gain 6 Hatred.",
         "red_mist":                "Deal 8 damage twice. Gain 4 Hatred.",
         "norwegian_4x4":           "Deal 4 damage 4 times. Lose 3 HP.",
+        "an_idea":                 "Add {b}{color=#ff6633}The Final Set{/color}{/b} to your discard pile. Exhaust.",
+        "the_final_set":           "Deal 30 damage. Exhaust.",
         "see_red":                 "Power: each time you gain Hatred this fight, gain 2 block.",
         "thick_skull":             "Power: the first Hatred gain that would break you this fight is caught — Hatred is held at 80 and you gain 20 block.",
         "adrenaline_dump":         "Lose 10 Hatred. Gain 1 energy.",
@@ -403,6 +405,15 @@ init python:
     def _eff_norwegian_4x4_plus(state, source, target):
         for _i in range(4):
             state.deal_damage(target, 4, popup_delay=_i * 0.22, popup_xoffset=_zigzag_x(_i))
+
+    @register_effect("an_idea")
+    def _eff_an_idea(state, source, target):
+        state.discard_pile.append("the_final_set")
+        state.add_log("An Idea: The Final Set drops into your discard pile.")
+
+    @register_effect("the_final_set")
+    def _eff_the_final_set(state, source, target):
+        state.deal_damage(target, 30)
 
     @register_effect("breaking_point")
     def _eff_breaking_point(state, source, target):
