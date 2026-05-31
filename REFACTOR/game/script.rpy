@@ -1299,13 +1299,15 @@ label fixer_buy_relic:
                 grant_relic(_rbuy_pick, silent=True)
                 store._fixer_relic_stock = [o for o in store._fixer_relic_stock if o["relic_id"] != _rbuy_pick]
                 _rbuy_meta = RELIC_LIBRARY.get(_rbuy_pick, {})
+                _rbuy_name = _rbuy_meta.get("name", _rbuy_pick)
+                _rbuy_hook = _rbuy_meta.get("hook", "")
                 _rbuy_ok = True
 
     if _rbuy_ok:
         "He lifts it off the table like it's nothing. To you it isn't."
-        "[_rbuy_meta[name]] — [_rbuy_meta[hook]]"
+        "[_rbuy_name] — [_rbuy_hook]"
         window hide
-        show screen outcome_panel("- {:,} CZK   + {}".format(_rbuy_offer["price"], _rbuy_meta["name"]))
+        show screen outcome_panel("- {:,} CZK   + {}".format(_rbuy_offer["price"], _rbuy_name))
         pause
         hide screen outcome_panel
     else:

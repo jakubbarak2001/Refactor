@@ -354,9 +354,11 @@ label battle_with(enemy_id, tier):
             if _relic_drop:
                 grant_relic(_relic_drop, silent=True)
                 _relic_meta = RELIC_LIBRARY.get(_relic_drop, {})
+                _relic_name = _relic_meta.get("name", _relic_drop)
+                _relic_hook = _relic_meta.get("hook", "")
 
     if _relic_drop:
-        "You pocket something from the scene: [_relic_meta[name]]."
-        "[_relic_meta[hook]]"
+        "You pocket something from the scene: [_relic_name]."
+        "[_relic_hook]"
 
     return
