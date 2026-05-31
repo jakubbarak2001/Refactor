@@ -37,8 +37,6 @@ Project-level guidance for Claude. This file is auto-loaded every session.
 | `cards/colonel_deck.rpy` | Enemy deck (ENEMY_DECK_LIBRARY + COLONEL_DECK_TEMPLATES) |
 | `cards/battle_engine.rpy` | BattleState class + battle_init/start/play/resolve |
 | `cards/battle_screen.rpy` | Battle UI screen (hand, intent, energy, help, peek) |
-| `cards/coding_minigame.rpy` | Puzzle data + state |
-| `cards/coding_minigame_screen.rpy` | Puzzle UI |
 
 ## Critical conventions
 

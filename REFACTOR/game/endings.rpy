@@ -182,100 +182,37 @@ label good_ending:
 
 
 ## ---------------------------------------------------------------------------
-## REUNION ENDING — defeated the Colonel, but coding/money too low to make it
-## as a developer. Six months later, JB walks back to the station.
+## DEFEAT ENDING — lost the deck battle (JB HP hits 0). The countdown ends
+## with JB still in uniform.
 ## ---------------------------------------------------------------------------
 
-label reunion_ending:
+label colonel_defeat_ending:
 
-    python:
-        unlock_achievement("the_return")
+    stop music fadeout 1.5
+    play music "audio/breakdown_theme.mp3" fadein 1.5
 
-    if getattr(store, '_reunion_via_defeat', False):
-        ## Defeat path — JB lost the argument but walked out anyway.
-        scene bg_police_office
-        show colonel smug at char_right
+    scene bg_police_office with glitch_transition
+    show colonel normal at char_right
 
-        "You stand up."
-        "Your hands are shaking. Your voice isn't."
+    "[[SYSTEM]: JB HP = 0."
 
-        jb "'I'm doing it anyway.'"
+    pause 0.5
 
-        "He doesn't answer. The faint smile doesn't move. He's already proven his point — to himself, anyway."
-        "You walk to the door. You don't look back."
+    "Whatever you brought into this room, it wasn't enough."
+    "The Colonel doesn't gloat. He just nods, slow, like a man confirming a number he already knew."
 
-        stop music fadeout 2.0
-        scene bg_black with slow_dissolve
-        pause 1.5
-    else:
-        ## Victory path — JB beat the Colonel (close / pyrrhic / stat-starved perfect).
-        stop music fadeout 2.0
-        scene bg_black
-        pause 1.5
+    colonel "'Get some rest. Briefing's at six.'"
 
-        "You did it."
-        "You walked out of his office."
-        "You felt the air outside the station."
-
-    pause 1.0
-
-    "You drove home with the windows down."
-    "You slept for fourteen hours."
-
-    pause 1.0
-
-    scene bg_black
-
-    "Three weeks later."
-
-    pause 1.0
-
-    "Your CV is on every job board in the country. 'Junior Python Developer. Self-taught. Career changer.'"
-    "The replies that come back are polite. None of them are interviews."
-
-    pause 1.0
-
-    scene bg_black
-
-    "Three months later."
-
-    pause 1.0
-
-    "Your savings ran out in month two."
-    "Your parents helped for a while. Then they stopped helping. They didn't say why."
-    "You took a delivery job. Then you stopped taking that job because the bike broke."
-    "You started reading job listings that said 'security personnel — clean record required.'"
-
-    pause 1.0
-
-    scene bg_black
-
-    "Six months later."
-
-    pause 1.5
-
-    play music "audio/coding_in_snow_theme.mp3" fadein 2.0
-
-    $ renpy.movie_cutscene("video/refactor_true_ending.webm")
-
-    python:
-        _base_score  = (stats.available_money / 100) + (stats.coding_skill * 60)
-        _diff_mult   = diff_setting("score_mult", 1.0)
-        _final_score = int(_base_score * _diff_mult * 0.3)
-        _diff_name   = (stats.difficulty or "unknown").capitalize()
+    "The countdown ends with you still in the uniform."
+    "Tomorrow you'll button the same shirt. The exit was right there. You couldn't reach it."
 
     scene bg_black with slow_dissolve
 
     call screen ending_screen(
-        "BITTERSWEET ENDING",
-        "THE RETURN",
-        "You beat him. The world beat you. Both can be true.",
-        "neutral",
-        score=_final_score,
-        score_note="x0.3 — You won the fight. You lost the after.",
-        money=stats.available_money,
-        coding=stats.coding_skill,
-        diff_name=_diff_name
+        "BAD ENDING",
+        "STILL IN UNIFORM",
+        "The exit was right there. You couldn't reach it.",
+        "bad"
     )
 
     $ renpy.full_restart()

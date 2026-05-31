@@ -62,17 +62,10 @@ label colonel_event:
         _outcome = battle_outcome()
         battle_finish()
 
-    ## Outcome routing — reunion_ending temporarily hidden.
-    ## Any non-defeat outcome (perfect / pyrrhic / close) routes to good_ending
-    ## via the glitch phase. Defeat also routes to good_ending as a stopgap until
-    ## reunion is re-enabled. To restore the original split, uncomment the block
-    ## below and remove the unconditional jump.
-    ##
-    ## if _outcome == "defeat":
-    ##     $ store._reunion_via_defeat = True
-    ##     jump reunion_ending
-    ## if _outcome != "victory_perfect" or (stats.coding_skill < 70 and stats.available_money < 25000):
-    ##     jump reunion_ending
+    ## Defeat routes to its own ending; any victory routes through the glitch
+    ## phase to good_ending.
+    if _outcome == "defeat":
+        jump colonel_defeat_ending
 
     jump colonel_glitch_phase
 

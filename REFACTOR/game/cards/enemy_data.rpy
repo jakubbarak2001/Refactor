@@ -26,7 +26,7 @@
 ##                 same sprite/bg, used when one reveal slide would overflow
 ##                 the text-box. <2 entries skips the intro (Colonel — own event).
 ##   detour_lines  forced-detour narration on loss (empty for Colonel — his loss
-##                 routes to reunion_ending, not the shared detour label)
+##                 routes to colonel_defeat_ending, not the shared detour label)
 ##   victory_lines post-victory narration shown before the cash receipt; each
 ##                 entry is one narrator say-line. Empty list falls back to the
 ##                 bare cash payout with no flavor (Colonel — own event)

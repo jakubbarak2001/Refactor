@@ -476,7 +476,6 @@ init python:
         cold_read_index      = 0
         store._crisis_triggered = False
         store._nightmare_wolf_triggered = False
-        store._reunion_via_defeat = False
         ## Battle ladder state — drainable pool + skip-tomorrow penalty flag.
         ## Lazy-inited by roll_ladder_or_event on first call; reset here so a
         ## new run gets a fresh pool of 10 enemies.
@@ -613,7 +612,6 @@ init python:
         "dark_empath_win":  {"category": "Combat",     "name": "Mirror Mirror",           "desc": "Use the FATAL STRIKE as Dark Empath.",                          "hint": "Dark Empath only — find the Colonel's hidden vulnerability."},
         "biohacker_win":    {"category": "Combat",     "name": "Optimized",               "desc": "Auto-counter Safety Net as Biohacker.",                         "hint": "Biohacker only — let the Colonel try the safety net argument."},
         "hackerman":        {"category": "Collection", "name": "Hackerman",               "desc": "Max out coding skill to 250. You are the compiler now.",        "hint": "Reach 250 Coding Skill (the cap)."},
-        "the_return":       {"category": "Story",      "name": "The Return",              "desc": "Walk out of the station, then walk back six months later.",         "hint": "Leave the Colonel behind without the perfect exit. Six months later you'll find out what that costs."},
         ## --- Class arc achievements ---
         "bring_the_lt":     {"category": "Story",      "name": "Bring The Lieutenant",    "desc": "Expose Kovář's flagged report to journalists.",                  "hint": "Dark Empath only — choose to expose, not leverage or comply."},
         "subject_zero":     {"category": "Story",      "name": "Subject Zero",            "desc": "Become the trial. Document everything. Lose your baseline.",     "hint": "Biohacker only — agree to the 21-day compound trial."},
