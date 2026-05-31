@@ -1219,7 +1219,7 @@ screen daily_hub_screen():
             _hub_cta_color = _hub_class_color
             _hub_cta_hover = "#ff8855"
         elif stats and stats.player_class == "dark_empath":
-            _hub_cta_word  = "READ"
+            _hub_cta_word  = "STUDY"
             _hub_cta_color = _hub_class_color
             _hub_cta_hover = "#bb66dd"
         elif stats and stats.player_class == "biohacker":
