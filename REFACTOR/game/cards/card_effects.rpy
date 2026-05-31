@@ -102,8 +102,8 @@ init python:
         "hotfix":                  "Deal 5 damage. Draw 1 card. Deal 13 instead if this is the 3rd+ card you've played this turn.",
         "ship_it":                 "Gain 1 energy for each Skill in your hand (max 3). Exhausts.",
         "code_review":             "Exhaust your leftmost other card. Draw 2 cards. Gain 3 block.",
-        "git_blame":               "Deal damage equal to Coding tier × 3.",
-        "git_blame_plus":          "Deal damage equal to Coding tier × 4.",
+        "git_blame":               "Deal damage equal to Coding tier × 3 (min 5).",
+        "git_blame_plus":          "Deal damage equal to Coding tier × 4 (min 7).",
         "crunch_time":             "Deal 4 damage for each card you've played this turn (max 6), including this one.",
         ## Neutral
         "gut_punch":               "Deal 9 damage.",
@@ -297,9 +297,9 @@ init python:
             _cs = stats.coding_skill if stats else 0
             return "Gain {:,} CZK. (Coding × 50) Exhausts.".format(_cs * 50)
         if effect_id == "git_blame":
-            return "Deal {} damage. (Coding tier × 3)".format(_coding_tier_int() * 3)
+            return "Deal {} damage. (Coding tier × 3, min 5)".format(max(5, _coding_tier_int() * 3))
         if effect_id == "git_blame_plus":
-            return "Deal {} damage. (Coding tier × 4)".format(_coding_tier_int() * 4)
+            return "Deal {} damage. (Coding tier × 4, min 7)".format(max(7, _coding_tier_int() * 4))
         if effect_id == "heavy_set":
             return "Deal {} damage. (+1 per 5 Hatred)".format(6 + h // 5)
         if effect_id == "heavy_set_plus":
@@ -620,16 +620,16 @@ init python:
 
     @register_effect("git_blame")
     def _eff_git_blame(state, source, target):
-        ## Coding-scaled BB attack — tier x 3 (T1=3 ... T5=15) for 1 energy.
-        ## BB's in-fight payoff for pumping Coding; mirrors BH Compile.
-        state.deal_damage(target, _bh_coding_tier() * 3)
+        ## Coding-scaled BB attack — max(5, tier x 3): T1-T2 floor at 5 (so a
+        ## 1-cost uncommon is never strictly worse than basic Strike), then
+        ## 9/12/15 at T3-T5. BB's in-fight payoff for pumping Coding.
+        state.deal_damage(target, max(5, _bh_coding_tier() * 3))
 
     @register_effect("git_blame_plus")
     def _eff_git_blame_plus(state, source, target):
-        ## Upgrade — tier x 4 (T5 = 20 for 1 energy). The REFACTOR action can
-        ## upgrade this card, so a high-coder run compounds: more skill -> more
-        ## base damage AND a bigger multiplier once refactored.
-        state.deal_damage(target, _bh_coding_tier() * 4)
+        ## Upgrade — max(7, tier x 4): floor 7 early, 12/16/20 at T3-T5. The
+        ## REFACTOR action can upgrade this, so a high-coder run compounds.
+        state.deal_damage(target, max(7, _bh_coding_tier() * 4))
 
     @register_effect("crunch_time")
     def _eff_crunch_time(state, source, target):
