@@ -46,8 +46,7 @@ ROSTER (14): protein_tub, gym_keycard, barbell, weightlifting_belt, colonel_mugs
 brass_knuckles, taser, evidence_bag, cold_case_file, cracked_laptop, service_pistol,
 red_bull_crate, lucky_koruna, golden_handcuffs.
 
-NOTE: of these 14, 9 are wired into RELIC_LIBRARY (cards/relics.rpy) and live:
-protein_tub, gym_keycard, colonel_mugshot, brass_knuckles, evidence_bag,
-cold_case_file, red_bull_crate, service_pistol, lucky_koruna. The other 5 (barbell,
-weightlifting_belt, taser, cracked_laptop, golden_handcuffs) have prompts + designs
-ready but still need register_relic entries + effects before their art is used.
+NOTE: all 14 are now wired into RELIC_LIBRARY (cards/relics.rpy) and live in-game
+— each just needs its art PNG generated. The `art` field auto-resolves to
+images/relics/<id>.png; until the PNG exists the relic shows a coloured glyph chip
+in the tray (harmless). None have art yet — generate as above.
