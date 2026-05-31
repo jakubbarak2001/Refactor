@@ -1521,6 +1521,7 @@ init python:
     register_upgrade("ship_it",               effect="ship_it_plus",               flavor="Good enough ships. And reads itself back to you.")
     register_upgrade("code_review",           effect="code_review_plus",           flavor="Delete the dead lines. The diff gets honest, and lean.")
     register_upgrade("crunch_time",           effect="crunch_time_plus",           flavor="Every shortcut, every corner — all of it, due now.")
+    register_upgrade("git_blame",             effect="git_blame_plus",             flavor="You don't just find the line. You find every line he ever touched.")
 
     ## BH new-archetype cards — Stimulant. Powers upgrade by going free
     ## (cost 0) per the refactor / cuff_em / see_red pattern.
