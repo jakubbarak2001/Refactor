@@ -523,6 +523,10 @@ init python:
         ## Act bosses already faced this run — set of act numbers (1/2). Drives
         ## boss_check() so each act boss fires once. See cards/battle_ladder.rpy.
         store._act_bosses_done = set()
+        ## REFACTOR budget — cards upgraded this run via the coding REFACTOR
+        ## action. Coding TIER (1-5) is the cap: a higher coder can refactor
+        ## more of the deck. Reset per run. See coding_refactor in script.rpy.
+        store._refactors_used = 0
 
         ## --- Class progression state ---
         ## BB: SOMA stack (each gym session +1, max 10). 5+ unlocks Iron Body buff in fight.
@@ -565,10 +569,10 @@ init python:
                 "Immune to Colonel's Brotherhood guilt trip.",
                 "Extra brute-force option if caught at car incident.",
             ],
-            "passive": "Built for the long fight. Persistent HP scales with gym attendance; bouncer bonus turns physical work into capital. Coding caps at 100 — you can buy your way to Junior Dev, not Senior.",
+            "passive": "Built for the long fight. Persistent HP scales with gym attendance; bouncer bonus turns physical work into capital. Coding REFACTORS your deck — every tier lets you upgrade a card, and the Tech cards it earns hit harder the more you know.",
             "coding_modifier":   0,
             "hatred_modifier":   0,
-            "coding_ceiling":  100,
+            "coding_ceiling":  250,
         },
         "dark_empath": {
             "name":    "DARK EMPATH",

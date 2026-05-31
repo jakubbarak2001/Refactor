@@ -851,6 +851,20 @@ label activity_coding:
             ## Other classes — STUDY keeps the card-trio behaviour; bootcamp
             ## option still available (BH skipped because their tier ramp
             ## happens via the top-level Nootropics Lab).
+            ## REFACTOR — coding's combat payoff for a non-BH (BB) run: spend
+            ## the slot to upgrade a card to its '+' form. Budget = current
+            ## Coding tier (1-5); a higher coder refactors more of the deck.
+            _rf_tier      = _coding_tier_int()
+            _rf_used      = getattr(store, "_refactors_used", 0)
+            _rf_left      = max(0, _rf_tier - _rf_used)
+            _rf_has_upg   = (player_deck is not None) and any(is_upgradeable(_c) for _c in player_deck.cards)
+            _rf_locked    = (_rf_left <= 0) or (not _rf_has_upg)
+            if _rf_left <= 0:
+                _rf_lock_t = "Refactor budget spent. Raise Coding a tier for another."
+            elif not _rf_has_upg:
+                _rf_lock_t = "Nothing left to refactor — every card's already at its best."
+            else:
+                _rf_lock_t = ""
             _coding_options = [
                 {
                     "label_name":     "coding_study",
@@ -860,6 +874,17 @@ label activity_coding:
                     "effect_text":    "Pick from a 3-card offer",
                     "flavor_text":    ("Bootcamp tier: high-rarity offers." if _bc_done else "An hour at the keyboard. The keyboard pays in cards."),
                     "class_relevant": False,
+                },
+                {
+                    "label_name":     "coding_refactor",
+                    "title":          "REFACTOR",
+                    "accent":         _bh_accent,
+                    "cost_text":      "FREE",
+                    "effect_text":    ("Upgrade a card  ({} left)".format(_rf_left) if not _rf_locked else "Upgrade a card"),
+                    "flavor_text":    "Rewrite what you've already got. Cleaner, meaner. Coding tier sets how many.",
+                    "class_relevant": True,
+                    "locked":         _rf_locked,
+                    "lock_text":      _rf_lock_t,
                 },
                 {
                     "label_name":     _bc_label,
@@ -932,6 +957,38 @@ label coding_study:
 
     window hide
     show screen outcome_panel(_study_outcome)
+    pause
+    hide screen outcome_panel
+    python:
+        activity_selected = True
+    jump end_day
+
+
+## ---------------------------------------------------------------------------
+## REFACTOR — the title, made literal. Coding's combat payoff for BB: spend the
+## slot to upgrade a card to its '+' form. Budget per run = current Coding tier
+## (1-5), tracked in store._refactors_used. Reuses the shared upgrade flow
+## (picker -> preview -> reveal); only burns the budget on a confirmed upgrade.
+## ---------------------------------------------------------------------------
+
+label coding_refactor:
+
+    scene bg_jb_flat
+
+    "You open the editor on a card you already know by heart. Same fight, fewer wasted lines."
+
+    call _run_card_upgrade_flow from _call_refactor_upgrade_flow
+    $ _rf_plus = _return
+
+    if _rf_plus is None:
+        ## Cancelled out of the picker — no budget spent, slot not consumed.
+        jump activity_coding
+
+    python:
+        store._refactors_used = getattr(store, "_refactors_used", 0) + 1
+        _rf_card_name = CARD_LIBRARY.get(_rf_plus, {}).get("name", "the card")
+    window hide
+    show screen outcome_panel("Refactored: {}.".format(_rf_card_name))
     pause
     hide screen outcome_panel
     python:
