@@ -1178,31 +1178,148 @@ label activity_overtime:
 
 label activity_fixer:
 
-    ## Per-day gate — one shred per day. Entered from the sidebar button
-    ## on the daily hub. Does NOT consume the daily activity slot.
-    if getattr(store, '_fixer_shredded_today', False):
-        "He doesn't open the door. 'Already did your one tonight. Tomorrow.'"
-        jump daily_menu
+    ## The Fixer is the in-fiction money shop (problem #4): money buys deck
+    ## power. Three counters — BUY a card, BUY gear (a relic), SHRED a card —
+    ## plus walk away. Browsing is free; only a purchase costs money. Does NOT
+    ## consume the daily activity slot (sidebar action, like before).
+    ##
+    ## Stock is rolled ONCE per visit-day and cached in store._fixer_stock_day
+    ## so re-entering the hub doesn't reroll the shelf (no StS reroll-scumming).
+    ## Buying removes that offer from the cached stock so it can't be re-bought.
 
     scene bg_jb_flat
 
     python:
-        ## Class-signature cards stay locked — you only have one copy of each
-        ## and they define the class fantasy. Strike/Defend ARE removable
-        ## (thinning basic attacks/blocks is half the point of a card-removal
-        ## shop — see Slay-the-Spire). Player starts with 4 of each, so
-        ## scrubbing one or two is strategic, not run-ending.
-        ## CLASS_SIGNATURE_CARDS (defined in card_data.rpy) is the canonical
-        ## set — it includes both base ids AND `_plus` upgraded variants so
-        ## upgrading your signature doesn't make it Fixer-eligible.
+        _today = day_cycle.current_day
+        if getattr(store, '_fixer_stock_day', None) != _today:
+            store._fixer_stock_day   = _today
+            store._fixer_card_stock  = build_card_shop_offers(3)
+            store._fixer_relic_stock = build_relic_shop_offers(2)
 
-        ## One flat price per visit — every card costs the same right now.
-        ## After a shred, _fixer_removals bumps and the NEXT visit costs more.
+    "A flat on the third floor of a panelák. The doorbell doesn't work; he knew you'd be here."
+    "'Cash buys what's on the table. I take notes off nobody.'"
+
+label fixer_menu:
+
+    python:
+        ## Precompute every menu label as a plain string — Ren'Py text
+        ## interpolation can't parse nested brackets (_stock[0]['price']), so
+        ## the prices are formatted here, not inside the choice strings.
+        _shop_cash      = stats.available_money
+        _card_stock     = getattr(store, '_fixer_card_stock', []) or []
+        _relic_stock    = getattr(store, '_fixer_relic_stock', []) or []
+        _shred_price    = fixer_current_price()
+        _has_shred      = (player_deck is not None) and any(
+            _c not in CLASS_SIGNATURE_CARDS for _c in player_deck.cards)
+        _shred_blocked  = getattr(store, '_fixer_shredded_today', False)
+
+        _card_low   = min((o["price"] for o in _card_stock), default=0)
+        _relic_low  = min((o["price"] for o in _relic_stock), default=0)
+        _shop_caption    = "Cash: {:,} CZK.  'What'll it be.'".format(_shop_cash)
+        _card_choice_lbl = "BUY A CARD  (from {:,} CZK)".format(_card_low)
+        _relic_choice_lbl = "BUY GEAR  (from {:,} CZK)".format(_relic_low)
+        _shred_choice_lbl = "SHRED A CARD  ({:,} CZK)".format(_shred_price)
+
+    menu:
+        "[_shop_caption]"
+
+        "[_card_choice_lbl]" if _card_stock:
+            jump fixer_buy_card
+
+        "[_relic_choice_lbl]" if _relic_stock:
+            jump fixer_buy_relic
+
+        "[_shred_choice_lbl]" if (_has_shred and not _shred_blocked):
+            jump fixer_shred
+
+        "Leave.":
+            jump daily_menu
+
+
+## --- BUY A CARD ----------------------------------------------------------------
+label fixer_buy_card:
+
+    python:
+        _cbuy_ids = [o["card_id"] for o in (getattr(store, '_fixer_card_stock', []) or [])]
+
+    if not _cbuy_ids:
+        "'Sold out of paper for tonight. Come back tomorrow.'"
+        jump fixer_menu
+
+    call screen fixer_card_buy_screen(offers=store._fixer_card_stock, cash=stats.available_money)
+
+    python:
+        _cbuy_pick = _return
+
+    if _cbuy_pick == "back" or _cbuy_pick is None:
+        jump fixer_menu
+
+    python:
+        _cbuy_offer = next((o for o in store._fixer_card_stock if o["card_id"] == _cbuy_pick), None)
+        _cbuy_ok = False
+        if _cbuy_offer is not None:
+            if stats.try_spend_money(_cbuy_offer["price"]):
+                grant_card(_cbuy_offer["card_id"], silent=True)
+                store._fixer_card_stock = [o for o in store._fixer_card_stock if o["card_id"] != _cbuy_pick]
+                _cbuy_name = CARD_LIBRARY.get(_cbuy_pick, {}).get("name", _cbuy_pick)
+                _cbuy_ok = True
+
+    if _cbuy_ok:
+        "'Pleasure.' He slides the card across the table."
+        window hide
+        show screen outcome_panel("- {:,} CZK   + {}".format(_cbuy_offer["price"], _cbuy_name))
+        pause
+        hide screen outcome_panel
+    else:
+        "'Count it again. You're short.' He doesn't move."
+
+    jump fixer_menu
+
+
+## --- BUY GEAR (relic) ----------------------------------------------------------
+label fixer_buy_relic:
+
+    if not (getattr(store, '_fixer_relic_stock', []) or []):
+        "'No gear tonight. It moves fast.'"
+        jump fixer_menu
+
+    call screen fixer_relic_buy_screen(offers=store._fixer_relic_stock, cash=stats.available_money)
+
+    python:
+        _rbuy_pick = _return
+
+    if _rbuy_pick == "back" or _rbuy_pick is None:
+        jump fixer_menu
+
+    python:
+        _rbuy_offer = next((o for o in store._fixer_relic_stock if o["relic_id"] == _rbuy_pick), None)
+        _rbuy_ok = False
+        if _rbuy_offer is not None and not has_relic(_rbuy_pick):
+            if stats.try_spend_money(_rbuy_offer["price"]):
+                grant_relic(_rbuy_pick, silent=True)
+                store._fixer_relic_stock = [o for o in store._fixer_relic_stock if o["relic_id"] != _rbuy_pick]
+                _rbuy_meta = RELIC_LIBRARY.get(_rbuy_pick, {})
+                _rbuy_ok = True
+
+    if _rbuy_ok:
+        "He lifts it off the table like it's nothing. To you it isn't."
+        "[_rbuy_meta[name]] — [_rbuy_meta[hook]]"
+        window hide
+        show screen outcome_panel("- {:,} CZK   + {}".format(_rbuy_offer["price"], _rbuy_meta["name"]))
+        pause
+        hide screen outcome_panel
+    else:
+        "'That one's not for window-shoppers. Cash first.'"
+
+    jump fixer_menu
+
+
+## --- SHRED A CARD (the original removal flow) -----------------------------------
+label fixer_shred:
+
+    python:
         _fixer_current = fixer_current_price()
         _fixer_next    = fixer_next_price()
-
-        ## Build entries — one row per card instance (duplicates render
-        ## separately so the player picks WHICH copy disappears).
         _fixer_entries = []
         if player_deck is not None:
             for _cid in player_deck.cards:
@@ -1211,12 +1328,8 @@ label activity_fixer:
                 _fixer_entries.append(_cid)
 
     if not _fixer_entries:
-        "The flat smells like old smoke. The fixer doesn't look up from his crossword."
-        "'You don't have anything I can scrub yet. Come back when you do.'"
-        jump daily_menu
-
-    "A flat on the third floor of a panelák. The doorbell doesn't work; he knew you'd be here."
-    "'Pick what disappears. I take cash. I don't take notes.'"
+        "'Nothing here I'd bother shredding. Save your money.'"
+        jump fixer_menu
 
     call screen fixer_removal_screen(entries=_fixer_entries, price=_fixer_current, next_price=_fixer_next)
 
@@ -1224,20 +1337,23 @@ label activity_fixer:
         _fixer_action, _fixer_card = _return if isinstance(_return, tuple) else ("leave", None)
 
     if _fixer_action == "leave":
-        ## Free reconnaissance — no shred, no flag. Player just browsed.
-        jump daily_menu
+        jump fixer_menu
 
     python:
-        if not stats.try_spend_money(_fixer_current):
-            renpy.say(None, "[[INSUFFICIENT FUNDS] He counts the notes again. 'Come back when you can pay.'")
-            renpy.jump("daily_menu")
-        player_deck.remove(_fixer_card)
-        store._fixer_removals = getattr(store, '_fixer_removals', 0) + 1
-        store._fixer_shredded_today = True
-        _fixer_name = CARD_LIBRARY.get(_fixer_card, {}).get("name", _fixer_card)
-        _fixer_outcome = "- {:,} CZK   - 1 card ({})   ·   Next shred: {:,} CZK".format(
-            _fixer_current, _fixer_name, fixer_current_price()
-        )
+        _shred_ok = False
+        if stats.try_spend_money(_fixer_current):
+            player_deck.remove(_fixer_card)
+            store._fixer_removals = getattr(store, '_fixer_removals', 0) + 1
+            store._fixer_shredded_today = True
+            _fixer_name = CARD_LIBRARY.get(_fixer_card, {}).get("name", _fixer_card)
+            _fixer_outcome = "- {:,} CZK   - 1 card ({})   ·   Next shred: {:,} CZK".format(
+                _fixer_current, _fixer_name, fixer_current_price()
+            )
+            _shred_ok = True
+
+    if not _shred_ok:
+        "He counts the notes again. 'Come back when you can pay.'"
+        jump fixer_menu
 
     "He feeds the card into a shredder that's older than you. The teeth are loud."
     "'Done. That's not in your deck anymore. Next one's pricier.'"
@@ -1247,9 +1363,7 @@ label activity_fixer:
     pause
     hide screen outcome_panel
 
-    ## Fixer doesn't consume the day. Return to the hub so the player can
-    ## still pick an activity (gym, bouncer, coding, overtime).
-    jump daily_menu
+    jump fixer_menu
 
 
 ## ---------------------------------------------------------------------------

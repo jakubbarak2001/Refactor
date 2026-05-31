@@ -197,6 +197,24 @@ init python:
             return None
         return __import__("random").choice(_pool)
 
+    ## Relic shop pricing by rarity. Relics are build-defining, so they cost
+    ## well above a card (a great bouncer night ~10k). Priced so a run can
+    ## afford ~1-2 bought relics on top of what bosses/ladder drop — money
+    ## buys INTO a build, never the whole shelf.
+    RELIC_SHOP_PRICES = {"common": 7000, "uncommon": 11000, "rare": 16000}
+
+    def build_relic_shop_offers(n=2):
+        """Roll up to n unowned relics for the shop, each priced by rarity.
+        Returns a list of {'relic_id': str, 'price': int} dicts."""
+        _owned = set(getattr(store, "player_relics", None) or [])
+        _pool = [rid for rid in RELIC_LIBRARY if rid not in _owned]
+        __import__("random").shuffle(_pool)
+        offers = []
+        for rid in _pool[:n]:
+            _rarity = RELIC_LIBRARY[rid].get("rarity", "common")
+            offers.append({"relic_id": rid, "price": RELIC_SHOP_PRICES.get(_rarity, 11000)})
+        return offers
+
     def relic_on_victory():
         """Between-fight relic effects. Called from battle_with after a win
         (battle_finish has already written run_hp). Mutates run_hp directly."""

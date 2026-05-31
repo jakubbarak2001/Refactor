@@ -2554,6 +2554,204 @@ screen fixer_removal_screen(entries, price, next_price):
 
 
 ## ---------------------------------------------------------------------------
+## Fixer shop — BUY A CARD. offers = [{card_id, price}]. Returns a card_id to
+## buy, or "back". Unaffordable rows render dim and are not clickable.
+## ---------------------------------------------------------------------------
+screen fixer_card_buy_screen(offers, cash):
+    modal True
+    zorder 700
+
+    add "#0a0a0aee"
+    use class_color_frame(thickness=3, alpha_suffix="aa")
+
+    vbox:
+        xalign 0.5
+        yalign 0.5
+        spacing 14
+
+        text "FIXER · BUY A CARD":
+            xalign 0.5
+            color "#9a8060"
+            size 36
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+            outlines [(2, "#000000", 0, 0)]
+
+        text "WALLET: [cash:,] CZK":
+            xalign 0.5
+            color "#ffd700"
+            size 20
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+
+        vbox:
+            xalign 0.5
+            spacing 8
+
+            for _o in offers:
+                python:
+                    _ocid   = _o["card_id"]
+                    _oprice = _o["price"]
+                    _oc     = CARD_LIBRARY.get(_ocid, {})
+                    _oname  = _oc.get("name", _ocid)
+                    _otype  = _oc.get("type", "Skill")
+                    _orar   = _oc.get("rarity", "common")
+                    _odesc  = effect_description(_oc.get("effect")) or _oc.get("flavor", "")
+                    _oafford = (cash >= _oprice)
+                    _orar_color = RARITY_COLOR.get(_orar, "#cccccc") if _oafford else "#5a5042"
+                    _oprice_color = ("#ffd700" if _oafford else "#a04040")
+
+                button:
+                    xysize (1060, 74)
+                    background Frame(Solid("#1a1410"), 4, 4)
+                    hover_background Frame(Solid("#3a2a1a"), 4, 4)
+                    sensitive _oafford
+                    action Return(_ocid)
+                    hbox:
+                        spacing 16
+                        yalign 0.5
+                        vbox:
+                            spacing 2
+                            yalign 0.5
+                            xsize 760
+                            text "[_oname]  ([_otype!u])":
+                                color _orar_color
+                                size 20
+                                font "fonts/RobotoMono-Regular.ttf"
+                            text "[_odesc]":
+                                color ("#ccc4b4" if _oafford else "#5a5042")
+                                size 14
+                                font "fonts/RobotoMono-Regular.ttf"
+                        text "[_oprice:,] CZK":
+                            color _oprice_color
+                            size 22
+                            bold True
+                            yalign 0.5
+                            font "fonts/RobotoMono-Regular.ttf"
+
+        textbutton "BACK":
+            xalign 0.5
+            action Return("back")
+            text_color "#888888"
+            text_hover_color "#ffffff"
+            text_size 18
+            text_font "fonts/RobotoMono-Regular.ttf"
+            top_margin 8
+
+    key "K_ESCAPE" action Return("back")
+
+
+## ---------------------------------------------------------------------------
+## Fixer shop — BUY GEAR (relic). offers = [{relic_id, price}]. Returns a
+## relic_id to buy, or "back". Unaffordable rows dim and non-clickable.
+## ---------------------------------------------------------------------------
+screen fixer_relic_buy_screen(offers, cash):
+    modal True
+    zorder 700
+
+    add "#0a0a0aee"
+    use class_color_frame(thickness=3, alpha_suffix="aa")
+
+    vbox:
+        xalign 0.5
+        yalign 0.5
+        spacing 14
+
+        text "FIXER · BUY GEAR":
+            xalign 0.5
+            color "#9a8060"
+            size 36
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+            outlines [(2, "#000000", 0, 0)]
+
+        text "Build-defining. He only ever has one or two.":
+            xalign 0.5
+            color "#888888"
+            size 15
+            italic True
+            font "fonts/RobotoMono-Regular.ttf"
+
+        text "WALLET: [cash:,] CZK":
+            xalign 0.5
+            color "#ffd700"
+            size 20
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+
+        vbox:
+            xalign 0.5
+            spacing 8
+
+            for _ro in offers:
+                python:
+                    _rrid   = _ro["relic_id"]
+                    _rprice = _ro["price"]
+                    _rmeta  = RELIC_LIBRARY.get(_rrid, {})
+                    _rname  = _rmeta.get("name", _rrid)
+                    _rhook  = _rmeta.get("hook", "")
+                    _rafford = (cash >= _rprice)
+                    _rhex   = relic_hex(_rrid) if _rafford else "#5a5042"
+                    _rprice_color = ("#ffd700" if _rafford else "#a04040")
+
+                button:
+                    xysize (1060, 84)
+                    background Frame(Solid("#161210"), 4, 4)
+                    hover_background Frame(Solid("#322617"), 4, 4)
+                    sensitive _rafford
+                    action Return(_rrid)
+                    hbox:
+                        spacing 16
+                        yalign 0.5
+                        frame:
+                            xysize (54, 54)
+                            yalign 0.5
+                            background Frame(Solid(_rhex), 3, 3)
+                            padding (3, 3)
+                            frame:
+                                xfill True
+                                yfill True
+                                background "#11110caa"
+                                text relic_glyph(_rrid):
+                                    xalign 0.5
+                                    yalign 0.5
+                                    color _rhex
+                                    size 26
+                                    bold True
+                                    font "fonts/RobotoMono-Regular.ttf"
+                        vbox:
+                            spacing 2
+                            yalign 0.5
+                            xsize 720
+                            text "[_rname]":
+                                color _rhex
+                                size 20
+                                bold True
+                                font "fonts/RobotoMono-Regular.ttf"
+                            text "[_rhook]":
+                                color ("#ccc4b4" if _rafford else "#5a5042")
+                                size 14
+                                font "fonts/RobotoMono-Regular.ttf"
+                        text "[_rprice:,] CZK":
+                            color _rprice_color
+                            size 22
+                            bold True
+                            yalign 0.5
+                            font "fonts/RobotoMono-Regular.ttf"
+
+        textbutton "BACK":
+            xalign 0.5
+            action Return("back")
+            text_color "#888888"
+            text_hover_color "#ffffff"
+            text_size 18
+            text_font "fonts/RobotoMono-Regular.ttf"
+            top_margin 8
+
+    key "K_ESCAPE" action Return("back")
+
+
+## ---------------------------------------------------------------------------
 ## Gym Choice — post-session binary: UPGRADE a card vs HEAL+MAX HP.
 ## Mirrors the card_offer_screen visual language (side-by-side panels) so the
 ## player recognizes the "two paths" pattern. Returns "upgrade" or "heal".
