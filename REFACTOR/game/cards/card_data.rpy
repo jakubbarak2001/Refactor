@@ -504,12 +504,14 @@ init -1 python:
 
     def build_card_shop_offers(n=3):
         """Roll up to n archetype-biased cards for a card shop, each priced by
-        rarity. Returns a list of {'card_id': str, 'price': int} dicts."""
+        rarity. Returns a list of {'card_id': str, 'price': int} dicts. Prices
+        run through adjusted_cost so difficulty purchase_mult applies (parity
+        with gym / coding / bootcamp spending)."""
         offers = []
         for cid in pick_battle_rewards("medium")[:n]:
             c = CARD_LIBRARY.get(cid, {})
             price = CARD_SHOP_PRICES.get(c.get("rarity", "common"), 4000)
-            offers.append({"card_id": cid, "price": price})
+            offers.append({"card_id": cid, "price": adjusted_cost(price)})
         return offers
 
     def pick_battle_rewards(tier):

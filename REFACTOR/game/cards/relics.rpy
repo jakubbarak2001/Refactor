@@ -236,18 +236,24 @@ init python:
     ## well above a card (a great bouncer night ~10k). Priced so a run can
     ## afford ~1-2 bought relics on top of what bosses/ladder drop — money
     ## buys INTO a build, never the whole shelf.
-    RELIC_SHOP_PRICES = {"common": 7000, "uncommon": 11000, "rare": 16000}
+    ## Common bumped 7k->9k (balance-judge): a common relic is a permanent
+    ## every-fight effect that ALSO drops free, so it should cost a full great
+    ## bouncer night, not a routine one.
+    RELIC_SHOP_PRICES = {"common": 9000, "uncommon": 11000, "rare": 16000}
 
     def build_relic_shop_offers(n=2):
         """Roll up to n unowned relics for the shop, each priced by rarity.
-        Returns a list of {'relic_id': str, 'price': int} dicts."""
+        Returns a list of {'relic_id': str, 'price': int} dicts. Prices run
+        through adjusted_cost so difficulty purchase_mult applies (parity with
+        gym / coding / bootcamp spending)."""
         _owned = set(getattr(store, "player_relics", None) or [])
         _pool = [rid for rid in RELIC_LIBRARY if rid not in _owned]
         __import__("random").shuffle(_pool)
         offers = []
         for rid in _pool[:n]:
             _rarity = RELIC_LIBRARY[rid].get("rarity", "common")
-            offers.append({"relic_id": rid, "price": RELIC_SHOP_PRICES.get(_rarity, 11000)})
+            _base = RELIC_SHOP_PRICES.get(_rarity, 11000)
+            offers.append({"relic_id": rid, "price": adjusted_cost(_base)})
         return offers
 
     def relic_on_victory():
