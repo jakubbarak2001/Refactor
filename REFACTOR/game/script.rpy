@@ -750,10 +750,11 @@ label _recovery_finish:
 ## ---------------------------------------------------------------------------
 
 ## ---------------------------------------------------------------------------
-## BOUNCER — the flat money lane. One venue, no card-shop side hustle. Cards
-## are the Coding lane's job. Payouts tuned ~65% above the legacy night-club
-## EV (5k -> 8.3k) since Bouncer is now the only dedicated money activity.
-## BB bonus +2,500 CZK still applies.
+## BOUNCER — the money lane. One venue, no card-shop side hustle (cards are the
+## Coding lane's job). Rolls a rarity-tiered payout: common / uncommon / rare.
+## Base 12.5k / 17.5k / 22.5k + the +2,500 BB bonus = ~15k / 20k / 25k profit
+## for the Bodybuilder. The grind costs Hatred on a common night; a jackpot
+## night relieves it.
 ## ---------------------------------------------------------------------------
 
 label activity_bouncer:
@@ -764,21 +765,24 @@ label activity_bouncer:
         _roll = __import__('random').randint(1, 100)
         _bb_cash = 2500 if stats.player_class == "bodybuilder" else 0
         _bb_tag = " [BODYBUILDER BONUS]" if _bb_cash else ""
-        if _roll <= 70:
-            _pending_money = 7000 + _bb_cash
+        if _roll <= 60:
+            ## Common — the everyday grind. Pays, but the night recognises you.
+            _pending_money = 12500 + _bb_cash
             _pending_hatred = 10
-            _btext = "Uneventful. Six hours in a doorway, nodding at people happier than you.\nBy 3 AM you're calculating how many more shifts like this to quit forever. The number is getting smaller."
-            _boutcome = "+ {} CZK, +10 PCR HATRED{}".format(7000 + _bb_cash, _bb_tag)
+            _btext = "Six hours in a doorway, nodding at people happier than you. Two drunks square up over a woman interested in neither; you step in and one of them makes you — 'TO JE PŘECE POLDA!'\nYou take the night's cut and the group chat home in equal measure."
+            _boutcome = "+ {:,} CZK, +10 PCR HATRED{}".format(12500 + _bb_cash, _bb_tag)
         elif _roll <= 90:
-            _pending_money = 14000 + _bb_cash
-            _pending_hatred = -10
-            _btext = "Rare night. Regulars tip heavy, the manager notices your work, and nobody throws up on anyone.\nDriving home at 4 AM, windows down: 'If this was my real job I would hate it slightly less.' Closest thing to joy you've felt all week."
-            _boutcome = "+ {} CZK, -10 PCR HATRED{}".format(14000 + _bb_cash, _bb_tag)
+            ## Uncommon — a clean, busy night. Tips run heavy.
+            _pending_money = 17500 + _bb_cash
+            _pending_hatred = 5
+            _btext = "Busy night, clean night. The regulars tip like they're trying to impress someone, and the manager slips you extra for keeping it from going sideways.\nNobody bleeds. Nobody films you. You almost don't mind the work."
+            _boutcome = "+ {:,} CZK, +5 PCR HATRED{}".format(17500 + _bb_cash, _bb_tag)
         else:
-            _pending_money = 6000 + _bb_cash
-            _pending_hatred = 20
-            _btext = "Two drunks fight over a woman interested in neither. You step in — one recognizes you. 'TO JE PŘECE POLDA!'\nPhone out. The group chat hasn't stopped since. You want to die."
-            _boutcome = "+ {} CZK, +20 PCR HATRED{}".format(6000 + _bb_cash, _bb_tag)
+            ## Rare — the night everything lines up.
+            _pending_money = 22500 + _bb_cash
+            _pending_hatred = -10
+            _btext = "Everything lines up — a private party in the back, cash folded into your palm all night, not one incident on the floor.\nDriving home at 4 AM with the windows down, you catch yourself not hating your life. Closest thing to joy you've felt all week."
+            _boutcome = "+ {:,} CZK, -10 PCR HATRED{}".format(22500 + _bb_cash, _bb_tag)
 
     "[_btext]"
 
