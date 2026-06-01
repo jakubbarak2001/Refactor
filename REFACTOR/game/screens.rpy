@@ -1246,10 +1246,11 @@ screen daily_hub_screen():
             _hub_cta_color = "#cc2200"
             _hub_cta_hover = "#ff4422"
 
-    ## ── Sidebar — FIXER (every 5th day only: 5/10/15/20/25; one shred per
-    ## day; free time, doesn't burn your daily activity). Dimmed and disabled
-    ## after today's shred. Arrival is announced at day_start.
-    if _today % 5 == 0:
+    ## ── Sidebar — FIXER (every 5th day; one shred per day; free time, doesn't
+    ## burn your daily activity). fixer_visits_today rolls a visit off any day
+    ## whose hub is skipped by a forced fight (15 -> 16). Dimmed and disabled
+    ## after today's shred. Arrival is announced in daily_menu.
+    if fixer_visits_today(_today):
         $ _fixer_done = bool(getattr(store, '_fixer_shredded_today', False))
         frame:
             xpos 1700
@@ -2555,10 +2556,18 @@ screen fixer_removal_screen(entries, price, next_price):
 
 
 ## ---------------------------------------------------------------------------
-## Fixer shop — BUY A CARD. offers = [{card_id, price}]. Returns a card_id to
-## buy, or "back". Unaffordable rows render dim and are not clickable.
+## Fixer shop — the unified merchant screen. Everything on one table: cards
+## (full widgets), gear (relic chips), the shred service, and LEAVE. Replaces
+## the old menu + separate buy screens (and the dialogue-window glitch that
+## came with a say-caption menu drawn over the scene).
+##
+## Receives the current stock + cash + shred state; returns a tuple action:
+##   ("buy_card",  card_id)   ("buy_relic", relic_id)
+##   ("shred",     None)      ("leave",     None)
+## Driven by the fixer_shop_loop label in script.rpy, which re-calls the
+## screen after each purchase so cash / stock / SOLD-OUT state stay live.
 ## ---------------------------------------------------------------------------
-screen fixer_card_buy_screen(offers, cash):
+screen fixer_shop(card_offers, relic_offers, cash, shred_price, can_shred, shred_blocked):
     modal True
     zorder 700
 
@@ -2567,204 +2576,198 @@ screen fixer_card_buy_screen(offers, cash):
 
     vbox:
         xalign 0.5
-        yalign 0.5
-        spacing 14
+        ypos 26
+        spacing 12
 
-        text "FIXER · BUY A CARD":
+        text "THE FIXER":
             xalign 0.5
             color "#9a8060"
-            size 36
+            size 46
             bold True
             font "fonts/RobotoMono-Regular.ttf"
             outlines [(2, "#000000", 0, 0)]
-
-        text "WALLET: [cash:,] CZK":
-            xalign 0.5
-            color "#ffd700"
-            size 20
-            bold True
-            font "fonts/RobotoMono-Regular.ttf"
-
-        vbox:
-            xalign 0.5
-            spacing 8
-
-            for _o in offers:
-                python:
-                    _ocid   = _o["card_id"]
-                    _oprice = _o["price"]
-                    _oc     = CARD_LIBRARY.get(_ocid, {})
-                    _oname  = _oc.get("name", _ocid)
-                    _otype  = _oc.get("type", "Skill")
-                    _orar   = _oc.get("rarity", "common")
-                    _odesc  = effect_description(_oc.get("effect")) or _oc.get("flavor", "")
-                    _oafford = (cash >= _oprice)
-                    _orar_color = RARITY_COLOR.get(_orar, "#cccccc") if _oafford else "#5a5042"
-                    _oprice_color = ("#ffd700" if _oafford else "#a04040")
-
-                button:
-                    xysize (1060, 74)
-                    background Frame(Solid("#1a1410"), 4, 4)
-                    hover_background Frame(Solid("#3a2a1a"), 4, 4)
-                    sensitive _oafford
-                    action Return(_ocid)
-                    hbox:
-                        spacing 16
-                        yalign 0.5
-                        vbox:
-                            spacing 2
-                            yalign 0.5
-                            xsize 760
-                            text "[_oname]  ([_otype!u])":
-                                color _orar_color
-                                size 20
-                                font "fonts/RobotoMono-Regular.ttf"
-                            text "[_odesc]":
-                                color ("#ccc4b4" if _oafford else "#5a5042")
-                                size 14
-                                font "fonts/RobotoMono-Regular.ttf"
-                        text "[_oprice:,] CZK":
-                            color _oprice_color
-                            size 22
-                            bold True
-                            yalign 0.5
-                            font "fonts/RobotoMono-Regular.ttf"
-
-        textbutton "BACK":
-            xalign 0.5
-            action Return("back")
-            text_color "#888888"
-            text_hover_color "#ffffff"
-            text_size 18
-            text_font "fonts/RobotoMono-Regular.ttf"
-            top_margin 8
-
-    key "K_ESCAPE" action Return("back")
-
-
-## ---------------------------------------------------------------------------
-## Fixer shop — BUY GEAR (relic). offers = [{relic_id, price}]. Returns a
-## relic_id to buy, or "back". Unaffordable rows dim and non-clickable.
-## ---------------------------------------------------------------------------
-screen fixer_relic_buy_screen(offers, cash):
-    modal True
-    zorder 700
-
-    add "#0a0a0aee"
-    use class_color_frame(thickness=3, alpha_suffix="aa")
-
-    vbox:
-        xalign 0.5
-        yalign 0.5
-        spacing 14
-
-        text "FIXER · BUY GEAR":
-            xalign 0.5
-            color "#9a8060"
-            size 36
-            bold True
-            font "fonts/RobotoMono-Regular.ttf"
-            outlines [(2, "#000000", 0, 0)]
-
-        text "Build-defining. He only ever has a few. Gold = rare.":
+        text "Third floor. Cash on the table. He's a ghost by morning.":
             xalign 0.5
             color "#888888"
             size 15
             italic True
             font "fonts/RobotoMono-Regular.ttf"
-
-        text "WALLET: [cash:,] CZK":
+        text "WALLET:  [cash:,] CZK":
             xalign 0.5
             color "#ffd700"
-            size 20
+            size 22
             bold True
             font "fonts/RobotoMono-Regular.ttf"
 
-        vbox:
+        null height 2
+
+        text "ON THE TABLE":
             xalign 0.5
-            spacing 8
-
-            for _ro in offers:
-                python:
-                    _rrid   = _ro["relic_id"]
-                    _rprice = _ro["price"]
-                    _rmeta  = RELIC_LIBRARY.get(_rrid, {})
-                    _rname  = _rmeta.get("name", _rrid)
-                    _rhook  = _rmeta.get("hook", "")
-                    _rrarity = _rmeta.get("rarity", "common").upper()
-                    _rafford = (cash >= _rprice)
-                    _rhex   = relic_hex(_rrid) if _rafford else "#5a5042"
-                    _rrar_col = relic_rarity_hex(_rrid) if _rafford else "#5a5042"
-                    _rprice_color = ("#ffd700" if _rafford else "#a04040")
-
-                button:
-                    xysize (1060, 84)
-                    background Frame(Solid("#161210"), 4, 4)
-                    hover_background Frame(Solid("#322617"), 4, 4)
-                    sensitive _rafford
-                    action Return(_rrid)
-                    hbox:
-                        spacing 16
-                        yalign 0.5
-                        frame:
-                            xysize (54, 54)
-                            yalign 0.5
-                            background Frame(Solid(_rhex), 3, 3)
-                            padding (3, 3)
-                            frame:
-                                xfill True
-                                yfill True
-                                background "#11110caa"
-                                padding (0, 0)
-                                $ _ricon = relic_art_disp(_rrid, 44)
-                                if _ricon is not None:
-                                    add _ricon xalign 0.5 yalign 0.5 alpha (1.0 if _rafford else 0.3)
-                                else:
-                                    text relic_glyph(_rrid):
-                                        xalign 0.5
-                                        yalign 0.5
-                                        color _rhex
-                                        size 26
-                                        bold True
-                                        font "fonts/RobotoMono-Regular.ttf"
+            color "#6a6055"
+            size 14
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+        if card_offers:
+            hbox:
+                xalign 0.5
+                spacing 26
+                for _o in card_offers:
+                    python:
+                        _ocid   = _o["card_id"]
+                        _oprice = _o["price"]
+                        _oafford = (cash >= _oprice)
+                    button:
+                        background None
+                        hover_background None
+                        sensitive _oafford
+                        action Return(("buy_card", _ocid))
                         vbox:
-                            spacing 2
+                            spacing 6
+                            fixed:
+                                xysize (220, 316)
+                                use battle_card_view(cid=_ocid, mode="hand", playable=True)
+                                if not _oafford:
+                                    add Solid("#000000aa") xysize (220, 316)
+                            text "[_oprice:,] CZK":
+                                xalign 0.5
+                                color ("#ffd700" if _oafford else "#a04040")
+                                size 20
+                                bold True
+                                font "fonts/RobotoMono-Regular.ttf"
+        else:
+            text "Sold out of paper tonight.":
+                xalign 0.5
+                color "#5a5042"
+                size 16
+                italic True
+                font "fonts/RobotoMono-Regular.ttf"
+
+        null height 4
+
+        text "GEAR":
+            xalign 0.5
+            color "#6a6055"
+            size 14
+            bold True
+            font "fonts/RobotoMono-Regular.ttf"
+        if relic_offers:
+            hbox:
+                xalign 0.5
+                spacing 16
+                for _ro in relic_offers:
+                    python:
+                        _rrid   = _ro["relic_id"]
+                        _rprice = _ro["price"]
+                        _rmeta  = RELIC_LIBRARY.get(_rrid, {})
+                        _rname  = _rmeta.get("name", _rrid)
+                        _rhook  = _rmeta.get("hook", "")
+                        _rafford = (cash >= _rprice)
+                        _rhex   = relic_hex(_rrid) if _rafford else "#5a5042"
+                        _rprice_color = ("#ffd700" if _rafford else "#a04040")
+                        _rtip = "{}  ·  {}  ·  {}".format(_rname, _rmeta.get("rarity", "common").upper(), _rhook)
+                    button:
+                        xysize (340, 150)
+                        background Frame(Solid("#161210"), 4, 4)
+                        hover_background Frame(Solid("#322617"), 4, 4)
+                        sensitive _rafford
+                        action Return(("buy_relic", _rrid))
+                        tooltip _rtip
+                        vbox:
+                            spacing 6
                             yalign 0.5
-                            xsize 720
                             hbox:
-                                spacing 10
+                                spacing 12
+                                yalign 0.5
+                                frame:
+                                    xysize (58, 58)
+                                    yalign 0.5
+                                    background Frame(Solid(_rhex), 3, 3)
+                                    padding (3, 3)
+                                    frame:
+                                        xfill True
+                                        yfill True
+                                        background "#11110caa"
+                                        padding (0, 0)
+                                        $ _ricon = relic_art_disp(_rrid, 48)
+                                        if _ricon is not None:
+                                            add _ricon xalign 0.5 yalign 0.5 alpha (1.0 if _rafford else 0.3)
+                                        else:
+                                            text relic_glyph(_rrid):
+                                                xalign 0.5
+                                                yalign 0.5
+                                                color _rhex
+                                                size 26
+                                                bold True
+                                                font "fonts/RobotoMono-Regular.ttf"
                                 text "[_rname]":
                                     color _rhex
-                                    size 20
-                                    bold True
-                                    font "fonts/RobotoMono-Regular.ttf"
-                                text "[_rrarity]":
-                                    color _rrar_col
-                                    size 13
+                                    size 17
                                     bold True
                                     yalign 0.5
+                                    xsize 240
                                     font "fonts/RobotoMono-Regular.ttf"
                             text "[_rhook]":
                                 color ("#ccc4b4" if _rafford else "#5a5042")
-                                size 14
+                                size 13
                                 font "fonts/RobotoMono-Regular.ttf"
-                        text "[_rprice:,] CZK":
-                            color _rprice_color
-                            size 22
-                            bold True
-                            yalign 0.5
-                            font "fonts/RobotoMono-Regular.ttf"
+                            text "[_rprice:,] CZK":
+                                color _rprice_color
+                                size 19
+                                bold True
+                                font "fonts/RobotoMono-Regular.ttf"
+        else:
+            text "No gear tonight. It moves fast.":
+                xalign 0.5
+                color "#5a5042"
+                size 16
+                italic True
+                font "fonts/RobotoMono-Regular.ttf"
 
-        textbutton "BACK":
+        null height 6
+
+        hbox:
             xalign 0.5
-            action Return("back")
-            text_color "#888888"
-            text_hover_color "#ffffff"
-            text_size 18
-            text_font "fonts/RobotoMono-Regular.ttf"
-            top_margin 8
+            spacing 20
+            if can_shred and not shred_blocked:
+                textbutton "SHRED A CARD  ([shred_price:,] CZK)":
+                    action Return(("shred", None))
+                    text_color "#c08050"
+                    text_hover_color "#ffffff"
+                    text_size 18
+                    text_bold True
+                    text_font "fonts/RobotoMono-Regular.ttf"
+                    background Frame("#1a1410ee", 4, 4)
+                    hover_background Frame("#322617ee", 4, 4)
+                    padding (20, 12)
+            else:
+                text ("Shredder's cooled for tonight." if shred_blocked else "Nothing here worth shredding."):
+                    color "#5a5042"
+                    size 15
+                    italic True
+                    yalign 0.5
+                    font "fonts/RobotoMono-Regular.ttf"
+            textbutton "LEAVE":
+                action Return(("leave", None))
+                text_color "#888888"
+                text_hover_color "#ffffff"
+                text_size 18
+                text_bold True
+                text_font "fonts/RobotoMono-Regular.ttf"
+                background Frame("#0d0d0dee", 4, 4)
+                hover_background Frame("#1a1a1aee", 4, 4)
+                padding (20, 12)
 
-    key "K_ESCAPE" action Return("back")
+    $ _ftt = GetTooltip()
+    if _ftt:
+        text "[_ftt]":
+            xalign 0.5
+            yalign 0.97
+            color "#cdbd97"
+            size 15
+            font "fonts/RobotoMono-Regular.ttf"
+
+    key "K_ESCAPE" action Return(("leave", None))
+
 
 
 ## ---------------------------------------------------------------------------

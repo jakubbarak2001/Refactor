@@ -37,6 +37,29 @@ init python:
             return "medium"
         return "hard"
 
+    ## The fixed days the daily loop fires a battle/event slot (day_start reads
+    ## this). Single source of truth so the Fixer's collision-shift below stays
+    ## in sync with when fights actually consume a day.
+    LADDER_EVENT_DAYS = (3, 6, 9, 12, 15, 18, 21, 27)
+
+    ## The Fixer sets up shop every 5th day — but a battle day advances the
+    ## clock inside random_event_check, so that day's hub never renders. If a
+    ## 5th-day visit lands on a LADDER_EVENT_DAYS fight, roll it forward to the
+    ## next free day whose hub will actually show (15 -> 16; the rest are clear).
+    def _resolve_fixer_days():
+        _events = set(LADDER_EVENT_DAYS)
+        _days = set()
+        for _base in (5, 10, 15, 20, 25):
+            _d = _base
+            while _d in _events and _d < 30:
+                _d += 1
+            _days.add(_d)
+        return _days
+    FIXER_DAYS = _resolve_fixer_days()
+
+    def fixer_visits_today(day):
+        return day in FIXER_DAYS
+
     ## Walking away lowers the death clock. The relief scales with the weight
     ## of the case you're refusing — a back-alley tagger barely registers; an
     ## act boss is a reckoning, so denying it drops a real chunk of Hatred.
