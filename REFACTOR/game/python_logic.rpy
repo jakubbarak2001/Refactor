@@ -530,6 +530,10 @@ init python:
         ## reach + beat the Colonel with this at 0. Incremented on every
         ## battle_with victory; fleeing or losing never bumps it.
         store._run_kills = 0
+        ## Fights fled (LET THEM GO / WALK AWAY) this run. Drives "Peace Was
+        ## Never An Option": reach + beat the Colonel with this at 0. Bumped in
+        ## battle_with's flee branch only — losing a fight you engaged is not a skip.
+        store._run_fled = 0
         ## Act bosses already faced this run — set of act numbers (1/2). Drives
         ## boss_check() so each act boss fires once. See cards/battle_ladder.rpy.
         store._act_bosses_done = set()
@@ -641,6 +645,7 @@ init python:
         "compound_knowledge":{"category":"Collection", "name": "Compound Knowledge",       "desc": "Learn synthesis instead of taking the vial.",                    "hint": "Biohacker only — pick the lesson over the contraband."},
         "wake_up_call":     {"category": "Secret",     "name": "Wake Up Call",            "desc": "Break the Colonel's bureaucracy loop. Step out of the script.","hint": "???"},
         "pacifist":         {"category": "Secret",     "name": "Pacifist",                "desc": "Beat the Colonel without defeating a single other enemy all run.","hint": "???"},
+        "peace_never_option":{"category": "Secret",    "name": "Peace Was Never An Option","desc": "Beat the Colonel having faced every enemy head-on — never let one walk.","hint": "???"},
         "i_dont_need_it":   {"category": "Secret",     "name": "I Don't Need IT",         "desc": "Reach the escape ending without signing the bootcamp contract.",    "hint": "Find another way out of the uniform."},
     }
 

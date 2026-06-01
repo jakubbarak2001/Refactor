@@ -230,6 +230,10 @@ label colonel_victory_resolution:
     python:
         if getattr(store, '_run_kills', 0) == 0:
             unlock_achievement("pacifist")
+        ## Peace Was Never An Option — reached and beat the Colonel having
+        ## skipped no fight (every ladder rung + act boss engaged, none fled).
+        if getattr(store, '_run_fled', 0) == 0:
+            unlock_achievement("peace_never_option")
 
     ## Normal victory: escaped
     jump good_ending

@@ -255,13 +255,6 @@ label day_start:
     if _is_bh_player and not _bh_event_day:
         call bh_spending_check from _call_bh_spending_check
 
-    ## The Fixer only sets up shop every fifth day. Announce his arrival so the
-    ## player knows the buy/shred window is open today and today only.
-    if current_day % 5 == 0:
-        scene bg_jb_flat
-        "Your phone buzzes once. A number with no name. You know the number."
-        "'I'm in town. Third floor, same as always. Today only — after that I'm a ghost again.'"
-
     jump daily_menu
 
 
@@ -287,6 +280,16 @@ label daily_menu:
     if stats.pcr_hatred >= 40 and not getattr(store, '_hatred_intro_shown', False):
         $ store._hatred_intro_shown = True
         call screen hatred_intro_popup
+
+    ## Fixer arrival — every 5th day he sets up shop. Announced here in
+    ## daily_menu (not day_start) so it fires on the day the hub actually
+    ## renders, regardless of whether a battle advanced the clock first; the
+    ## per-day guard keeps it to once per visit, not every hub re-entry.
+    if current_day % 5 == 0 and getattr(store, '_fixer_arrival_shown_day', None) != current_day:
+        $ store._fixer_arrival_shown_day = current_day
+        "Your phone buzzes once. A number with no name. You know the number."
+        "'I'm in town. Third floor, same as always. Today only — after that I'm a ghost again.'"
+        window hide
 
     show screen stats_bar
 
@@ -1227,6 +1230,10 @@ label fixer_menu:
         _relic_choice_lbl = "BUY GEAR  (from {:,} CZK)".format(_relic_low)
         _shred_choice_lbl = "SHRED A CARD  ({:,} CZK)".format(_shred_price)
 
+    ## Clear any lingering say window (intro lines / a prior buy-shred outcome)
+    ## before the menu re-renders — otherwise the old dialogue box bleeds
+    ## through behind the choices.
+    window hide
     menu:
         "[_shop_caption]"
 

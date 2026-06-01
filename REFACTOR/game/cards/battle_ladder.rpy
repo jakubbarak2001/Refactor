@@ -45,8 +45,19 @@ init python:
     ## reaches the Colonel low-Hatred but near-starter-deck — the Pacifist line.
     FLEE_HATRED_RELIEF = {"easy": 15, "medium": 25, "hard": 35}
 
-    def flee_hatred_relief(tier, is_boss=False):
+    def flee_hatred_relief(tier, is_boss=False, enemy_id=None):
+        ## A per-enemy flee_relief override (set in the enemy def) wins over the
+        ## tier table — lets a specific case carry its own deny weight.
+        if enemy_id is not None:
+            _ov = ENEMY_LIBRARY.get(enemy_id, {}).get("flee_relief")
+            if _ov is not None:
+                return _ov
         return FLEE_HATRED_RELIEF.get(tier, 25) + (10 if is_boss else 0)
+
+    def flee_czk_penalty(enemy_id):
+        ## The Colonel docks your pay for letting a case slide. 0 (no penalty)
+        ## for everyone unless the enemy def sets flee_czk_penalty.
+        return ENEMY_LIBRARY.get(enemy_id, {}).get("flee_czk_penalty", 0)
 
     ## Act bosses — fixed-day reckonings that cap each act, fired with priority
     ## over the random ladder/event roll. Each is an existing, fully-arted enemy
@@ -214,9 +225,13 @@ screen encounter_choice(enemy_id, tier="medium", can_flee=True):
         _enc_fight_sub = "+{:,} CZK · draft a card{}".format(_enc_cash, _enc_gear_txt)
 
         ## ── What WALK AWAY pays out.
-        _enc_relief = flee_hatred_relief(tier, _enc_is_boss)
-        _enc_flee_label = "WALK AWAY" if _enc_is_boss else "LET THEM GO"
-        _enc_flee_sub = "-{} Hatred · forfeit the rewards".format(_enc_relief)
+        _enc_relief = flee_hatred_relief(tier, _enc_is_boss, enemy_id)
+        _enc_penalty = flee_czk_penalty(enemy_id)
+        _enc_flee_label = _enc_e.get("flee_label") or ("WALK AWAY" if _enc_is_boss else "LET THEM GO")
+        if _enc_penalty > 0:
+            _enc_flee_sub = "-{} Hatred · -{:,} CZK · forfeit the rewards".format(_enc_relief, _enc_penalty)
+        else:
+            _enc_flee_sub = "-{} Hatred · forfeit the rewards".format(_enc_relief)
 
     add "#0a0a0a"
     if renpy.loadable(_enc_bg):
@@ -328,16 +343,26 @@ label battle_with(enemy_id, tier):
 
     if _return == "flee":
         python:
-            _flee_relief = flee_hatred_relief(tier, _enc_is_boss)
+            _flee_relief = flee_hatred_relief(tier, _enc_is_boss, enemy_id)
+            _flee_penalty = flee_czk_penalty(enemy_id)
             stats.increment_stats_pcr_hatred(-_flee_relief)
+            ## Fleeing once disqualifies the "Peace was never an option" run.
+            store._run_fled = getattr(store, '_run_fled', 0) + 1
+            if _flee_penalty > 0:
+                stats.increment_stats_value_money(-_flee_penalty)
+                _flee_outcome = "- {} Hatred   - {:,} CZK".format(_flee_relief, _flee_penalty)
+            else:
+                _flee_outcome = "- {} Hatred".format(_flee_relief)
         if _enc_is_boss:
             "You weigh it — the guns, the gold, the long fall if it goes wrong."
             "Not this one. You step back into the dark before he's sure you were ever there."
         else:
             "You look at them. You look at the paperwork it would become."
             "Not tonight. You let it go — and the pressure behind your eyes drops a notch."
+        if _flee_penalty > 0:
+            "A case left open is a number that doesn't add up. The Colonel's people find the gap by morning — [_flee_penalty:,] crowns, docked, no conversation."
         window hide
-        show screen outcome_panel("- {} Hatred".format(_flee_relief))
+        show screen outcome_panel(_flee_outcome)
         pause
         hide screen outcome_panel
         return

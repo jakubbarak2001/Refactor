@@ -60,6 +60,14 @@ init -1 python:
             ## act marks which act this boss caps (1/2).
             "is_boss":       False,
             "no_flee":       False,
+            ## LET THEM GO overrides — flee_relief replaces the tier Hatred
+            ## relief for this enemy; flee_czk_penalty docks cash (the Colonel's
+            ## cut for letting a case slide); flee_label overrides the button
+            ## text (e.g. "LET HIM GO" for a lone suspect). Defaults: tier
+            ## relief, no penalty, the generic label.
+            "flee_relief":      None,
+            "flee_czk_penalty": 0,
+            "flee_label":       None,
             "act":           0,
         }
         defaults.update(fields)
@@ -146,6 +154,8 @@ init -1 python:
         log_name     = "Brawler",
         tier         = "easy",
         max_hp       = 95,
+        flee_relief      = 25,
+        flee_czk_penalty = 1000,
         deck_template = ["rvac_swing", "rvac_haymaker", "rvac_drink"],
         wrinkle      = "drunken_double",
         intro_lines  = [
@@ -192,6 +202,7 @@ init -1 python:
         log_name     = "Hooligan",
         tier         = "easy",
         max_hp       = 85,
+        flee_label   = "LET HIM GO",
         deck_template = ["chant", "flare_throw", "pile_in"],
         wrinkle      = "crew_rage",
         wrinkle_data = {"hp_threshold": 0.6, "bonus_dmg": 5},
