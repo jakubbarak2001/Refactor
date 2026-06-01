@@ -296,6 +296,7 @@ init python:
         base = CLASS_BASE_HP.get(player_class, 80)
         if include_gym_bonus:
             base += getattr(store, 'gym_max_hp_bonus', 0)
+            base += getattr(store, 'vending_max_hp_bonus', 0)
         return base
 
     def class_accent_color(player_class=None):
@@ -501,6 +502,10 @@ init python:
         ## Permanent max-HP bonus accrued from gym sessions (+5 per regular gym).
         ## Added on top of class baseline in battle_init. Resets on new run.
         store.gym_max_hp_bonus = 0
+        ## Permanent max-HP bonus from the vending-machine event. Folded into
+        ## class_max_hp the same way the gym bonus is, so battle_init's max-HP
+        ## resync doesn't clobber it (the bug where vending +Max HP vanished).
+        store.vending_max_hp_bonus = 0
         ## Hatred-corruption tracker — set of thresholds (40/60/80) already
         ## crossed this run. See _check_rage_injection / RAGE_THRESHOLDS.
         store._rage_thresholds_triggered = set()
