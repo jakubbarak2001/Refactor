@@ -1,18 +1,20 @@
-Two reference images are attached. The FIRST (jb_neutral.png) is the canonical character: copy his face, hair, FACIAL HAIR, skin tone, vest and patches EXACTLY from it. The SECOND (jb_contemplative_v1_2.png) is ONLY a pose reference: copy its contemplative hand-on-chin composition and framing, but NOT its facial hair.
+Two reference images are attached: jb_determined.png and jb_neutral.png. BOTH show the canonical character. Copy his face, hair, JAW, skin tone, vest and patches EXACTLY from them.
 
-CHARACTER (from the first reference, jb_neutral.png) — keep EXACTLY:
-- Same face, same slicked-back short dark hair, same brown eyes, same defined jaw, same warm-neutral skin tone (NO green cast).
-- FACIAL HAIR: short, light stubble only — a few days' growth at most, exactly like jb_neutral.png. Clean jawline. Do NOT give him a full beard, a long beard, or thick facial hair. This is the key correction: the previous version's beard was far too long. Trim it back to light stubble.
+>>> CRITICAL FACIAL-HAIR CORRECTION (read first) <<<
+JB is CLEAN-SHAVEN. His jaw is smooth, with AT MOST a faint five-o'clock shadow — exactly like the two attached references. He must have NO beard, NO short beard, NO goatee, and NO thick or defined stubble. The previous version gave him a beard that was much too long; REMOVE it entirely. The jaw must read as smooth and clean, matching jb_determined.png and jb_neutral.png precisely. If in doubt, make him cleaner-shaven, not more.
+
+CHARACTER (from the references) — keep EXACTLY:
+- Same face, same slicked-back short dark hair, same brown eyes, same defined CLEAN-SHAVEN jaw, same warm-neutral skin tone (NO green cast).
 - Same black tactical plate carrier vest, same rectangular black "POLICIE" patch on the left chest plate, same yellow shield "POLICIE" patch on the right shoulder, same black t-shirt under the vest.
-- Same painterly rendering style, same pure white background.
+- Same painterly rendering style, same pure white background, same upper-body framing.
 
-POSE (from the second reference, jb_contemplative_v1_2.png):
-- JB is CONTEMPLATING a decision. His right hand is raised to his face, the curled fingers/knuckles resting against his chin and jawline (the "thinker" gesture), right elbow tucked in, forearm rising vertically. Head tilted slightly down, brow lightly furrowed, eyes looking OFF to the side into the middle distance — not at the viewer. A quiet, focused, "is this worth it" look.
-
-FRAMING — CRITICAL: the raised forearm, wrist and the hand at the chin are COMPLETELY VISIBLE inside the frame. Nothing cropped at the wrist, the elbow, or the bottom edge.
+POSE — the one change vs the references:
+- JB is CONTEMPLATING a decision. His right hand is raised to his face, curled fingers/knuckles resting against his chin and jawline (the "thinker" gesture), right elbow tucked in, forearm rising. Head tilted slightly down, brow lightly furrowed, eyes looking OFF to the side into the middle distance — not at the viewer. A quiet "is this worth it" look.
+- FRAMING: the raised forearm, wrist and hand at the chin are COMPLETELY VISIBLE in frame — nothing cropped at the wrist, elbow, or bottom edge.
 
 ABSOLUTE RULES:
-- Short light stubble ONLY — no full/long beard. Match jb_neutral.png's facial hair length exactly.
+- CLEAN-SHAVEN. No beard. No defined stubble. Smooth jaw exactly like jb_determined.png / jb_neutral.png.
 - Do not change the face structure, hair, or skin tone.
 - Do not invent new patches or remove existing ones; do not change the vest model.
+- One single figure only — not two side-by-side busts.
 - Pure white background. Painterly style identical to the references.
