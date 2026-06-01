@@ -12,8 +12,9 @@ label start:
     scene bg_black
     $ play_daily_music(fadein=2.0)
 
-    ## Difficulty selection — hidden for now; default to Easy
-    $ init_game("easy")
+    ## Difficulty selection — easy / hard / insane. Reaches the 2.5x / 5x score
+    ## multipliers and 7/9-card Colonel decks that were previously dead content.
+    call difficulty_selection from _call_difficulty_selection
 
     ## Character class selection
     call character_class_selection from _call_character_class_selection
@@ -38,7 +39,7 @@ label difficulty_selection:
     $ store._chosen_difficulty = None
     call screen difficulty_selection_screen
 
-    $ init_game(store._chosen_difficulty)
+    $ init_game(store._chosen_difficulty or "easy")
 
 
     return

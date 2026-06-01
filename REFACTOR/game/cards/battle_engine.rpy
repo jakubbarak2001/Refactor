@@ -756,14 +756,14 @@ init python:
 
         ## Enemy HP. Colonel = 200 HP — capstone tier, must out-bulk medium
         ## ladder enemies (the boss can't be HP-weaker than the patsies he
-        ## sends). Was 100 -> 140 -> 150 -> 200. Each bump came after playtests
-        ## where a BB-capped run (115 + 30 gym cap = 145) finished with too
-        ## much HP in the tank. 200 forces real preparation, and the +50
-        ## ev_colonel_regards (KEEP) variant tops out at 250 — a meaningful
-        ## punishment for taking his "gift" without retaliation.
+        ## sends). Was 100 -> 140 -> 150 -> 200 -> 340. The 340 bump restores
+        ## the rule after the Colonel's Guard (Act II boss) went to 320 — the
+        ## finale must out-bulk his own elite. Sized for a two-phase fight
+        ## against a day-30 OP deck; the +50 ev_colonel_regards (KEEP) variant
+        ## tops out at 390 — a meaningful punishment for taking his "gift".
         ## Ladder enemies use ENEMY_LIBRARY max_hp.
         if enemy_id == "colonel":
-            bs.enemy_max_hp = 200
+            bs.enemy_max_hp = 340
             ## Event hook — KEEP branch of ev_colonel_regards: he wore the
             ## gift, now he's stronger for it. +50 max HP at the boss only.
             if getattr(store, '_colonel_gift_taken', False):
