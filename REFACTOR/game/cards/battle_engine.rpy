@@ -1346,9 +1346,15 @@ init python:
                     dmg += _tags
                     bs.buffs["sprejeri_tags"] = 0
                     bs.add_log("[[Tag stack x{}]: +{} damage, stack reset.".format(_tags, _tags))
-            ## --- Garda formation strength: +3 dmg while above 50% HP ---
-            if bs.enemy_id == "garda" and bs.enemy_hp > bs.enemy_max_hp // 2:
-                dmg += 3
+            ## --- Garda formation strength: disciplined while fresh, ALL-OUT
+            ## when the operation goes loud. +4 to single attacks above half HP,
+            ## +9 once bloodied — the breach team stops holding back as it falls.
+            if bs.enemy_id == "garda":
+                if bs.enemy_hp <= bs.enemy_max_hp // 2:
+                    dmg += 9
+                    bs.add_log("[[Formation breaks]: cornered, they go loud — +9 damage.")
+                else:
+                    dmg += 4
             ## --- Rvac drunk fury: bloodied <= half HP, +3 attack damage.
             ## Stacks with the reshuffle double-down so a late-fight Haymaker
             ## can land 28 instead of 22. Punishes the "stall the drunk" build.
@@ -1404,6 +1410,11 @@ init python:
                 _thr = _wd.get("hp_threshold", 0.5)
                 if bs.enemy_hp <= int(bs.enemy_max_hp * _thr):
                     per_hit += _wd.get("bonus_dmg", 4)
+            ## --- Garda formation strength on the multi-hit volleys (gas /
+            ## baton): +1 per hit above half, +2 once bloodied. Bounded per-hit
+            ## so the 5-7 hit volleys ramp hard without one-shotting.
+            if bs.enemy_id == "garda":
+                per_hit += 2 if bs.enemy_hp <= bs.enemy_max_hp // 2 else 1
             if _paragraph_fires:
                 _bonus = ENEMY_LIBRARY.get("lawyer", {}).get("wrinkle_data", {}).get("bonus_dmg", 6)
                 per_hit += max(1, _bonus // max(1, hits))

@@ -646,7 +646,7 @@ init python:
         "breach_swing",
         name     = "Breach Swing",
         intent   = "attack",
-        value    = 20,
+        value    = 28,
         dialogue = "The lead operator swings the ram, then the baton.",
         threat   = 3,
     )
@@ -654,7 +654,7 @@ init python:
         "shield_wall",
         name     = "Shield Wall",
         intent   = "block",
-        value    = 22,
+        value    = 26,
         dialogue = "The phalanx locks polycarbonate. Nothing comes through.",
         threat   = 1,
     )
@@ -662,7 +662,7 @@ init python:
         "gas_throw",
         name     = "Gas Throw",
         intent   = "compound",
-        value    = 4,
+        value    = 6,
         value2   = 5,
         dialogue = "The canister bounces twice. Tear gas blooms.",
         threat   = 3,
@@ -671,7 +671,7 @@ init python:
         "baton_combo",
         name     = "Baton Combo",
         intent   = "compound",
-        value    = 3,
+        value    = 5,
         value2   = 7,
         dialogue = "Ten short strikes. Trained. Identical.",
         threat   = 3,
@@ -680,7 +680,7 @@ init python:
         "formation_buff",
         name     = "Hold Formation",
         intent   = "buff",
-        value    = 4,
+        value    = 8,
         dialogue = "Three operators step forward in unison. The next strike will land harder.",
         threat   = 2,
     )
@@ -688,7 +688,7 @@ init python:
         "phalanx_block",
         name     = "Phalanx",
         intent   = "block",
-        value    = 26,
+        value    = 32,
         dialogue = "Shields overlap. Shins braced. No daylight between them.",
         threat   = 1,
     )
@@ -696,7 +696,7 @@ init python:
         "clear_room",
         name     = "Controlled Burst",
         intent   = "attack",
-        value    = 26,
+        value    = 36,
         dialogue = "No warning, no shout. A short controlled burst — they train it until the noise stops meaning anything to them.",
         threat   = 3,
     )
