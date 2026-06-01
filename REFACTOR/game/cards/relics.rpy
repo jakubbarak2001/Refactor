@@ -408,42 +408,48 @@ init python:
 screen relic_tray(size=44):
     $ _relics = owned_relics()
     if _relics:
-        hbox:
+        ## Wrap into rows of at most 5 chips so a long collection stacks
+        ## downward (left-to-right) instead of overflowing off the screen edge.
+        $ _relic_rows = [_relics[_i:_i + 5] for _i in range(0, len(_relics), 5)]
+        vbox:
             spacing 6
-            for _rl in _relics:
-                $ _rhex = relic_hex(_rl["id"])
-                $ _rrhex = relic_rarity_hex(_rl["id"])
-                ## No square brackets in tooltip text — Ren'Py's Text engine
-                ## would try to interpolate '[RARE]' as a variable and NameError.
-                $ _rtip = "{}  ·  {}  ·  {}".format(_rl["name"], _rl.get("rarity", "common").upper(), _rl.get("hook", ""))
-                button:
-                    xysize (size, size)
-                    background Frame(Solid(_rhex), 3, 3)
-                    padding (3, 3)
-                    action NullAction()
-                    tooltip _rtip
-                    vbox:
-                        xfill True
-                        yfill True
-                        spacing 0
-                        frame:
-                            xfill True
-                            ysize 3
-                            background Solid(_rrhex)
-                            padding (0, 0)
-                        frame:
-                            xfill True
-                            yfill True
-                            background "#11110caa"
-                            padding (0, 0)
-                            $ _ricon = relic_art_disp(_rl["id"], int(size * 0.82))
-                            if _ricon is not None:
-                                add _ricon xalign 0.5 yalign 0.5
-                            else:
-                                text relic_glyph(_rl["id"]):
-                                    xalign 0.5
-                                    yalign 0.5
-                                    color _rhex
-                                    size int(size * 0.5)
-                                    bold True
-                                    font "fonts/RobotoMono-Regular.ttf"
+            for _row in _relic_rows:
+                hbox:
+                    spacing 6
+                    for _rl in _row:
+                        $ _rhex = relic_hex(_rl["id"])
+                        $ _rrhex = relic_rarity_hex(_rl["id"])
+                        ## No square brackets in tooltip text — Ren'Py's Text engine
+                        ## would try to interpolate '[RARE]' as a variable and NameError.
+                        $ _rtip = "{}  ·  {}  ·  {}".format(_rl["name"], _rl.get("rarity", "common").upper(), _rl.get("hook", ""))
+                        button:
+                            xysize (size, size)
+                            background Frame(Solid(_rhex), 3, 3)
+                            padding (3, 3)
+                            action NullAction()
+                            tooltip _rtip
+                            vbox:
+                                xfill True
+                                yfill True
+                                spacing 0
+                                frame:
+                                    xfill True
+                                    ysize 3
+                                    background Solid(_rrhex)
+                                    padding (0, 0)
+                                frame:
+                                    xfill True
+                                    yfill True
+                                    background "#11110caa"
+                                    padding (0, 0)
+                                    $ _ricon = relic_art_disp(_rl["id"], int(size * 0.82))
+                                    if _ricon is not None:
+                                        add _ricon xalign 0.5 yalign 0.5
+                                    else:
+                                        text relic_glyph(_rl["id"]):
+                                            xalign 0.5
+                                            yalign 0.5
+                                            color _rhex
+                                            size int(size * 0.5)
+                                            bold True
+                                            font "fonts/RobotoMono-Regular.ttf"
