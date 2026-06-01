@@ -345,7 +345,7 @@ init python:
         "knockoff_swing",
         name     = "Knockoff Swing",
         intent   = "attack",
-        value    = 16,
+        value    = 20,
         dialogue = "He swings a counterfeit Rolex across your cheek.",
         threat   = 2,
     )
@@ -353,7 +353,7 @@ init python:
         "stall_swarm",
         name     = "Stánek Swarm",
         intent   = "compound",
-        value    = 4,
+        value    = 6,
         value2   = 4,
         dialogue = "Three stánkaři close in. Hands everywhere.",
         threat   = 3,
@@ -371,7 +371,7 @@ init python:
         "lockup",
         name     = "Lockup",
         intent   = "block",
-        value    = 10,
+        value    = 14,
         dialogue = "Roll-down shutter slams. He waits behind it.",
         threat   = 1,
     )
@@ -379,7 +379,7 @@ init python:
         "markdown",
         name     = "Markdown",
         intent   = "attack",
-        value    = 12,
+        value    = 17,
         dialogue = "A price tag rakes your knuckles. Sticker glue stays for days.",
         threat   = 1,
     )

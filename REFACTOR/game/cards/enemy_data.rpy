@@ -265,7 +265,7 @@ init -1 python:
         sprite_id    = "nguyen",
         log_name     = "Nguyen",
         tier         = "medium",
-        max_hp       = 110,
+        max_hp       = 125,
         deck_template = ["knockoff_swing", "stall_swarm", "haggle", "lockup", "markdown"],
         wrinkle      = "counterfeit_drop",
         intro_lines  = [
@@ -293,6 +293,7 @@ init -1 python:
         no_flee      = False,
         act          = 1,
         max_hp       = 160,
+        flee_label   = "TRY HIS NEW BATCH",
         flee_relief  = 30,
         flee_heal    = 40,
         flee_max_hp  = 5,

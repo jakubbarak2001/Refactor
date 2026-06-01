@@ -140,6 +140,10 @@ init python:
             return False
 
         def increment_stats_value_money(self, amount):
+            ## Golden Handcuffs — every positive money gain, from ANY source
+            ## (bouncer, salary, battle rewards, events, crypto), is +25%.
+            if amount > 0 and has_relic("golden_handcuffs"):
+                amount = int(round(amount * 1.25))
             self.available_money += amount
             if self.available_money < 0:
                 self.available_money = 0
@@ -389,7 +393,6 @@ init python:
             return {}
         marks = {
             14: ("SALARY",   "#ffd700"),
-            15: ("CALL",     "#9944cc"),
             24: ("MARTIN",   "#33aacc"),
         }
         ## Colonel day depends on Martin Meeting timing choice

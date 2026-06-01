@@ -146,7 +146,7 @@ init python:
         "golden_handcuffs",
         name="Golden Handcuffs",
         archetype="generic", rarity="rare",
-        hook="+2 max energy every fight. Start each fight at -4 HP.",
+        hook="All money you gain is increased by 25% — from every source.",
         flavor="Gold plating, flaking already. The steel underneath is regulation. They never come off.",
     )
 
@@ -267,13 +267,8 @@ init python:
                     bs.over = "victory"
             elif rid == "red_bull_crate":
                 bs.max_energy += 1
-            elif rid == "golden_handcuffs":
-                ## +2 max energy is the strongest energy bump in the pool, so it
-                ## carries a cost: open every fight 4 HP down (floored at 1 so it
-                ## can never be the thing that loses you the fight on entry).
-                bs.max_energy += 2
-                bs.player_hp = max(1, bs.player_hp - 4)
-                bs.add_log("[[Golden Handcuffs]: +2 max energy. -4 HP.")
+            ## golden_handcuffs is now a pure economy relic (+25% money from any
+            ## source) — applied in increment_stats_value_money, no battle effect.
 
             ## --- IRON ---
             elif rid == "protein_tub":
