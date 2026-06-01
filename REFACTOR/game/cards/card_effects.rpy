@@ -80,11 +80,13 @@ init python:
         "last_nerve":              "Deal 4 damage. Gain 2 Hatred.",
         "embrace_it":              "Exhaust a Rage card in your hand: gain 15 block and draw 2 cards.",
         "sparring_partner":        "Lose 5 HP. Gain 10 Hatred. Draw 2 cards.",
+        "breakdown":               "Deal damage equal to your Hatred, then lose all of it. Exhausts.",
         ## Stoic archetype
         "bracing":                 "Gain 5 block. Free.",
         "backup":                  "Gain 10 block.",
         "chain_of_command":        "Gain 8 block. Draw 1 card.",
         "iron_posture":            "Power: at the start of each turn, keep half your remaining block instead of losing all of it.",
+        "barricade":               "Power: at the start of each turn, keep ALL your remaining block instead of losing it.",
         "hold_the_line":           "Gain 3 block for every Skill in your hand.",
         "brick_wall":              "Deal 8 damage. Gain block equal to the damage dealt.",
         "iron_stance":             "Power: gain 12 block. When an enemy attack hits you, strike back — 4 damage, rising +2 each round (max 12).",
@@ -101,6 +103,7 @@ init python:
         "kernel_patch":            "Gain 2 energy. Draw 2 cards. Exhausts.",
         "hotfix":                  "Deal 5 damage. Draw 1 card. Deal 13 instead if this is the 3rd+ card you've played this turn.",
         "ship_it":                 "Gain 1 energy for each Skill in your hand (max 3). Exhausts.",
+        "pipeline":                "Power: every card you play deals damage to the enemy equal to your Coding tier.",
         "code_review":             "Exhaust your leftmost other card. Draw 2 cards. Gain 3 block.",
         "git_blame":               "Deal damage equal to Coding tier × 3 (min 5).",
         "git_blame_plus":          "Deal damage equal to Coding tier × 4 (min 7).",
@@ -252,10 +255,12 @@ init python:
         "open_source_pr_plus":     "Power: +1 max energy this fight. Your next two Powers cost 0.",
     }
 
-    ## Counterweight converts the block wall into damage without consuming it,
-    ## so the hit is capped — keeps a 1-energy uncommon from out-damaging the
-    ## rare Attacks. Tunable.
-    COUNTERWEIGHT_CAP = 15
+    ## Counterweight converts the block wall into damage without consuming it.
+    ## The cap stops a 1-energy uncommon from being literally unbounded, but at
+    ## 40 (was 15) a real fortress finally hits like one — pairing with Barricade
+    ## (full block retain) into the stoic build's snowball: wall up, hit for 40,
+    ## stay walled, repeat. Tunable.
+    COUNTERWEIGHT_CAP = 40
 
     ## ---------------------------------------------------------------------------
     ## Dynamic description resolution. Stat-scaling cards (Heavy Set / Breaking
@@ -304,6 +309,8 @@ init python:
             return "Deal {} damage. (Coding tier × 3, min 5)".format(max(5, _coding_tier_int() * 3))
         if effect_id == "git_blame_plus":
             return "Deal {} damage. (Coding tier × 4, min 7)".format(max(7, _coding_tier_int() * 4))
+        if effect_id == "pipeline":
+            return "Power: every card you play deals {} damage (your Coding tier).".format(_coding_tier_int())
         if effect_id == "heavy_set":
             return "Deal {} damage. (+1 per 5 Hatred)".format(6 + h // 5)
         if effect_id == "heavy_set_plus":
@@ -312,6 +319,8 @@ init python:
             return "Deal {} damage. (+1 per 4 Hatred)".format(10 + h // 4)
         if effect_id == "bottled_rage":
             return "Deal {} damage (half your Hatred). Lose 25 Hatred.".format(h // 2)
+        if effect_id == "breakdown":
+            return "Deal {} damage (all your Hatred), then lose it all. Exhausts.".format(h)
         if effect_id == "snap_decision":
             return "Deal {} damage. (18 at 60+ Hatred)".format(18 if h >= 60 else 9)
         if effect_id == "counterweight":
@@ -432,6 +441,16 @@ init python:
         state.deal_damage(target, _dmg)
         state.add_log("Breaking Point: {} damage (10 + Hatred/4).".format(_dmg))
 
+    @register_effect("breakdown")
+    def _eff_breakdown(state, source, target):
+        ## The detonator: cash the entire accumulated Hatred stat as one hit,
+        ## then it's all gone. Snowball the clock to a number, then blow it.
+        _h = stats.pcr_hatred if stats else 0
+        state.deal_damage(target, _h)
+        if _h > 0:
+            state.gain_hatred(-_h)
+        state.add_log("Breakdown: {} damage, Hatred spent to zero.".format(_h))
+
     @register_effect("bottled_rage")
     def _eff_bottled_rage(state, source, target):
         ## Cash out — damage scales off Hatred, then dumps 25 of it. The
@@ -504,6 +523,12 @@ init python:
         ## Power — battle_start_player_turn reads this buff and retains half
         ## the standing block instead of clearing it.
         state.buff(source, "iron_posture", True)
+
+    @register_effect("barricade")
+    def _eff_barricade(state, source, target):
+        ## Power — full block carry-over (beats Iron Posture's half). Lets the
+        ## wall compound turn-over-turn into Counterweight-able numbers.
+        state.buff(source, "barricade", True)
 
     @register_effect("counterweight")
     def _eff_counterweight(state, source, target):
@@ -611,6 +636,13 @@ init python:
         _e = min(3, _skills)
         state.gain_energy(_e)
         state.add_log("Ship It: {} Skills in hand -> +{} energy.".format(_skills, _e))
+
+    @register_effect("pipeline")
+    def _eff_pipeline(state, source, target):
+        ## Power — battle_play_card reads this buff and chips the enemy for the
+        ## Coding tier on every subsequent card play. The tech build's anchor:
+        ## the more you cycle (and the higher your Coding), the more it ships.
+        state.buff(source, "pipeline", True)
 
     @register_effect("code_review")
     def _eff_code_review(state, source, target):

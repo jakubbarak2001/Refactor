@@ -296,6 +296,20 @@ init python:
         flavor    = "He doesn't pull. You stopped wanting him to.",
     )
 
+    register_card(
+        "breakdown",
+        name      = "Breakdown",
+        type      = "Attack",
+        color     = "Physical",
+        cost      = 2,
+        rarity    = "rare",
+        effect    = "breakdown",
+        exhaust   = True,
+        archetype  = "hatred",
+        class_lock = "bodybuilder",
+        flavor    = "Thirty years of it, all at once. Whatever's left standing after isn't him.",
+    )
+
     ## ---------------------------------------------------------------------------
     ## ARCHETYPE: STOIC WALL — low Hatred, patient, turn defense into offense.
     ## ---------------------------------------------------------------------------
@@ -346,6 +360,18 @@ init python:
         effect    = "iron_posture",
         archetype = "stoic",
         flavor    = "You don't drop your guard between rounds. You never learned how.",
+    )
+
+    register_card(
+        "barricade",
+        name      = "Barricade",
+        type      = "Power",
+        color     = "Physical",
+        cost      = 2,
+        rarity    = "rare",
+        effect    = "barricade",
+        archetype = "stoic",
+        flavor    = "Stack everything against the door. Then stand behind it and dare him.",
     )
 
     register_card(
@@ -546,6 +572,18 @@ init python:
         exhaust   = True,
         archetype = "tech",
         flavor    = "Good enough compiles. Good enough ships.",
+    )
+
+    register_card(
+        "pipeline",
+        name      = "Pipeline",
+        type      = "Power",
+        color     = "Logic",
+        cost      = 2,
+        rarity    = "rare",
+        effect    = "pipeline",
+        archetype = "tech",
+        flavor    = "Every commit auto-deploys. The bug never gets the chance to merge.",
     )
 
     register_card(
@@ -1527,9 +1565,11 @@ init python:
     register_upgrade("last_nerve",            effect="last_nerve_plus",            flavor="He's still standing on it. You stopped flinching.")
     register_upgrade("embrace_it",            effect="embrace_it_plus",            flavor="Stop fighting the worst of yourself. Aim it better.")
     register_upgrade("sparring_partner",      effect="sparring_partner_plus",      flavor="He still doesn't pull. You stopped flinching first.")
+    register_upgrade("breakdown",             cost=1, flavor="It comes quicker now. It always did.")
 
     ## New-archetype cards — Stoic
     register_upgrade("iron_posture",          effect="iron_posture",          cost=0, flavor="You never learned to drop your guard. Now it's reflex.")
+    register_upgrade("barricade",             effect="barricade",             cost=1, flavor="The wall went up years ago. You just stopped noticing the weight.")
     register_upgrade("counterweight",         effect="counterweight_plus",         flavor="Lean into the wall. Add your shoulder.")
     register_upgrade("hold_the_line",         effect="hold_the_line_plus",         flavor="Doorframe at your back. Nobody gets past, ever.")
     register_upgrade("brick_wall",            effect="brick_wall_plus",            flavor="Hit him with the thing he could never get through.")
@@ -1537,6 +1577,7 @@ init python:
     ## New-archetype cards — Tech
     register_upgrade("hotfix",                effect="hotfix_plus",                flavor="One commit. Straight to main. He never sees the diff.")
     register_upgrade("ship_it",               effect="ship_it_plus",               flavor="Good enough ships. And reads itself back to you.")
+    register_upgrade("pipeline",              effect="pipeline",              cost=1, flavor="The pipeline runs itself now. You just watch the dashboard.")
     register_upgrade("code_review",           effect="code_review_plus",           flavor="Delete the dead lines. The diff gets honest, and lean.")
     register_upgrade("crunch_time",           effect="crunch_time_plus",           flavor="Every shortcut, every corner — all of it, due now.")
 

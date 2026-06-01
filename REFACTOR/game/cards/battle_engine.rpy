@@ -485,9 +485,12 @@ init python:
             ## See Red — every Hatred gain this fight walls up a little block.
             if self.buffs.get("see_red"):
                 self.gain_block("player", SEE_RED_BLOCK)
-            ## Roid Rage — every Hatred gain this fight also chips the enemy.
+            ## Roid Rage — every Hatred gain this fight also chips the enemy,
+            ## and the chip SCALES with how hot the run is (Hatred//20 on top of
+            ## the base), so a generator-heavy late run snowballs instead of
+            ## paying a flat tax that the Colonel's HP laughs off.
             if self.buffs.get("roid_rage"):
-                self.deal_damage("enemy", ROID_RAGE_DMG)
+                self.deal_damage("enemy", ROID_RAGE_DMG + stats.pcr_hatred // 20)
 
         ## ---------------- INTENT MANAGEMENT ----------------
         def advance_intent(self):
@@ -809,9 +812,16 @@ init python:
         if bs is None or bs.is_over():
             return
         bs.turn += 1
-        ## Iron Posture — retain half of last turn's standing block instead of
-        ## losing all of it (read before the reset clears player_block).
-        _retain = (bs.player_block // 2) if bs.buffs.get("iron_posture") else 0
+        ## Block carry-over (read before the reset clears player_block).
+        ## Barricade keeps ALL of last turn's wall, Iron Posture keeps half —
+        ## Barricade wins when both are up. Full retain is what lets the wall
+        ## compound turn-over-turn into Counterweight-able numbers.
+        if bs.buffs.get("barricade"):
+            _retain = bs.player_block
+        elif bs.buffs.get("iron_posture"):
+            _retain = bs.player_block // 2
+        else:
+            _retain = 0
         bs.player_block = bs.starting_block + _retain
 
         ## Card-play counter resets every turn. If a 'restrict' intent set
@@ -1062,6 +1072,13 @@ init python:
 
         ## Tick the per-turn card counter — feeds the 'restrict' intent gate.
         bs.cards_played_this_turn += 1
+        ## Pipeline (tech Power) — every card you play ships a little damage,
+        ## scaled by your Coding tier. Rewards a cycle-heavy deck and finally
+        ## makes the Coding stat matter in combat for the only playable class.
+        ## (Pipeline itself doesn't self-trigger: the buff is set during its own
+        ## resolution, after this counter has already ticked.)
+        if bs.buffs.get("pipeline"):
+            bs.deal_damage("enemy", _bh_coding_tier())
         ## Skill-played flag — read by Production Push's combo bonus.
         if c.get("type") == "Skill":
             bs.skill_played_this_turn = True
