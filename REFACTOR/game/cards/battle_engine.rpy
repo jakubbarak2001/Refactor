@@ -711,8 +711,18 @@ init python:
         ## class max here so future battles have a value to load.
         _run_hp = getattr(store, 'run_hp', None)
         _run_hp_max = getattr(store, 'run_hp_max', None)
-        if _run_hp_max is None or _run_hp_max != bs.player_max_hp:
+        ## Reconcile the stored run max with the class computation — but only
+        ## UPWARD. Max HP never drops mid-run, so a run_hp_max ABOVE the freshly
+        ## computed class max is an earned bonus (gym / vending / a flee reward,
+        ## or an older save whose bonus predates the tracked accumulators) and
+        ## must survive. The old code force-synced DOWN to the class value,
+        ## silently wiping those bonuses on every battle entry (the vending /
+        ## Grundza-batch +Max HP vanishing bug).
+        if _run_hp_max is None:
             store.run_hp_max = bs.player_max_hp
+        else:
+            store.run_hp_max = max(_run_hp_max, bs.player_max_hp)
+        bs.player_max_hp = store.run_hp_max
         if _run_hp is None:
             store.run_hp = bs.player_max_hp
         else:

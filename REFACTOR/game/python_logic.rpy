@@ -297,6 +297,10 @@ init python:
         if include_gym_bonus:
             base += getattr(store, 'gym_max_hp_bonus', 0)
             base += getattr(store, 'run_max_hp_bonus', 0)
+            ## Legacy: runs that took the vending bonus before run_max_hp_bonus
+            ## existed stored it under its own name. Read it additively so the
+            ## rename doesn't orphan that +Max HP on an in-progress save.
+            base += getattr(store, 'vending_max_hp_bonus', 0)
         return base
 
     def class_accent_color(player_class=None):
