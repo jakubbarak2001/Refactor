@@ -975,6 +975,11 @@ init python:
             bs.draw_cards(1)
             bs.buffs["kick_charges"] -= 1
 
+        ## Debugging Duck (relic) — extra dig on the opening turn only.
+        if bs.turn == 1 and bs.buffs.get("first_turn_bonus_draw", 0) > 0:
+            bs.draw_cards(bs.buffs["first_turn_bonus_draw"])
+            bs.add_log("[[Debugging Duck]: +{} cards on the opening turn.".format(bs.buffs["first_turn_bonus_draw"]))
+
         ## --- Post-draw wrinkles: must run AFTER draw_cards(5) so hand exists ---
         if _eid == "dispatcher" and bs.hand and bs.turn in (4, 8):
             ## Priority change: turn 4 and turn 8 only (capped at 2 fires per

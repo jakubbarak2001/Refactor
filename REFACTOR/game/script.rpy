@@ -1194,7 +1194,7 @@ label activity_fixer:
         if getattr(store, '_fixer_stock_day', None) != _today:
             store._fixer_stock_day   = _today
             store._fixer_card_stock  = build_card_shop_offers(3)
-            store._fixer_relic_stock = build_relic_shop_offers(2)
+            store._fixer_relic_stock = build_relic_shop_offers(3)
 
     "A flat on the third floor of a panelák. The doorbell doesn't work; he knew you'd be here."
     "'Cash buys what's on the table. I take notes off nobody.'"

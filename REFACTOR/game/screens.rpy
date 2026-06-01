@@ -2665,7 +2665,7 @@ screen fixer_relic_buy_screen(offers, cash):
             font "fonts/RobotoMono-Regular.ttf"
             outlines [(2, "#000000", 0, 0)]
 
-        text "Build-defining. He only ever has one or two.":
+        text "Build-defining. He only ever has a few. Gold = rare.":
             xalign 0.5
             color "#888888"
             size 15
@@ -2690,8 +2690,10 @@ screen fixer_relic_buy_screen(offers, cash):
                     _rmeta  = RELIC_LIBRARY.get(_rrid, {})
                     _rname  = _rmeta.get("name", _rrid)
                     _rhook  = _rmeta.get("hook", "")
+                    _rrarity = _rmeta.get("rarity", "common").upper()
                     _rafford = (cash >= _rprice)
                     _rhex   = relic_hex(_rrid) if _rafford else "#5a5042"
+                    _rrar_col = relic_rarity_hex(_rrid) if _rafford else "#5a5042"
                     _rprice_color = ("#ffd700" if _rafford else "#a04040")
 
                 button:
@@ -2723,11 +2725,19 @@ screen fixer_relic_buy_screen(offers, cash):
                             spacing 2
                             yalign 0.5
                             xsize 720
-                            text "[_rname]":
-                                color _rhex
-                                size 20
-                                bold True
-                                font "fonts/RobotoMono-Regular.ttf"
+                            hbox:
+                                spacing 10
+                                text "[_rname]":
+                                    color _rhex
+                                    size 20
+                                    bold True
+                                    font "fonts/RobotoMono-Regular.ttf"
+                                text "[_rrarity]":
+                                    color _rrar_col
+                                    size 13
+                                    bold True
+                                    yalign 0.5
+                                    font "fonts/RobotoMono-Regular.ttf"
                             text "[_rhook]":
                                 color ("#ccc4b4" if _rafford else "#5a5042")
                                 size 14
