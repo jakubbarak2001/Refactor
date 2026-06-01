@@ -1498,7 +1498,7 @@ init python:
     ## Basic & signature
     register_upgrade("strike",                effect="strike_plus",                flavor="The simplest argument: hit harder. Then a little harder.")
     register_upgrade("defend",                effect="defend_plus",                flavor="Don't take the bait. Don't take the punch.")
-    register_upgrade("heavy_set",             effect="heavy_set_plus",             flavor="Every plate you've ever loaded. Aimed at him. Plus one more.")
+    register_upgrade("heavy_set",             effect="heavy_set_plus",             flavor="Every plate you've ever loaded, and every grudge under them. The bar bends.")
     register_upgrade("norwegian_4x4",         effect="norwegian_4x4_plus",         flavor="You've done it enough times. The bike still burns. You don't.")
     register_upgrade("an_idea",               cost=1,                              flavor="The idea comes faster now. The car never had a chance.")
 

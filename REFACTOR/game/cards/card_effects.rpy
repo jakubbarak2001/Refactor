@@ -314,7 +314,7 @@ init python:
         if effect_id == "heavy_set":
             return "Deal {} damage. (+1 per 5 Hatred)".format(6 + h // 5)
         if effect_id == "heavy_set_plus":
-            return "Deal {} damage. (+1 per 5 Hatred)".format(8 + h // 5)
+            return "Deal {} damage. (+1 per 3 Hatred)".format(8 + h // 3)
         if effect_id == "breaking_point":
             return "Deal {} damage. (+1 per 4 Hatred)".format(10 + h // 4)
         if effect_id == "bottled_rage":
@@ -930,7 +930,10 @@ init python:
 
     @register_effect("heavy_set_plus")
     def _eff_heavy_set_plus(state, source, target):
-        dmg = 8 + (stats.pcr_hatred // 5) if stats else 8
+        ## The upgrade isn't a flat +2 — it scales HARDER with Hatred (h//3 vs
+        ## the base's h//5), so a hot run turns the BB signature into a real
+        ## payoff instead of a slightly bigger starter.
+        dmg = 8 + (stats.pcr_hatred // 3) if stats else 8
         state.deal_damage(target, dmg)
         state.add_log("Heavy Set+: {} damage (scaled by Hatred).".format(dmg))
 
