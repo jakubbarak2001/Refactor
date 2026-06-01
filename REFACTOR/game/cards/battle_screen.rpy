@@ -1621,6 +1621,7 @@ screen battle_screen():
                     ## chip row so they don't render as "✦"/"[?]" tofu.
                     _BUFF_HIDDEN = {
                         "rvac_double_total",
+                        "colonel_phase2",
                         "grundza_detonated",
                         "mirror_armed_for_counter",
                         "paragraph_4b_armed",

@@ -940,6 +940,25 @@ init python:
         ## in the player's hand THIS turn rather than waiting for reshuffle
         ## (which on a 20-card deck could be 4+ turns away).
         _eid = getattr(bs, 'enemy_id', 'colonel')
+        ## The Colonel, Phase 2 — at <= half HP the bureaucracy act drops, the
+        ## glitch shows through, and he turns the run you actually PLAYED back on
+        ## you. One-time entry: a beat + a payback keyed to your dominant path
+        ## (the continuous +Hatred//15 per hit lives in the attack branch).
+        if _eid == "colonel" and bs.enemy_hp <= bs.enemy_max_hp // 2 and not bs.buffs.get("colonel_phase2"):
+            bs.buffs["colonel_phase2"] = True
+            _ph = stats.pcr_hatred if stats else 0
+            _pcs = stats.coding_skill if stats else 0
+            _pfled = getattr(store, '_run_fled', 0)
+            bs.add_log("[[The act drops]: thirty-two years of script — and underneath it, nothing reading from one.")
+            if _ph >= 60:
+                bs.add_log("[[Colonel]: 'The rage was never yours. It was the leash. Watch how it pulls.'")
+            elif _pcs >= 100:
+                bs.buffs["max_energy_penalty_next_turn"] = max(bs.buffs.get("max_energy_penalty_next_turn", 0), 1)
+                bs.add_log("[[Colonel]: 'You think your little scripts matter in here.' Your next turn loses 1 energy.")
+            elif _pfled > 0:
+                bs.add_log("[[Colonel]: 'You paid everyone else to look the other way. Who's left to pay now?'")
+            else:
+                bs.add_log("[[Colonel]: 'Clean hands, empty hands. In the end the file reads the same.'")
         if _eid == "spis" and bs.turn >= 2:
             ## Cap paperwork at 3 across all piles — without this, long fights
             ## (and the bloodied double-inject below) accumulate enough copies
@@ -1356,6 +1375,15 @@ init python:
             ## Permanent enemy Strength buff (StS analog) — adds to every
             ## attack/compound hit. Granted by 'strength' intent type.
             dmg += bs.enemy_strength
+            ## --- The Colonel, Phase 2 (<= half HP): the bureaucracy act drops
+            ## and he turns your own run against you. The hotter you ran, the
+            ## harder he leans on the rage you carried in (+Hatred//15 per hit).
+            ## The one-time entry beat + coding/bribe payback fire in the
+            ## per-turn section.
+            if bs.enemy_id == "colonel" and bs.enemy_hp <= bs.enemy_max_hp // 2:
+                _col_dmg = (stats.pcr_hatred // 15) if stats else 0
+                if _col_dmg > 0:
+                    dmg += _col_dmg
             ## --- Sprejeri tag stack spend: +tags dmg on attack when stack >= 3.
             ## Bloodied phase (<= half HP): every attack spends the stack
             ## regardless of size — the third tagger joins, no patience left.

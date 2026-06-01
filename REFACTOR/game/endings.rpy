@@ -123,6 +123,18 @@ label good_ending:
         "You wrote the backend yourself. Ugly at first. Then clean. Then elegant."
         "You still lift on Tuesdays. Your home office has a pull-up bar over the door."
         "You look happier than any cop ever looked. That's not luck. That's a choice you made and kept making."
+        ## How you got out colours the last line — the run finally shows in the
+        ## ending instead of every BB victory reading identically.
+        if getattr(store, '_run_kills', 0) == 0:
+            "You never put anyone down to get here. The cases closed themselves, eventually. You let them."
+        elif (stats.pcr_hatred or 0) >= 100:
+            "You got out hot — knuckles split, jaw still set. The anger didn't follow you in. It just ran out of things to point at."
+        elif getattr(store, '_run_fled', 0) >= 3:
+            "You paid your way clear more than once. The envelopes are gone now, the men who took them never knew your name, and you prefer it that way."
+        elif (stats.coding_skill or 0) >= 150:
+            "You out-studied the uniform. Nobody at the new place knows you were ever a cop. Your commit history doesn't mention it either."
+        else:
+            "Some nights the old radio chatter still wakes you. Then you remember the pull-up bar over the door, and you go back to sleep."
     elif _ep_class == "dark_empath":
         if getattr(store, '_de_kovar_exposed', False):
             "Two journalists win a Pulitzer-equivalent for the Kovář investigation. Your name never appears."
