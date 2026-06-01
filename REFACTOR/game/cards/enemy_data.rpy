@@ -217,7 +217,7 @@ init -1 python:
         flee_label   = "LET HIM GO",
         deck_template = ["chant", "flare_throw", "pile_in"],
         wrinkle      = "crew_rage",
-        wrinkle_data = {"hp_threshold": 0.6, "bonus_dmg": 5},
+        wrinkle_data = {"hp_threshold": 0.25, "bonus_dmg": 5},
         intro_lines  = [
             "End of a long match-day shift — twelve hours minding other men's tempers, and you want it done. Dispatch isn't done with you: one supporter never made it onto his bus.",
             "His side lost three-nil and the crowd left without him. He's had two hours alone to stew on it. Then you walk in — the first thing all night he can do something about.",
