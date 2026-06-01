@@ -54,10 +54,20 @@ init python:
                 return _ov
         return FLEE_HATRED_RELIEF.get(tier, 25) + (10 if is_boss else 0)
 
-    def flee_czk_penalty(enemy_id):
-        ## The Colonel docks your pay for letting a case slide. 0 (no penalty)
-        ## for everyone unless the enemy def sets flee_czk_penalty.
-        return ENEMY_LIBRARY.get(enemy_id, {}).get("flee_czk_penalty", 0)
+    def flee_effects(enemy_id, tier, is_boss=False):
+        ## Every LET THEM GO consequence for an enemy, resolved into one dict.
+        ## relief is always present (tier default or per-enemy override); the
+        ## rest stay 0 / None unless the enemy def opts in. Read by both the
+        ## encounter screen (to spell out the trade) and battle_with's flee path.
+        _e = ENEMY_LIBRARY.get(enemy_id, {})
+        return {
+            "relief":    flee_hatred_relief(tier, is_boss, enemy_id),
+            "penalty":   _e.get("flee_czk_penalty", 0),
+            "income":    _e.get("flee_daily_income", 0),
+            "heal":      _e.get("flee_heal", 0),
+            "max_hp":    _e.get("flee_max_hp", 0),
+            "narration": _e.get("flee_narration"),
+        }
 
     ## Act bosses — fixed-day reckonings that cap each act, fired with priority
     ## over the random ladder/event roll. Each is an existing, fully-arted enemy
@@ -224,14 +234,20 @@ screen encounter_choice(enemy_id, tier="medium", can_flee=True):
             _enc_gear_txt = ""
         _enc_fight_sub = "+{:,} CZK · draft a card{}".format(_enc_cash, _enc_gear_txt)
 
-        ## ── What WALK AWAY pays out.
-        _enc_relief = flee_hatred_relief(tier, _enc_is_boss, enemy_id)
-        _enc_penalty = flee_czk_penalty(enemy_id)
+        ## ── What WALK AWAY pays out — spell out the bespoke trade.
+        _enc_fe = flee_effects(enemy_id, tier, _enc_is_boss)
         _enc_flee_label = _enc_e.get("flee_label") or ("WALK AWAY" if _enc_is_boss else "LET THEM GO")
-        if _enc_penalty > 0:
-            _enc_flee_sub = "-{} Hatred · -{:,} CZK · forfeit the rewards".format(_enc_relief, _enc_penalty)
-        else:
-            _enc_flee_sub = "-{} Hatred · forfeit the rewards".format(_enc_relief)
+        _enc_flee_parts = ["-{} Hatred".format(_enc_fe["relief"])]
+        if _enc_fe["penalty"] > 0:
+            _enc_flee_parts.append("-{:,} CZK".format(_enc_fe["penalty"]))
+        if _enc_fe["income"] > 0:
+            _enc_flee_parts.append("+{:,} CZK/day".format(_enc_fe["income"]))
+        if _enc_fe["heal"] > 0:
+            _enc_flee_parts.append("+{} HP".format(_enc_fe["heal"]))
+        if _enc_fe["max_hp"] > 0:
+            _enc_flee_parts.append("+{} Max HP".format(_enc_fe["max_hp"]))
+        _enc_flee_parts.append("forfeit the rewards")
+        _enc_flee_sub = " · ".join(_enc_flee_parts)
 
     add "#0a0a0a"
     if renpy.loadable(_enc_bg):
@@ -343,24 +359,38 @@ label battle_with(enemy_id, tier):
 
     if _return == "flee":
         python:
-            _flee_relief = flee_hatred_relief(tier, _enc_is_boss, enemy_id)
-            _flee_penalty = flee_czk_penalty(enemy_id)
-            stats.increment_stats_pcr_hatred(-_flee_relief)
-            ## Fleeing once disqualifies the "Peace was never an option" run.
+            _fe = flee_effects(enemy_id, tier, _enc_is_boss)
+            stats.increment_stats_pcr_hatred(-_fe["relief"])
+            ## Fleeing once disqualifies the "Peace Was Never An Option" run.
             store._run_fled = getattr(store, '_run_fled', 0) + 1
-            if _flee_penalty > 0:
-                stats.increment_stats_value_money(-_flee_penalty)
-                _flee_outcome = "- {} Hatred   - {:,} CZK".format(_flee_relief, _flee_penalty)
-            else:
-                _flee_outcome = "- {} Hatred".format(_flee_relief)
-        if _enc_is_boss:
+            _flee_parts = ["- {} Hatred".format(_fe["relief"])]
+            if _fe["penalty"] > 0:
+                stats.increment_stats_value_money(-_fe["penalty"])
+                _flee_parts.append("- {:,} CZK".format(_fe["penalty"]))
+            if _fe["income"] > 0:
+                store._passive_daily_income = getattr(store, '_passive_daily_income', 0) + _fe["income"]
+                _flee_parts.append("+ {:,} CZK/day".format(_fe["income"]))
+            if _fe["heal"] > 0:
+                _event_ensure_run_hp()
+                store.run_hp = min(store.run_hp_max, store.run_hp + _fe["heal"])
+                _flee_parts.append("+ {} HP".format(_fe["heal"]))
+            if _fe["max_hp"] > 0:
+                store.run_max_hp_bonus = getattr(store, 'run_max_hp_bonus', 0) + _fe["max_hp"]
+                store.run_hp_max = class_max_hp()
+                store.run_hp = min(store.run_hp_max, store.run_hp + _fe["max_hp"])
+                _flee_parts.append("+ {} Max HP".format(_fe["max_hp"]))
+            _flee_outcome = "   ".join(_flee_parts)
+            _flee_narration = _fe["narration"]
+        if _flee_narration:
+            python:
+                for _ln in _flee_narration:
+                    renpy.say(None, _ln)
+        elif _enc_is_boss:
             "You weigh it — the guns, the gold, the long fall if it goes wrong."
             "Not this one. You step back into the dark before he's sure you were ever there."
         else:
             "You look at them. You look at the paperwork it would become."
             "Not tonight. You let it go — and the pressure behind your eyes drops a notch."
-        if _flee_penalty > 0:
-            "A case left open is a number that doesn't add up. The Colonel's people find the gap by morning — [_flee_penalty:,] crowns, docked, no conversation."
         window hide
         show screen outcome_panel(_flee_outcome)
         pause

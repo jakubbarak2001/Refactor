@@ -156,7 +156,7 @@ label ev_the_vending_machine:
                 ## Route the bonus through the persistent accumulator that
                 ## class_max_hp folds in — writing run_hp_max directly let
                 ## battle_init's max-HP resync wipe it. Recompute, then heal.
-                store.vending_max_hp_bonus = getattr(store, 'vending_max_hp_bonus', 0) + _vm_hp
+                store.run_max_hp_bonus = getattr(store, 'run_max_hp_bonus', 0) + _vm_hp
                 store.run_hp_max = class_max_hp()
                 store.run_hp = min(store.run_hp_max, store.run_hp + _vm_hp)
                 if _vm_hat > 0:

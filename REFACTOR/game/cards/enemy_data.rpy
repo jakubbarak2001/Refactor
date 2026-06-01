@@ -60,14 +60,21 @@ init -1 python:
             ## act marks which act this boss caps (1/2).
             "is_boss":       False,
             "no_flee":       False,
-            ## LET THEM GO overrides — flee_relief replaces the tier Hatred
-            ## relief for this enemy; flee_czk_penalty docks cash (the Colonel's
-            ## cut for letting a case slide); flee_label overrides the button
-            ## text (e.g. "LET HIM GO" for a lone suspect). Defaults: tier
-            ## relief, no penalty, the generic label.
+            ## LET THEM GO overrides — the bespoke consequence of walking away
+            ## from this enemy. flee_relief replaces the tier Hatred relief;
+            ## flee_czk_penalty docks cash (the Colonel's cut for letting a case
+            ## slide); flee_daily_income pays CZK every night to run's end (Vlk's
+            ## crypto tip); flee_heal restores run HP; flee_max_hp grants
+            ## permanent max HP; flee_label overrides the button text;
+            ## flee_narration is the bespoke walk-away beat (list of lines, or
+            ## None for the generic text). Defaults: nothing special.
             "flee_relief":      None,
             "flee_czk_penalty": 0,
+            "flee_daily_income": 0,
+            "flee_heal":        0,
+            "flee_max_hp":      0,
             "flee_label":       None,
+            "flee_narration":   None,
             "act":           0,
         }
         defaults.update(fields)
@@ -281,6 +288,13 @@ init -1 python:
         no_flee      = False,
         act          = 1,
         max_hp       = 160,
+        flee_relief  = 30,
+        flee_heal    = 40,
+        flee_max_hp  = 5,
+        flee_narration = [
+            "Grundza doesn't reach for a weapon. He reaches for the tray — fresh off the rig, still warm — and slides it across the counter.",
+            "'On the house. New batch.' You shouldn't. You climbed three flights telling yourself you wouldn't. You do anyway. The edges of the night go soft, the pressure behind your eyes drains, and for once the body feels like it's winning.",
+        ],
         deck_template = ["fume_swipe", "chem_burn", "chem_stoke", "lab_check", "gas_release"],
         wrinkle      = "lab_timer",
         wrinkle_data = {"detonation_turn": 6, "detonation_dmg": 32},
@@ -353,6 +367,11 @@ init -1 python:
         log_name     = "Vlk",
         tier         = "medium",
         max_hp       = 105,
+        flee_daily_income = 1000,
+        flee_narration = [
+            "Vlk doesn't chase. He laughs, claps your shoulder, and turns his phone to you — a wallet, a contract address, a coin with a cartoon dog on it.",
+            "'Smart. You don't fight the house, you buy in quiet. Thousand a day, give or take. Don't thank me — and don't come back to fight me either.'",
+        ],
         deck_template = ["vlk_buyin", "vlk_dividend", "vlk_referral", "vlk_confidence", "vlk_hard_sell", "vlk_margin_call"],
         wrinkle      = "ponzi",
         wrinkle_data = {"margin_per_buyin": 5, "returns_inject_turn": 2, "bluff_drop": 2, "buyin_cap": 10},

@@ -1425,8 +1425,17 @@ label do_end_day:
         if _coding_paycheck > 0:
             stats.increment_stats_value_money(_coding_paycheck)
 
+        ## Passive run income — e.g. the crypto tip from letting Vlk walk. Pays
+        ## out every night to the end of the run once granted.
+        _passive_income = getattr(store, '_passive_daily_income', 0)
+        if _passive_income > 0:
+            stats.increment_stats_value_money(_passive_income)
+
     if _coding_paycheck > 0:
         "[[FREELANCE] A client paid out overnight — [_coding_paycheck:,] CZK in the account by morning."
+
+    if _passive_income > 0:
+        "[[CRYPTO] The dog-coin Vlk tipped you ticked over again — [_passive_income:,] CZK in the wallet by morning."
 
     python:
         # Advance day

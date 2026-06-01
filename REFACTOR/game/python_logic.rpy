@@ -296,7 +296,7 @@ init python:
         base = CLASS_BASE_HP.get(player_class, 80)
         if include_gym_bonus:
             base += getattr(store, 'gym_max_hp_bonus', 0)
-            base += getattr(store, 'vending_max_hp_bonus', 0)
+            base += getattr(store, 'run_max_hp_bonus', 0)
         return base
 
     def class_accent_color(player_class=None):
@@ -502,10 +502,11 @@ init python:
         ## Permanent max-HP bonus accrued from gym sessions (+5 per regular gym).
         ## Added on top of class baseline in battle_init. Resets on new run.
         store.gym_max_hp_bonus = 0
-        ## Permanent max-HP bonus from the vending-machine event. Folded into
-        ## class_max_hp the same way the gym bonus is, so battle_init's max-HP
-        ## resync doesn't clobber it (the bug where vending +Max HP vanished).
-        store.vending_max_hp_bonus = 0
+        ## Permanent max-HP bonus from non-gym run sources (vending-machine
+        ## event, letting Grundza cut you in on a fresh batch, etc.). Folded
+        ## into class_max_hp the same way the gym bonus is, so battle_init's
+        ## max-HP resync doesn't clobber it (the bug where vending +Max HP vanished).
+        store.run_max_hp_bonus = 0
         ## Hatred-corruption tracker — set of thresholds (40/60/80) already
         ## crossed this run. See _check_rage_injection / RAGE_THRESHOLDS.
         store._rage_thresholds_triggered = set()
@@ -534,6 +535,9 @@ init python:
         ## Never An Option": reach + beat the Colonel with this at 0. Bumped in
         ## battle_with's flee branch only — losing a fight you engaged is not a skip.
         store._run_fled = 0
+        ## Passive CZK earned every night for the rest of the run — e.g. the
+        ## crypto tip you get for letting Vlk z Mostu walk. Applied in do_end_day.
+        store._passive_daily_income = 0
         ## Act bosses already faced this run — set of act numbers (1/2). Drives
         ## boss_check() so each act boss fires once. See cards/battle_ladder.rpy.
         store._act_bosses_done = set()
