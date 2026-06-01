@@ -37,6 +37,17 @@ init python:
             return "medium"
         return "hard"
 
+    ## Walking away lowers the death clock. The relief scales with the weight
+    ## of the case you're refusing — a back-alley tagger barely registers; an
+    ## act boss is a reckoning, so denying it drops a real chunk of Hatred.
+    ## This is the whole point of the deny system: a legible trade — relief now
+    ## vs. the cards / cash / gear you forfeit. A run that flees EVERYTHING
+    ## reaches the Colonel low-Hatred but near-starter-deck — the Pacifist line.
+    FLEE_HATRED_RELIEF = {"easy": 15, "medium": 25, "hard": 35}
+
+    def flee_hatred_relief(tier, is_boss=False):
+        return FLEE_HATRED_RELIEF.get(tier, 25) + (10 if is_boss else 0)
+
     ## Act bosses — fixed-day reckonings that cap each act, fired with priority
     ## over the random ladder/event roll. Each is an existing, fully-arted enemy
     ## promoted to boss (higher HP, no_flee, guaranteed relic). Returns
@@ -159,14 +170,18 @@ label battle_intro(enemy_id):
 
 ## ---------------------------------------------------------------------------
 ## encounter_choice — pre-battle standoff. JB meets the enemy and decides:
-## FIGHT (engage → rewards + risk) or LET THEM GO (-25 Hatred, walk away,
+## FIGHT (engage → rewards + risk) or LET THEM GO (Hatred relief, walk away,
 ## forfeit all rewards). The relief valve is the cop choosing not to escalate;
-## the cost is the cards/cash/relic you don't get. Bosses set no_flee so the
-## option is hidden — you can't walk away from a reckoning.
-## Returns "fight" or "flee".
+## the cost is the cards/cash/gear you don't get. Every battle_with fight is
+## deniable (only the Colonel can't be, and he doesn't route through here) so a
+## pure Pacifist run is reachable.
+##
+## The decision-relevant stats (HP / Hatred / Wallet / Deck) AND a concrete
+## preview of each choice's payoff sit right on the panel — the player should
+## never have to guess what they're trading. Returns "fight" or "flee".
 ## ---------------------------------------------------------------------------
 
-screen encounter_choice(enemy_id, can_flee=True):
+screen encounter_choice(enemy_id, tier="medium", can_flee=True):
     modal True
     zorder 550
 
@@ -176,8 +191,60 @@ screen encounter_choice(enemy_id, can_flee=True):
         _enc_spr    = "{} neutral".format(_enc_e.get("sprite_id") or enemy_id)
         _enc_bg_id  = _enc_e.get("bg_id") or _enc_e.get("sprite_id") or enemy_id
         _enc_bg     = "images/backgrounds/bg_{}.jpg".format(_enc_bg_id)
-        ## JB runs visibly hotter at high Hatred — the standoff reads angrier.
-        _enc_jb     = "jb angry" if (stats and stats.pcr_hatred >= 60) else "jb determined"
+        _enc_is_boss = _enc_e.get("is_boss", False)
+
+        ## Contemplative JB — hand-on-chin "do I take this one?" sprite. Falls
+        ## back to the mood sprites until that art lands, so this never breaks.
+        _enc_jb_path = "images/sprites/jb_contemplative.png"
+        if renpy.loadable(_enc_jb_path):
+            _enc_jb = im.Scale(_enc_jb_path, 600, 900)
+        elif stats and stats.pcr_hatred >= 60:
+            _enc_jb = "jb angry"
+        else:
+            _enc_jb = "jb determined"
+
+        ## ── What FIGHT pays out (kept in sync with battle_with's reward path).
+        _enc_cash = BATTLE_MONEY_REWARD.get(tier, 0)
+        if _enc_is_boss or tier == "hard":
+            _enc_gear_txt = " · guaranteed gear"
+        elif tier == "medium":
+            _enc_gear_txt = " · gear (coin-flip)"
+        else:
+            _enc_gear_txt = ""
+        _enc_fight_sub = "+{:,} CZK · draft a card{}".format(_enc_cash, _enc_gear_txt)
+
+        ## ── What WALK AWAY pays out.
+        _enc_relief = flee_hatred_relief(tier, _enc_is_boss)
+        _enc_flee_label = "WALK AWAY" if _enc_is_boss else "LET THEM GO"
+        _enc_flee_sub = "-{} Hatred · forfeit the rewards".format(_enc_relief)
+
+        ## ── Decision-relevant stat readout (mirrors the hub bar's gauges).
+        _enc_hp_max = getattr(store, 'run_hp_max', None) or (class_max_hp(include_gym_bonus=False) if stats else 90)
+        _enc_hp     = getattr(store, 'run_hp', None)
+        if _enc_hp is None:
+            _enc_hp = _enc_hp_max
+        _enc_hp_ratio = (_enc_hp / float(_enc_hp_max)) if _enc_hp_max > 0 else 1.0
+        if _enc_hp_ratio >= 0.75:
+            _enc_hp_col = "#88ff88"
+        elif _enc_hp_ratio >= 0.5:
+            _enc_hp_col = "#ffdd44"
+        elif _enc_hp_ratio >= 0.25:
+            _enc_hp_col = "#ff8844"
+        else:
+            _enc_hp_col = "#ff4444"
+        _enc_hcap = hatred_cap()
+        _enc_h    = stats.pcr_hatred if stats else 0
+        _enc_h_ratio = min(1.0, _enc_h / float(_enc_hcap)) if _enc_hcap else 0.0
+        if _enc_h_ratio < 0.3:
+            _enc_h_col = "#88ff88"
+        elif _enc_h_ratio < 0.6:
+            _enc_h_col = "#ffdd44"
+        elif _enc_h_ratio < 0.9:
+            _enc_h_col = "#ff8844"
+        else:
+            _enc_h_col = "#ff4444"
+        _enc_money = stats.available_money if stats else 0
+        _enc_deck  = len(player_deck.cards) if player_deck is not None else 0
 
     add "#0a0a0a"
     if renpy.loadable(_enc_bg):
@@ -186,8 +253,7 @@ screen encounter_choice(enemy_id, can_flee=True):
     add Solid("#000000bb")
     use class_color_frame(thickness=6)
 
-    ## Run stat readout (money / coding / hatred / day) so the player can weigh
-    ## the -25 Hatred flee against their current Hatred before deciding.
+    ## Run stat readout (money / coding / hatred / day) — the hub bar up top.
     use stats_bar
 
     ## JB on the left, the enemy on the right — a face-off. Enemy sits in the
@@ -207,21 +273,48 @@ screen encounter_choice(enemy_id, can_flee=True):
         font "fonts/RobotoMono-Regular.ttf"
         outlines [ (3, "#000000", 0, 0) ]
 
-    text "The case is in front of you.":
+    text "The case is in front of you. What it costs you is right here.":
         xalign 0.5
-        ypos 220
+        ypos 218
         color "#cdbd97"
         size 20
         italic True
         font "fonts/RobotoMono-Regular.ttf"
 
+    ## ── "What you're trading" — the four gauges that the decision turns on,
+    ## spelled out so the choice is never a guess.
+    frame:
+        xalign 0.5
+        ypos 276
+        background "#0c0c0cdd"
+        padding (26, 12)
+        hbox:
+            spacing 30
+            yalign 0.5
+            vbox:
+                spacing 1
+                text "HP" xalign 0.5 color "#8a8a8a" size 13 font "fonts/RobotoMono-Regular.ttf"
+                text "[_enc_hp]/[_enc_hp_max]" xalign 0.5 color _enc_hp_col size 24 bold True font "fonts/RobotoMono-Regular.ttf"
+            vbox:
+                spacing 1
+                text "HATRED" xalign 0.5 color "#8a8a8a" size 13 font "fonts/RobotoMono-Regular.ttf"
+                text "[_enc_h]/[_enc_hcap]" xalign 0.5 color _enc_h_col size 24 bold True font "fonts/RobotoMono-Regular.ttf"
+            vbox:
+                spacing 1
+                text "WALLET" xalign 0.5 color "#8a8a8a" size 13 font "fonts/RobotoMono-Regular.ttf"
+                text "[_enc_money:,] CZK" xalign 0.5 color "#ffd700" size 24 bold True font "fonts/RobotoMono-Regular.ttf"
+            vbox:
+                spacing 1
+                text "DECK" xalign 0.5 color "#8a8a8a" size 13 font "fonts/RobotoMono-Regular.ttf"
+                text "[_enc_deck] cards" xalign 0.5 color "#cdbd97" size 24 bold True font "fonts/RobotoMono-Regular.ttf"
+
     vbox:
         xpos 690
-        yalign 0.62
+        yalign 0.66
         spacing 26
 
         button:
-            xysize (560, 92)
+            xysize (560, 96)
             background Frame(Solid("#3a0e0e"), 4, 4)
             hover_background Frame(Solid("#6a1414"), 4, 4)
             action Return("fight")
@@ -234,28 +327,28 @@ screen encounter_choice(enemy_id, can_flee=True):
                     size 32
                     bold True
                     font "fonts/RobotoMono-Regular.ttf"
-                text "Take the case. Rewards on the table.":
+                text "[_enc_fight_sub]":
                     xalign 0.5
-                    color "#caa"
+                    color "#e0b0a0"
                     size 16
                     font "fonts/RobotoMono-Regular.ttf"
 
         if can_flee:
             button:
-                xysize (560, 92)
+                xysize (560, 96)
                 background Frame(Solid("#102a18"), 4, 4)
                 hover_background Frame(Solid("#1d5230"), 4, 4)
                 action Return("flee")
                 vbox:
                     yalign 0.5
                     xfill True
-                    text "LET THEM GO":
+                    text "[_enc_flee_label]":
                         xalign 0.5
                         color "#6fdd92"
                         size 32
                         bold True
                         font "fonts/RobotoMono-Regular.ttf"
-                    text "Walk away.  -25 Hatred.  No rewards.":
+                    text "[_enc_flee_sub]":
                         xalign 0.5
                         color "#9ac0a6"
                         size 16
@@ -279,16 +372,27 @@ label battle_with(enemy_id, tier):
 
     call battle_intro(enemy_id) from _call_battle_intro
 
-    ## Pre-battle standoff — engage or walk away. Bosses set no_flee.
-    $ _enc_can_flee = not ENEMY_LIBRARY.get(enemy_id, {}).get("no_flee", False)
-    call screen encounter_choice(enemy_id, _enc_can_flee)
+    ## Pre-battle standoff — engage or walk away. The encounter honours the
+    ## enemy's no_flee flag; the act bosses now leave it False so a flee-
+    ## everything Pacifist run stays reachable (the Colonel, the one fight you
+    ## truly can't refuse, never routes through here). no_flee stays a live
+    ## lever for any future genuinely-mandatory ladder fight.
+    $ _enc_data    = ENEMY_LIBRARY.get(enemy_id, {})
+    $ _enc_is_boss = _enc_data.get("is_boss", False)
+    call screen encounter_choice(enemy_id, tier, not _enc_data.get("no_flee", False))
 
     if _return == "flee":
-        $ stats.increment_stats_pcr_hatred(-25)
-        "You look at them. You look at the paperwork it would become."
-        "Not tonight. You let it go — and the pressure behind your eyes drops a notch."
+        python:
+            _flee_relief = flee_hatred_relief(tier, _enc_is_boss)
+            stats.increment_stats_pcr_hatred(-_flee_relief)
+        if _enc_is_boss:
+            "You weigh it — the guns, the gold, the long fall if it goes wrong."
+            "Not this one. You step back into the dark before he's sure you were ever there."
+        else:
+            "You look at them. You look at the paperwork it would become."
+            "Not tonight. You let it go — and the pressure behind your eyes drops a notch."
         window hide
-        show screen outcome_panel("- 25 Hatred")
+        show screen outcome_panel("- {} Hatred".format(_flee_relief))
         pause
         hide screen outcome_panel
         return
@@ -306,6 +410,11 @@ label battle_with(enemy_id, tier):
     if _outcome == "defeat":
         call forced_detour(enemy_id, tier) from _call_forced_detour
         return
+
+    ## Victory — this enemy is down. Counts as a kill (breaks Pacifist). The
+    ## Colonel doesn't pass through here, so beating him with _run_kills still 0
+    ## is the achievement.
+    $ store._run_kills = getattr(store, '_run_kills', 0) + 1
 
     python:
         _reward_cash = BATTLE_MONEY_REWARD.get(tier, 0)
@@ -350,7 +459,7 @@ label battle_with(enemy_id, tier):
         ## Bosses ALWAYS drop a relic; hard wins always; medium 50%; easy none.
         _relic_roll = _is_boss or (tier == "hard") or (tier == "medium" and __import__("random").random() < 0.5)
         if _relic_roll:
-            _relic_drop = random_unowned_relic()
+            _relic_drop = random_unowned_relic(relic_drop_weights(tier, _is_boss))
             if _relic_drop:
                 grant_relic(_relic_drop, silent=True)
                 _relic_meta = RELIC_LIBRARY.get(_relic_drop, {})

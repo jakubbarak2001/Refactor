@@ -520,6 +520,11 @@ init python:
         ## List of relic ids; build-defining passives applied in battle_init.
         ## See cards/relics.rpy. Reset per run.
         store.player_relics = []
+        ## Enemies defeated this run (the Colonel doesn't count — his fight is
+        ## colonel_event, not battle_with). Drives the Pacifist achievement:
+        ## reach + beat the Colonel with this at 0. Incremented on every
+        ## battle_with victory; fleeing or losing never bumps it.
+        store._run_kills = 0
         ## Act bosses already faced this run — set of act numbers (1/2). Drives
         ## boss_check() so each act boss fires once. See cards/battle_ladder.rpy.
         store._act_bosses_done = set()
@@ -630,6 +635,7 @@ init python:
         "maximum_stack":    {"category": "Collection", "name": "Maximum Stack",           "desc": "Reach SOMA 10/10. The body is the answer.",                      "hint": "Bodybuilder only — go to the gym 10 times."},
         "compound_knowledge":{"category":"Collection", "name": "Compound Knowledge",       "desc": "Learn synthesis instead of taking the vial.",                    "hint": "Biohacker only — pick the lesson over the contraband."},
         "wake_up_call":     {"category": "Secret",     "name": "Wake Up Call",            "desc": "Break the Colonel's bureaucracy loop. Step out of the script.","hint": "???"},
+        "pacifist":         {"category": "Secret",     "name": "Pacifist",                "desc": "Beat the Colonel without defeating a single other enemy all run.","hint": "???"},
         "i_dont_need_it":   {"category": "Secret",     "name": "I Don't Need IT",         "desc": "Reach the escape ending without signing the bootcamp contract.",    "hint": "Find another way out of the uniform."},
     }
 

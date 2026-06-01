@@ -225,5 +225,11 @@ label colonel_glitch_phase:
 
 label colonel_victory_resolution:
 
+    ## Pacifist — reached and beat the Colonel having defeated no other enemy
+    ## (every ladder/boss fight fled). The Colonel's own fight doesn't count.
+    python:
+        if getattr(store, '_run_kills', 0) == 0:
+            unlock_achievement("pacifist")
+
     ## Normal victory: escaped
     jump good_ending

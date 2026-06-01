@@ -52,9 +52,12 @@ init -1 python:
             "detour_lines":  [],
             "victory_lines": [],
             ## Act bosses — fired on fixed days by boss_check(), not the random
-            ## pool. is_boss drives the boss banner + guaranteed relic reward;
-            ## no_flee hides the "let them go" option (you can't walk away from
-            ## a reckoning). act marks which act this boss caps (1/2).
+            ## pool. is_boss drives the boss banner + guaranteed relic reward.
+            ## no_flee hides the "let them go" option — battle_with honours it.
+            ## Act bosses leave it False (they ARE deniable: a flee-everything
+            ## Pacifist run must be able to walk past them); the flag is kept as
+            ## a live lever for any future genuinely-mandatory ladder fight.
+            ## act marks which act this boss caps (1/2).
             "is_boss":       False,
             "no_flee":       False,
             "act":           0,
@@ -243,7 +246,7 @@ init -1 python:
         log_name     = "Grundza",
         tier         = "boss",
         is_boss      = True,
-        no_flee      = True,
+        no_flee      = False,
         act          = 1,
         max_hp       = 160,
         deck_template = ["fume_swipe", "chem_burn", "chem_stoke", "lab_check", "gas_release"],
@@ -372,7 +375,7 @@ init -1 python:
         log_name     = "Guard",
         tier         = "boss",
         is_boss      = True,
-        no_flee      = True,
+        no_flee      = False,
         act          = 2,
         max_hp       = 210,
         deck_template = [

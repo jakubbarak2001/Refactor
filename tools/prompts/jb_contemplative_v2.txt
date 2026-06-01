@@ -1,0 +1,14 @@
+Regenerate the character from the attached jb_neutral.png reference EXACTLY — same face, same slicked-back short dark hair, same light stubble, same brown eyes, same defined jaw, same skin tone (warm-neutral, NO green cast), same black tactical plate carrier vest, same rectangular black "POLICIE" patch on left chest plate, same yellow shield "POLICIE" patch on right shoulder, same black t-shirt under the vest, same painterly rendering style, same pure white background. Do NOT change the character. Do NOT change the outfit. Do NOT add or remove patches. Do NOT change the palette.
+
+THE ONLY CHANGE — pose and expression: JB is THINKING IT THROUGH. His right hand cups the lower half of his face — thumb tucked under the jaw, index finger laid along the cheek, the rest of the fingers curled over the mouth and chin (the classic "hmm, let me weigh this" gesture). The right elbow is drawn in toward the body, forearm angled up across the chest. His gaze drifts UP and to the side, away from the viewer, as if running the odds in his head. Calm, calculating, slightly weary.
+
+FRAMING — CRITICAL: widen and extend the crop DOWNWARD and outward so the whole right forearm, wrist and the hand cupping the face are COMPLETELY VISIBLE inside the frame. Nothing is cropped at the wrist, the elbow, or the bottom/side edges. The cupping hand must read clearly and sit fully inside the frame. Use the attached jb_developer_call.png reference for how a raised hand near the face fits in frame without being cut off.
+
+EVERYTHING ELSE: identical to the jb_neutral.png reference — same character, same outfit, same painterly style, same patches in the same positions, pure white background. Only the pose and expression change.
+
+ABSOLUTE RULES:
+- Do not change the face, hair, or skin tone.
+- Do not invent new patches or remove existing ones.
+- Do not change to a different vest model.
+- The hand cupping the face and the forearm are FULLY in frame — never cropped at the wrist or edges.
+- Pure white background.

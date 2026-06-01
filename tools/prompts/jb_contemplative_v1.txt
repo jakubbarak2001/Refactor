@@ -1,0 +1,14 @@
+Regenerate the character from the attached jb_neutral.png reference EXACTLY — same face, same slicked-back short dark hair, same light stubble, same brown eyes, same defined jaw, same skin tone (warm-neutral, NO green cast), same black tactical plate carrier vest, same rectangular black "POLICIE" patch on left chest plate, same yellow shield "POLICIE" patch on right shoulder, same black t-shirt under the vest, same painterly rendering style, same pure white background. Do NOT change the character. Do NOT change the outfit. Do NOT add or remove patches. Do NOT change the palette.
+
+THE ONLY CHANGE — pose and expression: JB is CONTEMPLATING a decision. His right hand is raised to his face, the curled knuckles and fingers resting lightly against his chin and jawline (the classic "thinker" gesture), the right elbow tucked in and the forearm rising vertically. His head is tilted just slightly down, his brow faintly furrowed, and his eyes are looking OFF to the side into the middle distance — not at the viewer — weighing something. A quiet, focused, "is this worth it" look.
+
+FRAMING — CRITICAL: widen and extend the crop DOWNWARD and slightly outward so the raised forearm, wrist and hand at the chin are COMPLETELY VISIBLE inside the frame. Nothing is cropped at the wrist, the elbow, or the bottom edge. The hand and arm must read clearly as a hand-on-chin pose, fully in frame. Use the attached jb_developer_call.png reference for how a raised hand near the face sits inside the frame without being cut off.
+
+EVERYTHING ELSE: identical to the jb_neutral.png reference — same character, same outfit, same painterly style, same patches in the same positions, pure white background. Only the pose and expression change.
+
+ABSOLUTE RULES:
+- Do not change the face, hair, or skin tone.
+- Do not invent new patches or remove existing ones.
+- Do not change to a different vest model.
+- The hand and forearm at the chin are FULLY in frame — never cropped.
+- Pure white background.
