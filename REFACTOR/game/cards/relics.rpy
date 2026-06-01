@@ -28,7 +28,7 @@ init python:
     RELIC_LIBRARY = {}
 
     def register_relic(rid, name="", flavor="", archetype="generic",
-                       rarity="common", hook="", art=None):
+                       rarity="common", hook="", art=None, shop_price=None):
         RELIC_LIBRARY[rid] = {
             "id": rid,
             "name": name,
@@ -37,6 +37,7 @@ init python:
             "rarity": rarity,         ## common / uncommon / rare
             "hook": hook,             ## one-line mechanic text (UI)
             "art": art or "images/relics/{}.png".format(rid),
+            "shop_price": shop_price, ## per-relic override; None = rarity price
         }
 
     def has_relic(rid):
@@ -95,6 +96,18 @@ init python:
         _name = _r.get("name", rid)
         return _name[0].upper() if _name else "*"
 
+    def relic_art_disp(rid, px):
+        ## Owned-relic icon fit into a `px` square, or None when the art file is
+        ## missing so callers fall back to relic_glyph. Returns a Transform over
+        ## the full-res 1024² source — NOT a baked im.Scale raster — so the GPU
+        ## samples at the real device resolution and the icon stays crisp on a
+        ## 4K display at any px. fit="contain" preserves the (square) aspect.
+        _r = RELIC_LIBRARY.get(rid, {})
+        _art = _r.get("art")
+        if _art and renpy.loadable(_art):
+            return Transform(_art, fit="contain", xysize=(px, px))
+        return None
+
     ## ── Relic definitions ──────────────────────────────────────────────────
     ## Effects are grouped by archetype; rarity climbs within each group.
 
@@ -119,6 +132,7 @@ init python:
         archetype="generic", rarity="uncommon",
         hook="Skip the enemy's first attack each fight.",
         flavor="Fifty thousand volts of conversation-ender. Standard issue, non-standard use.",
+        shop_price=50000,
     )
     register_relic(
         "red_bull_crate",
@@ -352,6 +366,9 @@ init python:
     RELIC_SHOP_PRICES = {"common": 5000, "uncommon": 11000, "rare": 20000}
 
     def relic_shop_price(rid):
+        _override = RELIC_LIBRARY.get(rid, {}).get("shop_price")
+        if _override is not None:
+            return _override
         return RELIC_SHOP_PRICES.get(relic_rarity(rid), 11000)
 
     def build_relic_shop_offers(n=3):
@@ -415,10 +432,15 @@ screen relic_tray(size=44):
                             xfill True
                             yfill True
                             background "#11110caa"
-                            text relic_glyph(_rl["id"]):
-                                xalign 0.5
-                                yalign 0.5
-                                color _rhex
-                                size int(size * 0.5)
-                                bold True
-                                font "fonts/RobotoMono-Regular.ttf"
+                            padding (0, 0)
+                            $ _ricon = relic_art_disp(_rl["id"], int(size * 0.82))
+                            if _ricon is not None:
+                                add _ricon xalign 0.5 yalign 0.5
+                            else:
+                                text relic_glyph(_rl["id"]):
+                                    xalign 0.5
+                                    yalign 0.5
+                                    color _rhex
+                                    size int(size * 0.5)
+                                    bold True
+                                    font "fonts/RobotoMono-Regular.ttf"

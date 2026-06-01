@@ -255,6 +255,13 @@ label day_start:
     if _is_bh_player and not _bh_event_day:
         call bh_spending_check from _call_bh_spending_check
 
+    ## The Fixer only sets up shop every fifth day. Announce his arrival so the
+    ## player knows the buy/shred window is open today and today only.
+    if current_day % 5 == 0:
+        scene bg_jb_flat
+        "Your phone buzzes once. A number with no name. You know the number."
+        "'I'm in town. Third floor, same as always. Today only — after that I'm a ghost again.'"
+
     jump daily_menu
 
 
@@ -1158,7 +1165,7 @@ label activity_overtime:
 
 
 ## ---------------------------------------------------------------------------
-## ACTIVITY: VISIT FIXER (day 10+ only — tile gate in activity_select_screen)
+## ACTIVITY: VISIT FIXER (every 5th day: 5/10/15/20/25 — gate in activity_select_screen)
 ##
 ## Vision §1 pillar 3: money is the only shop. The Fixer is the in-fiction
 ## sim action for card removal. Removal-only in v1; upgrades deferred.

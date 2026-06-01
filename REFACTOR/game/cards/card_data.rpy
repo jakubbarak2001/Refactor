@@ -440,6 +440,12 @@ init -1 python:
         """Compute the per-card upgrade-promotion probability for the
         current run-day and ladder tier. Reads day_cycle.current_day so
         late-run rewards lean upgraded; pure RNG below the cap."""
+        ## Arc gate — no RNG-upgraded reward cards in Arc I. The promotion only
+        ## begins once the Act I boss (Grundza) has been faced; until then
+        ## _act_bosses_done lacks act 1 (it's added after that fight resolves,
+        ## so even Grundza's own reward stays plain). Arc II onward upgrades.
+        if 1 not in (getattr(store, '_act_bosses_done', None) or set()):
+            return 0.0
         try:
             _day = day_cycle.current_day if day_cycle is not None else 1
         except Exception:

@@ -25,7 +25,7 @@ init python:
     ## remains the strategic reward; CZK is the sim-feel reward. Sized to sit
     ## under Day-14 minimum salary (20k): three hard wins ≈ one salary day.
     BATTLE_MONEY_REWARD = {
-        "easy":   2500,
+        "easy":   3000,
         "medium": 5000,
         "hard":   7500,
     }
@@ -218,34 +218,6 @@ screen encounter_choice(enemy_id, tier="medium", can_flee=True):
         _enc_flee_label = "WALK AWAY" if _enc_is_boss else "LET THEM GO"
         _enc_flee_sub = "-{} Hatred · forfeit the rewards".format(_enc_relief)
 
-        ## ── Decision-relevant stat readout (mirrors the hub bar's gauges).
-        _enc_hp_max = getattr(store, 'run_hp_max', None) or (class_max_hp(include_gym_bonus=False) if stats else 90)
-        _enc_hp     = getattr(store, 'run_hp', None)
-        if _enc_hp is None:
-            _enc_hp = _enc_hp_max
-        _enc_hp_ratio = (_enc_hp / float(_enc_hp_max)) if _enc_hp_max > 0 else 1.0
-        if _enc_hp_ratio >= 0.75:
-            _enc_hp_col = "#88ff88"
-        elif _enc_hp_ratio >= 0.5:
-            _enc_hp_col = "#ffdd44"
-        elif _enc_hp_ratio >= 0.25:
-            _enc_hp_col = "#ff8844"
-        else:
-            _enc_hp_col = "#ff4444"
-        _enc_hcap = hatred_cap()
-        _enc_h    = stats.pcr_hatred if stats else 0
-        _enc_h_ratio = min(1.0, _enc_h / float(_enc_hcap)) if _enc_hcap else 0.0
-        if _enc_h_ratio < 0.3:
-            _enc_h_col = "#88ff88"
-        elif _enc_h_ratio < 0.6:
-            _enc_h_col = "#ffdd44"
-        elif _enc_h_ratio < 0.9:
-            _enc_h_col = "#ff8844"
-        else:
-            _enc_h_col = "#ff4444"
-        _enc_money = stats.available_money if stats else 0
-        _enc_deck  = len(player_deck.cards) if player_deck is not None else 0
-
     add "#0a0a0a"
     if renpy.loadable(_enc_bg):
         add Transform(_enc_bg, size=(config.screen_width, config.screen_height))
@@ -256,12 +228,12 @@ screen encounter_choice(enemy_id, tier="medium", can_flee=True):
     ## Run stat readout (money / coding / hatred / day) — the hub bar up top.
     use stats_bar
 
-    ## JB on the left, the enemy on the right — a face-off. Enemy sits in the
-    ## right strip: left edge past the choice buttons (which end at x~1250) but
-    ## not so far it clips off the 1920-wide screen.
+    ## JB on the left, the enemy on the right — a face-off at matched scale.
+    ## Both sprites are 600x900 (im.Scale) shown at zoom 0.98; the enemy mirrors
+    ## JB's 40px edge margin and clears the choice buttons (which end at x~1250).
     add _enc_jb xpos 40 yalign 1.0 zoom 0.98
     if renpy.has_image(_enc_spr, exact=True):
-        add _enc_spr xpos 1340 yalign 1.0 zoom 0.62
+        add _enc_spr xpos 1292 yalign 1.0 zoom 0.98
 
     ## Name + subtitle sit below the stat bar (54px) with headroom.
     text "[_enc_name!u]":
@@ -281,36 +253,9 @@ screen encounter_choice(enemy_id, tier="medium", can_flee=True):
         italic True
         font "fonts/RobotoMono-Regular.ttf"
 
-    ## ── "What you're trading" — the four gauges that the decision turns on,
-    ## spelled out so the choice is never a guess.
-    frame:
-        xalign 0.5
-        ypos 276
-        background "#0c0c0cdd"
-        padding (26, 12)
-        hbox:
-            spacing 30
-            yalign 0.5
-            vbox:
-                spacing 1
-                text "HP" xalign 0.5 color "#8a8a8a" size 13 font "fonts/RobotoMono-Regular.ttf"
-                text "[_enc_hp]/[_enc_hp_max]" xalign 0.5 color _enc_hp_col size 24 bold True font "fonts/RobotoMono-Regular.ttf"
-            vbox:
-                spacing 1
-                text "HATRED" xalign 0.5 color "#8a8a8a" size 13 font "fonts/RobotoMono-Regular.ttf"
-                text "[_enc_h]/[_enc_hcap]" xalign 0.5 color _enc_h_col size 24 bold True font "fonts/RobotoMono-Regular.ttf"
-            vbox:
-                spacing 1
-                text "WALLET" xalign 0.5 color "#8a8a8a" size 13 font "fonts/RobotoMono-Regular.ttf"
-                text "[_enc_money:,] CZK" xalign 0.5 color "#ffd700" size 24 bold True font "fonts/RobotoMono-Regular.ttf"
-            vbox:
-                spacing 1
-                text "DECK" xalign 0.5 color "#8a8a8a" size 13 font "fonts/RobotoMono-Regular.ttf"
-                text "[_enc_deck] cards" xalign 0.5 color "#cdbd97" size 24 bold True font "fonts/RobotoMono-Regular.ttf"
-
     vbox:
         xpos 690
-        yalign 0.66
+        yalign 0.5
         spacing 26
 
         button:

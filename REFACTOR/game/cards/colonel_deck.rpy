@@ -223,7 +223,7 @@ init python:
         "rvac_swing",
         name     = "Roundhouse",
         intent   = "attack",
-        value    = 14,
+        value    = 16,
         dialogue = "He winds up. Right at your jaw.",
         threat   = 2,
     )
@@ -231,7 +231,7 @@ init python:
         "rvac_haymaker",
         name     = "Haymaker",
         intent   = "attack",
-        value    = 22,
+        value    = 24,
         dialogue = "He throws his whole bar tab into it.",
         threat   = 3,
     )
@@ -248,7 +248,7 @@ init python:
         "tag_quick",
         name     = "Quick Tag",
         intent   = "attack",
-        value    = 9,
+        value    = 10,
         dialogue = "One darts in. Paints across your jacket. Darts out.",
         threat   = 2,
     )
@@ -256,7 +256,7 @@ init python:
         "tag_team",
         name     = "Tag Team",
         intent   = "compound",
-        value    = 6,
+        value    = 7,
         value2   = 3,
         dialogue = "All three move at once. Three quick hits.",
         threat   = 3,
@@ -290,7 +290,7 @@ init python:
         "flare_throw",
         name     = "Flare Throw",
         intent   = "attack",
-        value    = 17,
+        value    = 19,
         dialogue = "A flare arcs past your ear. You feel the heat.",
         threat   = 2,
     )
@@ -308,7 +308,7 @@ init python:
         "dossier_flick",
         name     = "Dossier Flick",
         intent   = "attack",
-        value    = 10,
+        value    = 11,
         dialogue = "A page slaps you across the temple. Paper cuts add up.",
         threat   = 1,
     )
@@ -316,7 +316,7 @@ init python:
         "read_aloud",
         name     = "Read Aloud",
         intent   = "attack",
-        value    = 15,
+        value    = 18,
         dialogue = "It reads a witness statement aloud. Each word lands.",
         threat   = 2,
     )

@@ -103,6 +103,27 @@ init -1 python:
                         deck[i + 1], deck[j] = deck[j], deck[i + 1]
                         break
 
+        ## Colonel's Guard — the breach team never strings two passive turns
+        ## together. A defend or a buff must be answered by a hit, so the player
+        ## always eats an attack at least every other turn (chained attacks are
+        ## fine; only block/buff back-to-back is forbidden). Mirrors the block
+        ## anti-adjacency above but on the attack / non-attack split, including
+        ## the reshuffle boundary via prev_card_id.
+        if enemy_id == "garda":
+            def _is_atk(cid):
+                return _intent_of(cid) in ("attack", "compound")
+            if prev_card_id is not None and not _is_atk(prev_card_id) and deck and not _is_atk(deck[0]):
+                for j in range(1, len(deck)):
+                    if _is_atk(deck[j]):
+                        deck[0], deck[j] = deck[j], deck[0]
+                        break
+            for i in range(len(deck) - 1):
+                if not _is_atk(deck[i]) and not _is_atk(deck[i + 1]):
+                    for j in range(i + 2, len(deck)):
+                        if _is_atk(deck[j]):
+                            deck[i + 1], deck[j] = deck[j], deck[i + 1]
+                            break
+
         return deck
 
 
@@ -124,7 +145,7 @@ init -1 python:
         sprite_id    = "rvac",
         log_name     = "Brawler",
         tier         = "easy",
-        max_hp       = 65,
+        max_hp       = 95,
         deck_template = ["rvac_swing", "rvac_haymaker", "rvac_drink"],
         wrinkle      = "drunken_double",
         intro_lines  = [
@@ -137,7 +158,7 @@ init -1 python:
         ],
         victory_lines = [
             "The brawler goes down on the bar mat. There's a roll in his back pocket — the night's takings he was about to walk out the door with.",
-            "The barman watches you find it and decides he never had a register. Two and a half thousand, off the books on the way in, off the books on the way out.",
+            "The barman watches you find it and decides he never had a register. Three thousand, off the books on the way in, off the books on the way out.",
         ],
     )
 
@@ -147,7 +168,7 @@ init -1 python:
         sprite_id    = "sprejeri",
         log_name     = "Taggers",
         tier         = "easy",
-        max_hp       = 70,
+        max_hp       = 80,
         deck_template = ["tag_quick", "tag_team", "spray_blind", "vandal_block"],
         wrinkle      = "tag_stack",
         intro_lines  = [
@@ -160,7 +181,7 @@ init -1 python:
         ],
         victory_lines = [
             "Two of them you book. The third drops a backpack and runs — twenty cans of Montana inside, fresh from the shop in Liberec that doesn't ask for ID.",
-            "The shop in Liberec also doesn't ask where the cans came back from. Two and a half thousand crowns, paid out in fifties, paint still rattling.",
+            "The shop in Liberec also doesn't ask where the cans came back from. Three thousand crowns, paid out in fifties, paint still rattling.",
         ],
     )
 
@@ -170,10 +191,10 @@ init -1 python:
         sprite_id    = "fanousek",
         log_name     = "Hooligan",
         tier         = "easy",
-        max_hp       = 70,
+        max_hp       = 85,
         deck_template = ["chant", "flare_throw", "pile_in"],
         wrinkle      = "crew_rage",
-        wrinkle_data = {"hp_threshold": 0.5, "bonus_dmg": 3},
+        wrinkle_data = {"hp_threshold": 0.6, "bonus_dmg": 5},
         intro_lines  = [
             "End of a long match-day shift — twelve hours minding other men's tempers, and you want it done. Dispatch isn't done with you: one supporter never made it onto his bus.",
             "His side lost three-nil and the crowd left without him. He's had two hours alone to stew on it. Then you walk in — the first thing all night he can do something about.",
@@ -194,7 +215,7 @@ init -1 python:
         sprite_id    = "spis",
         log_name     = "Case File",
         tier         = "easy",
-        max_hp       = 65,
+        max_hp       = 75,
         deck_template = ["dossier_flick", "read_aloud", "paper_wall", "file_swap"],
         wrinkle      = "paper_clog",
         intro_lines  = [
@@ -207,7 +228,7 @@ init -1 python:
         ],
         victory_lines = [
             "The folder closes itself once you've signed every page in the right column. An envelope was clipped inside — pre-filled, untraceable, the kid's lawyer's way of speeding things along.",
-            "The envelope didn't make it into the dossier. The kid still walks at four. Two and a half thousand, processing fee, call it what you like.",
+            "The envelope didn't make it into the dossier. The kid still walks at four. Three thousand, processing fee, call it what you like.",
         ],
     )
 

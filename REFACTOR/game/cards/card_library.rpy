@@ -251,6 +251,7 @@ init python:
         cost      = 1,
         rarity    = "uncommon",
         effect    = "adrenaline_dump",
+        exhaust    = True,
         archetype  = "hatred",
         class_lock = "bodybuilder",
         flavor    = "The shake leaves your hands. The clock in your chest resets.",

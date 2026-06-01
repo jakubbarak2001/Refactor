@@ -1124,7 +1124,7 @@ screen battle_screen():
         xpos 24
         ypos 24
         background None
-        use relic_tray(size=44)
+        use relic_tray(size=88)
 
     if bs is None:
         text "[[BATTLE STATE NULL]" xalign 0.5 yalign 0.5 color "#ff0000" size 32
@@ -1620,7 +1620,7 @@ screen battle_screen():
                     ## meaningful player-facing buffs. Filtered out of the
                     ## chip row so they don't render as "✦"/"[?]" tofu.
                     _BUFF_HIDDEN = {
-                        "rvac_doubled",
+                        "rvac_double_total",
                         "grundza_detonated",
                         "mirror_armed_for_counter",
                         "paragraph_4b_armed",

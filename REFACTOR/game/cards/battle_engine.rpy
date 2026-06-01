@@ -502,11 +502,15 @@ init python:
             if self.intent_index >= len(self.intent_queue):
                 self.intent_queue = build_enemy_deck(self.enemy_id, prev_card_id=self.last_intent_resolved)
                 self.intent_index = 0
-                ## Rvac drunken double-down — wrinkle fires on first reshuffle.
-                if self.enemy_id == "rvac" and not self.buffs.get("rvac_doubled", False):
-                    self.buffs["enemy_attack_bonus"] = self.buffs.get("enemy_attack_bonus", 0) + 3
-                    self.buffs["rvac_doubled"] = True
-                    self.add_log("[[Drunken double-down]: he's seeing red. +3 to his next swing.")
+                ## Rvac drunken double-down — every reshuffle he winds up again,
+                ## +3 to his next swing, until the drink's bought him +9 total.
+                ## A race: close him out before he's fully loaded.
+                if self.enemy_id == "rvac":
+                    _rvac_ramp = self.buffs.get("rvac_double_total", 0)
+                    if _rvac_ramp < 9:
+                        self.buffs["enemy_attack_bonus"] = self.buffs.get("enemy_attack_bonus", 0) + 3
+                        self.buffs["rvac_double_total"] = _rvac_ramp + 3
+                        self.add_log("[[Drunken double-down]: he winds up again. +3 to his next swing.")
 
         def current_intent(self):
             if self.intent_index >= len(self.intent_queue):
@@ -1212,13 +1216,9 @@ init python:
             ## Players found the old HP<=25 auto-win cheap and unsatisfying.
             bs.intent_queue = build_enemy_deck(bs.enemy_id, prev_card_id=bs.last_intent_resolved)
             bs.intent_index = 0
-            ## --- Rvac drunken double-down: first reshuffle adds +3 to
-            ## the next attack (uses existing one-shot enemy_attack_bonus
-            ## slot which zeros after one attack).
-            if bs.enemy_id == "rvac" and not bs.buffs.get("rvac_doubled", False):
-                bs.buffs["enemy_attack_bonus"] = bs.buffs.get("enemy_attack_bonus", 0) + 3
-                bs.buffs["rvac_doubled"] = True
-                bs.add_log("[[Drunken double-down]: he's seeing red. +3 to his next swing.")
+            ## Rvac's drunken double-down ramp is handled in advance_intent (the
+            ## eager reshuffle every enemy action takes); this fallback path only
+            ## fires when the queue empties mid-resolve, so it just rebuilds.
             ic = bs.current_intent()
             if ic is None:
                 ## Deck somehow rebuilt empty (registration bug). Bail rather
@@ -1331,7 +1331,7 @@ init python:
             ## regardless of size — the third tagger joins, no patience left.
             if bs.enemy_id == "sprejeri":
                 _tags = bs.buffs.get("sprejeri_tags", 0)
-                _spend_thr = 1 if bs.enemy_hp <= bs.enemy_max_hp // 2 else 3
+                _spend_thr = 1 if bs.enemy_hp <= bs.enemy_max_hp // 2 else 2
                 if _tags >= _spend_thr:
                     dmg += _tags
                     bs.buffs["sprejeri_tags"] = 0
@@ -1345,6 +1345,11 @@ init python:
             if bs.enemy_id == "rvac" and bs.enemy_hp <= bs.enemy_max_hp // 2:
                 dmg += 3
                 bs.add_log("[[Drunk fury]: bloodied — +3 damage.")
+            ## --- Spis open-file: the case turns vicious as you close it. +4 on
+            ## attacks at <= half HP, stacking with the paper-clog double-inject.
+            if bs.enemy_id == "spis" and bs.enemy_hp <= bs.enemy_max_hp // 2:
+                dmg += 4
+                bs.add_log("[[Open file]: it reads louder — +4 damage.")
             ## --- Estébák the file: every open drawer makes the case against
             ## you heavier. Single hits only — the compound (Surveillance
             ## Photos) is left flat so the ramp can't run away on it.

@@ -1246,9 +1246,10 @@ screen daily_hub_screen():
             _hub_cta_color = "#cc2200"
             _hub_cta_hover = "#ff4422"
 
-    ## ── Sidebar — FIXER (day 10+; one shred per day; free time, doesn't
-    ## burn your daily activity). Dimmed and disabled after today's shred.
-    if _today >= 10:
+    ## ── Sidebar — FIXER (every 5th day only: 5/10/15/20/25; one shred per
+    ## day; free time, doesn't burn your daily activity). Dimmed and disabled
+    ## after today's shred. Arrival is announced at day_start.
+    if _today % 5 == 0:
         $ _fixer_done = bool(getattr(store, '_fixer_shredded_today', False))
         frame:
             xpos 1700
@@ -2714,13 +2715,18 @@ screen fixer_relic_buy_screen(offers, cash):
                                 xfill True
                                 yfill True
                                 background "#11110caa"
-                                text relic_glyph(_rrid):
-                                    xalign 0.5
-                                    yalign 0.5
-                                    color _rhex
-                                    size 26
-                                    bold True
-                                    font "fonts/RobotoMono-Regular.ttf"
+                                padding (0, 0)
+                                $ _ricon = relic_art_disp(_rrid, 44)
+                                if _ricon is not None:
+                                    add _ricon xalign 0.5 yalign 0.5 alpha (1.0 if _rafford else 0.3)
+                                else:
+                                    text relic_glyph(_rrid):
+                                        xalign 0.5
+                                        yalign 0.5
+                                        color _rhex
+                                        size 26
+                                        bold True
+                                        font "fonts/RobotoMono-Regular.ttf"
                         vbox:
                             spacing 2
                             yalign 0.5
