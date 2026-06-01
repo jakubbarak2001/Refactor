@@ -34,6 +34,11 @@ init python:
     ## across a run. init_game sets store.random_event_pool = None; this refills
     ## it on the next access.
 
+    ## Events temporarily pulled from rotation (labels kept intact for
+    ## fine-tuning). Filtered out at pool build AND scrubbed from an already-
+    ## cached pool, so an in-progress run stops drawing them too.
+    _HIDDEN_EVENTS = {"ev_the_smell", "ev_karaoke", "ev_photocopier"}
+
     def _ensure_random_event_pool():
         if getattr(store, 'random_event_pool', None) is None:
             _pool = [
@@ -41,13 +46,15 @@ init python:
                 "ev_lost_and_found", "ev_colonel_regards", "ev_pills",
                 "ev_uniform_collector", "ev_the_interview",
             ]
-            ## Temporarily hidden for fine-tuning (labels kept intact, just out
-            ## of the draw pool): ev_the_smell, ev_karaoke, ev_photocopier.
             if stats is not None and stats.player_class == "bodybuilder":
                 _pool.append("ev_synthol_brothers")
             if stats is not None and stats.player_class == "biohacker":
                 _pool.append("ev_bh_acd856_offer")
             store.random_event_pool = _pool
+        ## Scrub hidden events from the live pool — covers a run whose pool was
+        ## cached before an event was hidden (the cache is per-run, built once).
+        if getattr(store, 'random_event_pool', None):
+            store.random_event_pool = [e for e in store.random_event_pool if e not in _HIDDEN_EVENTS]
 
     ## ── Run-HP helpers ────────────────────────────────────────────────────
     ## run_hp is the persistent battle-HP pool. It stays None until the first
