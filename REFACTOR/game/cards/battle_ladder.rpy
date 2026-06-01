@@ -84,12 +84,13 @@ init python:
         ## encounter screen (to spell out the trade) and battle_with's flee path.
         _e = ENEMY_LIBRARY.get(enemy_id, {})
         return {
-            "relief":    flee_hatred_relief(tier, is_boss, enemy_id),
-            "penalty":   _e.get("flee_czk_penalty", 0),
-            "income":    _e.get("flee_daily_income", 0),
-            "heal":      _e.get("flee_heal", 0),
-            "max_hp":    _e.get("flee_max_hp", 0),
-            "narration": _e.get("flee_narration"),
+            "relief":      flee_hatred_relief(tier, is_boss, enemy_id),
+            "hatred_cost": _e.get("flee_hatred_cost", 0),
+            "penalty":     _e.get("flee_czk_penalty", 0),
+            "income":      _e.get("flee_daily_income", 0),
+            "heal":        _e.get("flee_heal", 0),
+            "max_hp":      _e.get("flee_max_hp", 0),
+            "narration":   _e.get("flee_narration"),
         }
 
     ## Act bosses — fixed-day reckonings that cap each act, fired with priority
@@ -260,7 +261,11 @@ screen encounter_choice(enemy_id, tier="medium", can_flee=True):
         ## ── What WALK AWAY pays out — spell out the bespoke trade.
         _enc_fe = flee_effects(enemy_id, tier, _enc_is_boss)
         _enc_flee_label = _enc_e.get("flee_label") or ("WALK AWAY" if _enc_is_boss else "LET THEM GO")
-        _enc_flee_parts = ["-{} Hatred".format(_enc_fe["relief"])]
+        _enc_flee_parts = []
+        if _enc_fe["relief"] > 0:
+            _enc_flee_parts.append("-{} Hatred".format(_enc_fe["relief"]))
+        if _enc_fe["hatred_cost"] > 0:
+            _enc_flee_parts.append("+{} Hatred".format(_enc_fe["hatred_cost"]))
         if _enc_fe["penalty"] > 0:
             _enc_flee_parts.append("-{:,} CZK".format(_enc_fe["penalty"]))
         if _enc_fe["income"] > 0:
@@ -383,10 +388,16 @@ label battle_with(enemy_id, tier):
     if _return == "flee":
         python:
             _fe = flee_effects(enemy_id, tier, _enc_is_boss)
-            stats.increment_stats_pcr_hatred(-_fe["relief"])
+            ## Net hatred change in one call (relief lowers, a bribe-style cost
+            ## raises) so rage thresholds fire at most once.
+            stats.increment_stats_pcr_hatred(_fe["hatred_cost"] - _fe["relief"])
             ## Fleeing once disqualifies the "Peace Was Never An Option" run.
             store._run_fled = getattr(store, '_run_fled', 0) + 1
-            _flee_parts = ["- {} Hatred".format(_fe["relief"])]
+            _flee_parts = []
+            if _fe["relief"] > 0:
+                _flee_parts.append("- {} Hatred".format(_fe["relief"]))
+            if _fe["hatred_cost"] > 0:
+                _flee_parts.append("+ {} Hatred".format(_fe["hatred_cost"]))
             if _fe["penalty"] > 0:
                 stats.increment_stats_value_money(-_fe["penalty"])
                 _flee_parts.append("- {:,} CZK".format(_fe["penalty"]))

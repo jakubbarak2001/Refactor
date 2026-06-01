@@ -140,6 +140,7 @@ init python:
         archetype="generic", rarity="rare",
         hook="+1 max energy every fight.",
         flavor="Warm. Flat. Load-bearing.",
+        shop_price=30000,
     )
     register_relic(
         "golden_handcuffs",
@@ -156,6 +157,7 @@ init python:
         archetype="iron", rarity="common",
         hook="+3 block at the start of each turn.",
         flavor="Half-empty. Scoop's gone missing. Still does the job.",
+        shop_price=15000,
     )
     register_relic(
         "weightlifting_belt",
@@ -216,6 +218,7 @@ init python:
         archetype="stack", rarity="common",
         hook="Draw 2 extra cards on the first turn of each fight.",
         flavor="Yellow. Silent. Has closed more cases than half the station.",
+        shop_price=15000,
     )
     register_relic(
         "evidence_bag",

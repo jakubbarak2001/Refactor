@@ -588,7 +588,7 @@ init python:
         "interview",
         name     = "Interview",
         intent   = "attack",
-        value    = 18,
+        value    = 22,
         dialogue = "'Where exactly were you on the eighteenth?' She's read it three times.",
         threat   = 3,
     )
@@ -612,7 +612,7 @@ init python:
         "formal_warning",
         name     = "Formal Warning",
         intent   = "attack",
-        value    = 20,
+        value    = 30,
         dialogue = "A signature line slides under your hand. You sign.",
         threat   = 3,
     )
@@ -628,7 +628,7 @@ init python:
         "wire_check",
         name     = "Wire Check",
         intent   = "attack",
-        value    = 16,
+        value    = 20,
         dialogue = "She plays back your own radio traffic. The tone gives you away.",
         threat   = 2,
     )

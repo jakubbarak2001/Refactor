@@ -70,11 +70,16 @@ init -1 python:
             ## None for the generic text). Defaults: nothing special.
             "flee_relief":      None,
             "flee_czk_penalty": 0,
+            "flee_hatred_cost": 0,
             "flee_daily_income": 0,
             "flee_heal":        0,
             "flee_max_hp":      0,
             "flee_label":       None,
             "flee_narration":   None,
+            ## Intent-shaping: when True, build_enemy_deck forbids two passive
+            ## (non-attack) turns in a row — the enemy hits at least every other
+            ## turn. Set on the breach team (garda) and Internal Affairs.
+            "no_double_passive": False,
             "act":           0,
         }
         defaults.update(fields)
@@ -118,13 +123,13 @@ init -1 python:
                         deck[i + 1], deck[j] = deck[j], deck[i + 1]
                         break
 
-        ## Colonel's Guard — the breach team never strings two passive turns
-        ## together. A defend or a buff must be answered by a hit, so the player
+        ## no_double_passive enemies never string two passive turns together.
+        ## A defend / buff / debuff must be answered by a hit, so the player
         ## always eats an attack at least every other turn (chained attacks are
-        ## fine; only block/buff back-to-back is forbidden). Mirrors the block
+        ## fine; only non-attacks back-to-back are forbidden). Mirrors the block
         ## anti-adjacency above but on the attack / non-attack split, including
-        ## the reshuffle boundary via prev_card_id.
-        if enemy_id == "garda":
+        ## the reshuffle boundary via prev_card_id. Set on garda + inspekce.
+        if e.get("no_double_passive"):
             def _is_atk(cid):
                 return _intent_of(cid) in ("attack", "compound")
             if prev_card_id is not None and not _is_atk(prev_card_id) and deck and not _is_atk(deck[0]):
@@ -400,6 +405,15 @@ init -1 python:
         log_name     = "Internal Affairs",
         tier         = "hard",
         max_hp       = 150,
+        no_double_passive = True,
+        flee_label   = "BRIBE HIM",
+        flee_relief  = 0,
+        flee_hatred_cost = 25,
+        flee_czk_penalty = 15000,
+        flee_narration = [
+            "You don't sit back down. You slide an envelope across the table instead, fat enough to make the point without a word.",
+            "He doesn't count it. He doesn't have to — he knew the figure before you walked in. The file closes. The case evaporates. And somewhere a hook you'll never see goes a little deeper into you.",
+        ],
         deck_template = [
             "interview", "audit", "quote_regulation",
             "formal_warning", "case_review", "wire_check", "transfer_pending",
@@ -429,6 +443,15 @@ init -1 python:
         no_flee      = False,
         act          = 2,
         max_hp       = 210,
+        no_double_passive = True,
+        flee_label   = "BRIBE THEM",
+        flee_relief  = 0,
+        flee_hatred_cost = 25,
+        flee_czk_penalty = 20000,
+        flee_narration = [
+            "You don't reach for a weapon. You reach for cash — more than a cop should be carrying, exactly as much as three men in balaclavas came expecting.",
+            "They take it without a word and melt back around the van. The Colonel will hear that you paid rather than fought. That's the point of sending them. That's the hook going in.",
+        ],
         deck_template = [
             "breach_swing", "shield_wall", "gas_throw",
             "baton_combo", "formation_buff", "phalanx_block", "clear_room",
