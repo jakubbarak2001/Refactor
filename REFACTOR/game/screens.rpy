@@ -2463,82 +2463,36 @@ screen fixer_removal_screen(entries, price, next_price):
                 font "fonts/RobotoMono-Regular.ttf"
 
         viewport:
-            xsize 1100
-            ysize 580
+            xsize 1480
+            ysize 660
             scrollbars "vertical"
             mousewheel True
             draggable True
+            xalign 0.5
 
+            ## Same card UI as inspecting your own deck — full card faces, so the
+            ## shred decision sees exactly what each card DOES, not just a name.
+            ## 6 per row; click a card to run it through the shredder. Cards dim
+            ## when you can't cover tonight's price.
+            $ _shred_rows = [entries[i:i+6] for i in range(0, len(entries), 6)]
             vbox:
-                spacing 6
-
-                for _fcid in entries:
-                    python:
-                        _fc    = CARD_LIBRARY.get(_fcid, {})
-                        _fname = _fc.get("name", _fcid)
-                        _ftype = _fc.get("type", "Skill")
-                        _frar  = _fc.get("rarity", "common")
-                        ## Classify corruption category for visual prefix.
-                        if _fc.get("is_rage"):
-                            _fcorr = "rage"
-                        elif _fc.get("is_compromise"):
-                            _fcorr = "compromise"
-                        elif (_fc.get("effect") or "").startswith("status_"):
-                            _fcorr = "status"
-                        else:
-                            _fcorr = None
-                        _fglyph = _CORRUPTION_GLYPH.get(_fcorr, "")
-                        _fcol   = _CORRUPTION_COLOR.get(_fcorr) or {"Attack": "#cc4422", "Skill": "#3388cc", "Power": "#aa44cc"}.get(_ftype, "#888888")
-
-                    frame:
-                        xsize 1080
-                        ysize 56
-                        background Frame("#0d0d0dee", 3, 3)
-                        padding (14, 6)
-
-                        hbox:
-                            spacing 18
-                            yalign 0.5
-
-                            ## Cost gem
-                            text "[[ [_fc.get('cost', 0)] ]":
-                                color _fcol
-                                size 18
-                                bold True
-                                font "fonts/RobotoMono-Regular.ttf"
-                                xsize 60
-
-                            ## Name with corruption prefix. Upgraded cards
-                            ## (not corruption — register_upgrade refuses
-                            ## status/rage/compromise) render the name green
-                            ## so the shred decision sees "you'd be paying
-                            ## to nuke an upgrade" at a glance.
-                            text "[_fglyph][_fname]":
-                                color card_name_color(_fc, "#ffffff")
-                                size 18
-                                bold True
-                                font "fonts/RobotoMono-Regular.ttf"
-                                xsize 420
-
-                            ## Type · rarity
-                            text "[_ftype.upper()] · [_frar.upper()]":
-                                color "#888888"
-                                size 13
-                                font "fonts/RobotoMono-Regular.ttf"
-                                xsize 360
-
-                            ## SHRED button
-                            textbutton "[[ SHRED ]":
-                                sensitive _f_affordable
-                                action Return(("remove", _fcid))
-                                text_color ("#ff8866" if _f_affordable else "#553333")
-                                text_hover_color "#ffaa88"
-                                text_size 16
-                                text_bold True
-                                text_font "fonts/RobotoMono-Regular.ttf"
-                                background Frame("#1a0d0dee" if _f_affordable else "#0d0d0dee", 3, 3)
-                                hover_background Frame("#3a1a1aee", 3, 3)
-                                padding (16, 6)
+                spacing 24
+                xalign 0.5
+                for _shred_row in _shred_rows:
+                    hbox:
+                        spacing 16
+                        for _fcid in _shred_row:
+                            fixed:
+                                xysize (220, 320)
+                                button:
+                                    xsize 220
+                                    ysize 316
+                                    background None
+                                    hover_background None
+                                    sensitive _f_affordable
+                                    action Return(("remove", _fcid))
+                                    at card_hover_lift
+                                    use battle_card_view(cid=_fcid, mode="hand", playable=_f_affordable)
 
         textbutton "[[ ← LEAVE — no time lost ]":
             xalign 0.5

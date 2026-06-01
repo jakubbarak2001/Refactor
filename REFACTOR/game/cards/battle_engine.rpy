@@ -761,20 +761,19 @@ init python:
         bs.intent_queue = build_enemy_deck(enemy_id)
 
         ## Enemy HP. Colonel = 200 HP — capstone tier, must out-bulk medium
-        ## ladder enemies (the boss can't be HP-weaker than the patsies he
-        ## sends). Was 100 -> 140 -> 150 -> 200 -> 340. The 340 bump restores
-        ## the rule after the Colonel's Guard (Act II boss) went to 320 — the
-        ## finale must out-bulk his own elite. Sized for a two-phase fight
-        ## against a day-30 OP deck; the +50 ev_colonel_regards (KEEP) variant
-        ## tops out at 390 — a meaningful punishment for taking his "gift".
-        ## Ladder enemies use ENEMY_LIBRARY max_hp.
+        ## ladder enemies. Was 200 -> 340 (out-bulk Garda 320) -> 300. The 340
+        ## made him a SLOG: a 390-HP meatball whose counterable story-attacks did
+        ## little, so the fight was long and toothless. Trimmed to 300 and given
+        ## a real phase-2 enrage (below) so the finale is a tense RACE, not a
+        ## grind — threat over bulk. The +40 ev_colonel_regards (KEEP) variant
+        ## tops out at 340. Ladder enemies use ENEMY_LIBRARY max_hp.
         if enemy_id == "colonel":
-            bs.enemy_max_hp = 340
+            bs.enemy_max_hp = 300
             ## Event hook — KEEP branch of ev_colonel_regards: he wore the
-            ## gift, now he's stronger for it. +50 max HP at the boss only.
+            ## gift, now he's stronger for it. +40 max HP at the boss only.
             if getattr(store, '_colonel_gift_taken', False):
-                bs.enemy_max_hp += 50
-                bs.add_log("[[Setup]: the Colonel's gift returns with him. +50 HP.")
+                bs.enemy_max_hp += 40
+                bs.add_log("[[Setup]: the Colonel's gift returns with him. +40 HP.")
         else:
             bs.enemy_max_hp = _enemy.get("max_hp") or 80
         bs.enemy_hp = bs.enemy_max_hp
@@ -944,21 +943,31 @@ init python:
         ## glitch shows through, and he turns the run you actually PLAYED back on
         ## you. One-time entry: a beat + a payback keyed to your dominant path
         ## (the continuous +Hatred//15 per hit lives in the attack branch).
-        if _eid == "colonel" and bs.enemy_hp <= bs.enemy_max_hp // 2 and not bs.buffs.get("colonel_phase2"):
-            bs.buffs["colonel_phase2"] = True
-            _ph = stats.pcr_hatred if stats else 0
-            _pcs = stats.coding_skill if stats else 0
-            _pfled = getattr(store, '_run_fled', 0)
-            bs.add_log("[[The act drops]: thirty-two years of script — and underneath it, nothing reading from one.")
-            if _ph >= 60:
-                bs.add_log("[[Colonel]: 'The rage was never yours. It was the leash. Watch how it pulls.'")
-            elif _pcs >= 100:
-                bs.buffs["max_energy_penalty_next_turn"] = max(bs.buffs.get("max_energy_penalty_next_turn", 0), 1)
-                bs.add_log("[[Colonel]: 'You think your little scripts matter in here.' Your next turn loses 1 energy.")
-            elif _pfled > 0:
-                bs.add_log("[[Colonel]: 'You paid everyone else to look the other way. Who's left to pay now?'")
+        if _eid == "colonel" and bs.enemy_hp <= bs.enemy_max_hp // 2:
+            if not bs.buffs.get("colonel_phase2"):
+                bs.buffs["colonel_phase2"] = True
+                _ph = stats.pcr_hatred if stats else 0
+                _pcs = stats.coding_skill if stats else 0
+                _pfled = getattr(store, '_run_fled', 0)
+                bs.add_log("[[The act drops]: thirty-two years of script — and underneath it, nothing reading from one.")
+                if _ph >= 60:
+                    bs.add_log("[[Colonel]: 'The rage was never yours. It was the leash. Watch how it pulls.'")
+                elif _pcs >= 100:
+                    bs.buffs["max_energy_penalty_next_turn"] = max(bs.buffs.get("max_energy_penalty_next_turn", 0), 1)
+                    bs.add_log("[[Colonel]: 'You think your little scripts matter in here.' Your next turn loses 1 energy.")
+                elif _pfled > 0:
+                    bs.add_log("[[Colonel]: 'You paid everyone else to look the other way. Who's left to pay now?'")
+                else:
+                    bs.add_log("[[Colonel]: 'Clean hands, empty hands. In the end the file reads the same.'")
             else:
-                bs.add_log("[[Colonel]: 'Clean hands, empty hands. In the end the file reads the same.'")
+                ## Phase-2 ENRAGE — the bureaucracy act (and its counterable
+                ## story-attacks) is gone; he's improvising and getting faster
+                ## every turn. +3 Strength per round, cap 15. This is the
+                ## uncounterable, escalating threat that turns the meatball into
+                ## a race: the longer you take, the more lethal he gets.
+                if bs.enemy_strength < 15:
+                    bs.enemy_strength += 3
+                    bs.add_log("[[He's improvising]: the script is gone — and he's speeding up. +3 Strength.")
         if _eid == "spis" and bs.turn >= 2:
             ## Cap paperwork at 3 across all piles — without this, long fights
             ## (and the bloodied double-inject below) accumulate enough copies

@@ -73,7 +73,7 @@ init python:
         "red_mist":                "Deal 8 damage twice. Gain 4 Hatred.",
         "norwegian_4x4":           "Deal 4 damage 4 times. Lose 3 HP.",
         "an_idea":                 "Add {b}{color=#ff6633}The Final Set{/color}{/b} to your discard pile. Exhaust.",
-        "the_final_set":           "Deal 30 damage. Exhaust.",
+        "the_final_set":           "Deal 50 damage. Exhaust.",
         "see_red":                 "Power: each time you gain Hatred this fight, gain 2 block.",
         "thick_skull":             "Power: the first Hatred gain that would break you this fight is caught — Hatred is held at 80 and you gain 20 block.",
         "adrenaline_dump":         "Lose 10 Hatred. Gain 1 energy. Exhausts.",
@@ -432,7 +432,7 @@ init python:
 
     @register_effect("the_final_set")
     def _eff_the_final_set(state, source, target):
-        state.deal_damage(target, 30)
+        state.deal_damage(target, 50)
 
     @register_effect("breaking_point")
     def _eff_breaking_point(state, source, target):
