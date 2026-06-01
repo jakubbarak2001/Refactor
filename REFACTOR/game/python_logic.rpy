@@ -158,6 +158,9 @@ init python:
                 self.coding_skill = ceiling
             if self.coding_skill >= 250:
                 unlock_achievement("hackerman")
+            ## Meta: reaching Coding tier 3 proves the tech lane — unlock Pipeline.
+            if self.coding_skill >= 100:
+                unlock_card("pipeline")
 
         def increment_stats_pcr_hatred(self, amount):
             self.pcr_hatred += amount
@@ -167,6 +170,9 @@ init python:
             ## jams a permanent Rage card into the deck. One-shot per threshold
             ## — dipping below and back up does NOT re-grant.
             _check_rage_injection()
+            ## Meta: running this hot proves the Hatred engine — unlock Breakdown.
+            if self.pcr_hatred >= 80:
+                unlock_card("breakdown")
 
         def stats_description_money(self):
             money_levels = [
@@ -658,12 +664,14 @@ init python:
     }
 
     def unlock_achievement(key):
-        """Unlock an achievement by key. Safe to call multiple times."""
-        global _achievements_unlocked
-        if not hasattr(store, '_achievements_unlocked'):
-            store._achievements_unlocked = set()
-        if key not in store._achievements_unlocked:
-            store._achievements_unlocked.add(key)
+        """Unlock an achievement by key. Safe to call multiple times. Stored in
+        Ren'Py `persistent` so the trophy wall survives across runs (it used to
+        live in `store` and reset on every full_restart)."""
+        if persistent.achievements_unlocked is None:
+            persistent.achievements_unlocked = set()
+        if key not in persistent.achievements_unlocked:
+            ## Reassign (not .add) so persistent registers the mutation + saves.
+            persistent.achievements_unlocked = persistent.achievements_unlocked | {key}
             ach = ACHIEVEMENTS.get(key, {})
             ach_name = ach.get("name", key)
             ach_desc = ach.get("desc", "")
@@ -676,6 +684,38 @@ init python:
             renpy.music.set_volume(1.0, delay=2.5)
             return True  ## Newly unlocked
         return False  ## Already had it
+
+    ## ── Meta-progression: cross-run card unlocks (Ren'Py persistent) ─────────
+    ## The build-defining finishers start LOCKED on a fresh save and unlock the
+    ## first time you prove the build in a fight — so each archetype's
+    ## game-breaker drips in as you engage with it, and persists across runs.
+    ## Everything else is unlocked from the start, so run 1 is fully playable.
+    META_LOCKED_CARDS = {"breakdown", "barricade", "pipeline"}
+
+    def card_unlocked(cid):
+        """Is this card allowed in the draft / shop pool yet? Non-locked cards
+        always pass; a locked finisher passes only once earned. `_plus` variants
+        inherit their base card's unlock state."""
+        if not cid:
+            return True
+        _base = cid[:-5] if cid.endswith("_plus") else cid
+        if _base not in META_LOCKED_CARDS:
+            return True
+        return _base in (persistent.unlocked_cards or set())
+
+    def unlock_card(cid, silent=False):
+        """Permanently unlock a locked card. Idempotent. Reassigns the
+        persistent set so Ren'Py registers the mutation and saves it."""
+        if cid in (persistent.unlocked_cards or set()):
+            return False
+        persistent.unlocked_cards = (persistent.unlocked_cards or set()) | {cid}
+        if not silent:
+            try:
+                renpy.notify("New card unlocked: {}".format(
+                    CARD_LIBRARY.get(cid, {}).get("name", cid)))
+            except Exception:
+                pass
+        return True
 
     def apply_class_bonuses(stats_obj):
         """Apply starting stat modifiers for the chosen player class."""

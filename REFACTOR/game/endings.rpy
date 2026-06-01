@@ -178,6 +178,16 @@ label good_ending:
 
     call post_credits_singapore from _call_post_credits_singapore
 
+    ## Meta-progression: persist the win + the score chase across runs, and make
+    ## sure beating the game opens the full finisher toolkit even if the run
+    ## never hit a milestone. Written BEFORE full_restart wipes the run store.
+    python:
+        persistent.runs_won = (persistent.runs_won or 0) + 1
+        if _final_score > (persistent.best_score or 0):
+            persistent.best_score = _final_score
+        for _uc in ("breakdown", "barricade", "pipeline"):
+            unlock_card(_uc, silent=True)
+
     $ renpy.full_restart()
 
 

@@ -394,6 +394,9 @@ init python:
                         self.last_player_block_gain_time = renpy.get_game_runtime()
                     except Exception:
                         pass
+                ## Meta: a real fortress proves the stoic lane — unlock Barricade.
+                if self.player_block >= 40:
+                    unlock_card("barricade")
 
         def heal(self, target, amount):
             if target == "enemy":

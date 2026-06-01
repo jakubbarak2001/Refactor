@@ -418,6 +418,9 @@ init -1 python:
             return False
         if c.get("archetype") == "basic":
             return False
+        ## Meta-progression: a locked finisher can't be drafted until earned.
+        if not card_unlocked(c.get("id")):
+            return False
         return True
 
 

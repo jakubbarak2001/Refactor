@@ -4279,7 +4279,7 @@ style class_select_btn is button_text:
 
 screen _achievements_list():
     python:
-        _unlocked = getattr(store, '_achievements_unlocked', set())
+        _unlocked = persistent.achievements_unlocked or set()
         _ach_total = len(ACHIEVEMENTS)
         _ach_count = len(_unlocked)
         _ach_categories = ["Story", "Combat", "Collection", "Secret"]
@@ -4298,6 +4298,14 @@ screen _achievements_list():
         text "[_ach_count] / [_ach_total] UNLOCKED":
             color "#888888"
             size 18
+            font "fonts/RobotoMono-Regular.ttf"
+
+        ## Cross-run record — the meta-progression chase, persisted.
+        $ _meta_wins = persistent.runs_won or 0
+        $ _meta_best = persistent.best_score or 0
+        text "RUNS WON: [_meta_wins]    BEST SCORE: [_meta_best]":
+            color "#cdbd97"
+            size 16
             font "fonts/RobotoMono-Regular.ttf"
 
         for _cat in _ach_categories:
