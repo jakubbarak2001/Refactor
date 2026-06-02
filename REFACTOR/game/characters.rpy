@@ -28,6 +28,8 @@ image bg_police_office       = im.Scale("images/backgrounds/police_station_colon
 image bg_colonel_office_normal = im.Scale("images/backgrounds/colonel_office_normal.jpg", 1920, 1080)
 image bg_colonel_office_angry  = im.Scale("images/backgrounds/colonel_office_angry.jpg",  1920, 1080)
 image bg_colonel_office_shaken = im.Scale("images/backgrounds/colonel_office_shaken.jpg", 1920, 1080)
+## Secret boss arena — the office dissolved into police_bureaucracy.exe kernel-space.
+image bg_colonel_ghost         = im.Scale("images/backgrounds/bg_colonel_ghost.jpg",       1920, 1080)
 image bg_fixer                 = im.Scale("images/backgrounds/bg_fixer.jpg",               1920, 1080)
 image bg_police_interior     = im.Scale("images/backgrounds/police_station_interior.jpg", 1920, 1080)
 image bg_cafe                = im.Scale("images/backgrounds/cafe.jpg", 1920, 1080)
