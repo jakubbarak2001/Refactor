@@ -914,7 +914,7 @@ label activity_coding:
                     "title":          "STUDY",
                     "accent":         _bh_accent,
                     "cost_text":      "FREE",
-                    "effect_text":    ("Pick a card  ·  +8 Coding" if stats.player_class == "bodybuilder" else "Pick from a 3-card offer"),
+                    "effect_text":    ("Pick a card  ·  +12 Coding" if stats.player_class == "bodybuilder" else "Pick from a 3-card offer"),
                     "flavor_text":    ("Bootcamp tier: high-rarity offers." if _bc_done else "An hour at the keyboard. A card to keep — and the skill sticks."),
                     "class_relevant": False,
                 },
@@ -1003,7 +1003,7 @@ label coding_study:
         ## the ceiling clamp at the cap.
         if stats.player_class == "bodybuilder":
             _cs_before = stats.coding_skill
-            stats.increment_stats_coding_skill(8)
+            stats.increment_stats_coding_skill(12)
             _cs_gain = stats.coding_skill - _cs_before
             if _cs_gain > 0:
                 _study_outcome += "  + {} CODING SKILL.".format(_cs_gain)

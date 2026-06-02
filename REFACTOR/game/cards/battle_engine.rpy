@@ -1018,6 +1018,16 @@ init python:
                     bs.add_log("[[Colonel]: 'You paid everyone else to look the other way. Who's left to pay now?'")
                 else:
                     bs.add_log("[[Colonel]: 'Clean hands, empty hands. In the end the file reads the same.'")
+                ## Arm the FIRST enrage step the same turn he crosses half HP, so
+                ## a burst that ends the fight in a turn or two still feels the
+                ## escalation (it previously only began building on the NEXT turn,
+                ## which let high-burst decks skip the whole threat — the audit's
+                ## "bimodal finale"). The per-turn ramp continues in the else below.
+                if bs.enemy_strength < 15:
+                    _step0 = bs.buffs.get("colonel_enrage_step", 3)
+                    _added0 = min(15, bs.enemy_strength + _step0) - bs.enemy_strength
+                    bs.enemy_strength += _added0
+                    bs.add_log("[[He stops pretending]: +{} Strength, and climbing.".format(_added0))
             else:
                 ## Phase-2 ENRAGE — the bureaucracy act (and its counterable
                 ## story-attacks) is gone; he's improvising and getting faster
@@ -1177,7 +1187,10 @@ init python:
         ## (Pipeline itself doesn't self-trigger: the buff is set during its own
         ## resolution, after this counter has already ticked.)
         if bs.buffs.get("pipeline"):
-            bs.deal_damage("enemy", _bh_coding_tier(), apply_strength=False)
+            ## Floor + offset so the tech finisher delivers even at the Coding
+            ## tier where BB realistically unlocks it (tier 3 → 4/card, not 3),
+            ## and never under-chips at low tier. (was a flat _bh_coding_tier().)
+            bs.deal_damage("enemy", max(2, _bh_coding_tier() + 1), apply_strength=False)
         ## Skill-played flag — read by Production Push's combo bonus.
         if c.get("type") == "Skill":
             bs.skill_played_this_turn = True

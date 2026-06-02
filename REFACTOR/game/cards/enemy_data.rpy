@@ -315,9 +315,14 @@ init -1 python:
         act          = 1,
         max_hp       = 160,
         flee_label   = "TRY HIS NEW BATCH",
-        flee_relief  = 30,
-        flee_heal    = 40,
-        flee_max_hp  = 5,
+        ## The batch is a corrupting RELIEF, not a tonic: it calms the night and
+        ## patches you up, but it must NOT also make you permanently stronger —
+        ## otherwise skipping the Act I wall is strictly better than fighting it
+        ## (you forfeit only the loot). Trimmed: relief + a small heal, no
+        ## lasting max-HP gain, so getting stronger means fighting for the relic.
+        flee_relief  = 20,
+        flee_heal    = 22,
+        flee_max_hp  = 0,
         flee_narration = [
             "Grundza doesn't reach for a weapon. He reaches for the tray — fresh off the rig, still warm — and slides it across the counter.",
             "'On the house. New batch.' You shouldn't. You climbed three flights telling yourself you wouldn't. You do anyway. The edges of the night go soft, the pressure behind your eyes drains, and for once the body feels like it's winning.",

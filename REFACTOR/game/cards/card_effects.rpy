@@ -428,13 +428,16 @@ init python:
 
     @register_effect("norwegian_4x4")
     def _eff_norwegian_4x4(state, source, target):
-        for _i in range(4):
+        ## 5×4 = 20 (was 4×4 = 16) so the 3-HP self-tax buys a real "all out"
+        ## payoff — the base was a near-dead draft (16-for-1 minus 3 HP).
+        for _i in range(5):
             state.deal_damage(target, 4, popup_delay=_i * 0.22, popup_xoffset=_zigzag_x(_i))
         state.deal_damage("player", 3, bypass_block=True)
 
     @register_effect("norwegian_4x4_plus")
     def _eff_norwegian_4x4_plus(state, source, target):
-        for _i in range(4):
+        ## Upgrade: same 20 damage, and the self-tax is gone.
+        for _i in range(5):
             state.deal_damage(target, 4, popup_delay=_i * 0.22, popup_xoffset=_zigzag_x(_i))
 
     @register_effect("an_idea")
