@@ -257,8 +257,6 @@ label colonel_ghost_phase:
     hide screen refactoring_drop
     with Dissolve(0.2)
 
-    "You stop reaching for the door and reach for the {i}stack{/i} instead."
-
     scene bg_colonel_ghost with glitch_transition
     show colonel_ghost neutral at char_right with dissolve
     play music "audio/clockwork_commissar.wav" fadein 1.0
