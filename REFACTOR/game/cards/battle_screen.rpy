@@ -583,6 +583,17 @@ screen battle_help():
 
                 null height 6
 
+                text "CONTROLS":
+                    color "#cc2200"
+                    size 18
+                    bold True
+                text "Click a card to play it, or press its number key (1-8). Click END TURN — or press Space / Enter — when you're done.":
+                    color "#cccccc"
+                    size 14
+                    xmaximum 940
+
+                null height 6
+
                 text "POWER CARDS":
                     color "#cc2200"
                     size 18
@@ -822,14 +833,19 @@ screen battle_card_view(cid, mode="hand", playable=True):
 
         _is_upgraded = bool(_card.get("is_upgraded"))
 
-        ## Rarity tint on the name plate background. StS-style signal: common
-        ## stays dark, uncommon goes steel-blue, rare goes gold-bronze, boss
-        ## goes deep red. Subtle enough to coexist with the gold name text.
+        ## Rarity signal. The card body is class-colored (always orange for BB),
+        ## so rarity is carried ADDITIVELY: the OUTER border + a soft halo take a
+        ## rarity accent, and the name plate + name text warm up. A rare reads as
+        ## a gold-trimmed, faintly-glowing card; uncommon steel-blue; boss red.
+        ## Suppressed (None) when the card is dimmed/unplayable.
         _rarity = (_card.get("rarity") or "common").lower()
+        _rar_accent = RARITY_ACCENT.get(_rarity) if playable else None
+        _rar_glow   = RARITY_GLOW_ALPHA.get(_rarity, "00")
         _name_bg = {
-            "uncommon": "#1a2030ee",
-            "rare":     "#3a2810ee",
+            "uncommon": "#16263aee",
+            "rare":     "#4a3608ee",
             "boss":     "#3a0a0aee",
+            "special":  "#3a0a0aee",
         }.get(_rarity, "#0a0806ee")
 
         ## Inspect mode is a uniform 1.82× scale on every numeric dimension.
@@ -918,8 +934,15 @@ screen battle_card_view(cid, mode="hand", playable=True):
         _name_text = _card.get("name", cid)
         ## Upgraded card sole signal: name flips bright green. Matches the
         ## existing convention across reward / deck / fixer screens (per
-        ## card_name_color helper).
-        _name_color = "#44ee77" if (_is_upgraded and playable) else ("#f0d088" if playable else "#5a4a32")
+        ## card_name_color helper). Rares/boss cards get a brighter gold name.
+        if _is_upgraded and playable:
+            _name_color = "#44ee77"
+        elif not playable:
+            _name_color = "#5a4a32"
+        elif _rarity in ("rare", "boss", "special"):
+            _name_color = "#ffd84a"
+        else:
+            _name_color = "#f0d088"
 
         _type_label = _vtype.upper()
         _desc_raw   = effect_description(_card.get("effect")) or _card.get("flavor", "")
@@ -932,15 +955,23 @@ screen battle_card_view(cid, mode="hand", playable=True):
     fixed:
         xysize (_W, _H)
 
+        ## L0: rarity halo — a soft accent aura bleeding past the card edge so a
+        ## rare/uncommon visibly glows in the hand and reward row (the rarity
+        ## signal the orange class body can't carry on its own).
+        if _rar_accent:
+            add Solid(_rar_accent + _rar_glow) xpos -5 ypos -5 xysize (_W + 10, _H + 10)
+
         ## L1: drop shadow — soft offset solid behind the card body.
         add Solid("#000000aa") xpos _shadow_off ypos _shadow_off xysize (_W - _shadow_off - 2, _H - _shadow_off - 2)
 
-        ## L2 + L3: border frame wrapping frame body.
+        ## L2 + L3: border frame wrapping frame body. Outer border takes the
+        ## rarity accent (gold for rare, steel-blue uncommon, red boss) so the
+        ## card reads as rarity-trimmed; the body stays the class color.
         frame:
             xpos 0
             ypos 0
             xysize (_W, _H)
-            background Frame(_border_c, 6, 6)
+            background Frame(_rar_accent or _border_c, 6, 6)
             padding (4, 4)
 
             frame:
@@ -1069,9 +1100,51 @@ screen battle_card_view(cid, mode="hand", playable=True):
                     font "fonts/RobotoMono-Regular.ttf"
 
 
+init python:
+    def _battle_play_nth(n):
+        """Keyboard shortcut: play the Nth card in hand (1-based) if playable.
+        No-op on an out-of-range index, an ended battle, or an unplayable card —
+        mirrors the click semantics of the hand buttons exactly."""
+        bs = battle_state
+        if bs is None or getattr(bs, 'over', None):
+            return
+        if n < 1 or n > len(bs.hand):
+            return
+        cid = bs.hand[n - 1]
+        ok, _reason = bs.hand_playable(cid)
+        if ok:
+            battle_play_card(cid)
+            renpy.restart_interaction()
+
+    def _battle_key_end_turn():
+        bs = battle_state
+        if bs is None or getattr(bs, 'over', None):
+            return
+        battle_end_player_turn()
+        renpy.restart_interaction()
+
+
 screen battle_screen():
     modal True
     zorder 600
+
+    ## Keyboard shortcuts — this is the most-repeated screen in the game and was
+    ## mouse-only. Number keys 1-8 play the matching hand card (if playable);
+    ## Space / Enter / E end the turn. Guarded to the player's interactive turn
+    ## so the VICTORY/DEFEAT auto-continue timer isn't intercepted.
+    if battle_state is not None and not getattr(battle_state, 'over', None):
+        key "K_1" action Function(_battle_play_nth, 1)
+        key "K_2" action Function(_battle_play_nth, 2)
+        key "K_3" action Function(_battle_play_nth, 3)
+        key "K_4" action Function(_battle_play_nth, 4)
+        key "K_5" action Function(_battle_play_nth, 5)
+        key "K_6" action Function(_battle_play_nth, 6)
+        key "K_7" action Function(_battle_play_nth, 7)
+        key "K_8" action Function(_battle_play_nth, 8)
+        key "K_SPACE" action Function(_battle_key_end_turn)
+        key "K_RETURN" action Function(_battle_key_end_turn)
+        key "K_KP_ENTER" action Function(_battle_key_end_turn)
+        key "K_e" action Function(_battle_key_end_turn)
 
     python:
         bs = battle_state

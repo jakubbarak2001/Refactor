@@ -133,6 +133,24 @@ init -1 python:
     ## Beveled cost gem — orange flame palette, StS-like.
     GEM_ORANGE       = "#e87820"
     GEM_ORANGE_DARK  = "#5a2810"
+    ## Rarity trim — the card's OUTER border + a soft halo take this color so
+    ## rarity reads at a glance ON TOP of the class-color body (BB is always
+    ## orange, so the rarity signal has to be additive). Common keeps the
+    ## class/type border (no entry). Uncommon = steel-blue, Rare = gold,
+    ## Boss/Special = deep red. Gold is bright + warm so a rare actually
+    ## "shines" in the hand and reward row.
+    RARITY_ACCENT = {
+        "uncommon": "#6fa8dc",
+        "rare":     "#f0c24a",
+        "boss":     "#e0463c",
+        "special":  "#e0463c",
+    }
+    RARITY_GLOW_ALPHA = {
+        "uncommon": "33",
+        "rare":     "55",
+        "boss":     "55",
+        "special":  "55",
+    }
     ## Keyword highlight color (used by kw_highlight in card_effects.rpy).
     KW_HIGHLIGHT_HEX = "#ffcc44"
 

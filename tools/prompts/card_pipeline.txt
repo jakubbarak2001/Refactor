@@ -1,0 +1,11 @@
+SUBJECT (REFACTOR Power card "PIPELINE" — JB's code now ships itself; every commit lands a blow without him lifting a hand):
+
+JB (Czech cop / bodybuilder, mid-30s, short military haircut, thick neck, broad shoulders) seen in profile at a dim desk, hands resting steady on a mechanical keyboard, face and glasses lit cold from a single monitor. On the screen, a continuous-integration pipeline cascading stage by stage — commit after commit flowing down and out, each one a small green checkmark of light — rendered as PAINTED green terminal glow reflected across his face, glasses and knuckles, never as a literal UI screenshot. He isn't even looking tense; it runs without him.
+
+CRITICAL: no other person. The screen content is suggestion and reflected light, NOT readable text or a real interface. NO text, letters, numbers or symbols anywhere in the image.
+
+Lighting: dim monitor-blue and terminal-green over deep charcoal, the room black around the one cold glow, a faint warm edge on the far side of his face. The mood: automated, relentless, hands-off lethal — "every commit auto-deploys."
+
+Match the build and haircut of the JB bodybuilder reference image.
+
+STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, slightly diffused edges, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference card images. Monitor-blue and terminal-green over charcoal-black, painted not screenshotted. 2:1 widescreen LANDSCAPE composition, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT comic-book or cel-shaded or splash-art, NO neon sign look, NO modern game-art glow effects. NO text, letters, numbers, symbols, UI, card frame, border, vignette or letterbox anywhere.
