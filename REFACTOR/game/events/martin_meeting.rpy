@@ -232,10 +232,10 @@ label martin_phase3_bomb:
     python:
         if stats.pcr_hatred >= 60:
             stats.increment_stats_pcr_hatred(-15)
-            _bomb_outcome = "RELIEF: -15 HATRED (saying it out loud helped)."
+            _bomb_outcome = "RELIEF: -15 HATRED."
         else:
             stats.increment_stats_pcr_hatred(15)
-            _bomb_outcome = "FEAR: +15 HATRED (now it's real)."
+            _bomb_outcome = "FEAR: +15 HATRED."
 
     window hide
     show screen outcome_panel(_bomb_outcome)
@@ -266,7 +266,7 @@ label martin_phase4_coding_check:
             stats.increment_stats_pcr_hatred(-20)
             _code_text    = "You smile. You don't just know syntax. You dream in code.\nYou are a God Tier developer trapped in a uniform."
             _code_jb      = "'I am ready,' you say. And you mean it."
-            _code_outcome = "+1 AFFECTION, -20 PCR HATRED (Confidence)."
+            _code_outcome = "+1 AFFECTION, -20 PCR HATRED."
         elif stats.coding_skill >= 150:
             martin_affection += 1
             stats.increment_stats_pcr_hatred(-10)
@@ -278,19 +278,19 @@ label martin_phase4_coding_check:
             stats.increment_stats_pcr_hatred(-10)
             _code_text    = "You walk him through the backend you built. He stops eating.\nFor a self-taught cop with a countdown over his head, this is real work. You are hireable."
             _code_jb      = "'I can do this,' you say. No hesitation."
-            _code_outcome = "+1 AFFECTION, -10 PCR HATRED (You're ready)."
+            _code_outcome = "+1 AFFECTION, -10 PCR HATRED."
         elif stats.coding_skill >= 50:
             martin_affection -= 1
             stats.increment_stats_pcr_hatred(10)
             _code_text    = "You know the basics. Loops, functions, some libraries.\nBut a job? Real software? You are miles away."
             _code_jb      = "'I... I'm still learning.'"
-            _code_outcome = "-1 AFFECTION, +10 PCR HATRED (Doubt creeps in)."
+            _code_outcome = "-1 AFFECTION, +10 PCR HATRED."
         else:
             martin_affection -= 1
             stats.increment_stats_pcr_hatred(20)
             _code_text    = "You have nothing. You spent your time drinking beer instead of studying.\nYou are just a cop with a dream and zero skills."
             _code_jb      = "Martin sees it. He sighs. It's a sigh of pity."
-            _code_outcome = "-1 AFFECTION, +20 PCR HATRED (Shame)."
+            _code_outcome = "-1 AFFECTION, +20 PCR HATRED."
 
     "[_code_text]"
     jb "[_code_jb]"
@@ -355,12 +355,12 @@ label martin_phase5_money_check:
             martin_affection += 1
             _mon_text    = "You nod. You saved hard and it shows.\nYou can cover the exit fee and still have a runway to land on your feet."
             _mon_martin  = "'Smart man.'"
-            _mon_outcome = "+1 AFFECTION (Financial Freedom)."
+            _mon_outcome = "+1 AFFECTION."
         elif stats.available_money >= 65000:
             martin_affection += 1
             _mon_text    = "You have enough. It will hurt, but you won't starve.\nYou can pay the exit fee and still breathe for a couple of months."
             _mon_martin  = "'I'm covered,' you say."
-            _mon_outcome = "+1 AFFECTION (Secure)."
+            _mon_outcome = "+1 AFFECTION."
         elif stats.available_money >= 40000:
             _mon_text    = "You do the math in your head. It's going to be tight.\nIf you pay them off, you'll be eating instant noodles for a while."
             _mon_martin  = "'I can scrape it together,' you admit."
@@ -369,12 +369,12 @@ label martin_phase5_money_check:
             martin_affection -= 1
             _mon_text    = "You sweat a little. You don't have enough for the full fee.\nYou'll need a loan, or help from parents. It's messy."
             _mon_martin  = "'That's dangerous ground, JB.'"
-            _mon_outcome = "-1 AFFECTION (Financial Risk)."
+            _mon_outcome = "-1 AFFECTION."
         else:
             martin_affection -= 1
             _mon_text    = "You are broke. You have nothing.\nIf you quit, you will be in immediate debt with no income.\nYou are trapped."
             _mon_martin  = "'So you want to quit but you can't afford it?'"
-            _mon_outcome = "-1 AFFECTION (Total Disaster)."
+            _mon_outcome = "-1 AFFECTION."
 
     "[_mon_text]"
     martin "[_mon_martin]"
@@ -409,7 +409,7 @@ label martin_phase6_hatred_check:
             jb "'I hate them so much it hurts. Every second in that uniform is torture.'"
             martin "'Good. Use that anger.'"
             window hide
-            show screen outcome_panel("+2 AFFECTION, +25 HATRED (fuel for the fire).")
+            show screen outcome_panel("+2 AFFECTION, +25 HATRED.")
             pause
             hide screen outcome_panel
 

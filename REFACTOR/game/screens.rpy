@@ -3592,6 +3592,46 @@ screen ending_screen(ending_label, ending_title, ending_flavor, ending_type, sco
                                     bold True
                                     font "fonts/RobotoMono-Regular.ttf"
 
+                        ## Run recap + the score chase — the "one more run" hook.
+                        ## best_score is still the PRIOR best here (the record is
+                        ## written after this screen), so > means a genuine new best.
+                        python:
+                            _rs_deck = len(player_deck.cards) if (player_deck is not None) else None
+                            _rs_relics = len(getattr(store, "player_relics", None) or [])
+                            _rs_prev_best = persistent.best_score or 0
+                            _rs_is_win = ending_type in ("perfect", "good", "secret")
+                            _rs_new_best = bool(_rs_is_win and score is not None and score > _rs_prev_best)
+
+                        if _rs_deck is not None:
+                            hbox:
+                                xalign 0.5
+                                xsize 500
+                                text "DECK / RELICS":
+                                    color "#888888"
+                                    size 15
+                                    xminimum 320
+                                    font "fonts/RobotoMono-Regular.ttf"
+                                text "[_rs_deck] cards  ·  [_rs_relics] relics":
+                                    color "#ffffff"
+                                    size 15
+                                    bold True
+                                    font "fonts/RobotoMono-Regular.ttf"
+
+                        if _rs_is_win or _rs_prev_best > 0:
+                            hbox:
+                                xalign 0.5
+                                xsize 500
+                                text "BEST SCORE":
+                                    color "#888888"
+                                    size 15
+                                    xminimum 320
+                                    font "fonts/RobotoMono-Regular.ttf"
+                                text ("◆ NEW BEST!" if _rs_new_best else "[_rs_prev_best]"):
+                                    color ("#ffdd00" if _rs_new_best else "#ffffff")
+                                    size 15
+                                    bold True
+                                    font "fonts/RobotoMono-Regular.ttf"
+
                         null height 5
 
                         frame:

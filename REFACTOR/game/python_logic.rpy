@@ -725,9 +725,16 @@ init python:
             return False
         persistent.unlocked_cards = (persistent.unlocked_cards or set()) | {cid}
         if not silent:
+            ## Unlocking your archetype's game-breaker is a bigger payoff than most
+            ## achievements — give it the same celebratory toast + sting instead of
+            ## a tiny corner notify. (Reuses achievement_toast; safe mid-battle —
+            ## transient, auto-hides — which is where these finishers unlock.)
             try:
-                renpy.notify("New card unlocked: {}".format(
-                    CARD_LIBRARY.get(cid, {}).get("name", cid)))
+                _cn = CARD_LIBRARY.get(cid, {}).get("name", cid)
+                renpy.music.set_volume(0.15, delay=0.2)
+                renpy.sound.play("audio/achivement_unlocked.mp3", channel="sound")
+                renpy.show_screen("achievement_toast", ach_name="NEW CARD UNLOCKED", ach_desc="{} joins your pool — for this run and every run after.".format(_cn))
+                renpy.music.set_volume(1.0, delay=2.5)
             except Exception:
                 pass
         return True

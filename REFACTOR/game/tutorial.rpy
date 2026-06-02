@@ -130,13 +130,13 @@ label tutorial_intro:
 
     call screen tutorial_popup(
         title="YOUR DECK",
-        body="On Day 30 you fight the Colonel with cards, NOT stats. Build the deck. Take cards when offered. The deck button (top of screen) shows what you've got.",
+        body="On Day 30 you fight the Colonel with cards, NOT stats. Cards come from fights, events, and the Fixer. The deck button (top of screen) shows what you're carrying.",
         step=5, total=_tut_total, accent="#00cc88",
     )
 
     call screen tutorial_popup(
         title="THE 30 DAYS",
-        body="One activity per day. Random events between days. Make the move that buys you the most for the trade. There are no reloads.",
+        body="One activity per day. Random events fall between the days. There are no reloads — the run is the run.",
         step=6, total=_tut_total, accent="#cc2200",
     )
 
