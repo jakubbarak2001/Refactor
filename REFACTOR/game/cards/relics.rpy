@@ -591,7 +591,7 @@ init python:
         into the per-day cached stock — so buying the card discounts the rest of
         the shelf the moment you own it, without re-rolling the offered items."""
         if has_relic("fixer_card"):
-            return int(round(base * 0.75))
+            return int(round(base * 0.75 / 50.0)) * 50
         return base
 
     def build_relic_shop_offers(n=3):

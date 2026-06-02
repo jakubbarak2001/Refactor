@@ -334,8 +334,10 @@ init python:
         }.get(player_class, "#888888")
 
     def adjusted_cost(base):
-        """Apply the active difficulty's purchase multiplier to a base cost."""
-        return int(base * diff_setting("purchase_mult", 1.0))
+        """Apply the active difficulty's purchase multiplier, rounded to a clean
+        multiple of 50. (Float math lands 11000*1.15 on 12649.999..., and a bare
+        int() floors that to an ugly 12,649 instead of 12,650.)"""
+        return int(round(base * diff_setting("purchase_mult", 1.0) / 50.0)) * 50
 
     def hatred_cap():
         """Police-hatred breakdown threshold. Bodybuilder runs hotter — the
