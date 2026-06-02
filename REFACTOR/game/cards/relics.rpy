@@ -28,7 +28,8 @@ init python:
     RELIC_LIBRARY = {}
 
     def register_relic(rid, name="", flavor="", archetype="generic",
-                       rarity="common", hook="", art=None, shop_price=None):
+                       rarity="common", hook="", art=None, shop_price=None,
+                       class_lock=None):
         RELIC_LIBRARY[rid] = {
             "id": rid,
             "name": name,
@@ -38,6 +39,7 @@ init python:
             "hook": hook,             ## one-line mechanic text (UI)
             "art": art or "images/relics/{}.png".format(rid),
             "shop_price": shop_price, ## per-relic override; None = rarity price
+            "class_lock": class_lock, ## None = neutral (all classes); else a class id
         }
 
     def has_relic(rid):
@@ -170,6 +172,7 @@ init python:
         "gym_keycard",
         name="24/7 Gym Keycard",
         archetype="iron", rarity="uncommon",
+        class_lock="bodybuilder",
         hook="SOMA grants block every 2 stacks instead of 3.",
         flavor="The night desk stopped checking the photo years ago.",
     )
@@ -186,6 +189,7 @@ init python:
         "the_dartboard",
         name="Office Dartboard",
         archetype="wrath", rarity="common",
+        class_lock="bodybuilder",
         hook="Whenever you gain Hatred in a fight, gain 2 block.",
         flavor="Regulation-issue, break-room corner. You know the wall behind it by heart.",
     )
@@ -193,6 +197,7 @@ init python:
         "brass_knuckles",
         name="Brass Knuckles (Evidence)",
         archetype="wrath", rarity="uncommon",
+        class_lock="bodybuilder",
         hook="Whenever you gain Hatred in a fight, deal 3 damage to the enemy.",
         flavor="Logged, bagged, never filed. The drawer doesn't close all the way.",
     )
@@ -200,6 +205,7 @@ init python:
         "colonel_mugshot",
         name="Colonel's Mugshot",
         archetype="wrath", rarity="uncommon",
+        class_lock="bodybuilder",
         hook="Start each fight with +5 Hatred.",
         flavor="Pinned to the dartboard. You stopped throwing darts. You just look.",
     )
@@ -207,6 +213,7 @@ init python:
         "confiscated_vial",
         name="Confiscated Vial (Evidence)",
         archetype="wrath", rarity="rare",
+        class_lock="bodybuilder",
         hook="Start each fight with +6 Hatred. Every Hatred gain also deals 3 damage and gains 2 block.",
         flavor="Seized off a kid in Most. Never logged. The label's worn to nothing; the contents aren't.",
     )
@@ -340,11 +347,23 @@ init python:
             return {"common": 2, "uncommon": 3, "rare": 2}
         return {"common": 4, "uncommon": 2, "rare": 1}
 
+    def _relic_pool_eligible(rid):
+        """Filter for the random-drop and shop offer pools: a class-locked relic
+        is only eligible for its own class (mirrors cards' _ladder_pool_eligible).
+        Explicit grant_relic() does NOT use this — scripted/event grants can
+        still force any relic onto any class."""
+        _lock = RELIC_LIBRARY.get(rid, {}).get("class_lock")
+        if _lock:
+            _pc = stats.player_class if stats is not None else None
+            if _lock != _pc:
+                return False
+        return True
+
     def random_unowned_relic(weights=None):
         """A random relic id the player doesn't own yet, or None if they own
         them all. With `weights` ({rarity: int}), bias the roll by rarity."""
         _owned = set(getattr(store, "player_relics", None) or [])
-        _pool = [rid for rid in RELIC_LIBRARY if rid not in _owned]
+        _pool = [rid for rid in RELIC_LIBRARY if rid not in _owned and _relic_pool_eligible(rid)]
         if not _pool:
             return None
         _rand = __import__("random")
@@ -375,7 +394,7 @@ init python:
         through adjusted_cost so difficulty purchase_mult applies (parity with
         gym / coding / bootcamp spending)."""
         _owned = set(getattr(store, "player_relics", None) or [])
-        _pool = [rid for rid in RELIC_LIBRARY if rid not in _owned]
+        _pool = [rid for rid in RELIC_LIBRARY if rid not in _owned and _relic_pool_eligible(rid)]
         __import__("random").shuffle(_pool)
         offers = []
         for rid in _pool[:n]:
