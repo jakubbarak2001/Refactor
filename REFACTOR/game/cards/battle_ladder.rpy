@@ -279,6 +279,11 @@ screen encounter_choice(enemy_id, tier="medium", can_flee=True):
             _enc_flee_parts.append("+{} Max HP".format(_enc_fe["max_hp"]))
         _enc_flee_parts.append("forfeit the rewards")
         _enc_flee_sub = " · ".join(_enc_flee_parts)
+        ## Bribe-style flees (a CZK penalty) require the cash up front — you can't
+        ## bribe Internal Affairs or the Colonel's Guard with an empty wallet.
+        _enc_flee_afford = (_enc_fe["penalty"] <= 0) or (stats is not None and stats.available_money >= _enc_fe["penalty"])
+        if not _enc_flee_afford:
+            _enc_flee_sub = "Need {:,} CZK to make this offer — you don't have it.".format(_enc_fe["penalty"])
 
     add "#0a0a0a"
     if renpy.loadable(_enc_bg):
@@ -345,19 +350,21 @@ screen encounter_choice(enemy_id, tier="medium", can_flee=True):
                 xysize (560, 96)
                 background Frame(Solid("#102a18"), 4, 4)
                 hover_background Frame(Solid("#1d5230"), 4, 4)
+                insensitive_background Frame(Solid("#1a1310"), 4, 4)
+                sensitive _enc_flee_afford
                 action Return("flee")
                 vbox:
                     yalign 0.5
                     xfill True
                     text "[_enc_flee_label]":
                         xalign 0.5
-                        color "#6fdd92"
+                        color ("#6fdd92" if _enc_flee_afford else "#6a5a4a")
                         size 32
                         bold True
                         font "fonts/RobotoMono-Regular.ttf"
                     text "[_enc_flee_sub]":
                         xalign 0.5
-                        color "#9ac0a6"
+                        color ("#9ac0a6" if _enc_flee_afford else "#b06a55")
                         size 16
                         font "fonts/RobotoMono-Regular.ttf"
 
@@ -402,7 +409,10 @@ label battle_with(enemy_id, tier):
             if _fe["hatred_cost"] > 0:
                 _flee_parts.append("+ {} Hatred".format(_fe["hatred_cost"]))
             if _fe["penalty"] > 0:
-                stats.increment_stats_value_money(-_fe["penalty"])
+                ## try_spend_money (not a raw subtract) so a bribe can never push
+                ## the wallet negative — the encounter screen already gates the
+                ## flee button on affordability, this is the belt-and-suspenders.
+                stats.try_spend_money(_fe["penalty"])
                 _flee_parts.append("- {:,} CZK".format(_fe["penalty"]))
             if _fe["income"] > 0:
                 store._passive_daily_income = getattr(store, '_passive_daily_income', 0) + _fe["income"]
