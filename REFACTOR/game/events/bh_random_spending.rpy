@@ -253,7 +253,7 @@ label bh_spend_hrv_battery:
         ## quantified-self at scale. Same flavor pattern as BACOPA.
         "Sleep without it. (Coding 100+: you've learned to read recovery without the data — no penalty)" if stats.coding_skill >= 100:
             "You leave the strap on the desk. You wake up and rate your recovery 7/10 before checking anything."
-            "Later you put the battery in just to verify. Sleep score: 71. You were within 1%."
+            "Later you put the battery in just to verify. Sleep score: 71. You were within 1%%."
             window hide
             show screen outcome_panel("No change. You don't need the strap anymore. You'll keep wearing it anyway.")
             pause

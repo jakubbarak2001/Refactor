@@ -678,17 +678,19 @@ transform activity_hover_lift:
 
 ## Default glyph per activity title — keeps the icon zone meaningful without
 ## requiring every call site to pass an art_glyph. Falls through to ★.
+## Glyphs restricted to the safe set RobotoMono actually renders (verified
+## against its cmap) — emoji and dingbats like 🏋/❋/☏/☾/✂ render as tofu/'?'.
 default _ACT_DEFAULT_GLYPHS = {
-    "GYM": "🏋",
+    "GYM": "≡",
     "COLD READ": "◊",
-    "RECOVERY": "❋",
+    "RECOVERY": "+",
     "BOUNCER": "$",
     "CODING": "</>",
     "OVERTIME": "◐",
-    "PHONE": "☏",
-    "SLEEP": "☾",
-    "REST": "❋",
-    "VISIT FIXER": "✂",
+    "PHONE": "@",
+    "SLEEP": "~",
+    "REST": "~",
+    "VISIT FIXER": "×",
 }
 
 screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effect_chips=None, locked=False, lock_text="", class_relevant=False, flavor_text="", art_glyph="", cost_unaffordable=False, stat_lines=None):
@@ -710,7 +712,7 @@ screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effe
             _at_title_color   = "#e8e0d0"
             _at_glyph_color   = accent
             _at_border_color  = accent
-        _at_glyph = art_glyph or _ACT_DEFAULT_GLYPHS.get(title, "★")
+        _at_glyph = art_glyph or _ACT_DEFAULT_GLYPHS.get(title, "◆")
         ## Cost line color — red preempts the click when funds are short.
         if locked:
             _at_cost_color = "#3a3a3a"
@@ -1263,7 +1265,7 @@ screen daily_hub_screen():
                 spacing 8
                 xfill True
 
-                textbutton ("FIXER · DONE" if _fixer_done else "✂  FIXER"):
+                textbutton ("FIXER · DONE" if _fixer_done else "× FIXER"):
                     xalign 0.5
                     action Jump("activity_fixer")
                     sensitive (not _fixer_done)
@@ -2408,9 +2410,10 @@ screen fixer_removal_screen(entries, price, next_price):
             "compromise": "#5a5550",
             "status":     "#8a7a2a",
         }
+        ## Safe glyphs only (RobotoMono has no emoji — they render as '?').
         _CORRUPTION_GLYPH = {
-            "rage":       "🔥 ",
-            "compromise": "🚫 ",
+            "rage":       "† ",
+            "compromise": "× ",
             "status":     "☠ ",
         }
         _f_affordable = (stats.available_money >= price)
@@ -3319,11 +3322,11 @@ screen card_acquired_toast(card):
         _ct_is_compromise = bool(card.get("is_compromise"))
         if _ct_is_rage:
             _ct_color = "#ff3322"
-            _ct_header = "🔥 RAGE FORCED"
+            _ct_header = "† RAGE FORCED"
             _ct_bg = "#1a0a0aff"
         elif _ct_is_compromise:
             _ct_color = "#a09890"
-            _ct_header = "🚫 COMPROMISE LANDED"
+            _ct_header = "× COMPROMISE LANDED"
             _ct_bg = "#0d0d0aff"
         else:
             _ct_color = card_type_color(card, "frame")
@@ -3395,7 +3398,7 @@ screen achievement_toast(ach_name, ach_desc):
 
             hbox:
                 spacing 10
-                text "★":
+                text "◆":
                     color "#ffdd00"
                     size 18
                 text "ACHIEVEMENT UNLOCKED":

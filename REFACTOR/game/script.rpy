@@ -646,7 +646,7 @@ label activity_recovery:
                 "accent":         _bh_accent,
                 "cost_text":      "FREE",
                 "class_relevant": True,
-                "art_glyph":      "❉",
+                "art_glyph":      "~",
                 "stat_lines": [
                     ("BATTLE BONUS", "All heals +50%"),
                     ("HP",           "+20 (max +5)"),
@@ -659,7 +659,7 @@ label activity_recovery:
                 "accent":         _bh_accent,
                 "cost_text":      "FREE",
                 "class_relevant": True,
-                "art_glyph":      "◯",
+                "art_glyph":      "○",
                 "stat_lines": [
                     ("BATTLE BONUS", "+1 max energy"),
                     ("HP",           "+10"),
@@ -672,7 +672,7 @@ label activity_recovery:
                 "accent":         _bh_accent,
                 "cost_text":      "FREE",
                 "class_relevant": True,
-                "art_glyph":      "❅",
+                "art_glyph":      "*",
                 "stat_lines": [
                     ("BATTLE BONUS", "+12 starting block"),
                     ("HP",           "+25 (max +10)"),
@@ -685,7 +685,7 @@ label activity_recovery:
                 "accent":         _bh_accent,
                 "cost_text":      "FREE",
                 "class_relevant": True,
-                "art_glyph":      "❂",
+                "art_glyph":      "●",
                 "stat_lines": [
                     ("BATTLE BONUS", "+2 HP/turn regen"),
                     ("HP",           "+15 (max +5)"),
@@ -1504,7 +1504,7 @@ label activity_nootropics:
     python:
         _dep_warning = ""
         if nootropic_dependency:
-            _dep_warning = "\n\n[DEPENDENCY ACTIVE] — Skipping a dose costs -20 Coding, +20 Hatred."
+            _dep_warning = "\n\n[DEPENDENCY ACTIVE] — Skipping a dose costs -8 Coding, +10 Hatred."
 
         ## 4-tile lineup: T1 LEGAL / T2 SHADY / T3 LAB / T4 BLACK MARKET.
         ## (Slots 2 and 4 in NOOTROPIC_TIERS remain as legacy data for

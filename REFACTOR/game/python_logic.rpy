@@ -402,7 +402,7 @@ init python:
             return {}
         marks = {
             14: ("SALARY",   "#ffd700"),
-            24: ("MARTIN",   "#33aacc"),
+            25: ("MARTIN",   "#33aacc"),
         }
         ## Colonel day depends on Martin Meeting timing choice
         marks[stats.colonel_day] = ("COLONEL", "#cc2200")

@@ -803,10 +803,12 @@ init python:
         if enemy_id == "colonel":
             bs.enemy_max_hp = 300
             ## Event hook — KEEP branch of ev_colonel_regards: he wore the
-            ## gift, now he's stronger for it. +40 max HP at the boss only.
+            ## gift, now he's stronger for it. +50 max HP at the boss only
+            ## (matches the +50 stated on the event, the card flavor, and the
+            ## init_game comment — the Faustian cost the player was promised).
             if getattr(store, '_colonel_gift_taken', False):
-                bs.enemy_max_hp += 40
-                bs.add_log("[[Setup]: the Colonel's gift returns with him. +40 HP.")
+                bs.enemy_max_hp += 50
+                bs.add_log("[[Setup]: the Colonel's gift returns with him. +50 HP.")
             ## Day-25-vs-30 (martin_phase7) changes the FIGHT, not just timing.
             ## Strike early (Day 25): caught mid-stride, he improvises slower —
             ## enrage +2/round, not +3. Wait (Day 30): he used the same month to
@@ -1199,18 +1201,6 @@ init python:
             bs.exhaust(card_id)
         else:
             bs.discard(card_id)
-
-        ## Apply double_next_attack buff (Personal Record)
-        if c.get("type") == "Attack" and bs.buffs.get("double_next_attack"):
-            bs.buffs["double_next_attack"] = False
-            ## The attack already resolved at base damage; apply the doubling as bonus
-            eff_id = c.get("effect")
-            if eff_id and eff_id in card_effects:
-                try:
-                    card_effects[eff_id](bs, "player", "enemy")
-                except Exception:
-                    pass
-            bs.add_log("Personal Record: doubled.")
 
         ## Chalk Bag (relic) — the FIRST Attack each fight lands twice (per-fight
         ## latch, never reset per turn). Re-resolves the effect like Personal

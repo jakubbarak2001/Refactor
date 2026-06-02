@@ -222,7 +222,7 @@ label ev_the_smell:
             {
                 "id": "open",
                 "label": "[ OPEN THE DOOR ]",
-                "desc": ek("A gamble.") + "  " + eg("Best case: - 6 Hatred.") + "  " + ec("Worst: + 18 Hatred, gain a card.") + "  Even odds.",
+                "desc": ek("A gamble.") + "  " + eg("Best case: - 6 Hatred.") + "  " + ec("Worst: + 18 Hatred, gain a card.") + "  Even odds.",  ## roll <= 50 below = truly even
             },
             {
                 "id": "seal",
@@ -246,7 +246,7 @@ label ev_the_smell:
     if _sm_pick == "open":
         python:
             _sm_roll = __import__('random').randint(1, 100)
-        if _sm_roll <= 55:
+        if _sm_roll <= 50:
             python:
                 stats.increment_stats_pcr_hatred(-6)
                 _sm_res = [
@@ -514,8 +514,8 @@ label ev_lost_and_found:
 
 ## ---------------------------------------------------------------------------
 ## THE COLONEL SENDS HIS REGARDS [surreal] — a Faustian deal. KEEP grants
-## Colonel's Gift (1E / 16 dmg) AND adds +50 HP to the Colonel at the boss.
-## BURN: -10 HP, grant Ashes (0E / 8 dmg / exhaust). RETURN: 7,000 CZK, -15
+## Colonel's Gift (1E / 14 dmg, -2 HP) AND adds +50 HP to the Colonel at the
+## boss. BURN: -10 HP, grant Ashes (0E / 6 dmg / exhaust). RETURN: 7,000 CZK, -15
 ## Hatred. Only KEEP touches day 30; the other two are refusals at cost.
 ## ---------------------------------------------------------------------------
 

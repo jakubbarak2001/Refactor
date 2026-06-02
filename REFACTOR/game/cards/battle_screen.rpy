@@ -552,10 +552,10 @@ screen battle_help():
                 text "The icon above the enemy's head shows what they'll do next turn:":
                     color "#cccccc"
                     size 14
-                text "  🗡 ATTACK — deals N damage   ⚔ COMPOUND — N×hits damage   🛡 BLOCK — gains block":
+                text "  † ATTACK — deals N damage   † COMPOUND — N×hits damage   ◆ BLOCK — gains block":
                     color "#aaaaaa"
                     size 13
-                text "  ↑ BUFF — next attack +N dmg   🃏↓ DEBUFF — -N draw next turn   ⚡↓ DEBUFF — -N energy next turn":
+                text "  ↑ BUFF — next attack +N dmg   ↓ DEBUFF — -N draw next turn   ↓ DEBUFF — -N energy next turn":
                     color "#aaaaaa"
                     size 13
 
@@ -698,7 +698,7 @@ screen battle_pile_peek():
                                     $ _c_vtype = card_visual_type(_c)
                                     $ _ccol = card_type_color(_c, "frame")
                                     if _c_vtype == "Curse":
-                                        $ _c_prefix = "🚫 " if _c.get("is_compromise") else "🔥 "
+                                        $ _c_prefix = "× " if _c.get("is_compromise") else "† "
                                         $ _c_name_color = "#a09890" if _c.get("is_compromise") else "#ff8866"
                                     elif _c_vtype == "Status":
                                         $ _c_prefix = "☠ "
@@ -908,9 +908,11 @@ screen battle_card_view(cid, mode="hand", playable=True):
         if not _has_art and cid.endswith("_plus"):
             _art_path = "images/cards/{}.png".format(cid[:-5])
             _has_art = renpy.loadable(_art_path)
+        ## Safe-glyph fallback (RobotoMono ships no emoji — ⚔/✦/★ render as
+        ## tofu). Only used until a card's illustration exists.
         _art_glyph = _card.get("art_glyph") or {
-            "Attack": "⚔", "Skill": "✦", "Power": "★",
-            "Curse":  "🚫", "Status": "☠",
+            "Attack": "†", "Skill": "◊", "Power": "◆",
+            "Curse":  "×", "Status": "☠",
         }.get(_vtype, "●")
 
         _name_text = _card.get("name", cid)
@@ -1212,7 +1214,7 @@ screen battle_screen():
                     ## Permanent Strength badge — flags the ramp boss intent.
                     ## Reads "STR +N" in red-orange, only visible when stacked.
                     if bs.enemy_strength > 0:
-                        text "💪 +[bs.enemy_strength]":
+                        text "STR +[bs.enemy_strength]":
                             color "#ff8822"
                             size 18
                             bold True
@@ -1238,7 +1240,7 @@ screen battle_screen():
                                 _crew_color = "#886655"
                                 _crew_hover_bg = Frame("#1a0a05cc", 4, 4)
                                 _crew_tip = "Crew Rage: attacks gain +{} damage per hit at or below {} HP.".format(_crew_bonus, _crew_thr_hp)
-                        textbutton "🔥 RAGE":
+                        textbutton "† RAGE":
                             action NullAction()
                             tooltip _crew_tip
                             text_color _crew_color
@@ -1266,7 +1268,7 @@ screen battle_screen():
                             else:
                                 _buyin_color = "#887766"
                             _buyin_tip = "Buy-In {}: Margin Call deals +{} damage. Breaking his Sebejistota block drops it by {}.".format(_buyin, _buyin * _buyin_per, _buyin_drop)
-                        textbutton "📈 BUY-IN [_buyin]":
+                        textbutton "↑ BUY-IN [_buyin]":
                             action NullAction()
                             tooltip _buyin_tip
                             text_color _buyin_color
@@ -1281,9 +1283,9 @@ screen battle_screen():
                 ## ── INTENT INFOGRAPHICS ───────────────────────────────────────
                 ## Each peeked intent renders as a small icon+value panel with
                 ## the intent name in italic gray below. Type → glyph + color:
-                ##   attack       🗡 <dmg>             red       (+N if bonus queued)
-                ##   compound     ⚔ <val>×<hits>      red
-                ##   block        🛡 <block>          blue
+                ##   attack       † <dmg>             red       (+N if bonus queued)
+                ##   compound     † <val>×<hits>      red
+                ##   block        ◆ <block>          blue
                 ##   buff         ↑ +N dmg next       orange    (enemy_attack_bonus stack)
                 ##   debuff/draw  🃏↓ -N draw         purple
                 ##   debuff/nrg   ⚡↓ -N energy       purple
@@ -1348,7 +1350,7 @@ screen battle_screen():
                                     _is_current = (_i == 0)
 
                                     if _itype == "attack":
-                                        _icon = "🗡"
+                                        _icon = "†"
                                         _ic_color = "#ff4422"
                                         ## Engine: base - next_attack_reduction (floor 1)
                                         ## then + flat bonuses. Mirror exactly so a
@@ -1371,7 +1373,7 @@ screen battle_screen():
                                         _val_text = "{}".format(_base)
                                         _dmg_for_threat = _base
                                     elif _itype == "compound":
-                                        _icon = "⚔"
+                                        _icon = "†"
                                         _ic_color = "#ff6644"
                                         _raw = _intent.get("value", 0)
                                         _hits = _intent.get("value2", 1)
@@ -1383,7 +1385,7 @@ screen battle_screen():
                                         _val_text = "{}×{}".format(_per_hit, _hits)
                                         _dmg_for_threat = _per_hit * _hits
                                     elif _itype == "block":
-                                        _icon = "🛡"
+                                        _icon = "◆"
                                         _ic_color = "#88aaff"
                                         _val_text = "{}".format(_intent.get("value", 0))
                                         _dmg_for_threat = 0
@@ -1395,13 +1397,13 @@ screen battle_screen():
                                     elif _itype == "strength":
                                         ## Permanent attack bump for the rest of the fight.
                                         ## Red-orange to read as "more dangerous over time."
-                                        _icon = "💪"
+                                        _icon = "↑"
                                         _ic_color = "#ff8822"
                                         _val_text = "+{} STR".format(_intent.get("value", 0))
                                         _dmg_for_threat = 0
                                     elif _itype == "restrict":
                                         ## Card-play cap on your next turn — purple, sharp glyph.
-                                        _icon = "🚫"
+                                        _icon = "◊"
                                         _ic_color = "#cc44cc"
                                         _val_text = "Max {} card(s)".format(_intent.get("value", 1))
                                         _dmg_for_threat = 0
@@ -1409,21 +1411,21 @@ screen battle_screen():
                                         _ic_color = "#aa44cc"
                                         _dkey = _intent.get("debuff_key", "player_draw_penalty")
                                         if _dkey == "max_energy_penalty_next_turn":
-                                            _icon = "⚡↓"
+                                            _icon = "↓"
                                             _val_text = "-{} energy".format(_intent.get("value", 1))
                                         else:
-                                            _icon = "🃏↓"
+                                            _icon = "↓"
                                             _val_text = "-{} draw".format(_intent.get("value", 1))
                                         _dmg_for_threat = 0
                                     elif _itype == "moneydrain":
                                         ## Vlk Buy-In — drains run money, not HP.
-                                        _icon = "💸"
+                                        _icon = "↓"
                                         _ic_color = "#cc66cc"
                                         _val_text = "-{} Kč".format(_intent.get("value", 0))
                                         _dmg_for_threat = 0
                                     elif _itype == "dividend":
                                         ## Vlk Dividend — heals you. The bait.
-                                        _icon = "🎁"
+                                        _icon = "↑"
                                         _ic_color = "#66cc88"
                                         _val_text = "+{} HP".format(_intent.get("value", 0))
                                         _dmg_for_threat = 0
@@ -1606,7 +1608,7 @@ screen battle_screen():
                 ## matters most.
                 if bs.current_turn_max_cards is not None:
                     $ _restrict_left = max(0, bs.current_turn_max_cards - bs.cards_played_this_turn)
-                    text "🚫 RESTRICTED: [_restrict_left]/[bs.current_turn_max_cards] cards":
+                    text "× RESTRICTED: [_restrict_left]/[bs.current_turn_max_cards] cards":
                         color ("#ff5555" if _restrict_left == 0 else "#cc44cc")
                         size 16
                         bold True
@@ -1630,39 +1632,53 @@ screen battle_screen():
                         "sprejeri_tags",
                         "thick_skull_used",
                     }
+                    ## Glyphs are restricted to the safe set RobotoMono actually
+                    ## ships (verified against its cmap): ◆ ◊ ↑ ↓ † + × · ○ ▼ —
+                    ## NO astral-plane emoji (they render as tofu/'?' in-game per
+                    ## the recurring render bug). Visual grammar:
+                    ##   ◆ block/defense   ◊ damage-reduction/reflect/special
+                    ##   † offense/retaliate/bleed   ↑ rising   ↓ falling
+                    ##   + heal/draw   × restriction   · transient counter/timer
                     _BUFF_ICONS = {
-                        "starting_block_+1":           "🛡",
-                        "stoic_anchor_block":          "🛡",
-                        "stoic_anchor_heal":           "❤",
-                        "soma_starting_block":         "💪",
-                        "presence_charges":            "🛡",
-                        "read_charges":                "👁",
-                        "kick_charges":                "🃏",
-                        "mental_dr_50":                "🧠",
-                        "special_dr_50":               "🧠",
-                        "iron_stance_active":          "⚔",
-                        "single_retaliate_dmg":        "⚔",
-                        "vigil_next_turn_block":       "🛡",
-                        "insight_block":               "🛡",
-                        "insight_turns_left":          "⏳",
-                        "block_next_turn":             "🛡",
-                        "double_next_attack":          "⚡",
-                        "mirror_next":                 "🪞",
-                        "mirror_cooldown":             "⏳",
-                        "reframe_next":                "🔄",
-                        "next_attack_reduction":       "🛡",
-                        "bleed_dmg":                   "🩸",
-                        "bleed_turns":                 "⏳",
-                        "crash_next_turn":             "💥",
-                        "max_energy_penalty_next_turn":"⚡",
-                        "skip_next_turn":              "💤",
-                        "cards_cap_next_turn":         "🚫",
-                        "enemy_attack_bonus":          "🔥",
-                        "player_draw_penalty":         "🃏",
-                        "see_red":                     "🔥",
-                        "thick_skull":                 "🛡",
-                        "iron_posture":                "🛡",
-                        "roid_rage":                   "🩸",
+                        "starting_block_+1":           "◆",
+                        "stoic_anchor_block":          "◆",
+                        "stoic_anchor_heal":           "+",
+                        "soma_starting_block":         "◆",
+                        "presence_charges":            "◆",
+                        "read_charges":                "○",
+                        "kick_charges":                "+",
+                        "mental_dr_50":                "◊",
+                        "special_dr_50":               "◊",
+                        "iron_stance_active":          "†",
+                        "single_retaliate_dmg":        "†",
+                        "vigil_next_turn_block":       "◆",
+                        "insight_block":               "◆",
+                        "insight_turns_left":          "·",
+                        "block_next_turn":             "◆",
+                        "mirror_next":                 "◊",
+                        "mirror_cooldown":             "·",
+                        "reframe_next":                "◊",
+                        "next_attack_reduction":       "◊",
+                        "bleed_dmg":                   "†",
+                        "bleed_turns":                 "·",
+                        "crash_next_turn":             "▼",
+                        "max_energy_penalty_next_turn":"▼",
+                        "skip_next_turn":              "▼",
+                        "cards_cap_next_turn":         "×",
+                        "enemy_attack_bonus":          "↑",
+                        "player_draw_penalty":         "↓",
+                        "see_red":                     "↑",
+                        "thick_skull":                 "◆",
+                        "iron_posture":                "◆",
+                        "roid_rage":                   "†",
+                    }
+                    ## Enemy-applied debuffs ON the player — rendered red so the
+                    ## player can tell at a glance what's hurting them vs their
+                    ## own (gold) buffs.
+                    _BUFF_BAD = {
+                        "crash_next_turn", "max_energy_penalty_next_turn",
+                        "skip_next_turn", "cards_cap_next_turn",
+                        "enemy_attack_bonus", "player_draw_penalty",
                     }
                     _BUFF_LABELS = {
                         "starting_block_+1":   "+1 Starting Block",
@@ -1681,7 +1697,6 @@ screen battle_screen():
                         "insight_block":       "Insight",
                         "insight_turns_left":  "Insight (turns)",
                         "block_next_turn":     "Procedural Defense",
-                        "double_next_attack":  "Personal Record",
                         "mirror_next":         "Mirror (armed)",
                         "mirror_cooldown":     "Mirror (cooldown)",
                         "reframe_next":        "Reframe (armed)",
@@ -1709,7 +1724,6 @@ screen battle_screen():
                         "insight_block":        "Insight: gain bonus block at the start of your turn.",
                         "insight_turns_left":   "Insight: {v} more turn(s) of bonus block.",
                         "block_next_turn":      "Procedural Defense: block ALL damage on your next turn.",
-                        "double_next_attack":   "Personal Record: your next Attack card hits twice.",
                         "mirror_next":          "Mirror (armed): reflect the enemy's next attack back at DOUBLE damage instead of taking it.",
                         "mirror_cooldown":      "Mirror: recharging — {v} more turn(s) until it can be armed again.",
                         "reframe_next":         "Reframe (armed): the enemy's next attack becomes block for you instead of damage.",
@@ -1736,9 +1750,10 @@ screen battle_screen():
                         if _k in _BUFF_HIDDEN:
                             continue
                         _label = _BUFF_LABELS.get(_k, _k.replace("_", " ").title())
-                        _icon  = _BUFF_ICONS.get(_k, "✦")
+                        _icon  = _BUFF_ICONS.get(_k, "•")
                         _count = _v if (isinstance(_v, int) and not isinstance(_v, bool) and _v > 1) else None
                         _chip  = "{} {}".format(_icon, _count) if _count is not None else _icon
+                        _chip_color = "#ff6655" if _k in _BUFF_BAD else "#ffdd44"
                         ## Tooltip fallback: when no canonical tip is registered,
                         ## surface the readable label so the player at least sees
                         ## "Something Happening x3" instead of an empty hover.
@@ -1749,17 +1764,17 @@ screen battle_screen():
                                 _tip = _tip.format(v=_vv)
                             except Exception:
                                 _tip = _tip.replace("{v}", str(_vv))
-                        _active_buffs.append((_chip, _tip))
+                        _active_buffs.append((_chip, _tip, _chip_color))
                 if _active_buffs:
                     hbox:
                         spacing 4
                         box_wrap True
                         xmaximum 330
-                        for _chip, _bt in _active_buffs:
+                        for _chip, _bt, _bc in _active_buffs:
                             textbutton _chip:
                                 action NullAction()
                                 tooltip _bt
-                                text_color "#ffdd44"
+                                text_color _bc
                                 text_hover_color "#ffffff"
                                 text_size 18
                                 text_bold True
