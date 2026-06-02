@@ -254,9 +254,8 @@ label colonel_ghost_phase:
 
     scene bg_colonel_ghost with glitch_transition
     show colonel_ghost neutral at char_right with dissolve
-    "The office peels off the walls. The man peels off the office. Underneath, the loop runs on — wearing him like a stolen login, thirty-two years deep."
-
     play music "audio/clockwork_commissar.wav" fadein 1.0
+    "The office peels off the walls. The man peels off the office. Underneath, the loop runs on — wearing him like a stolen login, thirty-two years deep."
 
     python:
         ## Steady before jacking in — the connection holds you up to ~60% so the
