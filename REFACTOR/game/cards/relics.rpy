@@ -581,11 +581,18 @@ init python:
 
     def relic_shop_price(rid):
         _override = RELIC_LIBRARY.get(rid, {}).get("shop_price")
-        _base = _override if _override is not None else RELIC_SHOP_PRICES.get(relic_rarity(rid), 11000)
-        ## The Fixer's Business Card — 15% off everything the Fixer sells.
+        if _override is not None:
+            return _override
+        return RELIC_SHOP_PRICES.get(relic_rarity(rid), 11000)
+
+    def fixer_buy_price(base):
+        """Fixer shop price after the Fixer's Business Card relic (25% off
+        everything he sells). Applied LIVE at display + charge time — NOT baked
+        into the per-day cached stock — so buying the card discounts the rest of
+        the shelf the moment you own it, without re-rolling the offered items."""
         if has_relic("fixer_card"):
-            _base = int(round(_base * 0.85))
-        return _base
+            return int(round(base * 0.75))
+        return base
 
     def build_relic_shop_offers(n=3):
         """Roll up to n unowned relics for the shop, each priced by rarity.

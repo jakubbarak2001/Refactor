@@ -1238,8 +1238,10 @@ label activity_fixer:
 label fixer_shop_loop:
 
     python:
-        _shop_card_stock    = getattr(store, '_fixer_card_stock', []) or []
-        _shop_relic_stock   = getattr(store, '_fixer_relic_stock', []) or []
+        ## Re-price the cached stock LIVE so the Fixer's Business Card (25% off)
+        ## shows the moment you own it — without re-rolling the offered items.
+        _shop_card_stock    = [dict(_o, price=fixer_buy_price(_o["price"])) for _o in (getattr(store, '_fixer_card_stock', None) or [])]
+        _shop_relic_stock   = [dict(_o, price=fixer_buy_price(_o["price"])) for _o in (getattr(store, '_fixer_relic_stock', None) or [])]
         _shop_shred_price   = fixer_current_price()
         _shop_can_shred     = (player_deck is not None) and any(
             _c not in CLASS_SIGNATURE_CARDS for _c in player_deck.cards)
@@ -1261,15 +1263,18 @@ label fixer_shop_loop:
         python:
             _cbuy_offer = next((o for o in store._fixer_card_stock if o["card_id"] == _shop_arg), None)
             _cbuy_ok = False
-            if _cbuy_offer is not None and stats.try_spend_money(_cbuy_offer["price"]):
-                grant_card(_cbuy_offer["card_id"], silent=True)
-                store._fixer_card_stock = [o for o in store._fixer_card_stock if o["card_id"] != _shop_arg]
-                _cbuy_name = CARD_LIBRARY.get(_shop_arg, {}).get("name", _shop_arg)
-                _cbuy_ok = True
+            _cbuy_price = 0
+            if _cbuy_offer is not None:
+                _cbuy_price = fixer_buy_price(_cbuy_offer["price"])
+                if stats.try_spend_money(_cbuy_price):
+                    grant_card(_cbuy_offer["card_id"], silent=True)
+                    store._fixer_card_stock = [o for o in store._fixer_card_stock if o["card_id"] != _shop_arg]
+                    _cbuy_name = CARD_LIBRARY.get(_shop_arg, {}).get("name", _shop_arg)
+                    _cbuy_ok = True
         if _cbuy_ok:
             "'Pleasure.' He slides the card across the table."
             window hide
-            show screen outcome_panel("- {:,} CZK   + {}".format(_cbuy_offer["price"], _cbuy_name))
+            show screen outcome_panel("- {:,} CZK   + {}".format(_cbuy_price, _cbuy_name))
             pause
             hide screen outcome_panel
         jump fixer_shop_loop
@@ -1278,18 +1283,21 @@ label fixer_shop_loop:
         python:
             _rbuy_offer = next((o for o in store._fixer_relic_stock if o["relic_id"] == _shop_arg), None)
             _rbuy_ok = False
-            if _rbuy_offer is not None and not has_relic(_shop_arg) and stats.try_spend_money(_rbuy_offer["price"]):
-                grant_relic(_shop_arg, silent=True)
-                store._fixer_relic_stock = [o for o in store._fixer_relic_stock if o["relic_id"] != _shop_arg]
-                _rbuy_meta = RELIC_LIBRARY.get(_shop_arg, {})
-                _rbuy_name = _rbuy_meta.get("name", _shop_arg)
-                _rbuy_hook = _rbuy_meta.get("hook", "")
-                _rbuy_ok = True
+            _rbuy_price = 0
+            if _rbuy_offer is not None and not has_relic(_shop_arg):
+                _rbuy_price = fixer_buy_price(_rbuy_offer["price"])
+                if stats.try_spend_money(_rbuy_price):
+                    grant_relic(_shop_arg, silent=True)
+                    store._fixer_relic_stock = [o for o in store._fixer_relic_stock if o["relic_id"] != _shop_arg]
+                    _rbuy_meta = RELIC_LIBRARY.get(_shop_arg, {})
+                    _rbuy_name = _rbuy_meta.get("name", _shop_arg)
+                    _rbuy_hook = _rbuy_meta.get("hook", "")
+                    _rbuy_ok = True
         if _rbuy_ok:
             "He lifts it off the table like it's nothing. To you it isn't."
             "[_rbuy_name] — [_rbuy_hook]"
             window hide
-            show screen outcome_panel("- {:,} CZK   + {}".format(_rbuy_offer["price"], _rbuy_name))
+            show screen outcome_panel("- {:,} CZK   + {}".format(_rbuy_price, _rbuy_name))
             pause
             hide screen outcome_panel
         jump fixer_shop_loop
