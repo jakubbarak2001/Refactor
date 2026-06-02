@@ -221,8 +221,24 @@ label day_start:
     if current_day == 14:
         call salary_day from _call_salary_day_daystart
 
-    # if current_day == 15:
-    #     call midnight_call from _call_midnight_call_daystart
+    ## Day 16 — THE MIDNIGHT CALL. The ARC II Colonel interlude (a 2AM phone
+    ## call): a second Colonel touchpoint before day 30. On day 16 (not a
+    ## LADDER_EVENT_DAY) so a battle/event slot can't swallow it. Unlocks the
+    ## "dark_night" achievement, previously unobtainable.
+    if current_day == 16:
+        call midnight_call from _call_midnight_call_daystart
+
+    ## BB "The Trainer" arc (Iron Garden) — additive day_start interludes on
+    ## days 7/13/19, gated to the bodybuilder class + the prior arc stage, so
+    ## they layer on top of the day WITHOUT consuming the random-event battle
+    ## slots. class_arc_pre_colonel_check flushes any stage still pending.
+    if stats.player_class == "bodybuilder":
+        if current_day == 7 and getattr(store, 'bb_arc_stage', 0) == 0:
+            call bb_trainer_eye from _call_bb_trainer_eye
+        elif current_day == 13 and getattr(store, 'bb_arc_stage', 0) == 1:
+            call bb_trainer_meet from _call_bb_trainer_meet
+        elif current_day == 19 and getattr(store, 'bb_arc_stage', 0) == 2:
+            call bb_trainer_platform from _call_bb_trainer_platform
 
     ## Battle ladder / random events:
     ## - Regular cadence: days 3, 6, 9, 12, 15, 18, 21
@@ -2122,9 +2138,13 @@ label random_event_check:
 
     python:
         _chosen_event = None
-        if _slot_kind == "event" and store.random_event_pool:
-            _chosen_event = __import__('random').choice(store.random_event_pool)
-            store.random_event_pool.remove(_chosen_event)
+        if _slot_kind == "event":
+            ## Prefer an unseen ARC-banded marquee event; if every marquee has
+            ## been seen this run, fall back to a recurring texture beat so the
+            ## slot is never dead air.
+            _chosen_event = _draw_marquee_event(day_cycle.current_day)
+            if not _chosen_event:
+                _chosen_event = _draw_recurring_event(day_cycle.current_day)
 
     if _chosen_event:
         call expression _chosen_event from _call_random_event_pool_choice

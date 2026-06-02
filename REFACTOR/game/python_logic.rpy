@@ -585,7 +585,8 @@ init python:
         ## Per-day Nootropics Lab gate — one dose OR one research session per day.
         ## Reset in do_end_day, blocks re-entry in activity_nootropics.
         store.nootropics_done_today = False
-        ## Class-arc multi-stage flags (Kovář / Telegram)
+        ## Class-arc multi-stage flags (BB Trainer / DE Kovář / BH Telegram)
+        store.bb_arc_stage = 0
         store.de_arc_stage = 0
         store.bh_arc_stage = 0
         ## Phone notification queue — set-pieces append strings here, PHONE button
@@ -668,6 +669,7 @@ init python:
         "subject_zero":     {"category": "Story",      "name": "Subject Zero",            "desc": "Become the trial. Document everything. Lose your baseline.",     "hint": "Biohacker only — agree to the 21-day compound trial."},
         "profile_master":   {"category": "Collection", "name": "Profile Master",          "desc": "Cold-read all four station targets at least three times each.",  "hint": "Dark Empath only — read every target deeply."},
         "maximum_stack":    {"category": "Collection", "name": "Maximum Stack",           "desc": "Reach SOMA 10/10. The body is the answer.",                      "hint": "Bodybuilder only — go to the gym 10 times."},
+        "iron_platform":    {"category": "Story",      "name": "On The Platform",         "desc": "See the Trainer arc through to the meet and step onto the platform.","hint": "Bodybuilder only — let the coach take you all the way to the meet."},
         "compound_knowledge":{"category":"Collection", "name": "Compound Knowledge",       "desc": "Learn synthesis instead of taking the vial.",                    "hint": "Biohacker only — pick the lesson over the contraband."},
         "wake_up_call":     {"category": "Secret",     "name": "Wake Up Call",            "desc": "Break the Colonel's bureaucracy loop. Step out of the script.","hint": "???"},
         "ghost_in_the_machine":{"category": "Secret",  "name": "Ghost in the Machine",    "desc": "Follow the Colonel into the machine and terminate the process.","hint": "Become enough of a coder to read the loop, not just leave it."},

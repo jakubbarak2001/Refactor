@@ -28,33 +28,98 @@ init python:
         """Keyword span — gold."""
         return "{color=#e8c878}" + s + "{/color}"
 
-    ## ── Shared event pool ─────────────────────────────────────────────────
-    ## The 10 ev_* events live in ONE pool, drained by two channels — the daily
-    ## random_event_check slot and the Overtime activity — with no repeats
-    ## across a run. init_game sets store.random_event_pool = None; this refills
-    ## it on the next access.
+    ## ── ARC-banded event pools ─────────────────────────────────────────────
+    ## Marquee StS events are tagged to an ARC band so the right beat fires at
+    ## the right time:
+    ##   early = ARC I  (the precinct, the body, onboarding-tone gambles)
+    ##   mid   = ARC II (the tech pull, deal-making, deck-craft)
+    ##   late  = ARC III (the Colonel closing in, the escape on the line)
+    ## The pool is a dict band -> [ids], drained with no repeats; the daily slot
+    ## and the Overtime activity both draw from it. init_game sets
+    ## store.random_event_pool = None; this refills it on next access.
+    EVENT_BANDS = {
+        "ev_the_vending_machine": "early",
+        "ev_pills":               "early",
+        "ev_the_smell":           "early",
+        "ev_synthol_brothers":    "early",   ## BB-only (class-gated below)
+        "ev_designer_of_forms":   "mid",
+        "ev_lost_and_found":      "mid",
+        "ev_uniform_collector":   "mid",
+        "ev_photocopier":         "mid",
+        "ev_karaoke":             "mid",
+        "ev_bh_acd856_offer":     "mid",     ## BH-only (class-gated below)
+        "ev_the_interview":       "late",
+        "ev_colonel_regards":     "late",
+    }
 
-    ## Events temporarily pulled from rotation (labels kept intact for
-    ## fine-tuning). Filtered out at pool build AND scrubbed from an already-
-    ## cached pool, so an in-progress run stops drawing them too.
-    _HIDDEN_EVENTS = {"ev_the_smell", "ev_karaoke", "ev_photocopier"}
+    ## Recurring "station texture" beats — short, low-stakes, and NOT drained,
+    ## so the world keeps breathing between the marquee events. Fired as the
+    ## fallback whenever an event slot has no marquee event queued.
+    RECURRING_EVENTS = ["evr_the_briefing", "evr_coffee_machine", "evr_locker_room", "evr_bad_call"]
+
+    ## Days that force a narrative beat even if ladder fights remain — so the
+    ## ARC-banded marquee events reliably surface (battles otherwise pre-empt
+    ## them, per roll_ladder_or_event). One early + one late slot; the BB arc
+    ## (class_arc_check) owns days 6/15/21, the act bosses own 24/colonel.
+    EVENT_GUARANTEE_DAYS = {9, 18}
+
+    _BAND_FALLBACK = {
+        "early": ["early", "mid", "late"],
+        "mid":   ["mid", "early", "late"],
+        "late":  ["late", "mid", "early"],
+    }
+
+    def _arc_band(day):
+        return {"easy": "early", "medium": "mid", "hard": "late"}.get(_battle_ladder_band(day), "mid")
 
     def _ensure_random_event_pool():
         if getattr(store, 'random_event_pool', None) is None:
-            _pool = [
-                "ev_the_vending_machine", "ev_designer_of_forms",
-                "ev_lost_and_found", "ev_colonel_regards", "ev_pills",
-                "ev_uniform_collector", "ev_the_interview",
-            ]
-            if stats is not None and stats.player_class == "bodybuilder":
-                _pool.append("ev_synthol_brothers")
-            if stats is not None and stats.player_class == "biohacker":
-                _pool.append("ev_bh_acd856_offer")
+            _pool = {"early": [], "mid": [], "late": []}
+            _is_bb = (stats is not None and stats.player_class == "bodybuilder")
+            _is_bh = (stats is not None and stats.player_class == "biohacker")
+            for _eid, _band in EVENT_BANDS.items():
+                if _eid == "ev_synthol_brothers" and not _is_bb:
+                    continue
+                if _eid == "ev_bh_acd856_offer" and not _is_bh:
+                    continue
+                _pool[_band].append(_eid)
             store.random_event_pool = _pool
-        ## Scrub hidden events from the live pool — covers a run whose pool was
-        ## cached before an event was hidden (the cache is per-run, built once).
-        if getattr(store, 'random_event_pool', None):
-            store.random_event_pool = [e for e in store.random_event_pool if e not in _HIDDEN_EVENTS]
+        ## Back-compat: an in-progress save built before the banded rework holds
+        ## a flat list — rebuild it into the banded dict.
+        if isinstance(getattr(store, 'random_event_pool', None), list):
+            store.random_event_pool = None
+            _ensure_random_event_pool()
+
+    def _marquee_events_left():
+        _ensure_random_event_pool()
+        p = store.random_event_pool
+        return sum(len(p.get(b, [])) for b in ("early", "mid", "late")) > 0
+
+    def _draw_marquee_event(day):
+        """Pick + remove one marquee event for `day`, preferring the day's arc
+        band and falling back to adjacent bands. Returns the id, or None when
+        every marquee event has been seen this run."""
+        import random as _r
+        _ensure_random_event_pool()
+        p = store.random_event_pool
+        for b in _BAND_FALLBACK.get(_arc_band(day), ["early", "mid", "late"]):
+            if p.get(b):
+                eid = _r.choice(p[b])
+                p[b].remove(eid)
+                return eid
+        return None
+
+    def _draw_recurring_event(day):
+        """Pick a recurring texture event (NOT removed — they recur). Avoids
+        repeating the immediately-previous one when possible."""
+        import random as _r
+        _last = getattr(store, '_last_recurring_event', None)
+        pool = [e for e in RECURRING_EVENTS if e != _last] or list(RECURRING_EVENTS)
+        if not pool:
+            return None
+        eid = _r.choice(pool)
+        store._last_recurring_event = eid
+        return eid
 
     ## ── Run-HP helpers ────────────────────────────────────────────────────
     ## run_hp is the persistent battle-HP pool. It stays None until the first

@@ -19,16 +19,16 @@
 init python:
 
     def _pick_overtime_event():
-        """Drain one event label from the shared StS-event pool, or None.
+        """Drain one marquee event for the current arc band, or a recurring
+        texture beat once every marquee has been seen.
 
-        Overtime and the daily random-event slot draw from the same pool, so
-        an event seen one way never repeats the other."""
-        import random
+        Overtime and the daily random-event slot share the marquee pool, so a
+        marquee event seen one way never repeats the other."""
         _ensure_random_event_pool()
-        if not store.random_event_pool:
-            return None
-        ev = random.choice(store.random_event_pool)
-        store.random_event_pool.remove(ev)
+        day = day_cycle.current_day if day_cycle is not None else 1
+        ev = _draw_marquee_event(day)
+        if not ev:
+            ev = _draw_recurring_event(day)
         return ev
 
     def _roll_overtime():

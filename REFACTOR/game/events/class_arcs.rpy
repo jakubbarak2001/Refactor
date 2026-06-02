@@ -365,6 +365,9 @@ init python:
 
         d = day_cycle.current_day
         cls = stats.player_class
+        ## BB "The Trainer" arc fires as additive day_start interludes (days
+        ## 7/13/19, see script.rpy) — NOT here — so it doesn't consume the
+        ## random-event battle slots. The pre-colonel flush below still covers it.
         if cls == "dark_empath":
             stage = getattr(store, 'de_arc_stage', 0)
             if stage == 0 and 6 <= d <= 12:
@@ -394,7 +397,13 @@ init python:
         if stats is None:
             return None
         cls = stats.player_class
-        if cls == "dark_empath":
+        if cls == "bodybuilder":
+            stage = getattr(store, 'bb_arc_stage', 0)
+            if stage == 1:
+                return "bb_trainer_meet"
+            if stage == 2:
+                return "bb_trainer_platform"
+        elif cls == "dark_empath":
             stage = getattr(store, 'de_arc_stage', 0)
             if stage == 1:
                 return "re_de_kovar_warning"

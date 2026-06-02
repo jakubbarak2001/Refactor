@@ -128,10 +128,13 @@ init python:
             ('event',  None, None)      fall through to narrative pool
             (None,     None, None)      silent slot (Easy-loss penalty)
 
-        Battles STRICTLY take priority over narrative events: as long as the
-        current tier's battle pool has enemies, the slot is a battle. Events
-        only fire on a tier where the pool is drained. This was a player
-        request — random events felt like dead air between fights.
+        Battles take priority over narrative events on normal days: as long as
+        the current tier's battle pool has enemies, the slot is a battle. Two
+        exceptions ensure the ARC-banded events actually surface:
+          - EVENT_GUARANTEE_DAYS force an event even when fights remain.
+          - When a tier's battle pool is drained, the slot is always an event
+            (recurring "station texture" beats guarantee one even after every
+            marquee event has been seen — no more dead-air silent slots).
         """
         import random as _r
         _ladder_init_pool()
@@ -139,6 +142,11 @@ init python:
         if getattr(store, '_ladder_skip_tomorrow', False):
             store._ladder_skip_tomorrow = False
             return (None, None, None)
+
+        ## Guaranteed event day — force a banded marquee/recurring beat even if
+        ## ladder fights remain (otherwise battles pre-empt events all run).
+        if day in EVENT_GUARANTEE_DAYS:
+            return ("event", None, None)
 
         tier = _battle_ladder_band(day)
         battle_pool = store.battle_ladder_pool.get(tier, [])
@@ -148,11 +156,7 @@ init python:
             battle_pool.remove(eid)
             return ("battle", eid, tier)
 
-        event_pool = getattr(store, 'random_event_pool', []) or []
-        if event_pool:
-            return ("event", None, None)
-
-        return (None, None, None)
+        return ("event", None, None)
 
 
 ## ---------------------------------------------------------------------------
