@@ -774,6 +774,18 @@ init python:
             if getattr(store, '_colonel_gift_taken', False):
                 bs.enemy_max_hp += 40
                 bs.add_log("[[Setup]: the Colonel's gift returns with him. +40 HP.")
+            ## Day-25-vs-30 (martin_phase7) changes the FIGHT, not just timing.
+            ## Strike early (Day 25): caught mid-stride, he improvises slower —
+            ## enrage +2/round, not +3. Wait (Day 30): he used the same month to
+            ## dig in and comes braced (+1 Strength from turn one), paying back
+            ## the extra prep days that waiting buys you.
+            _cday = getattr(stats, 'colonel_day', 30) if stats is not None else 30
+            if _cday <= 25:
+                bs.buffs["colonel_enrage_step"] = 2
+                bs.add_log("[[Setup]: you moved early. He's still buttoning his coat.")
+            else:
+                bs.enemy_strength += 1
+                bs.add_log("[[Setup]: he had the whole month too. He came braced.")
         else:
             bs.enemy_max_hp = _enemy.get("max_hp") or 80
         bs.enemy_hp = bs.enemy_max_hp
@@ -966,8 +978,10 @@ init python:
                 ## uncounterable, escalating threat that turns the meatball into
                 ## a race: the longer you take, the more lethal he gets.
                 if bs.enemy_strength < 15:
-                    bs.enemy_strength += 3
-                    bs.add_log("[[He's improvising]: the script is gone — and he's speeding up. +3 Strength.")
+                    _step = bs.buffs.get("colonel_enrage_step", 3)
+                    _before = bs.enemy_strength
+                    bs.enemy_strength = min(15, _before + _step)
+                    bs.add_log("[[He's improvising]: the script is gone — and he's speeding up. +{} Strength.".format(bs.enemy_strength - _before))
         if _eid == "spis" and bs.turn >= 2:
             ## Cap paperwork at 3 across all piles — without this, long fights
             ## (and the bloodied double-inject below) accumulate enough copies
