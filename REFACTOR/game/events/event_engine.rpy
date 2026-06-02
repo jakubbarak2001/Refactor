@@ -37,16 +37,15 @@ init python:
     ## The pool is a dict band -> [ids], drained with no repeats; the daily slot
     ## and the Overtime activity both draw from it. init_game sets
     ## store.random_event_pool = None; this refills it on next access.
+    ## ev_the_smell / ev_karaoke / ev_photocopier CUT from rotation (the weakest
+    ## surreal beats) — labels kept in random_events.rpy but no longer pooled.
     EVENT_BANDS = {
         "ev_the_vending_machine": "early",
         "ev_pills":               "early",
-        "ev_the_smell":           "early",
         "ev_synthol_brothers":    "early",   ## BB-only (class-gated below)
         "ev_designer_of_forms":   "mid",
         "ev_lost_and_found":      "mid",
         "ev_uniform_collector":   "mid",
-        "ev_photocopier":         "mid",
-        "ev_karaoke":             "mid",
         "ev_bh_acd856_offer":     "mid",     ## BH-only (class-gated below)
         "ev_the_interview":       "late",
         "ev_colonel_regards":     "late",

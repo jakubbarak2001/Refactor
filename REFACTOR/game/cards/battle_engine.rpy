@@ -1198,6 +1198,11 @@ init python:
         ## before the effect resolves, so the audio feedback feels snappy.
         bs.last_card_type = c.get("type", "Skill")
         _play_battle_sfx("card_" + bs.last_card_type.lower())
+        ## Per-card signature SFX — layers over the type sound if a file named
+        ## audio/sfx/<card_id>.{ogg,mp3,wav} exists (no-op otherwise). e.g.
+        ## the_final_set honks a Škoda horn (it deadlifts a car). Drop a file
+        ## named after any card_id to give it a bespoke sound.
+        _play_battle_sfx(card_id, channel="battle_card_sfx")
 
         ## Resolve effect
         eff_id = c.get("effect")

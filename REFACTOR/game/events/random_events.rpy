@@ -1051,12 +1051,12 @@ label ev_synthol_brothers:
             {
                 "id": "demo",
                 "label": "[ ONE SHOT ]",
-                "desc": eg("+ 2 SOMA") + ".  " + ec("Lose 20 HP") + ".  The cheap demo dose. Your body will know.",
+                "desc": eg("+ 2 SOMA") + ".  " + ec("Lose 12 HP") + ".  The cheap demo dose — the efficient buy.",
             },
             {
                 "id": "full",
                 "label": "[ THE FULL STACK ]",
-                "desc": eg("+ 5 SOMA") + ".  " + ec("Gain an unplayable card (dead weight).") + "  They cook the bigger batch.",
+                "desc": eg("+ 5 SOMA") + ".  " + ec("Lose 20 HP") + ", " + ec("gain a dead card") + ".  The big batch costs the body.",
             },
             {
                 "id": "walk",
@@ -1073,7 +1073,7 @@ label ev_synthol_brothers:
 
     if _sb_pick == "demo":
         python:
-            _sb_lost = event_hurt(20)
+            _sb_lost = event_hurt(12)
             add_soma(2)
             _sb_res = [
                 "He hits the deltoid, fast, the way someone who has done this two hundred times hits it. You barely feel the needle. You feel the rest.",
@@ -1084,13 +1084,14 @@ label ev_synthol_brothers:
 
     elif _sb_pick == "full":
         python:
+            _sb_lost = event_hurt(20)
             add_soma(5)
             grant_card("compromise", silent=True)
             _sb_res = [
                 "The younger one warms the vial in his palm like a sommelier. The older one talks the whole time — about discipline, about heritage, about how the body is a project, and a project deserves a budget.",
-                "Four sites. Four needles. You walk out of Iron Garden three centimetres bigger across the chest and a different person inside the shirt.",
-                "Something settled in with the oil. It does not show in the mirror. It shows in the deck.",
-                eg("+ 5 SOMA.") + "   " + ec("Gained an unplayable card (dead weight)."),
+                "Four sites. Four needles. You walk out of Iron Garden three centimetres bigger across the chest and a different person inside the shirt — and a temperature your body is not meant to be.",
+                "Something settled in with the oil. It does not show in the mirror. It shows in the deck, and in the week your shoulders spend on fire.",
+                eg("+ 5 SOMA.") + "   " + ec("- {} HP.".format(_sb_lost)) + "   " + ec("Gained a dead card."),
             ]
 
     else:
