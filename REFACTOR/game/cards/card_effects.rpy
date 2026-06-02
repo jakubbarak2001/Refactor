@@ -103,7 +103,7 @@ init python:
         "kernel_patch":            "Gain 2 energy. Draw 2 cards. Exhausts.",
         "hotfix":                  "Deal 5 damage. Draw 1 card. Deal 13 instead if this is the 3rd+ card you've played this turn.",
         "ship_it":                 "Gain 1 energy for each Skill in your hand (max 3). Exhausts.",
-        "pipeline":                "Power: every card you play deals damage to the enemy equal to your Coding tier.",
+        "pipeline":                "Power: every card you play deals 1 damage to the enemy.",
         "code_review":             "Exhaust your leftmost other card. Draw 2 cards. Gain 3 block.",
         "git_blame":               "Deal damage equal to Coding tier × 3 (min 5).",
         "git_blame_plus":          "Deal damage equal to Coding tier × 4 (min 7).",
@@ -314,7 +314,7 @@ init python:
         if effect_id == "git_blame_plus":
             return "Deal {} damage. (Coding tier × 4, min 7)".format(max(7, _coding_tier_int() * 4))
         if effect_id == "pipeline":
-            return "Power: every card you play deals {} damage (your Coding tier).".format(_coding_tier_int())
+            return "Power: every card you play deals 1 damage to the enemy."
         if effect_id == "sandbox":
             return "Gain {} block. (Coding tier × 3, min 4)".format(max(4, _coding_tier_int() * 3))
         if effect_id == "sandbox_plus":

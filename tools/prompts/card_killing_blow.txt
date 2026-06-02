@@ -1,11 +1,9 @@
-SUBJECT (REFACTOR Neutral card "KILLING BLOW" — finish what you started; the strike that lands when the other man is already going down):
+SUBJECT (REFACTOR Police card "EXCESSIVE FORCE" — "minimal force necessary," the form says):
 
-JB (Czech cop / bodybuilder, mid-30s, short military haircut, thick neck, broad shoulders) seen from a steep high three-quarter angle, looming downward, both forearms cocked at the top of an overhand strike about to come crashing straight down through the frame — the entire mass of him gathered above the blow, shoulders piled over the lead fist, weight already committed forward and down. His face tilted down toward where the strike will land, eyes locked, jaw clamped, utterly without hesitation — closing, not opening. A working-class dark cotton t-shirt stretched over the bunched shoulders and raised arms. A faint downward streak of motion blur off the descending fist, rendered in PAINT as falling weight, never as an effect.
+JB — a YOUNG Czech cop, around 25, short dark hair, clean-shaven, athletic and broad — in the black POLICIE police tactical/stab vest with a shoulder patch, exactly like the reference images. Low camera angle from the ground: JB stands over a downed, cowering suspect on wet pavement, winding one heavy overhand fist back for the last blow — caught in the instant BEFORE it lands. His face is flat and procedural, almost bored. Darkly comic, grim — the wind-up, not gore.
 
-CRITICAL: do NOT depict the man going down, any body, or any other person — only JB and the empty space below him. No weapon. NO text, letters, numbers or symbols anywhere.
+CRITICAL: match the young-cop look + black POLICIE vest of the references. No real police logos. NOT graphic/bloody — the menace is in the wind-up and the cowering perp.
 
-Lighting: muted oxblood-red deepening to charcoal-black at the bottom of the frame where the blow falls, low heat, a single hard amber rim light along the cocked arms and the crown of the lowered head. The mood is final, downward, settled.
+Lighting: low angle, harsh overhead streetlight, long shadows, wet ground.
 
-Match the build and haircut of the JB bodybuilder reference image.
-
-STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, slightly diffused edges, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference card images. Muted oxblood-to-charcoal, lower heat than the rage cards, one amber rim light; JB in a grounded northern-Bohemia cop / brawler situation. 2:1 widescreen LANDSCAPE composition, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT comic-book or cel-shaded or splash-art, NO neon, NO modern game-art glow effects. NO text, letters, numbers, symbols, UI, card frame, border, vignette or letterbox anywhere.
+STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference images. 2:1 widescreen LANDSCAPE, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT cel-shaded or splash-art, NO neon, NO modern game-art glow. NO text, letters, numbers, logos, UI, frame, border, vignette or letterbox.

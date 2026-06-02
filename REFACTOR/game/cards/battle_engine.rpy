@@ -412,10 +412,10 @@ init python:
             else:
                 self.player_block += amount
                 self.add_log("JB gains {} block.".format(amount))
-                ## Phase A juice — block-gain sfx
-                ## Phase E juice — timestamp drives block-text pulse on screen
+                ## block-gain sfx REMOVED — the block_clang "bop" was grating on
+                ## every block tick. Keep the timestamp that drives the on-screen
+                ## block-text pulse (Phase E juice).
                 if amount > 0:
-                    _play_battle_sfx("block_clang")
                     try:
                         self.last_player_block_gain_time = renpy.get_game_runtime()
                     except Exception:
@@ -1187,10 +1187,9 @@ init python:
         ## (Pipeline itself doesn't self-trigger: the buff is set during its own
         ## resolution, after this counter has already ticked.)
         if bs.buffs.get("pipeline"):
-            ## Floor + offset so the tech finisher delivers even at the Coding
-            ## tier where BB realistically unlocks it (tier 3 → 4/card, not 3),
-            ## and never under-chips at low tier. (was a flat _bh_coding_tier().)
-            bs.deal_damage("enemy", max(2, _bh_coding_tier() + 1), apply_strength=False)
+            ## Flat 1 chip per card played (cost-3 Power, 2 upgraded). The value
+            ## is in cycling a big hand, not the per-hit number.
+            bs.deal_damage("enemy", 1, apply_strength=False)
         ## Skill-played flag — read by Production Push's combo bonus.
         if c.get("type") == "Skill":
             bs.skill_played_this_turn = True

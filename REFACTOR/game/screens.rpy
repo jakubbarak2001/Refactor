@@ -2582,9 +2582,11 @@ screen fixer_shop(card_offers, relic_offers, cash, shred_price, can_shred, shred
                             spacing 6
                             fixed:
                                 xysize (220, 316)
-                                use battle_card_view(cid=_ocid, mode="hand", playable=True)
-                                if not _oafford:
-                                    add Solid("#000000aa") xysize (220, 316)
+                                ## Dim the whole card uniformly via playable=False
+                                ## (frame desaturates, gem darkens, desc fades) — the
+                                ## old Solid overlay sat on top and grey-blotched the
+                                ## overhanging cost gem. Matches the shred screen.
+                                use battle_card_view(cid=_ocid, mode="hand", playable=_oafford)
                             text "[_oprice:,] CZK":
                                 xalign 0.5
                                 color ("#ffd700" if _oafford else "#a04040")

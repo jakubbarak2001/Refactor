@@ -1,11 +1,9 @@
-SUBJECT (REFACTOR Stoic card "BACKUP" — the reassurance of a second body at your shoulder, the silhouette you trust to cover the door):
+SUBJECT (REFACTOR Police card "BACKUP" — the cavalry is coming):
 
-JB (Czech cop / bodybuilder, mid-30s, short military haircut, thick neck, broad shoulders) seen from behind and slightly to one side, shoulders squared and set, standing his ground in a concrete corridor. At the dark far edge of the frame, deep in shadow, the suggestion of a second broad-shouldered figure standing back-to-back with him — read only as a heavy silhouette and the dim glow of a uniform shoulder, never a clear face, more a felt presence than a drawn person. JB's stance reads steadier for it: chin level, weight even, one hand loose at his side. Two walls instead of one, holding the same hallway. A working-class dark cotton t-shirt across JB's back.
+JB — a YOUNG Czech cop, around 25, short dark hair, clean-shaven, athletic and broad — in the black POLICIE police tactical/stab vest with a shoulder patch, exactly like the reference images. He presses his back to a grimy panelák stairwell wall, keying the radio mic clipped at his shoulder, calling it in — jaw tight. Down the concrete stairwell behind him, two more uniformed officers climb fast with crossing torch beams, and a patrol car's blue light washes the wall through a cracked window.
 
-CRITICAL: the second figure is a vague shadowed ally silhouette at the frame edge only — no readable face, NOT an attacker, no weapon drawn, no other crowd. Only JB and that single dim covering presence.
+CRITICAL: match the young-cop look + black POLICIE vest of the references. No real police logos. The other officers + the blue light are the point — he is not alone.
 
-Lighting: cool steel-grey and slate dominant, one hard amber rim light down JB's near shoulder, the ally lost in charcoal-black behind. Bare concrete corridor, a doorframe.
+Lighting: cold blue patrol-light wash + torch beams in concrete-grey dark.
 
-Match the build and haircut of the JB bodybuilder reference image.
-
-STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, slightly diffused edges, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference card images. Cool steel-grey and slate dominant, one warm amber rim light, charcoal-black shadows; concrete walls, doorframes, braced low stances, the body as a wall. 2:1 widescreen LANDSCAPE composition, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT comic-book or cel-shaded or splash-art, NO neon, NO modern game-art glow effects. NO text, letters, numbers, symbols, UI, card frame, border, vignette or letterbox anywhere.
+STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference images. 2:1 widescreen LANDSCAPE, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT cel-shaded or splash-art, NO neon, NO modern game-art glow. NO text, letters, numbers, logos, UI, frame, border, vignette or letterbox.

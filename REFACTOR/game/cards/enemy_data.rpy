@@ -431,7 +431,7 @@ init -1 python:
         sprite_id    = "inspekce",
         log_name     = "Internal Affairs",
         tier         = "hard",
-        max_hp       = 150,
+        max_hp       = 200,
         no_double_passive = True,
         flee_label   = "BRIBE HIM",
         flee_relief  = 0,

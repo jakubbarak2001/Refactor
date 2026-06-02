@@ -579,7 +579,7 @@ init python:
         name      = "Pipeline",
         type      = "Power",
         color     = "Logic",
-        cost      = 2,
+        cost      = 3,
         rarity    = "rare",
         effect    = "pipeline",
         archetype = "tech",
@@ -661,27 +661,26 @@ init python:
 
     register_card(
         "gut_punch",
-        name      = "Gut Punch",
+        name      = "Resisting Arrest",
         type      = "Attack",
-        color     = "Physical",
+        color     = "Police",
         cost      = 1,
         rarity    = "common",
         effect    = "gut_punch",
         archetype = "neutral",
-        flavor    = "Below the ribs. He folds.",
+        flavor    = "He resisted. It's in the report.",
     )
 
     register_card(
         "body_check",
-        name       = "Body Check",
+        name       = "Probable Cause",
         type       = "Attack",
-        color      = "Physical",
+        color      = "Police",
         cost       = 2,
         rarity     = "uncommon",
         effect     = "body_check",
         archetype  = "neutral",
-        class_lock = "bodybuilder",
-        flavor     = "Drop your full weight through them.",
+        flavor     = "You had reason to believe. You usually do.",
     )
 
     register_card(
@@ -698,27 +697,27 @@ init python:
 
     register_card(
         "killing_blow",
-        name      = "Killing Blow",
+        name      = "Excessive Force",
         type      = "Attack",
-        color     = "Physical",
+        color     = "Police",
         cost      = 2,
         rarity    = "rare",
         effect    = "killing_blow",
         archetype = "neutral",
-        flavor    = "Finish what you started.",
+        flavor    = "\"Minimal force necessary,\" the form says. You tick the box.",
     )
 
     register_card(
         "last_stand",
-        name      = "Last Stand",
+        name      = "Outnumbered",
         type      = "Attack",
-        color     = "Physical",
+        color     = "Police",
         cost      = 2,
         rarity    = "rare",
         effect    = "last_stand",
         exhaust   = True,
         archetype = "neutral",
-        flavor    = "Back to the wall. Swing like it.",
+        flavor    = "Radio's dead. Stairwell's full. Swing anyway.",
     )
 
     register_card(
@@ -1555,11 +1554,11 @@ init python:
     register_upgrade("root_access",           effect="root_access_plus",           flavor="Root, and then some — every process he's running is yours.")
 
     ## Neutral
-    register_upgrade("gut_punch",             effect="gut_punch_plus",             flavor="Below the ribs. He folds harder.")
-    register_upgrade("body_check",            effect="body_check_plus",            flavor="Drop everything you've got through them.")
+    register_upgrade("gut_punch",             effect="gut_punch_plus",             flavor="He resisted harder. So did you.")
+    register_upgrade("body_check",            effect="body_check_plus",            flavor="More reason. More belief.")
     register_upgrade("breath_test",           effect="breath_test_plus",           flavor="'Blow into the tube.' The swing barely lands at all.")
-    register_upgrade("killing_blow",          effect="killing_blow_plus",          flavor="Finish what you started. Finish it twice.")
-    register_upgrade("last_stand",            effect="last_stand_plus",            flavor="Back to the wall. Swing like the wall isn't there.")
+    register_upgrade("killing_blow",          effect="killing_blow_plus",          flavor="The form has room for a second line.")
+    register_upgrade("last_stand",            effect="last_stand_plus",            flavor="Radio's still dead. Hit like it.")
     register_upgrade("cuff_em",               effect="cuff_em",                    cost=1, flavor="Steel on the wrist. Cheaper now. Exhausts.")
 
     ## Out-of-scope upgrades (event / boss / arc / story)
@@ -1607,7 +1606,7 @@ init python:
     ## New-archetype cards — Tech
     register_upgrade("hotfix",                effect="hotfix_plus",                flavor="One commit. Straight to main. He never sees the diff.")
     register_upgrade("ship_it",               effect="ship_it_plus",               flavor="Good enough ships. And reads itself back to you.")
-    register_upgrade("pipeline",              effect="pipeline",              cost=1, flavor="The pipeline runs itself now. You just watch the dashboard.")
+    register_upgrade("pipeline",              effect="pipeline",              cost=2, flavor="The pipeline runs itself now. You just watch the dashboard.")
     register_upgrade("code_review",           effect="code_review_plus",           flavor="Delete the dead lines. The diff gets honest, and lean.")
     register_upgrade("crunch_time",           effect="crunch_time_plus",           flavor="Every shortcut, every corner — all of it, due now.")
 

@@ -1,11 +1,9 @@
-SUBJECT (REFACTOR Neutral card "BODY CHECK" — JB dropping his entire bodyweight through a shoulder, the way a wall arrives):
+SUBJECT (REFACTOR Police card "PROBABLE CAUSE" — a shove you had reason to believe in):
 
-JB (Czech cop / bodybuilder, mid-30s, short military haircut, thick neck, broad shoulders) lunging low and forward into a full-body shoulder check — front leg driven into a deep stagger, back leg extended and loaded, the broad shoulder and slab of chest dropped and thrown ahead of him, both arms tucked tight to the ribs, the whole posterior chain firing as one mass moving. Seen from a low three-quarter angle so the bulk reads enormous, the shoulder closest to camera filling the foreground. A working-class dark cotton t-shirt stretched tight and creasing across the loaded back and trapezius. His face half-hidden behind the rising shoulder, brow low, all weight and commitment — no theatrics.
+JB — a YOUNG Czech cop, around 25, short dark hair, clean-shaven, athletic and broad — in the black POLICIE police tactical/stab vest with a shoulder patch, exactly like the reference images. He lowers a shoulder and slams his full bodyweight into a fleeing suspect, driving the man sideways off his feet into the wet panel of a parked car, jacket and limbs flailing at the moment of impact. The launched perp is the subject. A rain-slick night street, blue patrol-light wash.
 
-CRITICAL: do NOT depict any opponent, body, or other person — only JB throwing his weight into empty space. No weapon. NO text, letters, numbers or symbols anywhere.
+CRITICAL: match the young-cop look + black POLICIE vest of the references. No real police logos. The focus is the suspect being checked off his feet, not a JB pose.
 
-Lighting: muted oxblood-red bleeding into charcoal-black, low heat, a single hard amber rim light tracing the leading shoulder and the curve of the back, the legs and far side lost in bruise-dark shadow. Bare concrete floor and wall suggested.
+Lighting: wet asphalt, strobing blue patrol light, deep night.
 
-Match the build and haircut of the JB bodybuilder reference image.
-
-STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, slightly diffused edges, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference card images. Muted oxblood-to-charcoal, lower heat than the rage cards, one amber rim light; JB in a grounded northern-Bohemia cop / brawler situation. 2:1 widescreen LANDSCAPE composition, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT comic-book or cel-shaded or splash-art, NO neon, NO modern game-art glow effects. NO text, letters, numbers, symbols, UI, card frame, border, vignette or letterbox anywhere.
+STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference images. 2:1 widescreen LANDSCAPE, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT cel-shaded or splash-art, NO neon, NO modern game-art glow. NO text, letters, numbers, logos, UI, frame, border, vignette or letterbox.

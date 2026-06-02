@@ -1,11 +1,9 @@
-SUBJECT (REFACTOR Neutral card "BREATH TEST" — 'blow into the tube'; the procedure that takes the wind out of whatever comes next):
+SUBJECT (REFACTOR Police card "BREATH TEST" — a routine night stop on the edge of town):
 
-JB (Czech cop / bodybuilder, mid-30s, short military haircut, thick neck, broad shoulders) in cop mode, one big hand holding out a small grey handheld breathalyzer unit with a disposable mouthpiece tube, arm extended steady toward empty space at the edge of frame, the other hand resting flat and patient on his belt. His expression is bored, procedural, unbothered — the slow authority of a man who has done this a thousand times on a cold roadside and is in no hurry. Cropped close on the extended hand, the device, and his lit face and shoulder. A working-class dark cotton t-shirt under a hint of a dark uniform jacket; the device reads as cheap government-issue plastic, generic, no logos.
+JB — a YOUNG Czech cop, around 25, short dark hair, clean-shaven, athletic and broad — in the black POLICIE police tactical/stab vest with a shoulder patch, exactly like the reference images. He leans down to a car's lowered window on a cold rural road at night, holding out a small plain grey handheld breathalyzer toward the unseen driver, his breath fogging in the headlight beams. His patrol car sits behind him, one blue light turning. Bored, routine, quietly in control.
 
-CRITICAL: do NOT depict the person being tested, any other figure, or any hand but JB's. No real-world police logo or insignia. NO text, letters, numbers, readout digits or symbols anywhere — the device face is blank painted plastic.
+CRITICAL: match the young-cop look + black POLICIE vest of the references. The breathalyzer is a featureless grey box, NO readout/digits. No real police logos.
 
-Lighting: muted oxblood-red and cold roadside dusk bleeding into charcoal-black, low heat, a single hard amber rim light along JB's outstretched forearm and jaw, the background dissolving into dark. The mood is procedural, deflating, slow.
+Lighting: headlight beams and fog in cold black night, a turning blue light, one warm note on his face.
 
-Match the build and haircut of the JB bodybuilder reference image.
-
-STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, slightly diffused edges, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference card images. Muted oxblood-to-charcoal, lower heat than the rage cards, one amber rim light; JB in a grounded northern-Bohemia cop / brawler situation. 2:1 widescreen LANDSCAPE composition, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT comic-book or cel-shaded or splash-art, NO neon, NO modern game-art glow effects. NO text, letters, numbers, symbols, UI, card frame, border, vignette or letterbox anywhere.
+STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference images. 2:1 widescreen LANDSCAPE, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT cel-shaded or splash-art, NO neon, NO modern game-art glow. NO text, letters, numbers, logos, UI, frame, border, vignette or letterbox.

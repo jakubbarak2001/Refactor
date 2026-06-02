@@ -588,7 +588,7 @@ init python:
         "interview",
         name     = "Interview",
         intent   = "attack",
-        value    = 22,
+        value    = 28,
         dialogue = "'Where exactly were you on the eighteenth?' She's read it three times.",
         threat   = 3,
     )
@@ -604,15 +604,15 @@ init python:
         "quote_regulation",
         name     = "Quote Regulation",
         intent   = "strength",
-        value    = 2,
-        dialogue = "She names the paragraph. Each citation makes the next argument hit harder. +2 STR.",
+        value    = 3,
+        dialogue = "She names the paragraph. Each citation makes the next argument hit harder. +3 STR.",
         threat   = 2,
     )
     register_enemy_card(
         "formal_warning",
         name     = "Formal Warning",
         intent   = "attack",
-        value    = 30,
+        value    = 38,
         dialogue = "A signature line slides under your hand. You sign.",
         threat   = 3,
     )
@@ -628,7 +628,7 @@ init python:
         "wire_check",
         name     = "Wire Check",
         intent   = "attack",
-        value    = 20,
+        value    = 26,
         dialogue = "She plays back your own radio traffic. The tone gives you away.",
         threat   = 2,
     )
@@ -636,7 +636,7 @@ init python:
         "transfer_pending",
         name     = "Transfer Pending",
         intent   = "compound",
-        value    = 7,
+        value    = 9,
         value2   = 3,
         dialogue = "Three forms. Three signatures. Three different offices.",
         threat   = 3,

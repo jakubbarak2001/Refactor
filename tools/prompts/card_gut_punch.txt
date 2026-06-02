@@ -1,11 +1,9 @@
-SUBJECT (REFACTOR Neutral card "GUT PUNCH" — a short hook driven up under the ribs, and whoever took it folds):
+SUBJECT (REFACTOR Police card "RESISTING ARREST" — the report's favourite euphemism):
 
-JB (Czech cop / bodybuilder, mid-30s, short military haircut, thick neck, broad shoulders) caught at the instant of a short, brutal body hook — one fist buried deep, knuckles sunk to the wrist into empty air just below frame where the ribs would be, the whole right side of his body torqued into the punch: hip rotated through, rear heel pivoted up, the lats and oblique bunched hard under a working-class dark cotton t-shirt damp with sweat. The other hand stays tight at his own jaw, guarding. His face is close and lit hard, jaw set, eyes flat and unhurried — this is craft, not fury. A faint compression of motion blur trailing the driving forearm, rendered in PAINT as weight and torque, never as a special effect.
+JB — a YOUNG Czech cop, around 25, short dark hair, clean-shaven, athletic and broad — in the black POLICIE police tactical/stab vest with a shoulder patch, exactly like the reference images. He drives a short, bored, professional fist deep into the gut of a wiry panelák lowlife, who folds hard over the punch — heels lifting, face crumpling, breath gone. The IMPACT on the perp is the subject; JB's face is flat, procedural, just paperwork done with a fist. A grimy concrete stairwell, one bare bulb.
 
-CRITICAL: do NOT depict any opponent, body, or other person — only JB and the empty space his fist drives into. No weapon. NO text, letters, numbers or symbols anywhere.
+CRITICAL: match the young-cop look + black POLICIE vest of the references. No real police logos (the reference's patch style is fine). The focus is the folding perp, not a JB pose.
 
-Lighting: muted oxblood-red bleeding into charcoal-black, low heat, a single hard amber rim light raking down JB's driving arm and the line of his jaw, the rest swallowed in bruise-dark shadow. Bare concrete suggested behind.
+Lighting: harsh bare-bulb stairwell, cold concrete, one warm rim on JB.
 
-Match the build and haircut of the JB bodybuilder reference image.
-
-STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, slightly diffused edges, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference card images. Muted oxblood-to-charcoal, lower heat than the rage cards, one amber rim light; JB in a grounded northern-Bohemia cop / brawler situation. 2:1 widescreen LANDSCAPE composition, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT comic-book or cel-shaded or splash-art, NO neon, NO modern game-art glow effects. NO text, letters, numbers, symbols, UI, card frame, border, vignette or letterbox anywhere.
+STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference images. 2:1 widescreen LANDSCAPE, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT cel-shaded or splash-art, NO neon, NO modern game-art glow. NO text, letters, numbers, logos, UI, frame, border, vignette or letterbox.

@@ -1,11 +1,9 @@
-SUBJECT (REFACTOR Neutral card "LAST STAND" — back literally to the wall, swinging like there's nothing left to lose):
+SUBJECT (REFACTOR Police card "OUTNUMBERED" — radio's dead, stairwell's full):
 
-JB (Czech cop / bodybuilder, mid-30s, short military haircut, thick neck, broad shoulders) cornered with his spine and one shoulder blade pressed flat against a hard concrete wall, half-turned out of it to unload a wide desperate haymaker, the cocked arm wound far back along the wall, the whole body coiled into one last committed swing. Sweat-slicked and worn — chest heaving, a split lip, knuckles raw, the dark cotton t-shirt torn at the collar and clinging. His face is close, teeth bared not in rage but in pure refusal, eyes wide and burning down the frame. The cornered geometry reads everywhere: the wall behind, no room left to retreat.
+JB — a YOUNG Czech cop, around 25, short dark hair, clean-shaven, athletic and broad — in the black POLICIE police tactical/stab vest with a shoulder patch, exactly like the reference images. He is cornered at the bottom of a panelák stairwell, back flat to the concrete, fists up, alone — while a ring of shadowed figures closes in from the dark stairs above and around him, fists and silhouettes pressing in. His radio dangles dead at his shoulder. Defiant, cornered, swinging anyway. The closing crowd of threats fills the frame.
 
-CRITICAL: do NOT depict any opponent, body, or other person — only JB cornered against the wall and his own winding swing. No weapon. NO text, letters, numbers or symbols anywhere.
+CRITICAL: match the young-cop look + black POLICIE vest of the references. No real police logos. The attackers are shadowed silhouettes, not detailed.
 
-Lighting: muted oxblood-red smeared across the concrete and deepening to charcoal-black in the corners, low heat, a single hard amber rim light catching the wound-back arm, the wet brow and the bared teeth. The mood is cornered, spent, defiant.
+Lighting: one failing stairwell bulb, JB lit hard, the ring of attackers in oppressive shadow.
 
-Match the build and haircut of the JB bodybuilder reference image.
-
-STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, slightly diffused edges, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference card images. Muted oxblood-to-charcoal, lower heat than the rage cards, one amber rim light; JB in a grounded northern-Bohemia cop / brawler situation. 2:1 widescreen LANDSCAPE composition, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT comic-book or cel-shaded or splash-art, NO neon, NO modern game-art glow effects. NO text, letters, numbers, symbols, UI, card frame, border, vignette or letterbox anywhere.
+STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference images. 2:1 widescreen LANDSCAPE, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT cel-shaded or splash-art, NO neon, NO modern game-art glow. NO text, letters, numbers, logos, UI, frame, border, vignette or letterbox.

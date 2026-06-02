@@ -1,11 +1,9 @@
-SUBJECT (REFACTOR Stoic card "HOLD THE LINE" — doorframe at his back, nobody steps past without paying):
+SUBJECT (REFACTOR Police card "HOLD THE LINE" — he IS the cordon):
 
-JB (Czech cop / bodybuilder, mid-30s, short military haircut, thick neck, broad shoulders) seen from the front, full-width, planted square in the open mouth of a concrete doorway, filling the gap completely. Both hands braced wide against the doorframe on either side — one palm flat on each jamb, arms locked out, shoulders spread to span the whole opening, boots set firm on the threshold. He is the line: the only way through is through him, and he has decided that isn't happening. Head lowered slightly, eyes level and unblinking down the corridor beyond, weight settled and patient. A working-class dark cotton t-shirt stretched across the spanning shoulders.
+JB — a YOUNG Czech cop, around 25, short dark hair, clean-shaven, athletic and broad — in the black POLICIE police tactical/stab vest with a shoulder patch, exactly like the reference images. He is planted at the front of a thin police line across a narrow Czech street at night — arms spread wide holding the cordon, boots planted, a couple of uniformed colleagues blurred behind him. Blue patrol lights strobe the wet asphalt; a dark crowd-mass presses from the far gloom. Nobody steps past him.
 
-CRITICAL: do NOT depict any attacker, any other person, any weapon. Only JB filling the doorway and the empty corridor beyond.
+CRITICAL: match the young-cop look + black POLICIE vest of the references. No real police logos. The crowd is shadowed silhouettes.
 
-Lighting: cool steel-grey and slate dominant, one hard amber rim light tracing the doorframe edge and JB's braced arm, charcoal-black depth in the corridor behind him. Bare concrete walls, the heavy doorframe.
+Lighting: strobing blue patrol light on wet black asphalt, deep night, hard rim on JB.
 
-Match the build and haircut of the JB bodybuilder reference image.
-
-STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, slightly diffused edges, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference card images. Cool steel-grey and slate dominant, one warm amber rim light, charcoal-black shadows; concrete walls, doorframes, braced low stances, the body as a wall. 2:1 widescreen LANDSCAPE composition, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT comic-book or cel-shaded or splash-art, NO neon, NO modern game-art glow effects. NO text, letters, numbers, symbols, UI, card frame, border, vignette or letterbox anywhere.
+STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference images. 2:1 widescreen LANDSCAPE, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT cel-shaded or splash-art, NO neon, NO modern game-art glow. NO text, letters, numbers, logos, UI, frame, border, vignette or letterbox.
