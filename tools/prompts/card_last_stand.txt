@@ -1,9 +1,7 @@
-SUBJECT (REFACTOR Police card "OUTNUMBERED" — radio's dead, stairwell's full):
+SUBJECT (REFACTOR Police card "OUTNUMBERED" - surrounded, everyone against you; a John Wick homage):
 
-JB — a YOUNG Czech cop, around 25, short dark hair, clean-shaven, athletic and broad — in the black POLICIE police tactical/stab vest with a shoulder patch, exactly like the reference images. He is cornered at the bottom of a panelák stairwell, back flat to the concrete, fists up, alone — while a ring of shadowed figures closes in from the dark stairs above and around him, fists and silhouettes pressing in. His radio dangles dead at his shoulder. Defiant, cornered, swinging anyway. The closing crowd of threats fills the frame.
+A direct parody of the John Wick key art. JB - a YOUNG Czech cop, around 25, short dark hair, clean-shaven, a smear of blood across his brow and cheekbone, jaw set, staring dead at the viewer, unflinching - fills the CENTRE of the frame. A tight RING of disembodied hands and suited forearms thrusts in from every edge of the frame, each fist gripping a pistol leveled inward at his head, converging on him from all sides. The black POLICIE vest just visible at the bottom. He does not flinch.
 
-CRITICAL: match the young-cop look + black POLICIE vest of the references. No real police logos. The attackers are shadowed silhouettes, not detailed.
+CRITICAL: recreate the 'single bloodied face centred, a full ring of pistols pointing inward from all around' composition exactly. JB's YOUNG (~25) face dead centre, defiant. Match the reference likeness. NO text, logos, UI, frame, border.
 
-Lighting: one failing stairwell bulb, JB lit hard, the ring of attackers in oppressive shadow.
-
-STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference images. 2:1 widescreen LANDSCAPE, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT cel-shaded or splash-art, NO neon, NO modern game-art glow. NO text, letters, numbers, logos, UI, frame, border, vignette or letterbox.
+STYLE: painterly semi-realistic oil illustration, dramatic chiaroscuro, cinematic movie-poster framing, the same artist hand as the reference cards. Near-black background, hard key light on the face. NOT photorealistic, NOT anime, NOT 3D, NOT cel-shaded, NO neon, NO glow.

@@ -720,18 +720,6 @@ init python:
         flavor    = "Radio's dead. Stairwell's full. Swing anyway.",
     )
 
-    register_card(
-        "cuff_em",
-        name      = "Cuff 'Em",
-        type      = "Skill",
-        color     = "Police",
-        cost      = 2,
-        rarity    = "uncommon",
-        effect    = "cuff_em",
-        exhaust   = True,
-        archetype = "neutral",
-        flavor    = "Steel on the wrist. He's done for the moment.",
-    )
 
     ## ---------------------------------------------------------------------------
     ## EVENT / BOSS / ARC / STORY CARDS — out of scope, left untouched.
@@ -1559,7 +1547,6 @@ init python:
     register_upgrade("breath_test",           effect="breath_test_plus",           flavor="'Blow into the tube.' The swing barely lands at all.")
     register_upgrade("killing_blow",          effect="killing_blow_plus",          flavor="The form has room for a second line.")
     register_upgrade("last_stand",            effect="last_stand_plus",            flavor="Radio's still dead. Hit like it.")
-    register_upgrade("cuff_em",               effect="cuff_em",                    cost=1, flavor="Steel on the wrist. Cheaper now. Exhausts.")
 
     ## Out-of-scope upgrades (event / boss / arc / story)
     register_upgrade("racetam",               effect="racetam_plus",               flavor="+1 energy. Draw 2.")

@@ -1,9 +1,7 @@
-SUBJECT (REFACTOR Police card "BREATH TEST" — a routine night stop on the edge of town):
+SUBJECT (REFACTOR Police card "BREATH TEST" - a routine night stop):
 
-JB — a YOUNG Czech cop, around 25, short dark hair, clean-shaven, athletic and broad — in the black POLICIE police tactical/stab vest with a shoulder patch, exactly like the reference images. He leans down to a car's lowered window on a cold rural road at night, holding out a small plain grey handheld breathalyzer toward the unseen driver, his breath fogging in the headlight beams. His patrol car sits behind him, one blue light turning. Bored, routine, quietly in control.
+JB - a YOUNG Czech cop, around 25, short dark hair, clean-shaven, athletic - in the black POLICIE tactical vest, leans down to the lowered window of a dark parked sedan on a cold, empty rural road at night, extending a small plain grey handheld breathalyzer toward the unseen driver. His breath fogs in the cold. Bored, routine, quietly in control.
 
-CRITICAL: match the young-cop look + black POLICIE vest of the references. The breathalyzer is a featureless grey box, NO readout/digits. No real police logos.
+CRITICAL: NO police patrol car and NO blue police lights anywhere - just the cop, the suspect's dark sedan, and the empty night road. The breathalyzer is a featureless grey box, NO readout. Match the young (~25) cop + black POLICIE vest. No real police logos.
 
-Lighting: headlight beams and fog in cold black night, a turning blue light, one warm note on his face.
-
-STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference images. 2:1 widescreen LANDSCAPE, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT cel-shaded or splash-art, NO neon, NO modern game-art glow. NO text, letters, numbers, logos, UI, frame, border, vignette or letterbox.
+STYLE: painterly semi-realistic oil illustration, clean and uncluttered, strong contrast, cinematic, the same artist hand as the reference cards. Cold night, low roadside light, faint headlight glow. NOT photorealistic, NOT anime, NOT 3D, NOT cel-shaded, NO neon, NO glow. NO text, logos, UI, frame, border.

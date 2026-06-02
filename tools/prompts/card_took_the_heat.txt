@@ -1,7 +1,7 @@
-SUBJECT (REFACTOR Police card "TOOK THE HEAT" - owning blame that wasn't only his):
+SUBJECT (REFACTOR Police card "TOOK THE HEAT" - on the carpet, owning it):
 
-JB - a VERY YOUNG cop, EARLY-20s (around 25), boyish youthful face, smooth-shaven, short dark hair, the SAME young man as the reference images (NOT middle-aged, NOT a grizzled veteran) - in the black POLICIE tactical vest, stands alone on the wrong side of a superior's desk in a dim precinct office, holding nothing, chin level, jaw tight, eyes forward. He is taking the blame for something he didn't only do, and not flinching. An empty accusing chair, a thin shaft of cold window light across the desk.
+WIDE landscape scene: JB - a YOUNG Czech cop, around 25, short dark hair, clean-shaven, athletic - in the black POLICIE tactical vest, like the reference, stands on the wrong side of a superior's desk in a dim precinct office, his HEAD and torso clearly in frame, chin level, jaw tight, taking the blame and not flinching. Across the desk, the empty high-backed superior's chair is turned toward him; papers, a desk lamp, and a wide cold shaft of window light. Institutional, oppressive.
 
-CRITICAL: the face MUST read as a young man in his early-to-mid twenties, matching the reference likeness closely. Black POLICIE vest, no real police logos.
+CRITICAL: WIDE horizontal framing, JB's full head-and-torso visible (do not crop his head). Match the young (~25) cop + black POLICIE vest. No real police logos.
 
-STYLE: painterly semi-realistic illustration, soft brushwork, heavy chiaroscuro, the same artist hand as the reference cards. Dim office, one cold shaft of window light, institutional shadow. NOT photorealistic, NOT anime, NOT 3D, NOT cel-shaded, NO neon, NO modern game glow. NO text/logos/UI/frame.
+STYLE: painterly semi-realistic oil illustration, confident brushwork, strong contrast, cinematic, the same artist hand as the reference cards. WIDE HORIZONTAL 2:1 composition. NOT photorealistic, NOT anime, NOT 3D, NOT cel-shaded, NO neon, NO glow. NO text, logos, UI, frame, border.

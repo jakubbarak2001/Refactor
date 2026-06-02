@@ -1,7 +1,7 @@
 SUBJECT (REFACTOR Police card "CUFF 'EM" - caught, and not happy about it):
 
-A YOUNG Czech cop (around 25, short dark hair, clean-shaven, athletic, black POLICIE tactical vest, like the reference) stands relaxed over a sullen, defeated PERP who sits slumped on the wet curb against a wall, wrists cuffed, glaring up miserably. The cop looks down at him, faintly satisfied, thumbs in his vest - thoroughly in control. The miserable caught perp is the joke; the cop is bored and pleased.
+WIDE landscape scene, two figures: JB - a YOUNG Czech cop, around 25, short dark hair, clean-shaven, athletic - in the black POLICIE tactical vest, like the reference, stands at the left, relaxed, thumbs in his vest, looking down with bored satisfaction; at the right, a sullen defeated PERP sits slumped against a wall on the wet ground, wrists cuffed behind him, glaring up miserably. The young cop's HEAD clearly in frame. The miserable cuffed perp is the joke.
 
-CRITICAL: the perp is ALREADY cuffed and sitting - no cuffing motion, no cuffs on the cop. Just the smug young cop standing and the glaring cuffed perp on the ground. Match the young (~25) cop + black POLICIE vest. No real police logos.
+CRITICAL: WIDE horizontal framing, both figures visible, JB's head NOT cropped, the cuffs on the PERP (not on the cop). Match the young (~25) cop + black POLICIE vest. No real police logos.
 
-STYLE: painterly semi-realistic oil illustration, confident brushwork, strong contrast, cinematic, the same artist hand as the reference cards. Night street, a touch of blue light, wet pavement. NOT photorealistic, NOT anime, NOT 3D, NOT cel-shaded, NO neon, NO glow. NO text, logos, UI, frame, border.
+STYLE: painterly semi-realistic oil illustration, confident brushwork, strong contrast, cinematic, the same artist hand as the reference cards. WIDE HORIZONTAL 2:1 composition. NOT photorealistic, NOT anime, NOT 3D, NOT cel-shaded, NO neon, NO glow. NO text, logos, UI, frame, border.
