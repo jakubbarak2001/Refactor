@@ -249,6 +249,160 @@ init python:
         flavor="The screen's a spiderweb. The compiler doesn't care. Neither do you.",
     )
 
+    ## ═══ EXPANSION POOL — NEUTRAL (all classes) ═══════════════════════════════
+    register_relic(
+        "turkish_coffee",
+        name="Thermos of Turkish Coffee",
+        archetype="generic", rarity="common",
+        hook="+1 energy on the first turn of each fight.",
+        flavor="Thick as tar, twice as black. The grounds settle; you don't.",
+    )
+    register_relic(
+        "kevlar_surplus",
+        name="Surplus Kevlar Vest",
+        archetype="iron", rarity="uncommon",
+        hook="+8 block on the first turn of each fight.",
+        flavor="Stenciled with another man's blood type. Stops most of what the first minute throws.",
+    )
+    register_relic(
+        "stab_vest",
+        name="Stab Vest",
+        archetype="iron", rarity="rare",
+        hook="Every enemy attack deals 1 less (minimum 1).",
+        flavor="Standard issue, never returned. The little nicks across the front were all headed somewhere worse.",
+    )
+    register_relic(
+        "riot_shield",
+        name="Riot Shield (Dented)",
+        archetype="iron", rarity="rare",
+        hook="Negate the first hit you would take each fight.",
+        flavor="Lexan gone milky with scratches. Always one good hit left in it.",
+    )
+    register_relic(
+        "police_flashlight",
+        name="Maglite (4 D-cell)",
+        archetype="generic", rarity="common",
+        hook="The enemy's first attack each fight deals 50% less.",
+        flavor="Aluminium, the length of a forearm. Issued for the dark; carried for the light.",
+    )
+    register_relic(
+        "mini_fridge",
+        name="Break-Room Mini-Fridge",
+        archetype="generic", rarity="uncommon",
+        hook="Heal 12 HP after each victory.",
+        flavor="Someone's yogurt has been in there since spring. The energy drinks are colder for it.",
+    )
+    register_relic(
+        "cop_pension",
+        name="Beat Cop's Pension",
+        archetype="generic", rarity="uncommon",
+        hook="+2,500 CZK at the start of each day.",
+        flavor="Fifteen years vested. The one thing the uniform pays whether you wear it or not.",
+    )
+    register_relic(
+        "fixer_card",
+        name="The Fixer's Business Card",
+        archetype="generic", rarity="rare",
+        hook="Everything the Fixer sells costs 15% less.",
+        flavor="No name. No logo. One number, and the understanding that you're already a regular.",
+    )
+    register_relic(
+        "spiral_notebook",
+        name="Spiral Notebook",
+        archetype="stack", rarity="common",
+        hook="The first card you play each turn costs 1 less (minimum 0).",
+        flavor="Margins full of plate numbers and half-thoughts. Shorthand only you can read.",
+    )
+    register_relic(
+        "pawn_receipt",
+        name="Pawn-Shop Receipt",
+        archetype="stack", rarity="common",
+        hook="Shredding a card at the Fixer pays you 3,000 CZK.",
+        flavor="The man behind the counter never asks where it came from. That's the service.",
+    )
+
+    ## ═══ EXPANSION POOL — BODYBUILDER (class-locked) ══════════════════════════
+    register_relic(
+        "creatine",
+        name="Creatine (Loading Phase)",
+        archetype="iron", rarity="common",
+        hook="Start each fight with +1 Strength.",
+        flavor="Five grams, twice a day, water everywhere. The scale lies; the bar doesn't.",
+        class_lock="bodybuilder",
+    )
+    register_relic(
+        "chalk_bag",
+        name="Chalk Bag",
+        archetype="iron", rarity="common",
+        hook="Your first Attack each fight lands twice.",
+        flavor="A fist of magnesium dust. Your grip holds the half-second longer than his does.",
+        class_lock="bodybuilder",
+    )
+    register_relic(
+        "resistance_bands",
+        name="Resistance Bands",
+        archetype="iron", rarity="common",
+        hook="Gain +1 SOMA after each victory.",
+        flavor="Looped over the door frame of every flat you've ever rented. They go where you go.",
+        class_lock="bodybuilder",
+    )
+    register_relic(
+        "posing_trunks",
+        name="Competition Trunks",
+        archetype="iron", rarity="uncommon",
+        hook="While SOMA is 6 or higher, +3 block at the start of each turn.",
+        flavor="Sequined, absurd, earned. You only wear them when the body has somewhere to be.",
+        class_lock="bodybuilder",
+    )
+    register_relic(
+        "pre_workout",
+        name="Pre-Workout (Banned Formula)",
+        archetype="wrath", rarity="uncommon",
+        hook="+2 energy on the first turn of each fight, but start the fight with +4 Hatred.",
+        flavor="The label's in Cyrillic and lying. Your ears ring before the first set. Worth it.",
+        class_lock="bodybuilder",
+    )
+    register_relic(
+        "punching_bag",
+        name="Punching Bag (Re-Taped)",
+        archetype="wrath", rarity="common",
+        hook="The first time you gain Hatred each fight, draw 2 cards.",
+        flavor="Split seam, leaking sand, mended in electrical tape. It has heard everything you can't say.",
+        class_lock="bodybuilder",
+    )
+    register_relic(
+        "knuckle_tape",
+        name="Knuckle Tape",
+        archetype="wrath", rarity="uncommon",
+        hook="Each time you gain Hatred in a fight, gain +1 Strength (up to +5).",
+        flavor="Wound tight enough to whiten the fingers. The anger has somewhere to go now.",
+        class_lock="bodybuilder",
+    )
+    register_relic(
+        "trenbolone",
+        name="Trenbolone (Veterinary)",
+        archetype="wrath", rarity="rare",
+        hook="Start each fight with +3 Strength, but take +1 damage from every attack.",
+        flavor="Meant for cattle. The vials don't pretend otherwise. Neither do the night sweats.",
+        class_lock="bodybuilder",
+    )
+    register_relic(
+        "weighted_vest",
+        name="Weighted Vest (40 kg)",
+        archetype="iron", rarity="rare",
+        hook="+5 block at the start of each turn, but -1 energy on the first turn.",
+        flavor="Forty kilos of sand sewn into a fishing jacket. You stopped noticing it. Nobody else did.",
+        class_lock="bodybuilder",
+    )
+    register_relic(
+        "service_photo",
+        name="Old Service Photo",
+        archetype="wrath", rarity="rare",
+        hook="Start each fight with +10 Hatred. Heal 10 HP after a win if you ended above 60 Hatred.",
+        flavor="Academy graduation, front row, certain of everything. You keep it face-down in the glovebox.",
+        class_lock="bodybuilder",
+    )
+
     ## ── Engine hooks ───────────────────────────────────────────────────────
 
     def relic_apply_battle_init(bs):
@@ -332,6 +486,49 @@ init python:
                 ## battle_start_player_turn, then irrelevant.
                 bs.buffs["first_turn_bonus_draw"] = bs.buffs.get("first_turn_bonus_draw", 0) + 2
 
+            ## --- EXPANSION: NEUTRAL ---
+            elif rid == "turkish_coffee":
+                bs.buffs["relic_turn1_energy"] = bs.buffs.get("relic_turn1_energy", 0) + 1
+            elif rid == "kevlar_surplus":
+                bs.buffs["relic_turn1_block"] = bs.buffs.get("relic_turn1_block", 0) + 8
+            elif rid == "stab_vest":
+                bs.buffs["flat_dr"] = bs.buffs.get("flat_dr", 0) + 1
+            elif rid == "riot_shield":
+                bs.buffs["negate_next_hit"] = True
+            elif rid == "police_flashlight":
+                bs.buffs["halve_next_hit"] = True
+            elif rid == "spiral_notebook":
+                bs.buffs["first_card_discount"] = True
+
+            ## --- EXPANSION: BODYBUILDER ---
+            elif rid == "creatine":
+                bs.player_strength += 1
+            elif rid == "chalk_bag":
+                bs.buffs["first_attack_double"] = True
+            elif rid == "posing_trunks":
+                ## Read once at fight start — SOMA doesn't change mid-fight.
+                if getattr(store, "bb_soma", 0) >= 6:
+                    bs.starting_block += 3
+            elif rid == "pre_workout":
+                bs.buffs["relic_turn1_energy"] = bs.buffs.get("relic_turn1_energy", 0) + 2
+                if stats is not None:
+                    stats.increment_stats_pcr_hatred(4)
+                    bs.add_log("[[Pre-Workout]: the formula hits. +4 Hatred.")
+            elif rid == "punching_bag":
+                bs.buffs["first_hatred_draw"] = True
+            elif rid == "knuckle_tape":
+                bs.buffs["hatred_strength"] = True
+            elif rid == "trenbolone":
+                bs.player_strength += 3
+                bs.buffs["extra_dmg_taken"] = bs.buffs.get("extra_dmg_taken", 0) + 1
+            elif rid == "weighted_vest":
+                bs.starting_block += 5
+                bs.buffs["relic_turn1_energy"] = bs.buffs.get("relic_turn1_energy", 0) - 1
+            elif rid == "service_photo":
+                if stats is not None:
+                    stats.increment_stats_pcr_hatred(10)
+                    bs.add_log("[[Old Service Photo]: the man you were. +10 Hatred.")
+
             ## taser handled below (needs skip_attack_count, not a buff key)
             if rid == "taser":
                 bs.skip_attack_count += 1
@@ -384,9 +581,11 @@ init python:
 
     def relic_shop_price(rid):
         _override = RELIC_LIBRARY.get(rid, {}).get("shop_price")
-        if _override is not None:
-            return _override
-        return RELIC_SHOP_PRICES.get(relic_rarity(rid), 11000)
+        _base = _override if _override is not None else RELIC_SHOP_PRICES.get(relic_rarity(rid), 11000)
+        ## The Fixer's Business Card — 15% off everything the Fixer sells.
+        if has_relic("fixer_card"):
+            _base = int(round(_base * 0.85))
+        return _base
 
     def build_relic_shop_offers(n=3):
         """Roll up to n unowned relics for the shop, each priced by rarity.
@@ -404,11 +603,20 @@ init python:
     def relic_on_victory():
         """Between-fight relic effects. Called from battle_with after a win
         (battle_finish has already written run_hp). Mutates run_hp directly."""
+        _max = getattr(store, "run_hp_max", None)
+        _cur = getattr(store, "run_hp", None)
+        _heal = 0
         if has_relic("lucky_koruna"):
-            _max = getattr(store, "run_hp_max", None)
-            _cur = getattr(store, "run_hp", None)
-            if _cur is not None and _max:
-                store.run_hp = min(_max, _cur + 8)
+            _heal += 8
+        if has_relic("mini_fridge"):
+            _heal += 12
+        if has_relic("service_photo") and stats is not None and stats.pcr_hatred > 60:
+            _heal += 10
+        if _heal and _cur is not None and _max:
+            store.run_hp = min(_max, _cur + _heal)
+        ## Resistance Bands — the SOMA ramp also feeds off wins (BB-gated in add_soma).
+        if has_relic("resistance_bands"):
+            add_soma(1)
 
 
 ## ---------------------------------------------------------------------------

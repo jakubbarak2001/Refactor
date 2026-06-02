@@ -1329,9 +1329,17 @@ label fixer_shred:
             store._fixer_removals = getattr(store, '_fixer_removals', 0) + 1
             store._fixer_shredded_today = True
             _fixer_name = CARD_LIBRARY.get(_fixer_card, {}).get("name", _fixer_card)
+            ## Pawn-Shop Receipt (relic) — the shredded card is worth something
+            ## to the right buyer. money_gain_preview keeps the panel honest.
+            _pawn_bonus = 0
+            if has_relic("pawn_receipt"):
+                _pawn_bonus = stats.money_gain_preview(3000)
+                stats.increment_stats_value_money(3000)
             _fixer_outcome = "- {:,} CZK   - 1 card ({})   ·   Next shred: {:,} CZK".format(
                 _fixer_current, _fixer_name, fixer_current_price()
             )
+            if _pawn_bonus:
+                _fixer_outcome += "   ·   Pawn slip + {:,} CZK".format(_pawn_bonus)
             _shred_ok = True
 
     if not _shred_ok:
@@ -1399,6 +1407,10 @@ label do_end_day:
             stats.increment_stats_value_money(_passive_income)
         _coding_paycheck_disp = stats.money_gain_preview(_coding_paycheck)
         _passive_income_disp = stats.money_gain_preview(_passive_income)
+        ## Beat Cop's Pension (relic) — a steady morning trickle of the old
+        ## salary. Silent credit; the money bar reflects it.
+        if has_relic("cop_pension"):
+            stats.increment_stats_value_money(2500)
 
     if _coding_paycheck > 0:
         "[[FREELANCE] A client paid out overnight — [_coding_paycheck_disp:,] CZK in the account by morning."

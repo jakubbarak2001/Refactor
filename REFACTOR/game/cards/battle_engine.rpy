@@ -161,6 +161,10 @@ init python:
             ## type. Persists for the fight; does NOT decay across turns.
             self.enemy_strength = 0
 
+            ## Player Strength (StS analog) — relics grant a flat +damage to the
+            ## player's Attack-card hits. Per-fight; does not decay across turns.
+            self.player_strength = 0
+
             ## Card-play restriction. None = no cap (default). When an intent
             ## sets cards_cap_next_turn, the start-of-turn handler latches it
             ## into current_turn_max_cards and resets cards_played_this_turn.
@@ -206,6 +210,8 @@ init python:
                 self.enemy_log_name = "Colonel"
             if not hasattr(self, 'enemy_strength'):
                 self.enemy_strength = 0
+            if not hasattr(self, 'player_strength'):
+                self.player_strength = 0
             if not hasattr(self, 'cards_played_this_turn'):
                 self.cards_played_this_turn = 0
             if not hasattr(self, 'current_turn_max_cards'):
@@ -234,7 +240,7 @@ init python:
                 self.log = self.log[-12:]
 
         ## ---------------- DAMAGE / BLOCK ----------------
-        def deal_damage(self, target, amount, source_kind="effect", bypass_block=False, popup_delay=0.0, popup_xoffset=0):
+        def deal_damage(self, target, amount, source_kind="effect", bypass_block=False, popup_delay=0.0, popup_xoffset=0, apply_strength=True):
             """target: 'player' | 'enemy' (or string aliases).
 
             source_kind: 'effect' (card-played effect) | 'intent' (colonel's
@@ -263,6 +269,11 @@ init python:
             if amount <= 0:
                 return
             if target == "enemy":
+                ## Player Strength adds to card-attack damage. apply_strength is
+                ## False for relic/Power chip (Pipeline, Roid Rage) so Strength
+                ## doesn't double-dip on per-card / per-Hatred-gain procs.
+                if apply_strength and source_kind == "effect" and self.player_strength:
+                    amount += self.player_strength
                 ## Apply enemy block first
                 absorbed = min(self.enemy_block, amount)
                 self.enemy_block -= absorbed
@@ -317,6 +328,19 @@ init python:
                 ## Stoic Refactor+ extends the 50% DR to Special-typed attacks too.
                 if self.buffs.get("special_dr_50") and self._intent_has_tag("special"):
                     amount = max(1, amount // 2)
+                ## Relic incoming-damage modifiers — enemy attacks only.
+                if source_kind == "intent":
+                    if self.buffs.get("negate_next_hit"):
+                        self.buffs["negate_next_hit"] = False
+                        self.add_log("[[Riot Shield]: the first hit glances off the dented steel.")
+                        return
+                    if self.buffs.get("halve_next_hit"):
+                        self.buffs["halve_next_hit"] = False
+                        amount = max(1, amount // 2)
+                    if self.buffs.get("flat_dr", 0) > 0:
+                        amount = max(1, amount - self.buffs["flat_dr"])
+                    if self.buffs.get("extra_dmg_taken", 0) > 0:
+                        amount += self.buffs["extra_dmg_taken"]
                 if bypass_block:
                     absorbed = 0
                 else:
@@ -485,6 +509,15 @@ init python:
                         THICK_SKULL_FLOOR, THICK_SKULL_BLOCK))
                     return
             stats.increment_stats_pcr_hatred(n)
+            ## Punching Bag (relic) — the first Hatred gain each fight draws 2.
+            if self.buffs.get("first_hatred_draw") and not self.buffs.get("first_hatred_draw_used"):
+                self.buffs["first_hatred_draw_used"] = True
+                self.draw_cards(2)
+                self.add_log("[[Punching Bag]: the first rush draws 2 cards.")
+            ## Knuckle Tape (relic) — each Hatred gain hardens you: +1 Strength
+            ## this fight, capped at 5.
+            if self.buffs.get("hatred_strength") and self.player_strength < 5:
+                self.player_strength += 1
             ## See Red — every Hatred gain this fight walls up a little block.
             if self.buffs.get("see_red"):
                 self.gain_block("player", SEE_RED_BLOCK)
@@ -493,7 +526,7 @@ init python:
             ## the base), so a generator-heavy late run snowballs instead of
             ## paying a flat tax that the Colonel's HP laughs off.
             if self.buffs.get("roid_rage"):
-                self.deal_damage("enemy", ROID_RAGE_DMG + stats.pcr_hatred // 20)
+                self.deal_damage("enemy", ROID_RAGE_DMG + stats.pcr_hatred // 20, apply_strength=False)
 
         ## ---------------- INTENT MANAGEMENT ----------------
         def advance_intent(self):
@@ -847,6 +880,8 @@ init python:
         ## "used" marker clears.
         if bs.buffs.get("lab_first_free_used"):
             bs.buffs["lab_first_free_used"] = False
+        if bs.buffs.get("first_card_discount_used"):
+            bs.buffs["first_card_discount_used"] = False
         if bs.buffs.get("cards_cap_next_turn"):
             bs.current_turn_max_cards = bs.buffs["cards_cap_next_turn"]
             bs.buffs["cards_cap_next_turn"] = 0
@@ -917,6 +952,14 @@ init python:
             bs.energy = max(0, bs.energy - _pen)
             bs.buffs["max_energy_penalty_next_turn"] = 0
             bs.add_log("[[FLMod ebb]: -{} max energy this turn.".format(_pen))
+
+        ## Relic turn-1 boosts — Thermos of Turkish Coffee (energy) and Surplus
+        ## Kevlar Vest (block) only fire on the opening turn of each fight.
+        if bs.turn == 1:
+            if bs.buffs.get("relic_turn1_energy"):
+                bs.energy += bs.buffs["relic_turn1_energy"]
+            if bs.buffs.get("relic_turn1_block"):
+                bs.player_block += bs.buffs["relic_turn1_block"]
 
         ## Stack-up crash — Biohacker pays for last turn's energy spike
         if bs.buffs.get("crash_next_turn"):
@@ -1112,6 +1155,13 @@ init python:
             cost = 0
             bs.buffs["lab_first_free_used"] = True
             bs.add_log("[[Lab protocol]: first card of the turn is free.")
+        ## Spiral Notebook (relic) — first card each turn costs 1 less (min 0).
+        if (bs.buffs.get("first_card_discount") and
+                not bs.buffs.get("first_card_discount_used") and
+                isinstance(cost, int) and cost > 0):
+            cost = max(0, cost - 1)
+            bs.buffs["first_card_discount_used"] = True
+            bs.add_log("[[Spiral Notebook]: first card of the turn costs 1 less.")
         if isinstance(cost, int):
             bs.spend_energy(cost)
 
@@ -1123,7 +1173,7 @@ init python:
         ## (Pipeline itself doesn't self-trigger: the buff is set during its own
         ## resolution, after this counter has already ticked.)
         if bs.buffs.get("pipeline"):
-            bs.deal_damage("enemy", _bh_coding_tier())
+            bs.deal_damage("enemy", _bh_coding_tier(), apply_strength=False)
         ## Skill-played flag — read by Production Push's combo bonus.
         if c.get("type") == "Skill":
             bs.skill_played_this_turn = True
@@ -1161,6 +1211,20 @@ init python:
                 except Exception:
                     pass
             bs.add_log("Personal Record: doubled.")
+
+        ## Chalk Bag (relic) — the FIRST Attack each fight lands twice (per-fight
+        ## latch, never reset per turn). Re-resolves the effect like Personal
+        ## Record; stacks with it on the same swing in the rare case both fire.
+        if (c.get("type") == "Attack" and bs.buffs.get("first_attack_double")
+                and not bs.buffs.get("first_attack_double_used")):
+            bs.buffs["first_attack_double_used"] = True
+            _eff_cb = c.get("effect")
+            if _eff_cb and _eff_cb in card_effects:
+                try:
+                    card_effects[_eff_cb](bs, "player", "enemy")
+                except Exception:
+                    pass
+            bs.add_log("[[Chalk Bag]: the first swing lands twice.")
 
 
     def battle_end_player_turn():

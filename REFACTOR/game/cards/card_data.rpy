@@ -520,6 +520,9 @@ init -1 python:
         for cid in pick_battle_rewards("medium")[:n]:
             c = CARD_LIBRARY.get(cid, {})
             price = CARD_SHOP_PRICES.get(c.get("rarity", "common"), 4000)
+            ## The Fixer's Business Card (relic) — 15% off the card shelf too.
+            if has_relic("fixer_card"):
+                price = int(round(price * 0.85))
             offers.append({"card_id": cid, "price": adjusted_cost(price)})
         return offers
 
