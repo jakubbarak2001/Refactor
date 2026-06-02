@@ -250,6 +250,13 @@ label colonel_ghost_phase:
     show jb determined at char_left with dissolve
     jb "'No. You don't get to keep running.'"
 
+    window hide
+    show screen refactoring_drop
+    with Dissolve(0.12)
+    pause
+    hide screen refactoring_drop
+    with Dissolve(0.2)
+
     "You stop reaching for the door and reach for the {i}stack{/i} instead."
 
     scene bg_colonel_ghost with glitch_transition
