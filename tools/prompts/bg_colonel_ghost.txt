@@ -1,0 +1,5 @@
+SUBJECT: the inside of police_bureaucracy.exe - the Colonel's precinct office DECONSTRUCTED into kernel-space. Walls peeling apart into vast scrolling green code; the floor a void of glowing stacked data-frames receding into black; filing cabinets, a desk and evidence boxes floating unmoored; dead CRT glow; a cathedral of cables and server-racks vanishing into the dark. Cold green-on-black, glitch artifacts, deep endless depth, oppressive.
+
+CRITICAL: a wide LANDSCAPE battle background, EMPTY (no people, no characters), no readable text/code (abstract green streaks), no UI/frame. Leave the lower-center clear for a figure to stand.
+
+STYLE: painterly semi-realistic illustration, heavy chiaroscuro, the same artist hand as the reference backgrounds. Sickly terminal-green + charcoal-black. NOT photorealistic, NOT anime, NOT 3D, NO neon, NO glow.

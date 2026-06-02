@@ -1,9 +1,7 @@
-SUBJECT (REFACTOR Police card "TOOK THE HEAT" — owning blame that wasn't only his):
+SUBJECT (REFACTOR Police card "TOOK THE HEAT" - owning blame that wasn't only his):
 
-JB — a YOUNG Czech cop, around 25, short dark hair, clean-shaven, athletic and broad — in the black POLICIE police tactical/stab vest with a shoulder patch, exactly like the reference images. He stands alone on the wrong side of a superior's desk in a dim precinct office, holding nothing, chin level, eyes forward — taking the blame for something he didn't only do, and not flinching. An empty accusing chair, a thin shaft of cold window light across the desk.
+JB - a VERY YOUNG cop, EARLY-20s (around 25), boyish youthful face, smooth-shaven, short dark hair, the SAME young man as the reference images (NOT middle-aged, NOT a grizzled veteran) - in the black POLICIE tactical vest, stands alone on the wrong side of a superior's desk in a dim precinct office, holding nothing, chin level, jaw tight, eyes forward. He is taking the blame for something he didn't only do, and not flinching. An empty accusing chair, a thin shaft of cold window light across the desk.
 
-CRITICAL: match the young-cop look + black POLICIE vest of the references. No real police logos.
+CRITICAL: the face MUST read as a young man in his early-to-mid twenties, matching the reference likeness closely. Black POLICIE vest, no real police logos.
 
-Lighting: dim office, one cold shaft of window light, oppressive institutional shadow.
-
-STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference images. 2:1 widescreen LANDSCAPE, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT cel-shaded or splash-art, NO neon, NO modern game-art glow. NO text, letters, numbers, logos, UI, frame, border, vignette or letterbox.
+STYLE: painterly semi-realistic illustration, soft brushwork, heavy chiaroscuro, the same artist hand as the reference cards. Dim office, one cold shaft of window light, institutional shadow. NOT photorealistic, NOT anime, NOT 3D, NOT cel-shaded, NO neon, NO modern game glow. NO text/logos/UI/frame.

@@ -1,11 +1,7 @@
-SUBJECT (REFACTOR Stoic card "COUNTERWEIGHT" — the wall isn't just for stopping; he leans into it and turns held ground into a shove):
+SUBJECT (REFACTOR Stoic card "COUNTERWEIGHT" - the wall you hid behind, driven forward as the blow):
 
-JB (Czech cop / bodybuilder, mid-30s, short military haircut, thick neck, broad shoulders) caught mid-drive, transferring his planted weight forward — one boot rooted hard behind, the back leg straightening like a piston, the whole braced mass of his body unloading through a low shoulder-and-forearm thrust ahead. The motion reads as a wall deciding to move: heavy, deliberate, the stored weight of the stance converted into a single grounded push. Forearm tendons and shoulder slabs bunched, jaw clenched, eyes locked low on the point he's driving into. A faint sense of forward momentum and dust scuffed off concrete under the rear boot. A working-class dark cotton t-shirt straining across the loaded back.
+JB - a YOUNG man, around 25, short dark hair, athletic, in a plain dark t-shirt mid-lunge, driving a heavy slab-like riot/ballistic shield forward into an unseen foe with all his braced bodyweight behind it - boots planted, shoulder buried into the back of the shield, the foe reeling back off the impact at the edge of frame. The defence he built all fight, released in one shove.
 
-CRITICAL: do NOT depict any attacker, any other person, any weapon. Only JB converting his brace into a forward drive against empty air.
+CRITICAL: the SHIELD-BASH impact is the subject (block becoming attack), not a static pose. Match the young (~25) JB likeness. NO text/UI/frame.
 
-Lighting: cool steel-grey and slate dominant, one hard amber rim light catching the leading shoulder and the straining forearm, charcoal-black swallowing the rear. Bare concrete floor and wall.
-
-Match the build and haircut of the JB bodybuilder reference image.
-
-STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, slightly diffused edges, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference card images. Cool steel-grey and slate dominant, one warm amber rim light, charcoal-black shadows; concrete walls, doorframes, braced low stances, the body as a wall. 2:1 widescreen LANDSCAPE composition, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT comic-book or cel-shaded or splash-art, NO neon, NO modern game-art glow effects. NO text, letters, numbers, symbols, UI, card frame, border, vignette or letterbox anywhere.
+STYLE: painterly semi-realistic illustration, soft brushwork, heavy chiaroscuro, lived-in, the same artist hand as the reference cards. Cool steel-grey and slate, one amber rim light, concrete, charcoal shadow. NOT photorealistic, NOT anime, NOT 3D, NOT cel-shaded, NO neon, NO modern game glow.

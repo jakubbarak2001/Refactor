@@ -1,11 +1,7 @@
-SUBJECT (REFACTOR Tech card "QUICK COMPILE" — the build comes back clean on the first try, no resistance, no cost):
+SUBJECT (REFACTOR "QUICK COMPILE" - it built clean, first try):
 
-JB (Czech cop / bodybuilder, mid-30s, short military haircut, thick neck, broad shoulders) seen close at a dim desk, leaning back a few centimetres from a single monitor, one hand still resting on a mechanical keyboard, the other half-lifted off it. His glasses and the planes of his face catch a clean wash of cold terminal-green coming off the screen — the unmistakable wash of a build that just went green, a wall of small confirmation light reflected across his lenses and knuckles. The faint ease in his shoulders, the breath let out: it worked the first time. A working-class dark cotton t-shirt across the broad back, the rest of the room swallowed in charcoal-black.
+JB - a YOUNG man, around 25, short dark hair, clean-shaven, athletic and broad, in a plain dark t-shirt leaning back from a dark desk, hands lifting off the keyboard, a quiet surprised half-smile, as a wave of clean GREEN light floods across the monitor and washes over his face - the build went green on the first try. Relief, ease.
 
-CRITICAL: no other person, no attacker, no weapon. The screen content is suggestion and reflected green light, NOT readable text or a real interface. NO text, letters, numbers or symbols anywhere in the image.
+CRITICAL: match the young (~25) JB likeness of the reference; the concept above is the subject, NOT a generic portrait at a PC.
 
-Lighting: dim monitor-blue washing to clean terminal-green over deep charcoal, the green dominant and reflected across glasses and face, a faint warm edge on the far side of his jaw, the rest of the room black around the one cold glow.
-
-Match the build and haircut of the JB bodybuilder reference image.
-
-STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, slightly diffused edges, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference card images. Dim monitor-blue and terminal-green over charcoal-black, PAINTED not screenshotted; a dark room, a desk, a keyboard, glasses catching cold screen-light, JB at the machine. 2:1 widescreen LANDSCAPE composition, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT comic-book or cel-shaded or splash-art, NO neon, NO modern game-art glow effects. NO text, letters, numbers, symbols, UI, card frame, border, vignette or letterbox anywhere.
+STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, heavy chiaroscuro, lived-in and grounded - the same artist hand as the reference images. 2:1 widescreen LANDSCAPE, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT cel-shaded or splash-art, NO neon sign look, NO modern game-art glow. NO text, letters, numbers, code, logos, UI, frame, border, vignette or letterbox.

@@ -1,11 +1,7 @@
-SUBJECT (REFACTOR Tech card "PAIR PROGRAM" — two heads on one problem, except both of them are his):
+SUBJECT (REFACTOR "PAIR PROGRAM" - pair-programming, alone, with yourself):
 
-JB (Czech cop / bodybuilder, mid-30s, short military haircut, thick neck, broad shoulders) seen close at a dim desk, hunched forward with both elbows planted on the desktop, both broad hands framing his own lowered head as he stares down into a single monitor — the posture of a man arguing a problem out with himself, driver and navigator at once. Cold monitor-blue light rakes across his glasses, the backs of his hands and the crown of his short hair; a second empty chair pushed back into the charcoal dark beside him, never occupied. A working-class dark cotton t-shirt stretched across the hunched shoulders.
+JB - a YOUNG man, around 25, short dark hair, clean-shaven, athletic and broad, in a plain dark t-shirt sits at one dark desk, and beside him - sharing the same keyboard - is an IDENTICAL translucent HOLOGRAM-CLONE of himself rendered in glowing terminal-green light, semi-transparent, mid-argument: one jabbing at the screen, the other typing, in sync and at odds at once. Two of the same man, one made of light. Monitor-blue room, green hologram glow.
 
-CRITICAL: do NOT depict any second person, any partner, any attacker, any weapon — the empty chair stays empty; only JB at the machine. The screen content is suggestion and reflected light, NOT readable text or a real interface. NO text, letters, numbers or symbols anywhere in the image.
+CRITICAL: match the young (~25) JB likeness of the reference; the concept above is the subject, NOT a generic portrait at a PC.
 
-Lighting: dim monitor-blue with a thread of terminal-green over deep charcoal, the cold glow carving his hands and glasses out of the black, the empty second chair barely a silhouette, a faint warm edge along one shoulder.
-
-Match the build and haircut of the JB bodybuilder reference image.
-
-STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, slightly diffused edges, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference card images. Dim monitor-blue and terminal-green over charcoal-black, PAINTED not screenshotted; a dark room, a desk, a keyboard, glasses catching cold screen-light, JB at the machine. 2:1 widescreen LANDSCAPE composition, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT comic-book or cel-shaded or splash-art, NO neon, NO modern game-art glow effects. NO text, letters, numbers, symbols, UI, card frame, border, vignette or letterbox anywhere.
+STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, heavy chiaroscuro, lived-in and grounded - the same artist hand as the reference images. 2:1 widescreen LANDSCAPE, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT cel-shaded or splash-art, NO neon sign look, NO modern game-art glow. NO text, letters, numbers, code, logos, UI, frame, border, vignette or letterbox.

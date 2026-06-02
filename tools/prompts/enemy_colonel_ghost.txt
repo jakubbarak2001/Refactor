@@ -1,0 +1,5 @@
+SUBJECT: the Colonel, GLITCHED - police_bureaucracy.exe, the man becoming the machine. The older heavy Czech police colonel standing tall, recognizably HIM and his uniform, but his body is breaking apart into and overgrown with grey filing-cabinet drawers, dead CRT monitors, tangled cables and threads of green code that wrap through his coat; a wash of green screen-static and faint duplicate after-images glitch across him. CRT-glow lighting him from within. Clearly the Colonel, corrupted into a system.
+
+CRITICAL: a single vertical CHARACTER on a dark near-black background for compositing, figure filling the vertical frame. The Colonel's stern FACE stays visible and recognizable (glitched, not removed). Match the reference colonel's face and uniform. NO readable text/code (abstract green streaks only), no UI/frame.
+
+STYLE: painterly semi-realistic illustration, soft brushwork, heavy chiaroscuro, the same artist hand as the reference. Sickly terminal-green + grey machine + charcoal. NOT photorealistic, NOT anime, NOT 3D, NOT cel-shaded, NO neon, NO modern game glow.

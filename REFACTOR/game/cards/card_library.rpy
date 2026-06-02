@@ -525,7 +525,7 @@ init python:
 
     register_card(
         "refactor",
-        name      = "Refactor",
+        name      = "Debugging",
         type      = "Skill",
         color     = "Logic",
         cost      = 2,
@@ -643,7 +643,7 @@ init python:
     ## pool-eligible (STUDY trios + battle rewards). Mirrors BH's Compile.
     register_card(
         "git_blame",
-        name       = "Git Blame",
+        name       = "Paper Trail",
         type       = "Attack",
         color      = "Logic",
         cost       = 1,
@@ -651,7 +651,7 @@ init python:
         effect     = "git_blame",
         class_lock = "bodybuilder",
         archetype  = "tech",
-        flavor     = "You walk the history back to the exact line where it all went wrong. His name is on the commit.",
+        flavor     = "Every change leaves a name. You follow the trail all the way back to his.",
         upgrade    = {"effect": "git_blame_plus"},
     )
 

@@ -1,11 +1,7 @@
-SUBJECT (REFACTOR Tech card "STACK TRACE" — walking the call up frame by frame until the next moves surface):
+SUBJECT (REFACTOR "STACK TRACE" - following the error all the way down):
 
-A tight detail crop: JB's blunt index finger pressed to a single monitor, dragging slowly downward as his eyes — caught in profile behind glasses, lit hard from the screen — track the descent of the cursor down a long cascading column of faintly-painted indented light, frame stacked under frame, the call walked back toward its origin. His other hand frozen mid-air over the keyboard, waiting. Cold terminal-green spills across the fingertip, the glass, the lens, the side of his face; behind him only black. A working-class dark cotton t-shirt at the shoulder edge of frame.
+JB - a YOUNG man, around 25, short dark hair, clean-shaven, athletic and broad, in a plain dark t-shirt descending a vast vertical STAIRCASE built of glowing translucent stacked code-frames plunging down into pitch black, a torch in one hand throwing a cone of light down the steps as he follows the fault to its source far below. Vertigo, descent, tracking a trail into the dark.
 
-CRITICAL: no other person, no attacker, no weapon. The cascading column on the screen is painted suggestion and reflected light, NOT readable text, NOT a real interface, NOT legible lines of code. NO text, letters, numbers or symbols anywhere in the image.
+CRITICAL: match the young (~25) JB likeness of the reference; the concept above is the subject, NOT a generic portrait at a PC.
 
-Lighting: dim monitor-blue and terminal-green over deep charcoal, the green sharpest where the fingertip meets the glass, his profile rim-lit cold, the room black around the one glow.
-
-Match the build and haircut of the JB bodybuilder reference image.
-
-STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, slightly diffused edges, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference card images. Dim monitor-blue and terminal-green over charcoal-black, PAINTED not screenshotted; a dark room, a desk, a keyboard, glasses catching cold screen-light, JB at the machine. 2:1 widescreen LANDSCAPE composition, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT comic-book or cel-shaded or splash-art, NO neon, NO modern game-art glow effects. NO text, letters, numbers, symbols, UI, card frame, border, vignette or letterbox anywhere.
+STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, heavy chiaroscuro, lived-in and grounded - the same artist hand as the reference images. 2:1 widescreen LANDSCAPE, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT cel-shaded or splash-art, NO neon sign look, NO modern game-art glow. NO text, letters, numbers, code, logos, UI, frame, border, vignette or letterbox.
