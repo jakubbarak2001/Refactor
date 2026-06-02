@@ -61,6 +61,13 @@ REFACTOR-*-dists/
 # --- Image-gen logs (tools/gen_img_rest.py output)
 tools/logs/
 
+# --- Art-variant archives (rejected gen alternates, kept on disk for review,
+#     not committed — they're ~hundreds of MB. Already-tracked variants stay
+#     tracked; this only stops NEW ones from bloating history.)
+REFACTOR/game/images/**/_variants/
+# --- Curation contact sheets (temp)
+tools/_curation/
+
 # --- Pre-Ren'Py pygame relic (kept on disk, not in git)
 /game/
 
