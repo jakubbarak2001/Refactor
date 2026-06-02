@@ -440,7 +440,7 @@ label ev_lost_and_found:
             {
                 "id": "take",
                 "label": "[ TAKE A BOX THAT ISN'T YOURS ]",
-                "desc": ec("+ 12 Hatred") + ".  " + eg("Gain a card.") + "  Someone, somewhere, is still looking for it.",
+                "desc": ec("+ 12 Hatred") + ".  " + eg("Gain a piece of gear.") + "  Someone, somewhere, is still looking for it.",
             },
         ]
 
@@ -481,17 +481,31 @@ label ev_lost_and_found:
     else:
         python:
             stats.increment_stats_pcr_hatred(12)
-            _lf_trio = pick_battle_rewards(_lf_tier)
-        call screen card_reward_trio_screen(_lf_trio)
+            ## The box is a piece of gear — relics get an event acquisition path
+            ## here, the way they should: pocketed off the books. Class-filtered
+            ## (random_unowned_relic respects class_lock). If you somehow already
+            ## carry every eligible relic, the box still isn't empty — a card.
+            _lf_relic = random_unowned_relic()
+            _lf_gain_line = ""
+        if _lf_relic:
+            python:
+                grant_relic(_lf_relic, silent=True)
+                _lf_gain_line = eg("Gained gear: {}.".format(RELIC_LIBRARY.get(_lf_relic, {}).get("name", "a piece of gear")))
+        else:
+            python:
+                _lf_trio = pick_battle_rewards(_lf_tier)
+            call screen card_reward_trio_screen(_lf_trio)
+            python:
+                _lf_card = _return
+                if _lf_card and _lf_card != "skip":
+                    grant_card(_lf_card, silent=True)
+                    _lf_gain_line = eg("Gained a card.")
         python:
-            _lf_card = _return
-            if _lf_card and _lf_card != "skip":
-                grant_card(_lf_card, silent=True)
             _lf_res = [
                 "She watches you lift the box and says nothing, which is its own kind of saying something.",
                 "It is good. It is useful. It belonged to someone who came in once, frightened, and never came back for it.",
                 "You carry it out. It is yours now, the way most things become yours: by nobody stopping you.",
-                ec("+ 12 Hatred.") + ("   " + eg("Gained a card.") if (_lf_card and _lf_card != "skip") else ""),
+                ec("+ 12 Hatred.") + ("   " + _lf_gain_line if _lf_gain_line else ""),
             ]
 
     call screen event_outcome(title="THE LOST & FOUND", art=_lf_art, result=_lf_res)
