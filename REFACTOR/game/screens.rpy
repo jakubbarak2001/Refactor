@@ -4291,81 +4291,159 @@ screen _achievements_list():
             for _c, _items in _ach_by_cat.items()
         }
 
+    $ _FNT = "fonts/RobotoMono-Regular.ttf"
+    $ _meta_wins = persistent.runs_won or 0
+    $ _meta_best = persistent.best_score or 0
+    $ _ach_frac  = (_ach_count / float(_ach_total)) if _ach_total else 0.0
+
     vbox:
-        spacing 14
+        spacing 16
 
-        text "[_ach_count] / [_ach_total] UNLOCKED":
-            color "#888888"
-            size 18
-            font "fonts/RobotoMono-Regular.ttf"
+        ## ── Header: completion meter + cross-run record ───────────────────
+        text "CASE FILE · COMMENDATIONS":
+            color "#6a6055"
+            size 14
+            bold True
+            font _FNT
 
-        ## Cross-run record — the meta-progression chase, persisted.
-        $ _meta_wins = persistent.runs_won or 0
-        $ _meta_best = persistent.best_score or 0
-        text "RUNS WON: [_meta_wins]    BEST SCORE: [_meta_best]":
-            color "#cdbd97"
-            size 16
-            font "fonts/RobotoMono-Regular.ttf"
+        hbox:
+            spacing 12
+            text "[_ach_count]":
+                color "#ffcc44"
+                size 48
+                bold True
+                font _FNT
+                outlines [(2, "#000000", 0, 0)]
+            text "/ [_ach_total]  unlocked":
+                color "#888888"
+                size 18
+                yalign 1.0
+                yoffset -8
+                font _FNT
+
+        ## Completion meter — manual fill so it reads at a glance.
+        fixed:
+            xysize (660, 12)
+            add Solid("#15151a") xysize (660, 12)
+            add Solid("#ffcc44") xysize (max(3, int(660 * _ach_frac)), 12)
+            add Solid("#00000000") xysize (660, 12)
+
+        ## Record chips — the meta-progression chase, persisted.
+        hbox:
+            spacing 14
+            frame:
+                background Frame("#14141aee", 4, 4)
+                padding (18, 9)
+                hbox:
+                    spacing 10
+                    text "RUNS WON":
+                        color "#6a6055"
+                        size 13
+                        yalign 0.5
+                        font _FNT
+                    text "[_meta_wins]":
+                        color "#cdbd97"
+                        size 24
+                        bold True
+                        font _FNT
+            frame:
+                background Frame("#14141aee", 4, 4)
+                padding (18, 9)
+                hbox:
+                    spacing 10
+                    text "BEST SCORE":
+                        color "#6a6055"
+                        size 13
+                        yalign 0.5
+                        font _FNT
+                    text "[_meta_best]":
+                        color "#ffd700"
+                        size 24
+                        bold True
+                        font _FNT
+
+        null height 6
 
         for _cat in _ach_categories:
             if _ach_by_cat.get(_cat):
                 $ _cat_done, _cat_total = _ach_cat_counts.get(_cat, (0, 0))
 
-                text "{} ({}/{})".format(_cat.upper(), _cat_done, _cat_total):
-                    color "#cc2200"
-                    size 18
-                    bold True
-                    font "fonts/RobotoMono-Regular.ttf"
+                ## Category header + divider rule.
+                hbox:
+                    spacing 12
+                    yalign 0.5
+                    text "[_cat!u]":
+                        color "#cc4422"
+                        size 17
+                        bold True
+                        font _FNT
+                    text "[_cat_done] / [_cat_total]":
+                        color "#6a6055"
+                        size 15
+                        yalign 0.5
+                        font _FNT
+                add Solid("#2a1a14") xysize (974, 2)
 
                 $ _entries = _ach_by_cat[_cat]
                 $ _pairs = [(_entries[i], _entries[i+1] if i+1 < len(_entries) else None) for i in range(0, len(_entries), 2)]
 
                 for _left, _right in _pairs:
                     hbox:
-                        spacing 12
+                        spacing 14
 
                         for _entry in (_left, _right):
                             if _entry is None:
                                 frame:
-                                    xsize 460
-                                    background "#00000000"
+                                    xsize 480
+                                    background None
                             else:
                                 $ _ach_key, _ach_data = _entry
                                 $ _is_unlocked = _ach_key in _unlocked
                                 $ _is_secret   = _ach_data.get("category") == "Secret"
-                                $ _frame_bg    = Frame("#1a0011dd", 4, 4) if _is_unlocked else Frame("#0d0d0ddd", 4, 4)
+                                python:
+                                    if _is_unlocked:
+                                        _acc, _fbg, _glyph, _gc, _nc, _dc = "#ffcc44", "#16120af6", "✓", "#ffcc44", "#ffdd55", "#c8c0b0"
+                                    elif _is_secret:
+                                        _acc, _fbg, _glyph, _gc, _nc, _dc = "#5a2018", "#0a0a0af6", "?", "#7a3a2a", "#5a5a5a", "#444444"
+                                    else:
+                                        _acc, _fbg, _glyph, _gc, _nc, _dc = "#2a2a2a", "#0a0a0af6", "·", "#555555", "#7a7a7a", "#5a5a5a"
+                                    _nm = "???" if (_is_secret and not _is_unlocked) else _ach_data["name"]
+                                    if _is_unlocked:
+                                        _ds = _ach_data["desc"]
+                                    elif _is_secret:
+                                        _ds = "Secret — discover it to reveal."
+                                    else:
+                                        _ds = _ach_data.get("hint", "Locked.")
+                                ## Accent-bordered card (gold = earned, pops off the bg).
                                 frame:
-                                    xsize 460
-                                    background _frame_bg
-                                    padding (14, 10)
-
-                                    vbox:
-                                        spacing 4
-                                        if _is_unlocked:
-                                            text _ach_data["name"]:
-                                                color "#ffdd00"
-                                                size 16
+                                    xsize 480
+                                    background _acc
+                                    padding (3, 3)
+                                    frame:
+                                        background _fbg
+                                        padding (13, 11)
+                                        xfill True
+                                        hbox:
+                                            spacing 12
+                                            text _glyph:
+                                                color _gc
+                                                size 22
                                                 bold True
-                                            text _ach_data["desc"]:
-                                                color "#cccccc"
-                                                size 14
-                                        elif _is_secret:
-                                            text "???":
-                                                color "#444444"
-                                                size 16
-                                                bold True
-                                            text "Secret achievement — discover it to reveal.":
-                                                color "#333333"
-                                                size 14
-                                        else:
-                                            text _ach_data["name"]:
-                                                color "#666666"
-                                                size 16
-                                                bold True
-                                            text _ach_data.get("hint", "Locked."):
-                                                color "#555555"
-                                                size 14
-                                                italic True
+                                                min_width 26
+                                                font _FNT
+                                            vbox:
+                                                spacing 3
+                                                text _nm:
+                                                    color _nc
+                                                    size 16
+                                                    bold True
+                                                    font _FNT
+                                                text _ds:
+                                                    color _dc
+                                                    size 13
+                                                    italic (not _is_unlocked)
+                                                    font _FNT
+                                                    xmaximum 420
 
 
 ## ---------------------------------------------------------------------------
