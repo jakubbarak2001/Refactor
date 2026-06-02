@@ -923,7 +923,7 @@ label activity_coding:
                     "title":          "REFACTOR",
                     "accent":         _bh_accent,
                     "cost_text":      "FREE",
-                    "effect_text":    ("Upgrade a card  ({} left)".format(_rf_left) if not _rf_locked else "Upgrade a card"),
+                    "effect_text":    ("Upgrade a card  ·  +12 Coding  ({} left)".format(_rf_left) if not _rf_locked else "Upgrade a card  ·  +12 Coding"),
                     "flavor_text":    "Rewrite what you've already got. Cleaner, meaner. Coding tier sets how many.",
                     "class_relevant": True,
                     "locked":         _rf_locked,
@@ -1040,8 +1040,12 @@ label coding_refactor:
     python:
         store._refactors_used = getattr(store, "_refactors_used", 0) + 1
         _rf_card_name = CARD_LIBRARY.get(_rf_plus, {}).get("name", "the card")
+        ## Like STUDY, a refactor session also teaches you — +Coding XP.
+        _rf_cs_before = stats.coding_skill
+        stats.increment_stats_coding_skill(12)
+        _rf_cs_gain = stats.coding_skill - _rf_cs_before
     window hide
-    show screen outcome_panel("Refactored: {}.".format(_rf_card_name))
+    show screen outcome_panel("Refactored: {}.{}".format(_rf_card_name, ("   + {} CODING SKILL.".format(_rf_cs_gain) if _rf_cs_gain > 0 else "")))
     pause
     hide screen outcome_panel
     python:
@@ -1239,7 +1243,7 @@ label activity_fixer:
     ## so re-entering the hub doesn't reroll the shelf (no StS reroll-scumming).
     ## Buying removes that offer from the cached stock so it can't be re-bought.
 
-    scene bg_jb_flat
+    scene bg_fixer
 
     python:
         _today = day_cycle.current_day

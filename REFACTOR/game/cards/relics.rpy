@@ -333,7 +333,7 @@ init python:
     register_relic(
         "chalk_bag",
         name="Chalk Bag",
-        archetype="iron", rarity="common",
+        archetype="iron", rarity="rare", shop_price=35000,
         hook="Your first Attack each fight lands twice.",
         flavor="A fist of magnesium dust. Your grip holds the half-second longer than his does.",
         class_lock="bodybuilder",
