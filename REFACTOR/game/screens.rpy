@@ -2400,7 +2400,8 @@ screen fixer_removal_screen(entries, price, next_price):
     modal True
     zorder 700
 
-    add "#0a0a0aee"
+    add Transform("images/backgrounds/bg_fixer.jpg", size=(config.screen_width, config.screen_height))
+    add "#0a0a0acc"
 
     use class_color_frame(thickness=3, alpha_suffix="aa")
 
@@ -2528,7 +2529,8 @@ screen fixer_shop(card_offers, relic_offers, cash, shred_price, can_shred, shred
     modal True
     zorder 700
 
-    add "#0a0a0aee"
+    add Transform("images/backgrounds/bg_fixer.jpg", size=(config.screen_width, config.screen_height))
+    add "#0a0a0acc"
     use class_color_frame(thickness=3, alpha_suffix="aa")
 
     vbox:

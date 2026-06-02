@@ -1,0 +1,5 @@
+SUBJECT: THE FIXER's back room - a dim third-floor panelak flat he works out of and is gone from by morning. A scuffed metal table in the foreground where the cash goes; an industrial PAPER SHREDDER beside it with shredded strips spilling out; metal shelving along the walls stacked with confiscated and pawned gear - a taser, a riot shield, stacked boxes, a protein tub, odd contraband bricks. One bare hanging bulb throwing a hard pool of light, the rest deep shadow; grimy concrete, peeling wallpaper, a barred window.
+
+CRITICAL: a wide LANDSCAPE interior, EMPTY - no people, no characters. No readable text/logos. Keep the upper-centre fairly open/dark for menu UI to sit over.
+
+STYLE: painterly semi-realistic illustration, heavy chiaroscuro, lived-in and grimy, the same artist hand as the reference backgrounds. Warm bulb-light + cold shadow, oxblood-and-charcoal grime. NOT photorealistic, NOT anime, NOT 3D, NO neon, NO glow.
