@@ -147,12 +147,13 @@ init python:
             self.available_money += amount
             if self.available_money < 0:
                 self.available_money = 0
+            if self.available_money >= 200000:
+                unlock_achievement("deep_pockets")
 
         def increment_stats_coding_skill(self, amount):
-            ## Per-class hard ceiling. BB physically cannot become a senior
-            ## engineer through study — to win the Colonel he must buy his way
-            ## past the skill gate. Default ceiling 250 for classes that
-            ## don't set one.
+            ## Per-class hard ceiling on Coding skill (all classes 250 today).
+            ## The clamp also bounds the BB STUDY coding lane (see coding_study)
+            ## so the tech ramp can't overshoot tier 5.
             ceiling = 250
             cls = getattr(self, "player_class", None)
             if cls and cls in CLASS_DATA:
@@ -162,6 +163,8 @@ init python:
                 self.coding_skill = ceiling
             if self.coding_skill >= 250:
                 unlock_achievement("hackerman")
+            if self.coding_skill >= 200:
+                unlock_achievement("code_god")
             ## Meta: reaching Coding tier 3 proves the tech lane — unlock Pipeline.
             if self.coding_skill >= 100:
                 unlock_card("pipeline")
