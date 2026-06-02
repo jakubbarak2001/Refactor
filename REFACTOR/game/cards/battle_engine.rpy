@@ -285,6 +285,7 @@ init python:
                     self.enemy_hp = 0
                     self.over = "victory"
                     self.battle_end_time = self._now()
+                    _play_battle_sfx("victory_sting", volume=0.85)
                 ## Phase A juice — floating "-N" popup + portrait shake + sfx.
                 ## We push the popup IMPERATIVELY via renpy.show_screen rather
                 ## than relying on battle_screen to mount it conditionally.
@@ -377,6 +378,7 @@ init python:
                         self.player_hp = 0
                         self.over = "defeat"
                         self.battle_end_time = self._now()
+                        _play_battle_sfx("defeat_sting", volume=0.85)
                 ## Phase A juice — floating "-N" popup + flash overlay + sfx.
                 ## Same imperative show_screen pattern as the enemy branch.
                 ## "enemy_hit" plays the user-provided punch wav (audio/sfx/

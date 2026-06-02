@@ -1,0 +1,11 @@
+SUBJECT (REFACTOR Tech card "GIT BLAME" — he walks the history back to the exact line where it all went wrong, and the name on the commit is the one he expected):
+
+A tight detail crop: JB's eyes in profile behind glasses, cold and fixed and unforgiving, lit hard from a single monitor as his blunt fingertip rests on the glass at the end of a long descending ladder of faint painted revisions — the history walked all the way back to one final line, isolated and held in a colder, harder pool of terminal-green than the rest. The look on his face is recognition, not surprise: he already knew whose fault it was. The cold light carves the lens, the brow, the set jaw; the room dissolves to black around him. A working-class dark cotton t-shirt at the shoulder edge of frame.
+
+CRITICAL: no other person, no attacker, no weapon — the indictment is in his look and the singled-out line on the screen, painted suggestion and reflected light, NOT readable text, NOT a real interface, NOT legible names or code. NO text, letters, numbers or symbols anywhere in the image.
+
+Lighting: dim monitor-blue and terminal-green over deep charcoal, the singled-out line burning a colder sharper green, the cold light hard across his glasses and jaw, a faint warm rim along the back of the skull, the room black around the glow. The mood is cold recognition, blame landed, no surprise.
+
+Match the build and haircut of the JB bodybuilder reference image.
+
+STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, slightly diffused edges, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference card images. Dim monitor-blue and terminal-green over charcoal-black, PAINTED not screenshotted; a dark room, a desk, a keyboard, glasses catching cold screen-light, JB at the machine. 2:1 widescreen LANDSCAPE composition, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT comic-book or cel-shaded or splash-art, NO neon, NO modern game-art glow effects. NO text, letters, numbers, symbols, UI, card frame, border, vignette or letterbox anywhere.
