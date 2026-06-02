@@ -252,6 +252,10 @@ label colonel_ghost_phase:
 
     "You stop reaching for the door and reach for the {i}stack{/i} instead."
 
+    scene bg_colonel_ghost with glitch_transition
+    show colonel_ghost neutral at char_right with dissolve
+    "The office peels off the walls. The man peels off the office. Underneath, the loop runs on — wearing him like a stolen login, thirty-two years deep."
+
     play music "audio/tension_theme.mp3" fadein 1.0
 
     python:

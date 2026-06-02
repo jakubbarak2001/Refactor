@@ -1039,6 +1039,16 @@ init python:
                     _before = bs.enemy_strength
                     bs.enemy_strength = min(15, _before + _step)
                     bs.add_log("[[He's improvising]: the script is gone — and he's speeding up. +{} Strength.".format(bs.enemy_strength - _before))
+        ## Secret boss — police_bureaucracy.exe destabilizes past half HP: an
+        ## escalating glitch surge (its own enrage) so the climax is a real race.
+        if _eid == "colonel_ghost" and bs.enemy_hp <= bs.enemy_max_hp // 2:
+            if not bs.buffs.get("ghost_phase2"):
+                bs.buffs["ghost_phase2"] = True
+                bs.enemy_strength += 3
+                bs.add_log("[[SEGFAULT]: half the process is dead and it does not care. The loop destabilizes — and speeds up.")
+            elif bs.enemy_strength < 18:
+                bs.enemy_strength += 3
+                bs.add_log("[[Stack overflow]: it spins faster. +3 Strength.")
         if _eid == "spis" and bs.turn >= 2:
             ## Cap paperwork at 3 across all piles — without this, long fights
             ## (and the bloodied double-inject below) accumulate enough copies

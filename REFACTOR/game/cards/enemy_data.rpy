@@ -155,13 +155,17 @@ init -1 python:
     register_enemy(
         "colonel_ghost",
         display_name = "police_bureaucracy.exe",
-        sprite_id    = "colonel",
+        sprite_id    = "colonel_ghost",
+        bg_id        = "colonel_ghost",
         log_name     = "the loop",
         tier         = "boss",
         is_boss      = True,
         no_flee      = True,
         no_double_passive = True,
-        max_hp       = 120,
+        ## A real Act-IV wall now (was a 120 burst): bigger HP + a phase-2 glitch
+        ## surge (battle_engine, ~the colonel enrage) that ramps its Strength once
+        ## it crosses half. Its own sprite + kernel-space bg (no longer the office).
+        max_hp       = 280,
         deck_template = [
             "exe_null_pointer", "exe_recursion", "exe_segfault",
             "exe_fork_bomb", "exe_kernel_panic", "exe_memory_leak",

@@ -1,9 +1,7 @@
-SUBJECT (REFACTOR Police card "RESISTING ARREST" — the report's favourite euphemism):
+SUBJECT (REFACTOR Police card "RESISTING ARREST"):
 
-JB — a YOUNG Czech cop, around 25, short dark hair, clean-shaven, athletic and broad — in the black POLICIE police tactical/stab vest with a shoulder patch, exactly like the reference images. He drives a short, bored, professional fist deep into the gut of a wiry panelák lowlife, who folds hard over the punch — heels lifting, face crumpling, breath gone. The IMPACT on the perp is the subject; JB's face is flat, procedural, just paperwork done with a fist. A grimy concrete stairwell, one bare bulb.
+Clean SIDE-ON composition, two clear silhouettes: JB - a YOUNG Czech cop, around 25, short dark hair, clean-shaven, athletic - in the black POLICIE tactical vest, like the reference drives one fist hard into the belly of GRUNDZA - a stout bald snaggle-toothed meth-cook in a filthy apron and yellow rubber gloves (match the reference enemy) - who JACKKNIFES forward over the punch, eyes bulging, a glass beaker flying from his hand. One clear focal impact, strong readable silhouettes against a simple grimy backdrop. Dark comedy.
 
-CRITICAL: match the young-cop look + black POLICIE vest of the references. No real police logos (the reference's patch style is fine). The focus is the folding perp, not a JB pose.
+CRITICAL: simple clean side view - the punch landing and Grundza folding is the whole image, not a busy scene. Match Grundza (bald, apron, yellow gloves) + the young (~25) cop + black POLICIE vest.
 
-Lighting: harsh bare-bulb stairwell, cold concrete, one warm rim on JB.
-
-STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference images. 2:1 widescreen LANDSCAPE, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT cel-shaded or splash-art, NO neon, NO modern game-art glow. NO text, letters, numbers, logos, UI, frame, border, vignette or letterbox.
+STYLE: painterly semi-realistic oil illustration, CLEAN and UNCLUTTERED, bold readable silhouettes, strong value contrast, cinematic, the same artist hand as the reference cards. NOT photorealistic, NOT anime, NOT 3D, NOT cel-shaded, NO neon, NO modern game glow, NO busy sparkle-spam. NO text, logos, UI, frame, border.

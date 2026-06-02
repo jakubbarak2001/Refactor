@@ -151,3 +151,5 @@ image inspekce neutral      = im.Scale("images/sprites/enemies/inspekce_neutral.
 image garda neutral         = im.Scale("images/sprites/enemies/garda_neutral.png",         600, 900)
 image lifer neutral         = im.Scale("images/sprites/enemies/lifer_neutral.png",         600, 900)
 image estebak neutral       = im.Scale("images/sprites/enemies/estebak_neutral.png",       600, 900)
+## Secret boss — the Colonel glitched into police_bureaucracy.exe.
+image colonel_ghost neutral = im.Scale("images/sprites/enemies/colonel_ghost_neutral.png", 600, 900)

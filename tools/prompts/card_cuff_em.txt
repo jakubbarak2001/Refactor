@@ -1,9 +1,7 @@
-SUBJECT (REFACTOR Police card "CUFF 'EM" — practiced, unhurried, done):
+SUBJECT (REFACTOR Police card "CUFF 'EM" - caught, and not happy about it):
 
-JB — a YOUNG Czech cop, around 25, short dark hair, clean-shaven, athletic and broad — in the black POLICIE police tactical/stab vest with a shoulder patch, exactly like the reference images. He presses a suspect face-first against the wet panel of a patrol car at night and ratchets steel handcuffs onto the wrists pinned behind the back. His vested forearm and the closing cuffs are sharp in the foreground; the suspect's face is turned away, hidden. Clinical, no drama.
+A YOUNG Czech cop (around 25, short dark hair, clean-shaven, athletic, black POLICIE tactical vest, like the reference) stands relaxed over a sullen, defeated PERP who sits slumped on the wet curb against a wall, wrists cuffed, glaring up miserably. The cop looks down at him, faintly satisfied, thumbs in his vest - thoroughly in control. The miserable caught perp is the joke; the cop is bored and pleased.
 
-CRITICAL: match the young-cop look + black POLICIE vest of the references. No real police logos; the suspect's face hidden.
+CRITICAL: the perp is ALREADY cuffed and sitting - no cuffing motion, no cuffs on the cop. Just the smug young cop standing and the glaring cuffed perp on the ground. Match the young (~25) cop + black POLICIE vest. No real police logos.
 
-Lighting: blue patrol light washing over wet car panel and steel cuffs, deep night.
-
-STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference images. 2:1 widescreen LANDSCAPE, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT cel-shaded or splash-art, NO neon, NO modern game-art glow. NO text, letters, numbers, logos, UI, frame, border, vignette or letterbox.
+STYLE: painterly semi-realistic oil illustration, confident brushwork, strong contrast, cinematic, the same artist hand as the reference cards. Night street, a touch of blue light, wet pavement. NOT photorealistic, NOT anime, NOT 3D, NOT cel-shaded, NO neon, NO glow. NO text, logos, UI, frame, border.

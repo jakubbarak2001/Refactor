@@ -1,9 +1,7 @@
-SUBJECT (REFACTOR Police card "BACKUP" — the cavalry is coming):
+SUBJECT (REFACTOR Police card "BACKUP" - pinned behind cover, calling it in):
 
-JB — a YOUNG Czech cop, around 25, short dark hair, clean-shaven, athletic and broad — in the black POLICIE police tactical/stab vest with a shoulder patch, exactly like the reference images. He presses his back to a grimy panelák stairwell wall, keying the radio mic clipped at his shoulder, calling it in — jaw tight. Down the concrete stairwell behind him, two more uniformed officers climb fast with crossing torch beams, and a patrol car's blue light washes the wall through a cracked window.
+JB - a YOUNG Czech cop, around 25, short dark hair, clean-shaven, athletic - in the black POLICIE tactical vest, like the reference. Clean, simple composition: he crouches low behind a parked car, back pressed to the door, using it as cover, radio held to his mouth. In front of the car, two shadowed gunmen fire at him - a couple of clean muzzle-flashes, two bullet holes punched through the car door, one shattered window. He's pinned, waiting for backup. Keep it UNCLUTTERED: JB + the car + a couple of gunmen + a few muzzle flashes, that's all.
 
-CRITICAL: match the young-cop look + black POLICIE vest of the references. No real police logos. The other officers + the blue light are the point — he is not alone.
+CRITICAL: JB clearly hiding behind a car while gunmen shoot at him. Match the young (~25) cop + black POLICIE vest. No real police logos. Do NOT fill the frame with scattered sparks.
 
-Lighting: cold blue patrol-light wash + torch beams in concrete-grey dark.
-
-STYLE: painterly semi-realistic illustration, soft hand-painted brushwork, heavy chiaroscuro, lived-in and grounded — the same artist hand as the reference images. 2:1 widescreen LANDSCAPE, subject filling the frame edge to edge. NOT photorealistic, NOT anime, NOT a 3D render, NOT cel-shaded or splash-art, NO neon, NO modern game-art glow. NO text, letters, numbers, logos, UI, frame, border, vignette or letterbox.
+STYLE: painterly semi-realistic oil illustration, CLEAN and UNCLUTTERED, bold readable silhouettes, strong value contrast, cinematic, the same artist hand as the reference cards. NOT photorealistic, NOT anime, NOT 3D, NOT cel-shaded, NO neon, NO modern game glow, NO busy sparkle-spam. NO text, logos, UI, frame, border.
