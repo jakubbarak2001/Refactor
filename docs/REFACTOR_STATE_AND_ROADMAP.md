@@ -1,7 +1,21 @@
 # REFACTOR — State of the Game & Roadmap
 
-**Last updated:** 2026-06-01 (after a full playtest-and-build session — 21 commits)
+**Last updated:** 2026-06-02 (big autonomous build + live art-review session)
 **Purpose:** the single go-forward reference. Where the game is, what we learned today, and what's next. Read this first, then `REFACTOR_PLAYBOOK.md` (how-to) and the auto-memory `MEMORY.md`.
+
+---
+
+## ⏭️ 2026-06-02 — where we left off / NEXT SESSION
+
+**Shipped today (all pushed to `origin/master`):** killed the emoji render-bug (combat icons/buff chips were tofu) + buff/debuff polarity colour; card **rarity** visuals; **keyboard shortcuts**; battle **SFX** (incl. a Škoda-horn on The Final Set); **ARC-banded + recurring events** + a new **BB "Trainer" arc** (days 7/13/19) + revived **Midnight Call**; balance (Grundza flee, difficulty economy, Coding lane, Colonel enrage, Pipeline→1dmg/cost3, Internal Affairs→200HP, Chalk Bag→35k rare, shop prices rounded to 50); writing/UX (show-don't-tell pass, run-recap + NEW BEST, **redesigned Trophies screen**); the **secret boss rebuilt** (glitched-Colonel sprite + kernel-space bg + 280HP + phase-2 surge — no longer a 120HP office reskin); the **Fixer's own back room** bg; and a big **card-art pass** — cop cards as a young Czech cop in the POLICIE vest, the tech lane as absurd metaphors, gut_punch = Grundza, **Outnumbered = a John Wick keyart parody**, Refactor→**Debugging**, Git Blame→**Paper Trail**, Cuff 'Em **deleted**.
+
+**NEXT (start here):**
+1. **Events funnier-prose pass** — the one unfinished task. Rewrite the keeper events (designer_of_forms, lost_and_found, pills, uniform_collector, the_interview) in the dark Czech-cop-comedy tone (mechanics unchanged). The 3 weakest (smell/karaoke/photocopier) are already cut; synthol rebalanced.
+2. **Full playtest** of everything above — esp. the secret boss, the BB arc, banded/recurring event firing, all new card art in-hand, the Fixer room.
+3. **took_the_heat** art: confirm the head shows after a clean reload; recenter if the in-game art zone center-crops.
+4. Optional: art for placeholder events (bb_trainer_* + evr_*); decide opportunity_events (delete vs port to StS style); more Colonel intent variety.
+
+(Art-gen note: the image model outputs variable aspect — always normalize card art to **1456×720** or single-figure portraits get beheaded; it also refuses body-horror prompts, so the boss sprite was a procedural glitch of an existing sprite.)
 
 ---
 
