@@ -216,10 +216,69 @@ label colonel_glitch_phase:
 
     pause 0.6
 
+    ## Coding gate — the TRUE ending. A real coder doesn't just notice the loop;
+    ## he can read it, reach in, and kill the process. Tier 3 (Coding >= 100).
+    ## This is the bar that makes the coding lane the route to the game's best
+    ## outcome — without touching the gym. Tunable.
+    if (stats.coding_skill or 0) >= 100:
+        jump colonel_ghost_phase
+
     show jb smirk at char_left
 
     jb "'I'm done.'"
 
+    "Some part of you knows the loop didn't stop — it just lost sight of you. Ending it would have taken something you never built in yourself. You let the door close instead, and you go."
+
+    jump colonel_victory_resolution
+
+
+## ---------------------------------------------------------------------------
+## GHOST PHASE — the coding-gated TRUE-ENDING fight. You don't walk out; you
+## follow the loop INTO the machine and kill the process. Win -> true ending.
+## Lose -> you already beat the man, so it's not death: you couldn't hold the
+## connection and take the normal escape (good_ending).
+## ---------------------------------------------------------------------------
+
+label colonel_ghost_phase:
+
+    scene bg_colonel_office_shaken with glitch_transition
+    show colonel shaken at char_right with dissolve
+
+    "But you can read it now."
+    "Thirty days of documentation tabs and broken builds, and the thing across the desk stops being a man. It is a process. A loop with a leak. You have killed a hundred of these."
+
+    show jb determined at char_left with dissolve
+    jb "'No. You don't get to keep running.'"
+
+    "You stop reaching for the door and reach for the {i}stack{/i} instead."
+
+    play music "audio/tension_theme.mp3" fadein 1.0
+
+    python:
+        ## Steady before jacking in — the connection holds you up to ~60% so the
+        ## climax is tense, not a coin-flip on leftover HP. Short HP bar (120),
+        ## but its hits only survive if you out-code them (Coding reduces them).
+        if store.run_hp_max is None:
+            store.run_hp_max = class_max_hp()
+        store.run_hp = max(getattr(store, 'run_hp', 0) or 0, int(store.run_hp_max * 0.6))
+        battle_init("colonel_ghost")
+        battle_start_player_turn()
+
+    "[[SYSTEM]: process police_bureaucracy.exe — STILL RUNNING. attach debugger? [[Y/n]"
+
+    call screen battle_screen
+
+    python:
+        _ghost_outcome = battle_outcome()
+        battle_finish()
+
+    if _ghost_outcome == "defeat":
+        scene bg_police_office with glitch_transition
+        show jb determined at char_left
+        "The connection drops. The loop scatters back into the walls — still running, still his. You walk out anyway. Free. But it isn't dead."
+        jump colonel_victory_resolution
+
+    $ store._colonel_true_ending = True
     jump colonel_victory_resolution
 
 
@@ -235,5 +294,9 @@ label colonel_victory_resolution:
         if getattr(store, '_run_fled', 0) == 0:
             unlock_achievement("peace_never_option")
 
+    ## True ending if you broke the loop inside the machine; otherwise the
+    ## normal escape. The pacifist / peace checks above apply to BOTH paths.
+    if getattr(store, '_colonel_true_ending', False):
+        jump colonel_true_ending
     ## Normal victory: escaped
     jump good_ending

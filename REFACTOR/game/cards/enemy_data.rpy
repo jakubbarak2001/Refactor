@@ -147,6 +147,27 @@ init -1 python:
         return deck
 
 
+    ## police_bureaucracy.exe — the coding-gated TRUE-ENDING phase 2 (see
+    ## colonel_ghost_phase / colonel_true_ending). Reuses the Colonel sprite
+    ## (it IS him, glitched). Short HP bar — a burst climax, not a slog — but
+    ## its hits only become survivable if you out-code it. no_flee: you can't
+    ## walk away from the machine once you've reached in.
+    register_enemy(
+        "colonel_ghost",
+        display_name = "police_bureaucracy.exe",
+        sprite_id    = "colonel",
+        log_name     = "the loop",
+        tier         = "boss",
+        is_boss      = True,
+        no_flee      = True,
+        no_double_passive = True,
+        max_hp       = 120,
+        deck_template = [
+            "exe_null_pointer", "exe_recursion", "exe_segfault",
+            "exe_fork_bomb", "exe_kernel_panic", "exe_memory_leak",
+        ],
+    )
+
     register_enemy(
         "colonel",
         display_name = "Colonel",

@@ -838,6 +838,70 @@ init python:
     )
 
 
+    ## ---------------------------------------------------------------------------
+    ## police_bureaucracy.exe — the TRUE-ENDING phase. Once the bureaucrat's HP
+    ## hits 0, a high-Coding JB can follow the loop INTO the machine and fight the
+    ## system itself. Digital/glitch intents; the heavy single hits are REDUCED
+    ## by Coding tier — your scripts finally matter HERE (the in-fight payoff for
+    ## the coding lane, and the flip of the Colonel's 'your little scripts' jab).
+    ## Deck + HP live on the colonel_ghost enemy (enemy_data.rpy).
+    ## ---------------------------------------------------------------------------
+    register_enemy_card(
+        "exe_segfault",
+        name     = "Segmentation Fault",
+        intent   = "attack",
+        value    = 30,
+        tags     = ["mental"],
+        dialogue = "[[SEGFAULT] The ground you're standing on was never allocated to you.",
+        threat   = 3,
+        counter  = {"coding_skill_gte_150": {"reduce_damage": 15}},
+    )
+    register_enemy_card(
+        "exe_null_pointer",
+        name     = "Null Pointer",
+        intent   = "attack",
+        value    = 24,
+        dialogue = "It reaches for the part of you that used to be a cop. The reference comes back empty.",
+        threat   = 2,
+        counter  = {"coding_skill_gte_100": {"reduce_damage": 12}},
+    )
+    register_enemy_card(
+        "exe_recursion",
+        name     = "Recursion",
+        intent   = "compound",
+        value    = 6,
+        value2   = 4,
+        dialogue = "'You'll be back.' 'You'll be back.' 'You'll be back.' 'You'll be—'",
+        threat   = 3,
+    )
+    register_enemy_card(
+        "exe_kernel_panic",
+        name     = "Kernel Panic",
+        intent   = "compound",
+        value    = 5,
+        value2   = 5,
+        dialogue = "Everything the building ever drilled into you, dumping to the screen at once.",
+        threat   = 3,
+    )
+    register_enemy_card(
+        "exe_fork_bomb",
+        name     = "Fork Bomb",
+        intent   = "strength",
+        value    = 3,
+        dialogue = "It spawns a copy of itself. Both spawn copies. The room fills with him.",
+        threat   = 2,
+    )
+    register_enemy_card(
+        "exe_memory_leak",
+        name       = "Memory Leak",
+        intent     = "debuff",
+        value      = 1,
+        debuff_key = "max_energy_penalty_next_turn",
+        dialogue   = "It holds onto everything and frees nothing. Your next move runs short.",
+        threat     = 2,
+    )
+
+
     COLONEL_DECK_TEMPLATES = {
         ## Every difficulty includes cold_stare (permanent +2 STR ramp) AND
         ## the_doctrine (card-play restriction) — the boss has to bring more

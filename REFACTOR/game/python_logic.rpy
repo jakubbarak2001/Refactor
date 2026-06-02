@@ -670,6 +670,7 @@ init python:
         "maximum_stack":    {"category": "Collection", "name": "Maximum Stack",           "desc": "Reach SOMA 10/10. The body is the answer.",                      "hint": "Bodybuilder only — go to the gym 10 times."},
         "compound_knowledge":{"category":"Collection", "name": "Compound Knowledge",       "desc": "Learn synthesis instead of taking the vial.",                    "hint": "Biohacker only — pick the lesson over the contraband."},
         "wake_up_call":     {"category": "Secret",     "name": "Wake Up Call",            "desc": "Break the Colonel's bureaucracy loop. Step out of the script.","hint": "???"},
+        "ghost_in_the_machine":{"category": "Secret",  "name": "Ghost in the Machine",    "desc": "Follow the Colonel into the machine and terminate the process.","hint": "Become enough of a coder to read the loop, not just leave it."},
         "pacifist":         {"category": "Secret",     "name": "Pacifist",                "desc": "Beat the Colonel without defeating a single other enemy all run.","hint": "???"},
         "peace_never_option":{"category": "Secret",    "name": "Peace Was Never An Option","desc": "Beat the Colonel having faced every enemy head-on — never let one walk.","hint": "???"},
         "i_dont_need_it":   {"category": "Secret",     "name": "I Don't Need IT",         "desc": "Reach the escape ending without signing the bootcamp contract.",    "hint": "Find another way out of the uniform."},

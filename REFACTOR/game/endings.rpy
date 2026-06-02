@@ -204,6 +204,84 @@ label good_ending:
 
 
 ## ---------------------------------------------------------------------------
+## TRUE ENDING — reached only by following the Colonel INTO the machine
+## (Coding >= 100 at the finale) and killing the process. You don't just walk
+## out of the building; you read the loop to the end and close it. The coding
+## lane's ultimate payoff.
+## ---------------------------------------------------------------------------
+
+label colonel_true_ending:
+
+    python:
+        unlock_achievement("ghost_in_the_machine")
+        ## The escape-without-the-contract achievement still applies.
+        if not python_bootcamp:
+            unlock_achievement("i_dont_need_it")
+
+    scene bg_colonel_office_shaken with glitch_transition
+
+    "[[SYSTEM]: process police_bureaucracy.exe — terminated. runtime: 32 years. exit code 0."
+
+    pause 0.6
+
+    scene bg_police_office with glitch_transition
+    show jb smirk at char_left
+
+    "The office is just an office again. An empty chair. A cold cup of coffee going colder. Thirty-two years of script, and the interpreter finally hit the end of the file."
+
+    jb "'Done. For real, this time.'"
+
+    $ renpy.movie_cutscene("video/jb_good_ending.webm")
+
+    play music "audio/road_to_freedom.wav" fadein 2.0
+
+    scene bg_cafe with slow_dissolve
+    show jb developer_happy at char_left with dissolve
+
+    pause 1.3
+
+    "SYSTEM: BUILD SUCCESSFUL."
+    "WELCOME TO PRODUCTION, JB."
+
+    "Three years later you run a fitness app with 40,000 active users. You wrote the backend yourself — ugly first, then clean, then elegant."
+    "But the thing you're quietly proudest of isn't the app, or the exit. It's that the loop never restarts in your head at 3 AM anymore."
+    "Most men just leave the building. You read it to the end, and you closed it. Nobody at the new place knows you were ever a cop. Your commit history doesn't mention it either."
+
+    python:
+        ## True-ending score: same formula as good_ending, x1.5 for closing the
+        ## loop for good. Written before full_restart wipes the run store.
+        _base_score  = (stats.available_money / 100) + (stats.coding_skill * 100)
+        _diff_mult   = {"easy": 1.0, "hard": 2.5, "insane": 5.0}.get(stats.difficulty, 1.0)
+        _final_score = int(_base_score * _diff_mult * 1.5)
+        _diff_name   = (stats.difficulty or "unknown").capitalize()
+
+    scene bg_black with slow_dissolve
+
+    call screen ending_screen(
+        "TRUE ENDING",
+        "YOU KILLED THE PROCESS",
+        "SYSTEM: police_bureaucracy.exe TERMINATED. BUILD SUCCESSFUL.",
+        "good",
+        score=_final_score,
+        score_note="x{} difficulty  ·  x1.5 true ending".format(_diff_mult),
+        money=stats.available_money,
+        coding=stats.coding_skill,
+        diff_name=_diff_name
+    )
+
+    call post_credits_singapore from _call_post_credits_singapore_true
+
+    python:
+        persistent.runs_won = (persistent.runs_won or 0) + 1
+        if _final_score > (persistent.best_score or 0):
+            persistent.best_score = _final_score
+        for _uc in ("breakdown", "barricade", "pipeline"):
+            unlock_card(_uc, silent=True)
+
+    $ renpy.full_restart()
+
+
+## ---------------------------------------------------------------------------
 ## DEFEAT ENDING — lost the deck battle (JB HP hits 0). The countdown ends
 ## with JB still in uniform.
 ## ---------------------------------------------------------------------------
