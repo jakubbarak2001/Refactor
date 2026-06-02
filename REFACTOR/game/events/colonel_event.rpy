@@ -253,7 +253,7 @@ label colonel_ghost_phase:
     window hide
     show screen refactoring_drop
     with Dissolve(0.12)
-    pause
+    pause 3.0
     hide screen refactoring_drop
     with Dissolve(0.2)
 
