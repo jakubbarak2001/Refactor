@@ -473,7 +473,7 @@ init python:
             if n > 0 and self.buffs.get("peak_state_active"):
                 _trig = self.buffs.get("peak_state_triggers_this_turn", 0)
                 if _trig < 5:
-                    self.deal_damage("enemy", 4)
+                    self.deal_damage("enemy", 4, apply_strength=False)
                     self.buffs["peak_state_triggers_this_turn"] = _trig + 1
 
         def spend_energy(self, n):
@@ -1323,7 +1323,7 @@ init python:
         if bs.buffs.get("bleed_turns", 0) > 0:
             _bleed = bs.buffs.get("bleed_dmg", 0)
             if _bleed > 0:
-                bs.deal_damage("enemy", _bleed)
+                bs.deal_damage("enemy", _bleed, apply_strength=False)
                 bs.add_log("[[Bleed]: {} takes {} dmg from open wound.".format(bs.enemy_log_name.lower(), _bleed))
             bs.buffs["bleed_turns"] -= 1
             if bs.buffs["bleed_turns"] <= 0:
@@ -1395,7 +1395,7 @@ init python:
                 if mod.get("negate"):
                     bs.add_log("[[{}]: '{}' is negated.".format(cond.upper(), ic.get("name", "?")))
                     if mod.get("damage_to_self"):
-                        bs.deal_damage("enemy", mod["damage_to_self"])
+                        bs.deal_damage("enemy", mod["damage_to_self"], apply_strength=False)
                     bs.advance_intent()
                     return
                 damage_reduction += mod.get("reduce_damage", 0)
@@ -1406,7 +1406,7 @@ init python:
             ## Set cooldown so Mirror can't fire again for 2 player turns
             bs.buffs["mirror_cooldown"] = 2
             base = ic.get("value", 0) * (ic.get("value2", 1) if ic.get("intent") == "compound" else 1)
-            bs.deal_damage("enemy", base * 2)
+            bs.deal_damage("enemy", base * 2, apply_strength=False)
             bs.add_log("[[Mirror]: '{}' bounced for {} dmg. (2-turn cooldown.)".format(ic.get("name", "?"), base * 2))
             bs.advance_intent()
             if _debug:
@@ -1635,7 +1635,7 @@ init python:
         ## fights. Cap at 12 keeps the scaling identity, stops the runaway.
         if bs.buffs.get("iron_stance_active") and bs.last_damage_to_player > 0:
             _retaliate = min(12, 4 + (max(1, bs.turn) - 1) * 2)
-            bs.deal_damage("enemy", _retaliate)
+            bs.deal_damage("enemy", _retaliate, apply_strength=False)
             bs.add_log("[[Iron Stance]: retaliated for {} dmg (turn {}).".format(_retaliate, bs.turn))
 
         ## Bouncer Door single-shot retaliate (BB) — fires when the next enemy
@@ -1647,7 +1647,7 @@ init python:
         if bs.buffs.get("single_retaliate_dmg", 0) > 0 and _intent_was_attack:
             _sr = bs.buffs["single_retaliate_dmg"]
             bs.buffs["single_retaliate_dmg"] = 0
-            bs.deal_damage("enemy", _sr)
+            bs.deal_damage("enemy", _sr, apply_strength=False)
             bs.add_log("[[Bouncer Door]: retaliated for {} dmg.".format(_sr))
 
         ## Phase 1A safety-net — self-report if an attack intent landed but
