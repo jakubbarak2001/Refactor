@@ -108,6 +108,10 @@ init python:
         "git_blame":               "Deal damage equal to Coding tier × 3 (min 5).",
         "git_blame_plus":          "Deal damage equal to Coding tier × 4 (min 7).",
         "crunch_time":             "Deal 4 damage for each card you've played this turn (max 6), including this one.",
+        "sandbox":                 "Gain block equal to Coding tier × 3 (min 4).",
+        "sandbox_plus":            "Gain block equal to Coding tier × 4 (min 6).",
+        "root_access":             "Deal damage equal to Coding tier × 2. Draw 1 at Coding tier 3+.",
+        "root_access_plus":        "Deal damage equal to Coding tier × 3. Draw 1 at Coding tier 3+.",
         ## Neutral
         "gut_punch":               "Deal 9 damage.",
         "body_check":              "Deal 16 damage.",
@@ -311,6 +315,14 @@ init python:
             return "Deal {} damage. (Coding tier × 4, min 7)".format(max(7, _coding_tier_int() * 4))
         if effect_id == "pipeline":
             return "Power: every card you play deals {} damage (your Coding tier).".format(_coding_tier_int())
+        if effect_id == "sandbox":
+            return "Gain {} block. (Coding tier × 3, min 4)".format(max(4, _coding_tier_int() * 3))
+        if effect_id == "sandbox_plus":
+            return "Gain {} block. (Coding tier × 4, min 6)".format(max(6, _coding_tier_int() * 4))
+        if effect_id == "root_access":
+            return "Deal {} damage. (Coding tier × 2) Draw 1 at Coding tier 3+.".format(_coding_tier_int() * 2)
+        if effect_id == "root_access_plus":
+            return "Deal {} damage. (Coding tier × 3) Draw 1 at Coding tier 3+.".format(_coding_tier_int() * 3)
         if effect_id == "heavy_set":
             return "Deal {} damage. (+1 per 5 Hatred)".format(6 + h // 5)
         if effect_id == "heavy_set_plus":
@@ -1547,6 +1559,34 @@ init python:
         state.energy += 1
         state.buff(source, "next_power_free", 2)
         state.add_log("[[Open Source PR+]: +1 max energy. Next two Powers are free.")
+
+    ## ---------------------------------------------------------------------------
+    ## NEUTRAL coding-scaled effects (BB-accessible) — a defensive scaler and a
+    ## draw-engine attack so pumping Coding via STUDY / bootcamp pays off in
+    ## combat without the BH-locked card set. Share _bh_coding_tier (1-5).
+    ## ---------------------------------------------------------------------------
+
+    @register_effect("sandbox")
+    def _eff_sandbox(state, source, target):
+        state.gain_block(source, max(4, _bh_coding_tier() * 3))
+
+    @register_effect("sandbox_plus")
+    def _eff_sandbox_plus(state, source, target):
+        state.gain_block(source, max(6, _bh_coding_tier() * 4))
+
+    @register_effect("root_access")
+    def _eff_root_access(state, source, target):
+        t = _bh_coding_tier()
+        state.deal_damage(target, t * 2)
+        if t >= 3:
+            state.draw_cards(1)
+
+    @register_effect("root_access_plus")
+    def _eff_root_access_plus(state, source, target):
+        t = _bh_coding_tier()
+        state.deal_damage(target, t * 3)
+        if t >= 3:
+            state.draw_cards(1)
 
     ## ---------------------------------------------------------------------------
     ## BH CAPSTONE EFFECTS — three rare cards offered at Protocol 10/10 (10 BUYs).

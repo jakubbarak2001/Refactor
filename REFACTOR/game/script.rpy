@@ -969,6 +969,16 @@ label coding_study:
             _study_outcome = "+ Card."
         else:
             _study_outcome = "Passed on the offer."
+        ## BB has no BH-style daily Coding lane (BH STUDY = +18 XP, no card). A
+        ## modest +Coding on top of the card makes the tech build reachable
+        ## without the 35k bootcamp wall. Delta read back so the panel matches
+        ## the ceiling clamp at the cap.
+        if stats.player_class == "bodybuilder":
+            _cs_before = stats.coding_skill
+            stats.increment_stats_coding_skill(8)
+            _cs_gain = stats.coding_skill - _cs_before
+            if _cs_gain > 0:
+                _study_outcome += "  + {} CODING SKILL.".format(_cs_gain)
 
     window hide
     show screen outcome_panel(_study_outcome)

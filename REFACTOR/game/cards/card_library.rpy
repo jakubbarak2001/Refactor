@@ -610,6 +610,34 @@ init python:
         flavor    = "Every shortcut you took this turn, cashed at once.",
     )
 
+    ## Neutral coding-SCALED cards — the BB tech lane's reachable payoffs. Before
+    ## these, BB's only stat-scaling Coding cards were git_blame (BB attack) and
+    ## the rare Pipeline; with STUDY now feeding BB Coding XP, these give the lane
+    ## real draftable cards to invest toward. No class_lock — pool-eligible.
+    register_card(
+        "sandbox",
+        name      = "Sandbox",
+        type      = "Skill",
+        color     = "Logic",
+        cost      = 1,
+        rarity    = "common",
+        effect    = "sandbox",
+        archetype = "tech",
+        flavor    = "Run it in a box that touches nothing real. Whatever he throws lands on the walls.",
+    )
+
+    register_card(
+        "root_access",
+        name      = "Root Access",
+        type      = "Attack",
+        color     = "Logic",
+        cost      = 1,
+        rarity    = "uncommon",
+        effect    = "root_access",
+        archetype = "tech",
+        flavor    = "You stop asking the system for permission. You take it.",
+    )
+
     ## Coding-scaled BB attack — the STACK lane's in-fight payoff for pumping
     ## Coding. Damage = max(5, tier x3); upgraded max(7, tier x4). BB-locked,
     ## pool-eligible (STUDY trios + battle rewards). Mirrors BH's Compile.
@@ -1523,6 +1551,8 @@ init python:
     register_upgrade("production_push",       effect="production_push_plus",       flavor="Tests pass. Lint passes. Push to main looking him in the eye.")
     register_upgrade("refactor",              effect="refactor",                   cost=1, flavor="Rename the variable. The bug evaporates. Cheaper now.")
     register_upgrade("kernel_patch",          effect="kernel_patch_plus",          flavor="Live-patch the conversation. Twice over.")
+    register_upgrade("sandbox",               effect="sandbox_plus",               flavor="A bigger box, thicker walls. Nothing he throws gets out.")
+    register_upgrade("root_access",           effect="root_access_plus",           flavor="Root, and then some — every process he's running is yours.")
 
     ## Neutral
     register_upgrade("gut_punch",             effect="gut_punch_plus",             flavor="Below the ribs. He folds harder.")
