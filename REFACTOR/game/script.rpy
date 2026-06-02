@@ -231,7 +231,19 @@ label day_start:
     if current_day in LADDER_EVENT_DAYS:
         call random_event_check from _call_random_event_check_daystart
 
-    if current_day == 24:
+    ## Day 24 — the Colonel's Guard. A fixed-day elite (no longer a floating
+    ## day-20+ boss): his crew intercepts JB the day before the Martin meeting.
+    ## Fires like a story beat — the fight resolves and the day rolls over the
+    ## normal way (do_end_day), so the Day-25 Martin meeting isn't swallowed by
+    ## a day-advancing battle branch. Skipped if Act II was already cleared.
+    if current_day == 24 and 2 not in (getattr(store, '_act_bosses_done', None) or set()):
+        call battle_with("garda", "hard") from _call_garda_day24
+        python:
+            if getattr(store, '_act_bosses_done', None) is None:
+                store._act_bosses_done = set()
+            store._act_bosses_done.add(2)
+
+    if current_day == 25:
         call martin_meeting from _call_martin_meeting_daystart
 
     ## Self-heal poisoned saves: stats.colonel_day must be 25 (Martin's
@@ -239,10 +251,10 @@ label day_start:
     ## stale state from an older build or a dev-console tweak — left
     ## alone it would trigger the final boss mid-run on load.
     python:
-        if stats.colonel_day not in (25, 30):
+        if stats.colonel_day not in (26, 30):
             stats.colonel_day = 30
 
-    if current_day == stats.colonel_day and current_day >= 25:
+    if current_day == stats.colonel_day and current_day >= 26:
         call colonel_event from _call_colonel_event_daystart
 
     ## BH-only random spending event — fires on non-event days, ~30% chance.
@@ -771,19 +783,19 @@ label activity_bouncer:
             _pending_money = 12500 + _bb_cash
             _pending_hatred = 10
             _btext = "Six hours in a doorway, nodding at people happier than you. Two drunks square up over a woman interested in neither; you step in and one of them makes you — 'TO JE PŘECE POLDA!'\nYou take the night's cut and the group chat home in equal measure."
-            _boutcome = "+ {:,} CZK, +10 PCR HATRED{}".format(12500 + _bb_cash, _bb_tag)
+            _boutcome = "+ {:,} CZK, +10 PCR HATRED{}".format(stats.money_gain_preview(_pending_money), _bb_tag)
         elif _roll <= 90:
             ## Uncommon — a clean, busy night. Tips run heavy.
             _pending_money = 17500 + _bb_cash
             _pending_hatred = 5
             _btext = "Busy night, clean night. The regulars tip like they're trying to impress someone, and the manager slips you extra for keeping it from going sideways.\nNobody bleeds. Nobody films you. You almost don't mind the work."
-            _boutcome = "+ {:,} CZK, +5 PCR HATRED{}".format(17500 + _bb_cash, _bb_tag)
+            _boutcome = "+ {:,} CZK, +5 PCR HATRED{}".format(stats.money_gain_preview(_pending_money), _bb_tag)
         else:
             ## Rare — the night everything lines up.
             _pending_money = 22500 + _bb_cash
             _pending_hatred = -10
             _btext = "Everything lines up — a private party in the back, cash folded into your palm all night, not one incident on the floor.\nDriving home at 4 AM with the windows down, you catch yourself not hating your life. Closest thing to joy you've felt all week."
-            _boutcome = "+ {:,} CZK, -10 PCR HATRED{}".format(22500 + _bb_cash, _bb_tag)
+            _boutcome = "+ {:,} CZK, -10 PCR HATRED{}".format(stats.money_gain_preview(_pending_money), _bb_tag)
 
     "[_btext]"
 
@@ -1057,7 +1069,7 @@ label coding_freelance:
 
     python:
         stats.increment_stats_value_money(_fc_payout)
-        _fc_outcome = "+ {:,} CZK [FREELANCE].".format(_fc_payout)
+        _fc_outcome = "+ {:,} CZK [FREELANCE].".format(stats.money_gain_preview(_fc_payout))
 
     window hide
     show screen outcome_panel(_fc_outcome)
@@ -1164,7 +1176,7 @@ label activity_overtime:
             _ns_bonus = "\n[NIGHT BONUS]: Dead quiet shift. You studied Python for 4 hours. +8 Coding, -5 Hatred."
         elif _ns_roll <= 40:
             stats.increment_stats_value_money(1500)
-            _ns_bonus = "\n[NIGHT BONUS]: Helped with an accident. Extra callout pay. +1,500 CZK."
+            _ns_bonus = "\n[NIGHT BONUS]: Helped with an accident. Extra callout pay. +{:,} CZK.".format(stats.money_gain_preview(1500))
         elif _ns_roll <= 60:
             stats.increment_stats_pcr_hatred(10)
             _ns_bonus = "\n[NIGHT PENALTY]: Paperwork from an arrest took until 6AM. +10 PCR HATRED."
@@ -1174,7 +1186,7 @@ label activity_overtime:
     "You work through the night. The city is different after midnight — quieter, stranger, more honest."
     "[_ns_bonus]"
     window hide
-    show screen outcome_panel("+5,000 CZK, +15 PCR HATRED.{}".format(_ns_bonus))
+    show screen outcome_panel("+{:,} CZK, +15 PCR HATRED.{}".format(stats.money_gain_preview(5000), _ns_bonus))
     pause
     hide screen outcome_panel
 
@@ -1385,12 +1397,14 @@ label do_end_day:
         _passive_income = getattr(store, '_passive_daily_income', 0)
         if _passive_income > 0:
             stats.increment_stats_value_money(_passive_income)
+        _coding_paycheck_disp = stats.money_gain_preview(_coding_paycheck)
+        _passive_income_disp = stats.money_gain_preview(_passive_income)
 
     if _coding_paycheck > 0:
-        "[[FREELANCE] A client paid out overnight — [_coding_paycheck:,] CZK in the account by morning."
+        "[[FREELANCE] A client paid out overnight — [_coding_paycheck_disp:,] CZK in the account by morning."
 
     if _passive_income > 0:
-        "[[CRYPTO] The dog-coin Vlk tipped you ticked over again — [_passive_income:,] CZK in the wallet by morning."
+        "[[CRYPTO] The dog-coin Vlk tipped you ticked over again — [_passive_income_disp:,] CZK in the wallet by morning."
 
     python:
         # Advance day
@@ -1446,7 +1460,7 @@ label salary_day:
 
     "SALARY DAY — [_sal_text]"
     window hide
-    show screen outcome_panel("+ {} CZK".format(_sal))
+    show screen outcome_panel("+ {} CZK".format(stats.money_gain_preview(_sal)))
     pause
     hide screen outcome_panel
 

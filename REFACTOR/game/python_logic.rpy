@@ -139,11 +139,17 @@ init python:
                 return True
             return False
 
-        def increment_stats_value_money(self, amount):
-            ## Golden Handcuffs — every positive money gain, from ANY source
-            ## (bouncer, salary, battle rewards, events, crypto), is +25%.
+        def money_gain_preview(self, amount):
+            ## Single source of truth for economy-relic money math. Reward
+            ## panels display money_gain_preview(base) so the shown number
+            ## matches what increment_stats_value_money actually banks.
+            ## Golden Handcuffs: +25% on any positive gain. Losses pass through.
             if amount > 0 and has_relic("golden_handcuffs"):
-                amount = int(round(amount * 1.25))
+                return int(round(amount * 1.25))
+            return amount
+
+        def increment_stats_value_money(self, amount):
+            amount = self.money_gain_preview(amount)
             self.available_money += amount
             if self.available_money < 0:
                 self.available_money = 0

@@ -99,14 +99,13 @@ init python:
     ## (enemy_id, reward_tier, act) or (None, None, None). reward_tier feeds the
     ## existing money/card-reward tables (no "boss" tier needed downstream).
     ##   Act I  (day 10+): Grundza        — the meth lab, the first real wall.
-    ##   Act II (day 20+): Colonel's Guard — his elite intercepts you.
+    ##   Act II (day 24):  Colonel's Guard — fixed day-24 elite, fired from
+    ##                      day_start (NOT here), the day before Martin.
     ##   Act III (day 30): the Colonel (own event).
     def boss_check(day):
         done = getattr(store, "_act_bosses_done", None) or set()
         if 1 not in done and day >= 10:
             return ("grundza", "medium", 1)
-        if 2 not in done and day >= 20:
-            return ("garda", "hard", 2)
         return (None, None, None)
 
     def _ladder_init_pool():
@@ -452,7 +451,9 @@ label battle_with(enemy_id, tier):
 
     python:
         _reward_cash = BATTLE_MONEY_REWARD.get(tier, 0)
+        _reward_cash_disp = _reward_cash
         if _reward_cash > 0 and stats is not None:
+            _reward_cash_disp = stats.money_gain_preview(_reward_cash)
             stats.increment_stats_value_money(_reward_cash)
         try:
             relic_on_victory()
@@ -466,7 +467,7 @@ label battle_with(enemy_id, tier):
                 renpy.say(None, _line)
 
     if _reward_cash > 0:
-        "[_reward_cash:,] CZK."
+        "[_reward_cash_disp:,] CZK."
 
     python:
         _rewards = pick_battle_rewards(tier)

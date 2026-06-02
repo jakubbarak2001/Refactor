@@ -15,7 +15,7 @@ label hatred_collapse_ending:
     play music "audio/breakdown_theme.mp3" fadein 1.0
     scene bg_police_interior
 
-    if day_cycle.current_day < 25:
+    if day_cycle.current_day < 26:
         "It happens during a routine briefing."
         "The Colonel is talking about 'Uniform Standards'."
         "The sound of his voice turns into a high-pitched screeching noise."

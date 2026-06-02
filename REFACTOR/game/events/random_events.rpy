@@ -286,7 +286,7 @@ label ev_the_smell:
             _sm_res = [
                 "You call it up the chain and then do the part nobody trains you for: you wait. Four hours in a concrete corridor that smells of the thing behind the door.",
                 "The specialists come at dawn, unhurried, gloved. You sign where they point and drive home with the windows down.",
-                ec("- {} HP.".format(_sm_lost)) + "   " + eg("+ 2,000 CZK."),
+                ec("- {} HP.".format(_sm_lost)) + "   " + eg("+ {:,} CZK.".format(stats.money_gain_preview(2000))),
             ]
 
     call screen event_outcome(title="THE SMELL ON THE THIRD FLOOR", art=_sm_art, result=_sm_res)
@@ -626,7 +626,7 @@ label ev_pills:
             {
                 "id": "report",
                 "label": "[ REPORT IT ]",
-                "desc": eg("+ 3,000 CZK.") + "   " + ec("+ 8 Hatred.") + "  Bench duty until dawn, filling forms while the Colonel reads.",
+                "desc": eg("+ {:,} CZK.".format(stats.money_gain_preview(3000))) + "   " + ec("+ 8 Hatred.") + "  Bench duty until dawn, filling forms while the Colonel reads.",
             },
         ]
 
@@ -663,7 +663,7 @@ label ev_pills:
                 "You bring him in. The paperwork eats the rest of the shift and most of the morning, and a slow rotation of older men come to the bench you are sitting on to ask the same three questions in slightly different shapes.",
                 "At the end of it: a stamped commendation slip, a small bonus, and a quiet certainty that the Colonel has read the file before lunch.",
                 "You did your job. The job, today, was the wrong shape for a man like you, and you can feel where it bent you.",
-                eg("+ 3,000 CZK.") + "   " + ec("+ 8 Hatred."),
+                eg("+ {:,} CZK.".format(stats.money_gain_preview(3000))) + "   " + ec("+ 8 Hatred."),
             ]
 
     call screen event_outcome(title="PILLS, PROBABLY", art=_pl_art, result=_pl_res)
@@ -728,7 +728,7 @@ label ev_uniform_collector:
             _uc_res = [
                 "He does not want the cloth. He wants the thing the cloth taught your hands to do, and somehow, with the tape measure, he takes it.",
                 "Eight thousand crowns. A mannequin in his hallway stands a little straighter now, wearing a competence that used to be yours.",
-                eg("+ 8,000 CZK.") + "   " + ec("Removed a Police card."),
+                eg("+ {:,} CZK.".format(stats.money_gain_preview(8000))) + "   " + ec("Removed a Police card."),
             ]
 
     elif _uc_pick == "memory":
@@ -741,7 +741,7 @@ label ev_uniform_collector:
             _uc_res = [
                 "He asks you to think of something while he measures. You do. He nods, satisfied, and the thought goes out of you and into a notebook you do not see him close.",
                 "Where the memory was, there is now a different one. It works just as well. It was simply never yours.",
-                eg("+ 3,000 CZK.") + "   " + eg("Transformed a card."),
+                eg("+ {:,} CZK.".format(stats.money_gain_preview(3000))) + "   " + eg("Transformed a card."),
             ]
 
     else:
@@ -832,7 +832,7 @@ label ev_karaoke:
             _kk_res = [
                 "You write it up clean and you hand it up the chain, the way the academy said, the way the posters in the corridor still say.",
                 "There is an informant's fee. There is also a Thursday shift where nobody saves you a seat, and a Friday one, and the cold does not lift after that.",
-                eg("+ 3,000 CZK.") + "   " + ec("+ 10 Hatred."),
+                eg("+ {:,} CZK.".format(stats.money_gain_preview(3000))) + "   " + ec("+ 10 Hatred."),
             ]
 
     call screen event_outcome(title="KARAOKE NIGHT AT U SLUNCE", art=_kk_art, result=_kk_res)

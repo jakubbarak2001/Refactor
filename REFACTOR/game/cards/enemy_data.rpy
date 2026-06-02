@@ -443,7 +443,7 @@ init -1 python:
         is_boss      = True,
         no_flee      = False,
         act          = 2,
-        max_hp       = 320,
+        max_hp       = 275,
         no_double_passive = True,
         flee_label   = "BRIBE THEM",
         flee_relief  = 0,

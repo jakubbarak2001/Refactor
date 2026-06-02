@@ -10,8 +10,8 @@ default mm_outfit = "hoodie"
 
 label martin_meeting:
 
-    ## Autosave: before Martin meeting (Day 24)
-    $ renpy.save("auto-day24-martin", "Day 24 — The Martin Meeting")
+    ## Autosave: before Martin meeting (Day 25)
+    $ renpy.save("auto-day25-martin", "Day 25 — The Martin Meeting")
 
     python:
         store._phone_notifications.append("Martin: 'Cafe. 11:30. Don't be late.'")
@@ -24,7 +24,7 @@ label martin_meeting:
     call screen arc_title_card("II", "THE AWAKENING") with arc_fade
     scene black
     scene bg_cafe with fade_from_black
-    "DAY 24 — 11:30 AM"
+    "DAY 25 — 11:30 AM"
 
     show screen mm_affection_panel
 
@@ -470,14 +470,14 @@ label martin_phase7_timing:
     martin "'Guilt, threats, regulations, empathy — he'll throw all of it. Want to rip it off now, or prepare?'"
 
     menu:
-        "Brave. Tomorrow. (Day 25, +1 AFFECTION)":
+        "Brave. Tomorrow. (Day 26, +1 AFFECTION)":
             python:
                 martin_affection += 1
-                stats.colonel_day = 25
+                stats.colonel_day = 26
             jb "'Tomorrow. I'm not waiting.'"
             martin "'Strike while it's hot.'"
             window hide
-            show screen outcome_panel("+1 AFFECTION, FINAL BOSS DAY 25.")
+            show screen outcome_panel("+1 AFFECTION, FINAL BOSS DAY 26.")
             pause
             hide screen outcome_panel
 

@@ -780,7 +780,7 @@ init python:
             ## dig in and comes braced (+1 Strength from turn one), paying back
             ## the extra prep days that waiting buys you.
             _cday = getattr(stats, 'colonel_day', 30) if stats is not None else 30
-            if _cday <= 25:
+            if _cday <= 26:
                 bs.buffs["colonel_enrage_step"] = 2
                 bs.add_log("[[Setup]: you moved early. He's still buttoning his coat.")
             else:
