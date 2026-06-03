@@ -884,8 +884,9 @@ init python:
         ## "used" marker clears.
         if bs.buffs.get("lab_first_free_used"):
             bs.buffs["lab_first_free_used"] = False
-        if bs.buffs.get("first_card_discount_used"):
-            bs.buffs["first_card_discount_used"] = False
+        ## spiral_notebook's first_card_discount is ONCE PER FIGHT now (not per
+        ## turn) — its "used" marker latches for the whole combat, so it is NOT
+        ## cleared here.
         if bs.buffs.get("cards_cap_next_turn"):
             bs.current_turn_max_cards = bs.buffs["cards_cap_next_turn"]
             bs.buffs["cards_cap_next_turn"] = 0

@@ -164,14 +164,14 @@ init python:
     register_relic(
         "weightlifting_belt",
         name="Lifting Belt",
-        archetype="iron", rarity="uncommon",
+        archetype="iron", rarity="uncommon", shop_price=15000,
         hook="Heal 10 HP at the start of each fight.",
         flavor="Cracked leather, set in a permanent bend. It holds you together when nothing else does.",
     )
     register_relic(
         "gym_keycard",
         name="24/7 Gym Keycard",
-        archetype="iron", rarity="uncommon",
+        archetype="iron", rarity="uncommon", shop_price=15000,
         class_lock="bodybuilder",
         hook="SOMA grants block every 2 stacks instead of 3.",
         flavor="The night desk stopped checking the photo years ago.",
@@ -295,22 +295,22 @@ init python:
     register_relic(
         "cop_pension",
         name="Beat Cop's Pension",
-        archetype="generic", rarity="uncommon",
+        archetype="generic", rarity="uncommon", shop_price=15000,
         hook="+2,500 CZK at the start of each day.",
         flavor="Fifteen years vested. The one thing the uniform pays whether you wear it or not.",
     )
     register_relic(
         "fixer_card",
         name="The Fixer's Business Card",
-        archetype="generic", rarity="rare",
-        hook="Everything the Fixer sells costs 15% less.",
+        archetype="generic", rarity="rare", shop_price=25000,
+        hook="Everything the Fixer sells costs 25% less.",
         flavor="No name. No logo. One number, and the understanding that you're already a regular.",
     )
     register_relic(
         "spiral_notebook",
         name="Spiral Notebook",
-        archetype="stack", rarity="common",
-        hook="The first card you play each turn costs 1 less (minimum 0).",
+        archetype="stack", rarity="common", shop_price=10000,
+        hook="The first card you play each fight costs 1 less (minimum 0).",
         flavor="Margins full of plate numbers and half-thoughts. Shorthand only you can read.",
     )
     register_relic(
@@ -325,7 +325,7 @@ init python:
     register_relic(
         "creatine",
         name="Creatine (Loading Phase)",
-        archetype="iron", rarity="common",
+        archetype="iron", rarity="common", shop_price=15000,
         hook="Start each fight with +1 Strength.",
         flavor="Five grams, twice a day, water everywhere. The scale lies; the bar doesn't.",
         class_lock="bodybuilder",
@@ -341,7 +341,7 @@ init python:
     register_relic(
         "resistance_bands",
         name="Resistance Bands",
-        archetype="iron", rarity="common",
+        archetype="iron", rarity="common", shop_price=15000,
         hook="Gain +1 SOMA after each victory.",
         flavor="Looped over the door frame of every flat you've ever rented. They go where you go.",
         class_lock="bodybuilder",
@@ -349,7 +349,7 @@ init python:
     register_relic(
         "posing_trunks",
         name="Competition Trunks",
-        archetype="iron", rarity="uncommon",
+        archetype="iron", rarity="uncommon", shop_price=20000,
         hook="While SOMA is 6 or higher, +3 block at the start of each turn.",
         flavor="Sequined, absurd, earned. You only wear them when the body has somewhere to be.",
         class_lock="bodybuilder",
@@ -357,7 +357,7 @@ init python:
     register_relic(
         "pre_workout",
         name="Pre-Workout (Banned Formula)",
-        archetype="wrath", rarity="uncommon",
+        archetype="wrath", rarity="uncommon", shop_price=25000,
         hook="+2 energy on the first turn of each fight, but start the fight with +4 Hatred.",
         flavor="The label's in Cyrillic and lying. Your ears ring before the first set. Worth it.",
         class_lock="bodybuilder",
@@ -381,7 +381,7 @@ init python:
     register_relic(
         "trenbolone",
         name="Trenbolone (Veterinary)",
-        archetype="wrath", rarity="rare",
+        archetype="wrath", rarity="rare", shop_price=30000,
         hook="Start each fight with +3 Strength, but take +1 damage from every attack.",
         flavor="Meant for cattle. The vials don't pretend otherwise. Neither do the night sweats.",
         class_lock="bodybuilder",
@@ -571,6 +571,30 @@ init python:
             _w = max(1, int(weights.get(relic_rarity(rid), 1)))
             _bag.extend([rid] * _w)
         return _rand.choice(_bag) if _bag else _rand.choice(_pool)
+
+    def roll_relic_choices(n=3, weights=None):
+        """Up to n DISTINCT unowned, class-eligible relic ids, rarity-weighted —
+        the choose-one-of-N gear shelf (the Quartermaster event). Returns [] when
+        the player already owns the whole eligible pool."""
+        _owned = set(getattr(store, "player_relics", None) or [])
+        _pool = [rid for rid in RELIC_LIBRARY if rid not in _owned and _relic_pool_eligible(rid)]
+        if not _pool:
+            return []
+        _rand = __import__("random")
+        if not weights:
+            _rand.shuffle(_pool)
+            return _pool[:n]
+        _bag = []
+        for rid in _pool:
+            _bag.extend([rid] * max(1, int(weights.get(relic_rarity(rid), 1))))
+        _rand.shuffle(_bag)
+        _picked = []
+        for rid in _bag:
+            if rid not in _picked:
+                _picked.append(rid)
+            if len(_picked) >= n:
+                break
+        return _picked
 
     ## Relic shop pricing by rarity. The spread is wide ON PURPOSE so the price
     ## reads the power tier at a glance: a common is half a great bouncer night,

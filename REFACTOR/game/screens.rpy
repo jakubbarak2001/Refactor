@@ -85,6 +85,10 @@ screen stats_bar():
             if _proto:
                 _class_track = "STACK {}".format(_proto)
 
+        ## Coding tier (1-5) — surfaced next to the raw skill so the player can
+        ## read the live value every coding-scaled card refers to.
+        _coding_tier = _coding_tier_int()
+
         ## ── Tooltips (threshold-gated) ────────────────────────────────────
         _coding_tt = None
         _hatred_tt = None
@@ -399,12 +403,12 @@ screen stats_bar():
                                 background None
                                 padding (0, 0)
                                 yalign 0.5
-                                text "Coding [stats.coding_skill]":
+                                text "Coding [stats.coding_skill] · T[_coding_tier]":
                                     color "#00ccff"
                                     size 15
                                     font DOSSIER_FONT
                         else:
-                            text "Coding [stats.coding_skill]":
+                            text "Coding [stats.coding_skill] · T[_coding_tier]":
                                 color "#00ccff"
                                 size 15
                                 yalign 0.5

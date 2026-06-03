@@ -165,7 +165,7 @@ init -1 python:
         ## A real Act-IV wall now (was a 120 burst): bigger HP + a phase-2 glitch
         ## surge (battle_engine, ~the colonel enrage) that ramps its Strength once
         ## it crosses half. Its own sprite + kernel-space bg (no longer the office).
-        max_hp       = 280,
+        max_hp       = 450,
         deck_template = [
             "exe_null_pointer", "exe_recursion", "exe_segfault",
             "exe_fork_bomb", "exe_kernel_panic", "exe_memory_leak",
@@ -319,14 +319,14 @@ init -1 python:
         act          = 1,
         max_hp       = 160,
         flee_label   = "TRY HIS NEW BATCH",
-        ## The batch is a corrupting RELIEF, not a tonic: it calms the night and
-        ## patches you up, but it must NOT also make you permanently stronger —
-        ## otherwise skipping the Act I wall is strictly better than fighting it
-        ## (you forfeit only the loot). Trimmed: relief + a small heal, no
-        ## lasting max-HP gain, so getting stronger means fighting for the relic.
+        ## The batch is a corrupting relief that patches you up AND leaves you a
+        ## little harder than it found you — relief + a heal + a permanent +10 Max
+        ## HP. Fighting still pays better (the relic + cash + a card draft); the
+        ## batch is the low-risk line for a build that would rather not bleed its
+        ## way through the Act I wall.
         flee_relief  = 20,
         flee_heal    = 22,
-        flee_max_hp  = 0,
+        flee_max_hp  = 10,
         flee_narration = [
             "Grundza doesn't reach for a weapon. He reaches for the tray — fresh off the rig, still warm — and slides it across the counter.",
             "'On the house. New batch.' You shouldn't. You climbed three flights telling yourself you wouldn't. You do anyway. The edges of the night go soft, the pressure behind your eyes drains, and for once the body feels like it's winning.",
@@ -508,7 +508,7 @@ init -1 python:
         sprite_id    = "lifer",
         log_name     = "The Lifer",
         tier         = "hard",
-        max_hp       = 165,
+        max_hp       = 225,
         deck_template = [
             "lifer_pension", "lifer_what_now", "lifer_the_offer",
             "lifer_settle_in", "lifer_seniority", "lifer_routine", "lifer_quiet_word",
@@ -555,5 +555,38 @@ init -1 python:
         victory_lines = [
             "He goes down into his own card-index. A drawer falls open on the way and the money lands at your feet — old hundred-crown notes, pre-Republic, somehow still legal tender.",
             "You don't count them in the archive. You count them upstairs, in the boiler-room light, where the air remembers what year it is. Seventy-five hundred crowns the Republic forgot about.",
+        ],
+    )
+
+    ## ---------------------------------------------------------------------------
+    ## EVENT-FIGHT enemy — fired ONLY from a random event (ev_the_tail calls
+    ## battle_init directly), never from the ladder pool or boss_check. Combat
+    ## art is reused from a ladder enemy (sprite_id / bg_id); the EVENT body
+    ## supplies the fiction, so intro_lines stay empty (the direct battle path
+    ## skips battle_intro). victory_lines stay empty too — the event's own
+    ## event_outcome panel narrates the win. detour_lines ARE used: an
+    ## event-fight loss routes through forced_detour.
+    ## ---------------------------------------------------------------------------
+
+    register_enemy(
+        "colonel_tail",
+        display_name = "The Tail",
+        sprite_id    = "inspekce",
+        bg_id        = "garda",
+        log_name     = "The Tail",
+        tier         = "hard",
+        ## A wall whenever it lands (late band = days 18-29): by day 29 a
+        ## snowballed deck melts a 165 like nothing, so the Colonel's best
+        ## operative gets boss-adjacent HP (under the Garda's 275).
+        max_hp       = 240,
+        no_double_passive = True,
+        deck_template = [
+            "interview", "audit", "quote_regulation",
+            "formal_warning", "case_review", "wire_check", "transfer_pending",
+        ],
+        wrinkle      = "paperwork_injection",
+        detour_lines = [
+            "He does not hurry. He lets you swing until the swings run out, then puts you down with the patience of a man being paid by the hour.",
+            "You drive home with one eye closing. Two cars back, the same headlights keep their distance. The Colonel will hear you tried. That was the entire point of sending him.",
         ],
     )

@@ -43,12 +43,18 @@ init python:
         "ev_the_vending_machine": "early",
         "ev_pills":               "early",
         "ev_synthol_brothers":    "early",   ## BB-only (class-gated below)
+        "ev_the_collector":       "early",   ## event-launched fight (debt enforcer)
         "ev_designer_of_forms":   "mid",
         "ev_lost_and_found":      "mid",
         "ev_uniform_collector":   "mid",
+        "ev_the_quartermaster":   "mid",     ## choose-1-of-3 gear (relic shelf)
+        "ev_the_range":           "mid",     ## deck-craft — remove/upgrade for HP
         "ev_bh_acd856_offer":     "mid",     ## BH-only (class-gated below)
         "ev_the_interview":       "late",
         "ev_colonel_regards":     "late",
+        "ev_the_tail":            "late",    ## event-launched fight (Colonel's reach)
+        "ev_the_side_gig":        "mid",     ## CODING — freelance gig (skill for HP)
+        "ev_the_contract":        "late",    ## CODING — a real job offer, big skill score
     }
 
     ## Recurring "station texture" beats — short, low-stakes, and NOT drained,

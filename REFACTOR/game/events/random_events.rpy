@@ -1196,3 +1196,535 @@ label ev_bh_acd856_offer:
 
     call screen event_outcome(title="ACD856 OFFER", art=_ac_art, result=_ac_res)
     return
+
+
+## ---------------------------------------------------------------------------
+## THE COLLECTOR [press-your-luck relic] — a debt enforcer with a bag of other
+## men's collateral. Pay in cash (5,000 CZK) OR in blood (25 HP) for a 50% pull
+## at a piece of gear; miss and you can pay again or walk. Walking away costs
+## +20 Hatred — a man like this knowing your door does not leave you. The prize
+## relic is rolled once (medium weights) and stays blind until won. The HP lane
+## is gated to run_hp > 25 so a 1-HP floor can never become a free reroll.
+## ---------------------------------------------------------------------------
+
+label ev_the_collector:
+
+    scene bg_random_event
+    play music "audio/random_event_bed.wav" fadein 1.0
+
+    python:
+        _co_art = "images/events/ev_the_collector.jpg"
+        _co_relic = random_unowned_relic(relic_drop_weights("medium"))
+        _co_tries = 0
+
+    if not _co_relic:
+        python:
+            stats.increment_stats_pcr_hatred(-3)
+            _co_res = [
+                "Past midnight, a man on the landing with a bag of other men's collateral. He looks at you, then the bag, and almost laughs. 'You've got better than anything in here already.'",
+                "He shoulders it and goes back down into the dark. Nothing here you need — and, strange thing, that helps.",
+                eg("- 3 Hatred."),
+            ]
+        call screen event_outcome(title="THE COLLECTOR", art=_co_art, result=_co_res)
+        return
+
+    label .offer:
+
+        python:
+            _event_ensure_run_hp()
+            _co_can_hp  = store.run_hp > 25
+            _co_can_czk = stats.available_money >= 5000
+            if _co_tries == 0:
+                _co_body = [
+                    "Past midnight, a man on the landing. Not police — police knock differently. He says your name, a number, and a debt you'd half-forgotten you owed.",
+                    "At his feet, a bag of other men's collateral — the good gear, taken off people who paid the hard way. 'Settle up and reach in,' he says. 'Cash, or I take it out of your hide. Fifty-fifty you pull something worth keeping.'",
+                ]
+            else:
+                _co_body = [
+                    "The bag stays open. He waited while you came up empty, patient as a clock.",
+                    "'Again?' he says. 'Or shut the door and live with it.'",
+                ]
+            _co_choices = [
+                {
+                    "id": "hp",
+                    "label": "[ TAKE IT OUT OF YOUR HIDE ]",
+                    "desc": ec("- 25 HP") + "  " + ek("50%: a piece of his gear."),
+                    "enabled": _co_can_hp,
+                    "locked": ec("- 25 HP") + "  You haven't 25 left to give him.",
+                },
+                {
+                    "id": "czk",
+                    "label": "[ SETTLE IN CASH ]",
+                    "desc": ec("- 5,000 CZK") + "  " + ek("50%: a piece of his gear."),
+                    "enabled": _co_can_czk,
+                    "locked": ec("- 5,000 CZK") + "  Not on you tonight.",
+                },
+                {
+                    "id": "leave",
+                    "label": "[ SHUT THE DOOR ]",
+                    "desc": ec("+ 20 Hatred") + ".  Walk away with nothing but knowing he knows the door.",
+                },
+            ]
+
+        call screen event_screen(title="THE COLLECTOR", art=_co_art, body=_co_body, choices=_co_choices)
+
+        python:
+            _co_pick = _return
+
+        if _co_pick == "leave":
+            python:
+                stats.increment_stats_pcr_hatred(20)
+                _co_res = [
+                    "You shut the door on him and the bag both. He doesn't knock again — he doesn't have to.",
+                    "He knows the door now. The knowing moves in for good, and it does not pay rent.",
+                    ec("+ 20 Hatred."),
+                ]
+            call screen event_outcome(title="THE COLLECTOR", art=_co_art, result=_co_res)
+            return
+
+        python:
+            if _co_pick == "hp":
+                _co_lost = event_hurt(25)
+                _co_paid = ec("- {} HP.".format(_co_lost))
+            else:
+                stats.try_spend_money(5000)
+                _co_paid = ec("- 5,000 CZK.")
+            _co_tries += 1
+            _co_win = __import__('random').randint(1, 100) <= 50
+
+        if _co_win:
+            python:
+                grant_relic(_co_relic, silent=True)
+                _co_nm = RELIC_LIBRARY.get(_co_relic, {}).get("name", "a piece of kit")
+                _co_res = [
+                    "Your hand closes on something solid and he lets you keep it — a deal's a deal, even his kind.",
+                    "You come up out of the bag with more than the debt was ever worth. He's already gone.",
+                    _co_paid + "   " + eg("Gear: {}.".format(_co_nm)),
+                ]
+            call screen event_outcome(title="THE COLLECTOR", art=_co_art, result=_co_res)
+            return
+
+        jump ev_the_collector.offer
+
+
+## ---------------------------------------------------------------------------
+## THE QUARTERMASTER [relic choice] — an off-the-books surplus lock-up. Up to
+## three SEEN relics, one per currency lane: pocket the hot one (+Hatred), buy
+## the clean one (its real shop price), or haul the heavy one (HP). The choose-
+## one-of-three gear shelf — distinct from lost_and_found's blind box.
+## ---------------------------------------------------------------------------
+
+label ev_the_quartermaster:
+
+    scene bg_random_event
+    play music "audio/random_event_bed.wav" fadein 1.0
+
+    python:
+        _qm_art = "images/events/ev_the_quartermaster.jpg"
+        ## One relic per currency lane, rarity-biased so the trip is worth it.
+        _qm_picks = roll_relic_choices(3, relic_drop_weights("hard"))
+        _qm_r_hat = _qm_picks[0] if len(_qm_picks) >= 1 else None
+        _qm_r_czk = _qm_picks[1] if len(_qm_picks) >= 2 else None
+        _qm_r_hp  = _qm_picks[2] if len(_qm_picks) >= 3 else None
+        _qm_czk_price = relic_shop_price(_qm_r_czk) if _qm_r_czk else 0
+
+        if not _qm_picks:
+            _qm_body = [
+                "A lock-up off the ring road. The Quartermaster looks up from his crossword at the bare bench. 'Cleaned you out already. You've taken everything off me worth taking.'",
+                "Nothing here tonight. Just the door, the ring road, and the long drive back.",
+            ]
+        else:
+            _qm_body = [
+                "A lock-up off the ring road, rented in cash under a name that was never anyone's. The Quartermaster deals what the job throws away — surplus, decommissioned, and the third kind nobody got around to decommissioning.",
+                "Tonight's pieces are out on the bench under a work-lamp. He won't say which is which kind. He lights a cigarette, leans on the roller door, and lets you look.",
+            ]
+
+        _qm_choices = []
+        if _qm_r_hat:
+            _qm_m = RELIC_LIBRARY.get(_qm_r_hat, {})
+            _qm_choices.append({
+                "id": "slot_hatred",
+                "label": "[ POCKET THE HOT ONE ]",
+                "desc": ek(_qm_m.get("name", "a piece of kit")) + " — " + _qm_m.get("hook", "") + "  " + ec("+ 12 Hatred") + ".",
+                "preview_card": None,
+            })
+        if _qm_r_czk:
+            _qm_m = RELIC_LIBRARY.get(_qm_r_czk, {})
+            _qm_choices.append({
+                "id": "slot_czk",
+                "label": "[ BUY THE CLEAN ONE ]",
+                "desc": ek(_qm_m.get("name", "a piece of kit")) + " — " + _qm_m.get("hook", "") + "  " + ec("- {:,} CZK".format(_qm_czk_price)) + ".",
+                "enabled": stats.available_money >= _qm_czk_price,
+                "locked": ek(_qm_m.get("name", "a piece of kit")) + " — you're {:,} CZK short of a clean buy.".format(max(0, _qm_czk_price - stats.available_money)),
+            })
+        if _qm_r_hp:
+            _qm_m = RELIC_LIBRARY.get(_qm_r_hp, {})
+            _qm_choices.append({
+                "id": "slot_hp",
+                "label": "[ HAUL THE HEAVY ONE ]",
+                "desc": ek(_qm_m.get("name", "a piece of kit")) + " — " + _qm_m.get("hook", "") + "  " + ec("- 15 HP") + ".",
+            })
+        _qm_choices.append({
+            "id": "walk",
+            "label": "[ TAKE NOTHING ]",
+            "desc": eg("- 3 Hatred") + ".  Roll the door down, owe him nothing.",
+        })
+
+    call screen event_screen(title="THE QUARTERMASTER", art=_qm_art, body=_qm_body, choices=_qm_choices)
+
+    python:
+        _qm_pick = _return
+        _qm_res = []
+        if _qm_pick == "slot_hatred":
+            grant_relic(_qm_r_hat, silent=True)
+            stats.increment_stats_pcr_hatred(12)
+            _qm_nm = RELIC_LIBRARY.get(_qm_r_hat, {}).get("name", "the piece")
+            _qm_res = [
+                "You lift it off the bench and no money moves and nothing gets written, which is the whole transaction. The Quartermaster doesn't watch you do it; a thing that was never sold was never here.",
+                "It rides home in your jacket the whole way, warm and certain and not yours — and you know, the way you always know, exactly whose worst night it fell out of.",
+                eg("Gear: {}.".format(_qm_nm)) + "   " + ec("+ 12 Hatred."),
+            ]
+        elif _qm_pick == "slot_czk":
+            stats.try_spend_money(_qm_czk_price)
+            grant_relic(_qm_r_czk, silent=True)
+            _qm_nm = RELIC_LIBRARY.get(_qm_r_czk, {}).get("name", "the piece")
+            _qm_res = [
+                "You count it into his hand and he counts it again, and the number is fair because a fair number is the only thing he sells honestly.",
+                "Clean — or as clean as a garage off the ring road gets. The gear is yours and your name is on nothing. That, tonight, is worth the money.",
+                eg("Gear: {}.".format(_qm_nm)) + "   " + ec("- {:,} CZK.".format(_qm_czk_price)),
+            ]
+        elif _qm_pick == "slot_hp":
+            _qm_lost = event_hurt(15)
+            grant_relic(_qm_r_hp, silent=True)
+            _qm_nm = RELIC_LIBRARY.get(_qm_r_hp, {}).get("name", "the piece")
+            _qm_res = [
+                "It doesn't fit the boot, then it doesn't fit the back seat, then it's the long haul across the lot with the thing trying to take your spine the whole way.",
+                "By the car you're breathing through your teeth — but nobody bankrolled it and nobody logged it. You hauled it out the one honest way left to you.",
+                eg("Gear: {}.".format(_qm_nm)) + "   " + ec("- {} HP.".format(_qm_lost)),
+            ]
+        else:
+            stats.increment_stats_pcr_hatred(-3)
+            _qm_res = [
+                "You look at what's on offer, and you put your hands back in your pockets. The Quartermaster nods like you've finally understood the garage.",
+                "You roll the door down and leave the bench exactly as full as you found it. Out on the ring road you're emptier-handed and, strange thing, a grain less haunted for it.",
+                eg("- 3 Hatred."),
+            ]
+
+    call screen event_outcome(title="THE QUARTERMASTER", art=_qm_art, result=_qm_res)
+    return
+
+
+## ---------------------------------------------------------------------------
+## THE RANGE INSTRUCTOR [deck-craft] — trades in HP, not CZK (distinct from
+## designer_of_forms). DRILL: remove 1 chosen card, -8 HP. SHARPEN: upgrade 1
+## chosen card, -8 HP. LEAVE: -6 Hatred. Both deck-ops cost the same, so the
+## pick is "thin vs upgrade vs rest" — no dominant option.
+## ---------------------------------------------------------------------------
+
+label ev_the_range:
+
+    scene bg_random_event
+    play music "audio/random_event_bed.wav" fadein 1.0
+
+    python:
+        _rg_art = "images/events/ev_the_range.jpg"
+        _rg_removable = [c for c in player_deck.cards if c not in CLASS_SIGNATURE_CARDS]
+        _rg_upgradeable = [c for c in player_deck.cards if is_upgradeable(c)]
+        _rg_body = [
+            "The police range, late and empty. The old instructor who drilled half the district is still at the back bench, the way he always is. He's watched you shoot, and work, and he's unimpressed in the specific, fond way of a man who gave up on surprise years ago.",
+            "'Too much hand,' he says, not looking up from the slide. 'I can fix one thing tonight. But I take before I give — that's the trade.'",
+        ]
+        _rg_choices = [
+            {
+                "id": "drill",
+                "label": "[ DRILL OUT A HABIT ]",
+                "desc": ec("- 8 HP") + ".  " + eg("Remove a card.") + "  One bad habit, gone for good.",
+                "enabled": len(_rg_removable) >= 1,
+                "locked": "Nothing of yours is sloppy enough for him to bother with.",
+            },
+            {
+                "id": "sharpen",
+                "label": "[ SHARPEN ONE ]",
+                "desc": ec("- 8 HP") + ".  " + eg("Upgrade a card.") + "  Same move, half the flinch.",
+                "enabled": len(_rg_upgradeable) >= 1,
+                "locked": "Nothing you carry can be filed any sharper.",
+            },
+            {
+                "id": "leave",
+                "label": "[ NOT TONIGHT ]",
+                "desc": eg("- 6 Hatred") + ".  Rack it, sign out, leave the quiet to him.",
+            },
+        ]
+
+    call screen event_screen(title="THE RANGE INSTRUCTOR", art=_rg_art, body=_rg_body, choices=_rg_choices)
+
+    python:
+        _rg_pick = _return
+
+    if _rg_pick == "drill":
+        python:
+            _rg_lost = event_hurt(8)
+            _rg_removable = [c for c in player_deck.cards if c not in CLASS_SIGNATURE_CARDS]
+        call screen event_card_picker("DRILL OUT A HABIT", _rg_removable)
+        python:
+            player_deck.remove(_return)
+            _rg_res = [
+                "He makes you fire the bad way until your hand stops wanting it, then the right way — which is so much less work it's almost insulting.",
+                ec("- {} HP.".format(_rg_lost)) + "   " + eg("Removed a card."),
+            ]
+        call screen event_outcome(title="THE RANGE INSTRUCTOR", art=_rg_art, result=_rg_res)
+        return
+
+    elif _rg_pick == "sharpen":
+        python:
+            _rg_lost = event_hurt(8)
+            _rg_upgradeable = [c for c in player_deck.cards if is_upgradeable(c)]
+        call screen event_card_picker("SHARPEN ONE TECHNIQUE", _rg_upgradeable)
+        python:
+            upgrade_card_in_deck(_return)
+            _rg_res = [
+                "He runs you on the one move until it's clean: the same move, half the flinch. He nods once, which from him is a parade.",
+                ec("- {} HP.".format(_rg_lost)) + "   " + eg("Upgraded a card."),
+            ]
+        call screen event_outcome(title="THE RANGE INSTRUCTOR", art=_rg_art, result=_rg_res)
+        return
+
+    else:
+        python:
+            stats.increment_stats_pcr_hatred(-6)
+            _rg_res = [
+                "You rack the pistol, sign the book, and leave him to the strip light and the unswept brass. Out in the lot the thing in your chest stops counting down and just goes quiet.",
+                eg("- 6 Hatred."),
+            ]
+        call screen event_outcome(title="THE RANGE INSTRUCTOR", art=_rg_art, result=_rg_res)
+        return
+
+
+## ---------------------------------------------------------------------------
+## THE TAIL [fight] — the Colonel's reach made flesh, late band. CORNER THEM
+## (event_fight, hard) for rare gear + a card + 7,500 CZK; LOSE THEM (-4,000 CZK,
+## -4 Hatred, no fight); or LET THEM FOLLOW (+8 Hatred, the free non-violent
+## option). Loss routes through forced_detour("colonel_tail", "hard").
+## ---------------------------------------------------------------------------
+
+label ev_the_tail:
+
+    scene bg_random_event
+    play music "audio/random_event_bed.wav" fadein 1.0
+
+    python:
+        _tl_art = "images/events/ev_the_tail.jpg"
+        _tl_can_lose = stats.available_money >= 4000
+        _tl_body = [
+            "Three days now, the same face in your wake — the petrol-station mirror, two cars back on the road home, across the tram aisle behind a newspaper nobody's read since the war. One of the Colonel's, sent to be noticed. The leash, before the thirtieth.",
+            "Tonight you walk past your turn, out to where the lamps give up and the road ends. The footsteps follow, patient. At the dead end you stop. So do they. You turn around.",
+        ]
+        _tl_choices = [
+            {
+                "id": "fight",
+                "label": "[ CORNER THEM ]",
+                "desc": ek("A hard fight.") + "  " + eg("Win: rare gear, a card, + {:,} CZK.".format(stats.money_gain_preview(7500))) + "  " + ec("Lose: they put you down hard."),
+            },
+            {
+                "id": "lose",
+                "label": "[ LOSE THEM IN THE PANELAKS ]",
+                "desc": ec("- 4,000 CZK") + "  " + eg("- 4 Hatred") + ".  A burner, back-doubles, a taxi you abandon two districts over. He loses you a while.",
+                "enabled": _tl_can_lose,
+                "locked": "Shaking a professional costs money you don't have on you tonight.",
+            },
+            {
+                "id": "ignore",
+                "label": "[ LET THEM WALK YOU HOME ]",
+                "desc": ec("+ 8 Hatred") + ".  Eyes forward, jaw shut, carry the stone the rest of the way to thirty.",
+            },
+        ]
+
+    call screen event_screen(title="THE TAIL", art=_tl_art, body=_tl_body, choices=_tl_choices)
+
+    python:
+        _tl_pick = _return
+
+    if _tl_pick == "fight":
+        call event_fight("colonel_tail", "hard") from _call_tail_fight
+        if _return == "defeat":
+            return
+        python:
+            _tl_cash = 7500
+            _tl_cash_disp = stats.money_gain_preview(_tl_cash)
+            stats.increment_stats_value_money(_tl_cash)
+            _tl_relic = random_unowned_relic(relic_drop_weights("hard", True))   ## boss weights — rare lean
+            _tl_relic_line = ""
+            if _tl_relic:
+                grant_relic(_tl_relic, silent=True)
+                _tl_relic_line = eg("Gear: {}.".format(RELIC_LIBRARY.get(_tl_relic, {}).get("name", "his kit")))
+            _tl_trio = pick_battle_rewards("hard")
+        call screen card_reward_trio_screen(cards=_tl_trio)
+        python:
+            _tl_got = _return
+            if _tl_got and _tl_got not in ("skip", None):
+                grant_card(_tl_got, silent=True)
+            _tl_res = [
+                "You turn before he's decided, and the half-second is the whole fight. He reaches into his jacket the way men reach when the desk job scared them and this never did — too slow.",
+                "You go through his pockets the way the job taught you: off-the-books cash, a piece of kit too good for a man this expendable. The Colonel will hear about this differently than he planned.",
+                eg("+ {:,} CZK.".format(_tl_cash_disp)) + "   " + (_tl_relic_line + "   " if _tl_relic_line else "") + (eg("Drafted a card.") if (_tl_got and _tl_got not in ("skip", None)) else ""),
+            ]
+        play music "audio/random_event_bed.wav" fadein 1.0
+        call screen event_outcome(title="THE TAIL", art=_tl_art, result=_tl_res)
+        return
+
+    elif _tl_pick == "lose":
+        python:
+            stats.try_spend_money(4000)
+            stats.increment_stats_pcr_hatred(-4)
+            _tl_res = [
+                "Two hours making yourself expensive to follow — a burner dumped, back-doubles through courtyards you grew up in, a taxi ditched two districts over. Somewhere in there his headlights come unstuck from yours.",
+                ec("- 4,000 CZK.") + "   " + eg("- 4 Hatred."),
+            ]
+        call screen event_outcome(title="THE TAIL", art=_tl_art, result=_tl_res)
+        return
+
+    else:
+        python:
+            stats.increment_stats_pcr_hatred(8)
+            _tl_res = [
+                "You keep the same pace — changing it would tell him something — and let him walk you home, still across the road when your light comes on. He'll be there tomorrow, and every day to the thirtieth, sanding you down a grain at a time.",
+                ec("+ 8 Hatred."),
+            ]
+        call screen event_outcome(title="THE TAIL", art=_tl_art, result=_tl_res)
+        return
+
+
+## ---------------------------------------------------------------------------
+## THE SIDE GIG [coding] — a freelance ticket due by morning. The all-nighter
+## buys Coding for HP; ship-it-half-done buys cash + a little Coding; sleep is
+## Hatred relief at the cost of the gig. A reachable Coding-for-HP source so the
+## tech lane is buildable without the bootcamp wall.
+## ---------------------------------------------------------------------------
+
+label ev_the_side_gig:
+
+    scene bg_random_event
+    play music "audio/random_event_bed.wav" fadein 1.0
+
+    python:
+        _sg_art = "images/events/ev_the_side_gig.jpg"
+        _sg_body = [
+            "A message from a guy who knows a guy: a real freelance ticket, due by morning, off the books — the only kind your name can take right now.",
+            "The laptop's open on the kitchen table. The shift starts in six hours. The bug doesn't care about either.",
+        ]
+        _sg_choices = [
+            {
+                "id": "grind",
+                "label": "[ PULL THE ALL-NIGHTER ]",
+                "desc": ec("- 12 HP") + ".  " + eg("+ 22 Coding") + ".  Burn the night, ship it clean.",
+            },
+            {
+                "id": "ship",
+                "label": "[ SHIP IT HALF-DONE ]",
+                "desc": eg("+ {:,} CZK".format(stats.money_gain_preview(5000))) + ".  " + eg("+ 8 Coding") + ".  Good enough is a paid invoice.",
+            },
+            {
+                "id": "sleep",
+                "label": "[ SLEEP ]",
+                "desc": eg("- 8 Hatred") + ".  The bug'll keep. So will you, barely.",
+            },
+        ]
+
+    call screen event_screen(title="THE SIDE GIG", art=_sg_art, body=_sg_body, choices=_sg_choices)
+
+    python:
+        _sg_pick = _return
+        _sg_res = []
+        if _sg_pick == "grind":
+            _sg_lost = event_hurt(12)
+            stats.increment_stats_coding_skill(22)
+            _sg_res = [
+                "You don't sleep. You ship at 06:40, twenty minutes before the alarm, and the thing actually runs. You learned more in one night than in a month of the academy.",
+                ec("- {} HP.".format(_sg_lost)) + "   " + eg("+ 22 Coding."),
+            ]
+        elif _sg_pick == "ship":
+            _sg_gain = stats.money_gain_preview(5000)
+            stats.increment_stats_value_money(5000)
+            stats.increment_stats_coding_skill(8)
+            _sg_res = [
+                "You ship what works and flag the rest as 'known issues.' It clears, the invoice is real, and a little of the night stuck to your hands as skill.",
+                eg("+ {:,} CZK.".format(_sg_gain)) + "   " + eg("+ 8 Coding."),
+            ]
+        else:
+            stats.increment_stats_pcr_hatred(-8)
+            _sg_res = [
+                "You shut the laptop and sleep like a man with a clear conscience he hasn't earned. The gig goes to someone hungrier; morning comes a little softer for it.",
+                eg("- 8 Hatred."),
+            ]
+
+    call screen event_outcome(title="THE SIDE GIG", art=_sg_art, result=_sg_res)
+    return
+
+
+## ---------------------------------------------------------------------------
+## THE CONTRACT [coding] — the recruiter's paid trial, the real way out. GRIND
+## buys big Coding for HP; PAIR buys Coding for CZK (a contractor carries you);
+## TURN IT DOWN costs Hatred (refusing the door out). The run's biggest single
+## Coding score, late band.
+## ---------------------------------------------------------------------------
+
+label ev_the_contract:
+
+    scene bg_random_event
+    play music "audio/random_event_bed.wav" fadein 1.0
+
+    python:
+        _ct_art = "images/events/ev_the_contract.jpg"
+        _ct_can_pair = stats.available_money >= 12000
+        _ct_body = [
+            "The recruiter from the interview didn't ghost you. A paid trial — a real company, the kind of salary that ends the countdown early, if the thirtieth doesn't end it first.",
+            "It's a take-home, due in two days, and it's beyond you right now — unless you make it not beyond you tonight.",
+        ]
+        _ct_choices = [
+            {
+                "id": "grind",
+                "label": "[ GRIND IT OUT ]",
+                "desc": ec("- 18 HP") + ".  " + eg("+ 30 Coding") + ".  Two days, no sleep, pure focus.",
+            },
+            {
+                "id": "pair",
+                "label": "[ PAIR WITH A PRO ]",
+                "desc": ec("- 12,000 CZK") + ".  " + eg("+ 18 Coding") + ".  Pay a contractor to carry you. You still learn, just less.",
+                "enabled": _ct_can_pair,
+                "locked": "A pro's day rate is 12,000 CZK. Not on you tonight.",
+            },
+            {
+                "id": "decline",
+                "label": "[ TURN IT DOWN ]",
+                "desc": ec("+ 10 Hatred") + ".  Not ready. Tell yourself it's the timing.",
+            },
+        ]
+
+    call screen event_screen(title="THE CONTRACT", art=_ct_art, body=_ct_body, choices=_ct_choices)
+
+    python:
+        _ct_pick = _return
+        _ct_res = []
+        if _ct_pick == "grind":
+            _ct_lost = event_hurt(18)
+            stats.increment_stats_coding_skill(30)
+            _ct_res = [
+                "You don't leave the flat for two days. You submit on fumes and cold coffee, and the reply comes back fast: they want to talk. For the first time the door out has your name on it.",
+                ec("- {} HP.".format(_ct_lost)) + "   " + eg("+ 30 Coding."),
+            ]
+        elif _ct_pick == "pair":
+            stats.try_spend_money(12000)
+            stats.increment_stats_coding_skill(18)
+            _ct_res = [
+                "A contractor off a dodgy Telegram channel walks you through it line by line for a fee that hurts. You submit clean — couldn't have written it alone, but you understand every line now.",
+                ec("- 12,000 CZK.") + "   " + eg("+ 18 Coding."),
+            ]
+        else:
+            stats.increment_stats_pcr_hatred(10)
+            _ct_res = [
+                "You write the polite email — bad timing, maybe later. You know there's no later. The Colonel's clock doesn't pause for the version of you that wasn't ready.",
+                ec("+ 10 Hatred."),
+            ]
+
+    call screen event_outcome(title="THE CONTRACT", art=_ct_art, result=_ct_res)
+    return

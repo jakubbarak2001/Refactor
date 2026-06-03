@@ -1003,7 +1003,7 @@ label coding_study:
         ## the ceiling clamp at the cap.
         if stats.player_class == "bodybuilder":
             _cs_before = stats.coding_skill
-            stats.increment_stats_coding_skill(12)
+            stats.increment_stats_coding_skill(15)
             _cs_gain = stats.coding_skill - _cs_before
             if _cs_gain > 0:
                 _study_outcome += "  + {} CODING SKILL.".format(_cs_gain)
@@ -1042,7 +1042,7 @@ label coding_refactor:
         _rf_card_name = CARD_LIBRARY.get(_rf_plus, {}).get("name", "the card")
         ## Like STUDY, a refactor session also teaches you — +Coding XP.
         _rf_cs_before = stats.coding_skill
-        stats.increment_stats_coding_skill(12)
+        stats.increment_stats_coding_skill(15)
         _rf_cs_gain = stats.coding_skill - _rf_cs_before
     window hide
     show screen outcome_panel("Refactored: {}.{}".format(_rf_card_name, ("   + {} CODING SKILL.".format(_rf_cs_gain) if _rf_cs_gain > 0 else "")))
@@ -1262,7 +1262,7 @@ label fixer_shop_loop:
         ## shows the moment you own it — without re-rolling the offered items.
         _shop_card_stock    = [dict(_o, price=fixer_buy_price(_o["price"])) for _o in (getattr(store, '_fixer_card_stock', None) or [])]
         _shop_relic_stock   = [dict(_o, price=fixer_buy_price(_o["price"])) for _o in (getattr(store, '_fixer_relic_stock', None) or [])]
-        _shop_shred_price   = fixer_current_price()
+        _shop_shred_price   = fixer_buy_price(fixer_current_price())
         _shop_can_shred     = (player_deck is not None) and any(
             _c not in CLASS_SIGNATURE_CARDS for _c in player_deck.cards)
         _shop_shred_blocked = getattr(store, '_fixer_shredded_today', False)
@@ -1329,8 +1329,8 @@ label fixer_shop_loop:
 label fixer_shred:
 
     python:
-        _fixer_current = fixer_current_price()
-        _fixer_next    = fixer_next_price()
+        _fixer_current = fixer_buy_price(fixer_current_price())
+        _fixer_next    = fixer_buy_price(fixer_next_price())
         _fixer_entries = []
         if player_deck is not None:
             for _cid in player_deck.cards:
@@ -1364,7 +1364,7 @@ label fixer_shred:
                 _pawn_bonus = stats.money_gain_preview(3000)
                 stats.increment_stats_value_money(3000)
             _fixer_outcome = "- {:,} CZK   - 1 card ({})   ·   Next shred: {:,} CZK".format(
-                _fixer_current, _fixer_name, fixer_current_price()
+                _fixer_current, _fixer_name, fixer_buy_price(fixer_current_price())
             )
             if _pawn_bonus:
                 _fixer_outcome += "   ·   Pawn slip + {:,} CZK".format(_pawn_bonus)

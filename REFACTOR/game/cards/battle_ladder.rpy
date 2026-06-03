@@ -283,7 +283,7 @@ screen encounter_choice(enemy_id, tier="medium", can_flee=True):
         ## bribe Internal Affairs or the Colonel's Guard with an empty wallet.
         _enc_flee_afford = (_enc_fe["penalty"] <= 0) or (stats is not None and stats.available_money >= _enc_fe["penalty"])
         if not _enc_flee_afford:
-            _enc_flee_sub = "Need {:,} CZK to make this offer — you don't have it.".format(_enc_fe["penalty"])
+            _enc_flee_sub = "Need {:,} CZK to make this offer.".format(_enc_fe["penalty"])
 
     add "#0a0a0a"
     if renpy.loadable(_enc_bg):
@@ -520,3 +520,41 @@ label battle_with(enemy_id, tier):
         "[_relic_hook]"
 
     return
+
+
+## ---------------------------------------------------------------------------
+## event_fight — drop the player straight into a fight from inside a random
+## event. Unlike battle_with there is NO encounter standoff (the event already
+## framed the choice) and NO standard reward block — the caller pays its own
+## bespoke reward on a win. A loss routes through the shared forced_detour so
+## the canon tier penalty (HP / CZK / Hatred + loss-stacking) still applies.
+## Returns "victory" / "defeat" to the caller via _return. A win counts as a
+## kill (breaks Pacifist); refusing or walking away in the event does not.
+## ---------------------------------------------------------------------------
+
+label event_fight(enemy_id, tier):
+
+    if tier == "hard":
+        play music "audio/evidence_locker_pulse.wav" fadein 0.8
+    elif tier == "medium":
+        play music "audio/system_knows_better.mp3" fadein 0.8
+    else:
+        play music "audio/panelak_nocni_smycka.wav" fadein 0.8
+    $ renpy.save("auto-ladder", "Event fight — {}".format(enemy_id))
+
+    python:
+        battle_init(enemy_id)
+        battle_start_player_turn()
+
+    call screen battle_screen
+
+    python:
+        _ef_outcome = battle_outcome()
+        battle_finish()
+
+    if _ef_outcome == "defeat":
+        call forced_detour(enemy_id, tier) from _call_event_fight_detour
+        return "defeat"
+
+    $ store._run_kills = getattr(store, '_run_kills', 0) + 1
+    return "victory"

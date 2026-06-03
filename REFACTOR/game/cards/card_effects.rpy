@@ -66,7 +66,7 @@ init python:
         ## Event-grant (ev_colonel_regards)
         "colonel_gift":            "Deal 14 damage. Lose 2 HP.",
         "ashes":                   "Deal 6 damage. Exhausts.",
-        "pills_probably":          "50%: heal 25 HP.\n50%: lose 22 HP, gain Compromise.\nExhausts.",
+        "pills_probably":          "Exhaust. A blind dose — usually a rush (heal / block / +Strength / draw / damage). 1 in 6 is a bad batch (lose 10 HP).",
         ## Hatred archetype
         "provoke":                 "Gain 8 Hatred. Draw 1 card.",
         "knuckle_down":            "Deal 16 damage. Gain 6 Hatred.",
@@ -377,17 +377,29 @@ init python:
 
     @register_effect("pills_probably")
     def _eff_pills_probably(state, source, target):
-        ## True coin flip. Heal big or hurt big + permanent Compromise.
-        ## Rolled here (combat moment) rather than at the event screen — the
-        ## whole point of confiscating the bag is deferring the gamble until
-        ## the night JB actually reaches for it.
-        if __import__('random').randint(1, 100) <= 50:
-            state.heal(source, 25)
-            state.add_log("Pills: healed 25 HP.")
+        ## A blind grab from the bag: five of six pills are an upside and the
+        ## sixth only costs HP (never a permanent card), so it's worth the deck
+        ## slot. Rolled at the combat moment, not the event — the whole point of
+        ## confiscating the bag is deferring the gamble to the night you reach in.
+        _roll = __import__('random').randint(1, 6)
+        if _roll == 1:
+            state.heal(source, 22)
+            state.add_log("Pills: a warm flood — healed 22 HP.")
+        elif _roll == 2:
+            state.gain_block(source, 20)
+            state.add_log("Pills: everything goes slow — 20 block.")
+        elif _roll == 3:
+            state.player_strength += 2
+            state.add_log("Pills: hands like bricks — +2 Strength.")
+        elif _roll == 4:
+            state.draw_cards(3)
+            state.add_log("Pills: the world speeds up — drew 3.")
+        elif _roll == 5:
+            state.deal_damage(target, 20)
+            state.add_log("Pills: you go feral — 20 damage.")
         else:
-            state.deal_damage(source, 22, bypass_block=True)
-            grant_card("compromise", silent=True)
-            state.add_log("Pills: -22 HP, gained Compromise.")
+            state.deal_damage(source, 10, bypass_block=True)
+            state.add_log("Pills: a bad batch — lost 10 HP.")
 
     @register_effect("heavy_set")
     def _eff_heavy_set(state, source, target):
