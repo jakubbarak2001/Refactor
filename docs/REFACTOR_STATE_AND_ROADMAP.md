@@ -1,7 +1,29 @@
 # REFACTOR — State of the Game & Roadmap
 
-**Last updated:** 2026-06-02 (big autonomous build + live art-review session)
+**Last updated:** 2026-06-03 (events overhaul + balance pass + coding lane + title video; all pushed)
 **Purpose:** the single go-forward reference. Where the game is, what we learned today, and what's next. Read this first, then `REFACTOR_PLAYBOOK.md` (how-to) and the auto-memory `MEMORY.md`.
+
+---
+
+## ⏭️ 2026-06-03 — where we left off / NEXT SESSION
+
+**Shipped today (all pushed to `origin/master`):**
+- **Six new random events**, each with generated painterly art (`images/events/ev_*.jpg`): **The Collector** (press-your-luck relic gamble — pay 25 HP or 5,000 CZK per 50% pull, walk = +20 Hatred), **The Quartermaster** (choose 1 of 3 seen relics, one per HP/CZK/Hatred lane), **The Range Instructor** (HP-priced deck-craft: remove 1 OR upgrade 1 for −8 HP — both lanes cost the same, no dominant option), **The Tail** (event-launched hard fight, the Colonel's reach), **The Side Gig** + **The Contract** (the new CODING lane — trade HP/cash for Coding skill). Removed the weak Pawnbroker.
+- **`event_fight(enemy_id, tier)`** (`cards/battle_ladder.rpy`) — first wrapper that drops you into a real battle from inside a random event (loss → `forced_detour`, win → counts as a kill + the event pays a bespoke reward). Used by The Tail; reusable.
+- **Pills, Probably** reworked from a trap (50/50 heal/hurt + permanent Compromise) into a worth-taking 0-cost exhaust gamble (5-of-6 upside: heal/block/+Str/draw/damage, 1-in-6 = −10 HP, no Compromise).
+- **Coding lane, finally visible + reachable:** the stats bar shows the live **Coding tier** (`Coding 35 · T2`); STUDY/Refactor coding gain **12 → 15**; the two coding events feed the lane without the 35k bootcamp wall.
+- **Balance pass:** relic shop prices set across ~12 relics; Fixer's Business Card corrected to **25% off everything incl. the shred service**; Spiral Notebook now **once per fight** (not per turn); Grundza's "Try His New Batch" flee grants **+10 Max HP**; enemy HP — **Lifer 225, The Tail 240, police_bureaucracy.exe 450**; bribe-flee button copy trimmed.
+- **New title-screen video** (`video/title_refactor.webm`, VP9, silent) replacing the old menu loop. (mp4 looped badly in Ren'Py's player → converted to VP9.)
+- Deleted the stale **refactor/balance-judge** subagents (per the user — verify via lint + an ad-hoc Workflow critic instead; see [[feedback_judges_stale]]).
+- An adversarial **audit workflow** over the whole session's diff came back **clean** (every high-confidence finding refuted; zero real bugs/balance issues).
+
+**NEXT (start here):**
+1. **Playtest the new events in-hand** — The Collector gamble, The Quartermaster relic-choice, the Range deck-craft, The Tail at 240 HP, and the coding events firing in their bands (early/mid/late).
+2. **Coding lane, part 2:** the events now grant Coding *skill*, but BB has few Coding-scaling *cards* to spend it on (Pipeline is the lone anchor). Add 1–2 BB-accessible Coding cards so the tier pays off in combat.
+3. **Prose-tighten the OLD keeper events** (designer_of_forms / lost_and_found / uniform_collector / the_interview) — same "too long, no one reads that" note the new events got.
+4. SFX assets (still open from 06-02).
+
+(Art pipeline note: `gen_bg.py` needs **Python 3.13/3.14** — `py -0p` — NOT the repo `.venv` (its pip is broken on this machine: platformdirs can't read a missing CSIDL_COMMON_APPDATA registry key). Event art = painterly, no-people environment scenes; pass two existing `ev_*.jpg` as `--ref` to lock the style.)
 
 ---
 
