@@ -1,11 +1,45 @@
-# REFACTOR — State of the Game & Roadmap
+# REKURZE — State of the Game & Roadmap
 
-**Last updated:** 2026-06-03 (events overhaul + balance pass + coding lane + title video; all pushed)
+> **The game is now named REKURZE** (renamed from REFACTOR, 2026-06-03 — see the top handoff section). This doc keeps its old filename/history; "REFACTOR" in older sections is the former title.
+
+**Last updated:** 2026-06-03 (evening: Biohacker overhaul + REKURZE rename; all pushed)
 **Purpose:** the single go-forward reference. Where the game is, what we learned today, and what's next. Read this first, then `REFACTOR_PLAYBOOK.md` (how-to) and the auto-memory `MEMORY.md`.
 
 ---
 
-## ⏭️ 2026-06-03 — where we left off / NEXT SESSION
+## ⏭️ 2026-06-03 (evening) — Biohacker overhaul + REKURZE rename / NEXT SESSION (2026-06-04)
+
+> Read this first tomorrow. Two commits pushed to `origin/master`: `c39076e` (BH) + `d4d1c7a` (rename). Lint clean. **Not yet playtested by the user** — that's job #1.
+
+### Shipped this session
+
+**1. Renamed the game REFACTOR → REKURZE** (`d4d1c7a`).
+- **Why:** "Refactor" is an exact-title collision on Steam (another unreleased game + a Chinese cut) *and* a saturated keyword. We live-searched Steam: every common word and clean CS term is taken (`exit` → 5,649 results; SIGKILL, SEGFAULT, Heisenbug, Halt, Daemon, Overclock, Kernel all exist). Only a coined/uncommon token survives — the Balatro/Inscryption/Noita play. **REKURZE** = Czech for "recursion," chosen over NULLCOP/HATEROOT/DECOMMIT (all also screened clear). It's on-theme: the 30-day loop is a recursive call, **Breakdown (hatred=100) is the stack overflow**, the true ending is the loop **terminating** (`exit code 0`), the Colonel is the recursion with no base case, the roguelike is recurrence.
+- **Done in code:** `config.name` + `build.name`; the hardcoded main-menu wordmark + `case-file //` top bars + the THANK-YOU-FOR-PLAYING end screen (these were hardcoded text in `screens_system.rpy:624/634/889` + `screens.rpy:3696`, NOT `config.name` — that's why the first pass missed them); README title + intro.
+- **Intentionally unchanged:** `config.save_directory` (would orphan saves), the repo folder `REFACTOR/` (codename ≠ store name), and the diegetic motif — the `coding_refactor` daily activity *titled* "REFACTOR" (you refactor/upgrade a card) and the colonel-ghost "It's REFACTORING time" title drop both stay.
+- **Cosmetic follow-ups (low priority):** README screenshots/folder paths + this doc still say "refactor"; the menu video filename `title_refactor.webm` is just JB-walking footage (the wordmark is text, already REKURZE) — no re-render needed.
+
+**2. Biohacker overhaul** (`c39076e`) — **BH is back in scope** (was locked; user: "biohacker doesn't work… boring cards, core mechanics don't work; BB is the bar"). Dark Empath stays locked.
+- **THE headline fix — the "infinite energy / spam-fest, no thinking" bug.** Root cause was **`Open Source PR`**, a *draftable* coding Power that did `max_energy += 1` **permanently, every play** → draft 2–3 and the ceiling climbed unbounded → play your whole hand every turn → zero decisions. Reworked to one-shot tempo (gain energy now + draw 1 + next Power free). Steady-state BH energy now caps ~6. (Meditation was NOT the cause — but it had a *lying log* "+1 max energy this fight" that made it look guilty; removed. It's correctly +2 turn-1-only now.)
+- **Draft engine was blind to BH:** `DRAFT_ARCHETYPES` now includes stimulant/neurochem/wetware/coding (they were collapsing into the 0.5-weight neutral bucket, so BH builds never snowballed).
+- **Supplements no longer drop from enemies** (user: "no 15yo sprayer kid drops you modafinil") — stimulant/neurochem/wetware excluded from fight/enemy drops; doses + suppliers are the only source. Coding stays draftable.
+- **Content:** `the_compound` → draftable rare finisher; coding cards retagged `coding`; new attacks tweak/redline/adrenaline/decompile + 3 absurd ones with generated art (red_light_therapy/theragun/ice_bath); Phenibut buffed to 44 dmg / −5 HP (was a weak −1 max-energy); Homeostasis Power (heal→damage).
+- **6 BH-locked relics** (modafinil_bottle **8k**/bulk_order/standing_desk/dual_monitors/recovery_ring/peptide_vial). Olympic Barbell → **BB-locked**.
+- **Recovery actually raises Max HP now** — sauna/cold plunge/red light bumped `gym_max_hp_bonus` but never recomputed `run_hp_max`, so the +Max HP never applied (user-reported). Fixed (+5/+10/+5).
+- **`Modafinil` skill → `Megadose`** (de-collide vs `FLModafinil Spike` — user: "two cards basically same name").
+- **BH true-ending epilogue** — the true ending hardcoded the *bodybuilder* "fitness app" outro for every class; BH now gets its own (developer at a pharma giant, compound in trials with his initials, *"you don't need a dose to keep it quiet"*).
+- Tuning: BH base HP 90→105; coding STUDY xp 18→12 (study-spam capped Coding too fast — user hit 249 by day 16); nootropic tiers unlock by **day OR purchase count** (not just cash) + affordability gating on tier buttons & the Fixer shred button.
+
+### NEXT (start here, 2026-06-04)
+
+1. **Playtest the BH energy fix first.** Does combat still feel like a spam-fest now the ceiling is ~6 instead of unbounded? **This read decides whether #2 is needed.**
+2. **BH decision-texture pass — the deep one (greenlight pending the playtest read).** Capping energy was step 1, but BH cards are still interchangeable "deal X" with no sequencing tension; BB makes you *think* (scarce energy + block/SOMA/presence decisions). **Proposed lever: lean into the crash mechanic as BH's identity** — energy abundant, but dumping your whole hand triggers escalating crashes next turn, so "spam everything" becomes a *gamble*, not the free optimum. Touches several cards → confirm with the user before rewriting.
+3. **BH random events / Arc 3 thinness** (user-flagged, twice) — add BH-flavored events (suppliers, black market, lab, trial-subject beats) and flesh out the BH "Telegram" class arc.
+4. Carried from the morning session: 1–2 BB-accessible Coding-scaling cards (Pipeline is the lone anchor); prose-tighten the OLD keeper events; SFX assets.
+
+---
+
+## ⏭️ 2026-06-03 (morning) — where we left off / NEXT SESSION
 
 **Shipped today (all pushed to `origin/master`):**
 - **Six new random events**, each with generated painterly art (`images/events/ev_*.jpg`): **The Collector** (press-your-luck relic gamble — pay 25 HP or 5,000 CZK per 50% pull, walk = +20 Hatred), **The Quartermaster** (choose 1 of 3 seen relics, one per HP/CZK/Hatred lane), **The Range Instructor** (HP-priced deck-craft: remove 1 OR upgrade 1 for −8 HP — both lanes cost the same, no dominant option), **The Tail** (event-launched hard fight, the Colonel's reach), **The Side Gig** + **The Contract** (the new CODING lane — trade HP/cash for Coding skill). Removed the weak Pawnbroker.
@@ -49,7 +83,7 @@ REFACTOR is a **Slay-the-Spire-style deckbuilder fused with a 30-day life-sim**.
 
 **The governing principle (learned today): the 30-day run must COMPOUND.** A great game you beat once becomes a GOTY game you replay 80 times only when the systems agree mechanically — builds snowball, the climax reads your history, and a meta-loop pulls you back. Today's work was largely about making that true.
 
-**Scope note:** only the **Bodybuilder (BB)** class is playable. Dark Empath / Biohacker are locked (their cards/arcs exist but are out of scope). Balance for BB.
+**Scope note:** **Bodybuilder (BB)** is the design bar and most-tuned class. **Biohacker (BH) is back in scope as of 2026-06-03** (overhauled — see the top handoff). **Dark Empath stays locked / out of scope.**
 
 ---
 
