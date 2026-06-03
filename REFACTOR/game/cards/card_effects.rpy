@@ -141,7 +141,7 @@ init python:
         "cognitive_stack":         "Draw 3 cards. Exhausts.",
         "override":                "Deal 40 damage. -2 max energy next turn. Exhausts.",
         "the_dossier":             "Deal 25 damage. Cancel the next attack if it's tagged emotional or guilt. Exhausts.",
-        "the_compound":            "Deal (current energy × 10) damage. Lose 8 HP. Exhausts.",
+        "the_compound":            "Deal (your energy × 8) damage. Lose 8 HP. Exhausts.",
         "took_the_heat":           "Gain 10 block. Draw 1 card. Exhausts.",
         ## Status / curse
         "status_paperwork":        "Status. Fills the form. Exhausts.",
@@ -193,7 +193,7 @@ init python:
         "cognitive_stack_plus":    "Draw 4 cards. Exhausts.",
         "override_plus":           "Deal 44 damage. -2 max energy next turn. Exhausts.",
         "the_dossier_plus":        "Deal 30 damage. Cancel the next attack if it's tagged emotional or guilt. Exhausts.",
-        "the_compound_plus":       "Deal (current energy × 12) damage. Lose 12 HP. Exhausts.",
+        "the_compound_plus":       "Deal (your energy × 10) damage. Lose 12 HP. Exhausts.",
         "took_the_heat_plus":      "Gain 13 block. Draw 1 card. Exhausts.",
         ## New-archetype `_plus` variants (the See Red / Thick Skull / Iron
         ## Posture Powers upgrade to cost 0 and reuse the base effect/text).
@@ -217,8 +217,8 @@ init python:
         "adrenal_burst":           "Gain 2 energy this turn. Next turn, -1 max energy. (Shady: draw 1.)",
         "adrenal_burst_plus":      "Gain 2 energy this turn. Draw 1. Next turn, -1 max energy. (Shady: draw 1 more.)",
         "megadose":                "Gain 3 energy. Draw 2 cards. Next turn, -2 max energy.",
-        "burnout":                 "Deal 30 damage. -1 max energy this fight.",
-        "burnout_plus":            "Deal 34 damage. -1 max energy this fight.",
+        "burnout":                 "Deal 44 damage. Lose 5 HP.",
+        "burnout_plus":            "Deal 50 damage. Lose 5 HP.",
         "catecholamine_spike":     "Power: at start of each turn, gain 1 energy and lose 3 HP.",
         ## BH Neurochem
         "pattern_match":           "Draw 2 cards. (Lab: draw 3.)",
@@ -233,6 +233,14 @@ init python:
         "telomere":                "Power: at start of each turn, heal 3 HP.",
         "pain_threshold":          "Power: whenever you lose HP, gain block equal to HP lost. (Legal: also heal 2.)",
         "hyper_if":                "Heal 15 HP. Gain 10 block. Exhausts.",
+        "homeostasis":             "Power. Whenever you heal, deal that much damage to the enemy.",
+        "tweak":                   "Deal 11 damage. Lose 2 HP.",
+        "redline":                 "Deal (your energy × 4) damage.",
+        "adrenaline":              "Deal 12 damage. Heal 5 HP.",
+        "decompile":               "Deal (4 + Coding tier × 2) damage. Draw 1.",
+        "red_light_therapy":       "Deal 8 damage. Gain 8 block.",
+        "theragun":                "Deal 5 damage 3 times.",
+        "ice_bath":                "Deal 8 damage. Gain 2 energy.",
         "hyper_if_plus":           "Heal 18 HP. Gain 13 block. Exhausts.",
         ## BH Capstone
         "peak_state":              "Power: whenever you gain energy this fight, deal 4 damage to the enemy.",
@@ -255,8 +263,8 @@ init python:
         "compile":                 "Deal damage equal to your Coding tier × 2.",
         "algorithm":               "Draw cards equal to your Coding tier − 1 (min 1).",
         "big_tech_offer":          "Gain CZK equal to Coding × 50. Exhausts.",
-        "open_source_pr":          "Power: +1 max energy this fight. Your next Power costs 0.",
-        "open_source_pr_plus":     "Power: +1 max energy this fight. Your next two Powers cost 0.",
+        "open_source_pr":          "Power: Gain 1 energy. Draw 1. Your next Power costs 0.",
+        "open_source_pr_plus":     "Power: Gain 2 energy. Draw 1. Your next two Powers cost 0.",
     }
 
     ## Counterweight converts the block wall into damage without consuming it.
@@ -296,9 +304,9 @@ init python:
         h = stats.pcr_hatred if stats else 0
         ## BH coding-scaled cards — live numbers in the description.
         if effect_id == "compile":
-            return "Deal {} damage. (Coding tier × 2)".format(_coding_tier_int() * 2)
+            return "Deal {} damage. (2 + Coding tier × 2)".format(_coding_tier_int() * 2 + 2)
         if effect_id == "compile_plus":
-            return "Deal {} damage. (Coding tier × 3)".format(_coding_tier_int() * 3)
+            return "Deal {} damage. (2 + Coding tier × 3)".format(_coding_tier_int() * 3 + 2)
         if effect_id == "algorithm":
             return "Draw {} card(s). (Coding tier − 1, min 1, cap 3)".format(min(3, max(1, _coding_tier_int() - 1)))
         if effect_id == "algorithm_plus":
@@ -381,7 +389,10 @@ init python:
         ## sixth only costs HP (never a permanent card), so it's worth the deck
         ## slot. Rolled at the combat moment, not the event — the whole point of
         ## confiscating the bag is deferring the gamble to the night you reach in.
-        _roll = __import__('random').randint(1, 6)
+        ## Biohacker recognizes the compound — for him it is never a bad batch
+        ## (rolls only the five upside outcomes). Everyone else gambles 1-in-6.
+        _bh = (stats is not None and stats.player_class == "biohacker")
+        _roll = __import__('random').randint(1, 5) if _bh else __import__('random').randint(1, 6)
         if _roll == 1:
             state.heal(source, 22)
             state.add_log("Pills: a warm flood — healed 22 HP.")
@@ -901,9 +912,9 @@ init python:
     @register_effect("the_compound")
     def _eff_the_compound(state, source, target):
         _e = state.energy + 1
-        state.deal_damage(target, _e * 10)
+        state.deal_damage(target, _e * 8)
         state.deal_damage(source, 8, bypass_block=True)
-        state.add_log("[[The Compound]: {}E spent -> {} dmg, -8 HP.".format(_e, _e * 10))
+        state.add_log("[[The Compound]: {}E -> {} dmg, -8 HP.".format(_e, _e * 8))
 
     @register_effect("took_the_heat")
     def _eff_took_the_heat(state, source, target):
@@ -1153,9 +1164,9 @@ init python:
     @register_effect("the_compound_plus")
     def _eff_the_compound_plus(state, source, target):
         _e = state.energy + 1
-        state.deal_damage(target, _e * 12)
+        state.deal_damage(target, _e * 10)
         state.deal_damage(source, 12, bypass_block=True)
-        state.add_log("[[The Compound+]: {}E spent -> {} dmg, -12 HP.".format(_e, _e * 12))
+        state.add_log("[[The Compound+]: {}E -> {} dmg, -12 HP.".format(_e, _e * 10))
 
     @register_effect("took_the_heat_plus")
     def _eff_took_the_heat_plus(state, source, target):
@@ -1372,15 +1383,16 @@ init python:
 
     @register_effect("burnout")
     def _eff_burnout(state, source, target):
-        state.deal_damage(target, 30)
-        ## Permanent for the fight — direct decrement, not the one-turn buff.
-        state.max_energy = max(0, state.max_energy - 1)
-        state.add_log("[[Burnout]: -1 max energy this fight.")
+        ## Big 2-cost nuke; the "receipt" is HP, not a max-energy crash — that
+        ## crash anti-synergized with the stimulant energy build and felt weak.
+        state.deal_damage(target, 44)
+        state.deal_damage(source, 5, bypass_block=True)
+        state.add_log("[[Burnout]: 44 damage, -5 HP.")
 
     @register_effect("burnout_plus")
     def _eff_burnout_plus(state, source, target):
-        state.deal_damage(target, 34)
-        state.max_energy = max(0, state.max_energy - 1)
+        state.deal_damage(target, 50)
+        state.deal_damage(source, 5, bypass_block=True)
         state.add_log("[[Burnout+]: -1 max energy this fight.")
 
     @register_effect("catecholamine_spike")
@@ -1476,6 +1488,52 @@ init python:
         ## actual damage taken into block. Legal protocol also heals 2 per trigger.
         state.buff(source, "pain_threshold_active", True)
 
+    @register_effect("homeostasis")
+    def _eff_homeostasis(state, source, target):
+        ## Power — heal() mirrors every point of HP actually recovered as
+        ## damage to the enemy for the rest of the fight. The Wetware finisher:
+        ## the regen lane's sustain becomes its kill condition.
+        state.buff(source, "homeostasis_active", True)
+
+    @register_effect("tweak")
+    def _eff_tweak(state, source, target):
+        state.deal_damage(target, 11)
+        state.deal_damage(source, 2, bypass_block=True)
+
+    @register_effect("redline")
+    def _eff_redline(state, source, target):
+        ## Repeatable energy SINK — reads energy pre-payment (like The Compound),
+        ## ×4, no exhaust. The ramp finally has a per-turn dump.
+        _e = state.energy + 1
+        state.deal_damage(target, _e * 4)
+
+    @register_effect("adrenaline")
+    def _eff_adrenaline(state, source, target):
+        ## Sustain-attack — the heal routes through heal(), so it combos with
+        ## Homeostasis (mirrors as damage) and Sauna (+100%).
+        state.deal_damage(target, 12)
+        state.heal(source, 5)
+
+    @register_effect("decompile")
+    def _eff_decompile(state, source, target):
+        state.deal_damage(target, _bh_coding_tier() * 2 + 4)
+        state.draw_cards(1)
+
+    @register_effect("red_light_therapy")
+    def _eff_red_light_therapy(state, source, target):
+        state.deal_damage(target, 8)
+        state.gain_block(source, 8)
+
+    @register_effect("theragun")
+    def _eff_theragun(state, source, target):
+        for _i in range(3):
+            state.deal_damage(target, 5, popup_delay=_i * 0.2)
+
+    @register_effect("ice_bath")
+    def _eff_ice_bath(state, source, target):
+        state.deal_damage(target, 8)
+        state.gain_energy(2)
+
     @register_effect("hyper_if")
     def _eff_hyper_if(state, source, target):
         state.heal(source, 15)
@@ -1515,13 +1573,13 @@ init python:
         ## Tier 1=2, T2=4, T3=6, T4=8, T5=10 damage. Cheap, repeatable,
         ## scales with the BH ramp. A T5-capped BH gets a 1-cost Attack
         ## that hits for 10 — equivalent to Strike+ but earned through play.
-        state.deal_damage(target, _bh_coding_tier() * 2)
+        state.deal_damage(target, _bh_coding_tier() * 2 + 2)
 
     @register_effect("compile_plus")
     def _eff_compile_plus(state, source, target):
         ## Upgrade — tier × 3. T5 = 15 damage, 1 cost. Big swing for the
         ## late-game smart build.
-        state.deal_damage(target, _bh_coding_tier() * 3)
+        state.deal_damage(target, _bh_coding_tier() * 3 + 2)
 
     @register_effect("algorithm")
     def _eff_algorithm(state, source, target):
@@ -1558,22 +1616,22 @@ init python:
 
     @register_effect("open_source_pr")
     def _eff_open_source_pr(state, source, target):
-        ## Power — bumps max energy permanently this fight AND makes the
-        ## next Power free. Doesn't proc on itself (open_source_pr already
-        ## resolving). Reads via "next_power_free" buff in battle_play_card
-        ## (TODO: needs a tiny engine hook — see comment below).
-        state.max_energy += 1
-        state.energy += 1
+        ## Power — one-shot tempo, NOT a permanent ramp. The old +1 max energy
+        ## stacked across drafted copies into the infinite-energy spam loop
+        ## (every play raised the ceiling for the rest of the fight). Now it
+        ## refunds its own energy, cycles a card, and makes the next Power free.
+        state.gain_energy(1)
+        state.draw_cards(1)
         state.buff(source, "next_power_free", 1)
-        state.add_log("[[Open Source PR]: +1 max energy. Next Power is free.")
+        state.add_log("[[Open Source PR]: +1 energy now. Draw 1. Next Power is free.")
 
     @register_effect("open_source_pr_plus")
     def _eff_open_source_pr_plus(state, source, target):
-        ## Upgrade — +1 max energy, next TWO Powers free.
-        state.max_energy += 1
-        state.energy += 1
+        ## Upgrade — net +1 energy, draw 1, next TWO Powers free.
+        state.gain_energy(2)
+        state.draw_cards(1)
         state.buff(source, "next_power_free", 2)
-        state.add_log("[[Open Source PR+]: +1 max energy. Next two Powers are free.")
+        state.add_log("[[Open Source PR+]: +2 energy now. Draw 1. Next two Powers are free.")
 
     ## ---------------------------------------------------------------------------
     ## NEUTRAL coding-scaled effects (BB-accessible) — a defensive scaler and a

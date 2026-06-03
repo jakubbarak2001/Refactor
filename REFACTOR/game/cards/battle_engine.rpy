@@ -436,8 +436,15 @@ init python:
                 _mult = self.buffs.get("heal_multiplier", 1.0)
                 if _mult != 1.0 and amount > 0:
                     amount = int(round(amount * _mult))
+                _before_hp = self.player_hp
                 self.player_hp = min(self.player_max_hp, self.player_hp + amount)
-                self.add_log("JB heals {} HP.".format(amount))
+                _actual_heal = self.player_hp - _before_hp
+                self.add_log("JB heals {} HP.".format(_actual_heal))
+                ## Homeostasis (BH Wetware finisher) — every HP actually
+                ## recovered is mirrored as damage to the enemy. The regen
+                ## lane's sustain finally becomes a kill condition.
+                if _actual_heal > 0 and self.buffs.get("homeostasis_active"):
+                    self.deal_damage("enemy", _actual_heal, apply_strength=False)
 
         ## ---------------- DECK MECHANICS ----------------
         def draw_cards(self, n):
@@ -725,10 +732,11 @@ init python:
                     ## Sauna — heals scale by N (typically 1.5).
                     bs.buffs["heal_multiplier"] = _rb.get("value", 1.5)
                     bs.add_log("[[Recovery — Sauna]: healing this fight is +{}%.".format(int((_rb.get("value", 1.5) - 1.0) * 100)))
-                elif _rb_type == "extra_energy":
-                    ## Meditation — +1 max energy this fight only.
-                    bs.max_energy += 1
-                    bs.add_log("[[Recovery — Meditation]: +1 max energy this fight.")
+                elif _rb_type == "turn1_energy":
+                    ## Meditation — +N energy on the FIRST turn only (a burst, not
+                    ## the OP every-turn +max energy the old extra_energy gave).
+                    bs.buffs["relic_turn1_energy"] = bs.buffs.get("relic_turn1_energy", 0) + _rb.get("value", 2)
+                    bs.add_log("[[Recovery — Meditation]: +{} energy on turn 1.".format(_rb.get("value", 2)))
                 elif _rb_type == "starting_block":
                     ## Cold Plunge — bulk block on turn 1.
                     bs.starting_block += _rb.get("value", 12)
@@ -1732,6 +1740,13 @@ init python:
             bs = battle_state
             if bs.over == "victory":
                 store.run_hp = max(1, bs.player_hp)
+                ## Biohacker — Coding ramps through PLAY: every fight won
+                ## teaches you something, so the smart build comes online
+                ## without sacrificing survival days to STUDY (the coding lane
+                ## was otherwise unreachable inside a 30-day run, forcing the
+                ## recovery/coding treadmill).
+                if stats is not None and stats.player_class == "biohacker":
+                    stats.increment_stats_coding_skill(8)
             for _i in range(1, getattr(bs, '_popup_enemy_seq', 0) + 1):
                 try:
                     renpy.hide_screen("dmg_popup_enemy_{}".format(_i))

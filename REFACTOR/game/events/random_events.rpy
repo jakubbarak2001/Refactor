@@ -653,12 +653,19 @@ label ev_pills:
     if _pl_pick == "confiscate":
         python:
             grant_card("pills_probably", silent=True)
-            _pl_res = [
-                "You slide the bag into the inside pocket of your jacket and finish the shift like a man who has just decided something. You do not write up the search.",
-                "The bag rides home with you. It rides into the kitchen, into the drawer with the gas-bill receipts, and then it rides somewhere you do not look at for a while.",
-                "You will know when you reach for it. Some night you have not picked yet.",
-                ec("Gained Pills, Probably."),
-            ]
+            if stats.player_class == "biohacker":
+                _pl_res = [
+                    "You don't need the test kit. One look at the pressing, the binder, the faint bitter edge — you know exactly what these are, and they are not random. Someone with a real lab made these.",
+                    "You pocket the bag the way you'd pocket your own prescription. No gamble here: you know precisely what each one does, and every one of them does something you want.",
+                    ec("Gained Pills, Probably."),
+                ]
+            else:
+                _pl_res = [
+                    "You slide the bag into the inside pocket of your jacket and finish the shift like a man who has just decided something. You do not write up the search.",
+                    "The bag rides home with you. It rides into the kitchen, into the drawer with the gas-bill receipts, and then it rides somewhere you do not look at for a while.",
+                    "You will know when you reach for it. Some night you have not picked yet.",
+                    ec("Gained Pills, Probably."),
+                ]
 
     elif _pl_pick == "leave":
         python:

@@ -423,13 +423,21 @@ init -1 python:
         is out, boss-rarity is out, pool-excluded (status / rage / compromise
         opt out) is out, basic starters (Strike / Defend / Heavy Set) are
         out. A card class-locked to the *current* player's class IS eligible
-        — that's how BB's Hatred lane, DE's empath lane, and BH's nootropic
-        lane reach their owner via random rewards."""
+        — that's how BB's Hatred lane and DE's empath lane reach their owner
+        via random rewards. BH's COMPOUND lanes come from doses instead (the
+        supplier-only filter below); only its coding lane drafts from fights."""
         _lock = c.get("class_lock")
         if _lock:
             _pc = stats.player_class if stats is not None else None
             if _lock != _pc:
                 return False
+        ## Biohacker SUPPLEMENT cards (stimulant / neurochem / wetware) come from
+        ## your SUPPLIER — the Nootropics Lab doses — never an enemy drop. A
+        ## back-alley tagger doesn't hand you modafinil. Coding stays draftable
+        ## (a skill you develop, not a pill), and this makes dosing the only path
+        ## to the compound lanes — so the Nootropics Lab finally matters.
+        if _lock == "biohacker" and c.get("archetype") in ("stimulant", "neurochem", "wetware"):
+            return False
         if c.get("rarity") == "boss":
             return False
         if c.get("pool_excluded"):
@@ -484,10 +492,14 @@ init -1 python:
 
 
     ## ── Archetype-aware draft ────────────────────────────────────────────────
-    ## DRAFT_ARCHETYPES are the four reward lanes. Every 3-card offer spans at
-    ## least two of them (always a real choice) and is weighted toward the lane
-    ## the player already owns the most of, so a build can come online.
-    DRAFT_ARCHETYPES = ("hatred", "stoic", "tech", "neutral")
+    ## DRAFT_ARCHETYPES are the reward lanes — BB: hatred/stoic/tech; BH:
+    ## stimulant/neurochem/wetware/coding; plus the shared neutral flex lane.
+    ## A class only ever sees lanes its own pool fills (other classes' locked
+    ## cards are filtered out upstream by _ladder_pool_eligible), so per-class
+    ## the draft buckets into that class's lanes. Every 3-card offer spans >= 2
+    ## lanes (always a real choice) and biases toward the lane the player owns
+    ## most, so a build comes online.
+    DRAFT_ARCHETYPES = ("hatred", "stoic", "tech", "stimulant", "neurochem", "wetware", "coding", "neutral")
 
     ## Archetype-pick weights. Each available lane gets a base weight; the
     ## player's most-owned lane gets the bias added on top. Neutral is a
@@ -507,8 +519,8 @@ init -1 python:
 
 
     def _ladder_dominant_archetype():
-        """The archetype the player owns the most cards of (hatred / stoic /
-        tech / neutral only — basic starters and corruption don't count).
+        """The archetype the player owns the most cards of (any lane in
+        DRAFT_ARCHETYPES — basic starters and corruption don't count).
         Returns None on an empty or tied count so early rewards roll unbiased."""
         if player_deck is None:
             return None

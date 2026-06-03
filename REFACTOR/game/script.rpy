@@ -664,8 +664,8 @@ label activity_recovery:
                 "class_relevant": True,
                 "art_glyph":      "~",
                 "stat_lines": [
-                    ("BATTLE BONUS", "All heals +50%"),
-                    ("HP",           "+20 (max +5)"),
+                    ("BATTLE BONUS", "All heals +100%"),
+                    ("HP",           "+25 (max +5)"),
                     ("HATRED",       "-10"),
                 ],
             },
@@ -677,8 +677,8 @@ label activity_recovery:
                 "class_relevant": True,
                 "art_glyph":      "○",
                 "stat_lines": [
-                    ("BATTLE BONUS", "+1 max energy"),
-                    ("HP",           "+10"),
+                    ("BATTLE BONUS", "+2 energy (turn 1)"),
+                    ("HP",           "+15"),
                     ("HATRED",       "-30"),
                 ],
             },
@@ -690,8 +690,8 @@ label activity_recovery:
                 "class_relevant": True,
                 "art_glyph":      "*",
                 "stat_lines": [
-                    ("BATTLE BONUS", "+12 starting block"),
-                    ("HP",           "+25 (max +10)"),
+                    ("BATTLE BONUS", "+25 starting block"),
+                    ("HP",           "+30 (max +10)"),
                     ("HATRED",       "—"),
                 ],
             },
@@ -703,8 +703,8 @@ label activity_recovery:
                 "class_relevant": True,
                 "art_glyph":      "●",
                 "stat_lines": [
-                    ("BATTLE BONUS", "+2 HP/turn regen"),
-                    ("HP",           "+15 (max +5)"),
+                    ("BATTLE BONUS", "+5 HP/turn regen"),
+                    ("HP",           "+20 (max +5)"),
                     ("HATRED",       "-15"),
                 ],
             },
@@ -723,10 +723,16 @@ label _apply_rec_sauna:
     "Eight minutes at 90°C. You finish on the cold tile, condensation everywhere, lungs still wide. Heat-shock proteins do the work."
     python:
         store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + 5
-        _restored = event_heal(20)
+        if getattr(store, 'run_hp_max', None) is None:
+            store.run_hp_max = class_max_hp()
+            store.run_hp = store.run_hp_max
+        else:
+            store.run_hp_max += 5
+            store.run_hp = min(store.run_hp_max, store.run_hp + 5)
+        _restored = event_heal(25)
         stats.increment_stats_pcr_hatred(-10)
-        store.pending_recovery_buff = {"type": "heal_boost", "value": 1.5}
-        _rec_out = "SAUNA  |  +{} HP  |  +5 MAX HP  |  -10 Hatred  |  NEXT FIGHT: heals +50%".format(_restored)
+        store.pending_recovery_buff = {"type": "heal_boost", "value": 2.0}
+        _rec_out = "SAUNA  |  +{} HP  |  +5 MAX HP  |  -10 Hatred  |  NEXT FIGHT: heals +100%".format(_restored)
     jump _recovery_finish
 
 
@@ -734,10 +740,10 @@ label _apply_rec_meditation:
     scene bg_bh_rec_meditation with Dissolve(0.4)
     "Twenty minutes on the cushion. The Colonel-loop unhooks somewhere around minute eight. You don't notice until minute fifteen."
     python:
-        _restored = event_heal(10)
+        _restored = event_heal(15)
         stats.increment_stats_pcr_hatred(-30)
-        store.pending_recovery_buff = {"type": "extra_energy"}
-        _rec_out = "MEDITATION  |  +{} HP  |  -30 Hatred  |  NEXT FIGHT: +1 max energy".format(_restored)
+        store.pending_recovery_buff = {"type": "turn1_energy", "value": 2}
+        _rec_out = "MEDITATION  |  +{} HP  |  -30 Hatred  |  NEXT FIGHT: +2 energy (turn 1)".format(_restored)
     jump _recovery_finish
 
 
@@ -746,9 +752,15 @@ label _apply_rec_coldplunge:
     "Two minutes at 4°C. Your nervous system does the math and reboots without asking. HRV up six points by tomorrow."
     python:
         store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + 10
-        _restored = event_heal(25)
-        store.pending_recovery_buff = {"type": "starting_block", "value": 12}
-        _rec_out = "COLD PLUNGE  |  +{} HP  |  +10 MAX HP  |  NEXT FIGHT: +12 starting block".format(_restored)
+        if getattr(store, 'run_hp_max', None) is None:
+            store.run_hp_max = class_max_hp()
+            store.run_hp = store.run_hp_max
+        else:
+            store.run_hp_max += 10
+            store.run_hp = min(store.run_hp_max, store.run_hp + 10)
+        _restored = event_heal(30)
+        store.pending_recovery_buff = {"type": "starting_block", "value": 25}
+        _rec_out = "COLD PLUNGE  |  +{} HP  |  +10 MAX HP  |  NEXT FIGHT: +25 starting block".format(_restored)
     jump _recovery_finish
 
 
@@ -757,10 +769,16 @@ label _apply_rec_redlight:
     "Twenty minutes under the panel. You log the wavelength. You log the duration. Mitochondria warm up."
     python:
         store.gym_max_hp_bonus = getattr(store, 'gym_max_hp_bonus', 0) + 5
-        _restored = event_heal(15)
+        if getattr(store, 'run_hp_max', None) is None:
+            store.run_hp_max = class_max_hp()
+            store.run_hp = store.run_hp_max
+        else:
+            store.run_hp_max += 5
+            store.run_hp = min(store.run_hp_max, store.run_hp + 5)
+        _restored = event_heal(20)
         stats.increment_stats_pcr_hatred(-15)
-        store.pending_recovery_buff = {"type": "regen", "value": 2}
-        _rec_out = "RED LIGHT  |  +{} HP  |  +5 MAX HP  |  -15 Hatred  |  NEXT FIGHT: +2 HP/turn regen".format(_restored)
+        store.pending_recovery_buff = {"type": "regen", "value": 5}
+        _rec_out = "RED LIGHT  |  +{} HP  |  +5 MAX HP  |  -15 Hatred  |  NEXT FIGHT: +5 HP/turn regen".format(_restored)
     jump _recovery_finish
 
 
@@ -889,6 +907,17 @@ label activity_coding:
                     "locked":         _fc_locked,
                     "lock_text":      _fc_lock_t,
                 },
+                {
+                    "label_name":     "coding_bootcamp",
+                    "title":          "JOIN BOOTCAMP",
+                    "accent":         _bh_accent,
+                    "cost_text":      _bc_cost_text,
+                    "effect_text":    "+25 Coding now  ·  +5 Coding/night",
+                    "flavor_text":    "Six weeks of deadlines and code reviews. The fastest way to tier up the protocol.",
+                    "class_relevant": True,
+                    "locked":         _bc_done,
+                    "lock_text":      "Already enrolled. The buff is live.",
+                },
             ]
         else:
             ## Other classes — STUDY keeps the card-trio behaviour; bootcamp
@@ -962,14 +991,14 @@ label coding_study:
     ## BH path: pure +Coding XP, no card, no money. Cards come from doses;
     ## money comes from the FREELANCE tile. Lane split keeps each action
     ## with one clear purpose.
-    ## XP bumped 12 → 18 (2026-05-25, post-playthrough) so STUDY beats T1
-    ## LEGAL (+5) and matches T3 SHADY (+9) on raw XP per slot. Combined
-    ## with the dose nerf, STUDY is the dominant Coding-ramp lane again
-    ## — protocol / cards come from dosing, raw skill comes from study.
+    ## XP at 12 (2026-06-03): an 18 here let study-spam ALONE cap Coding (T5)
+    ## by ~day 12-16, making doses / overtime / research feel skippable. At 12,
+    ## study is a strong contributor but the +8/win, doses and bootcamp also
+    ## matter — multi-system engagement to reach T5, not a one-button ramp.
     if stats.player_class == "biohacker":
         "An hour at the keyboard. No client, no deadline. You're paying yourself in skill."
         python:
-            _bh_study_xp = 18
+            _bh_study_xp = 12
             stats.increment_stats_coding_skill(_bh_study_xp)
             _study_outcome = "+{} CODING SKILL.".format(_bh_study_xp)
         window hide
@@ -1549,13 +1578,18 @@ label activity_nootropics:
             5: bh_tier_flavor(5),
             6: NOOTROPIC_TIERS[6]["flavor"],
         }
+        ## Tiers open by STORY PROGRESSION (the day) OR by RUSHING (total doses
+        ## bought) — a drugs-run player can grind purchases to skip ahead, while
+        ## a casual buyer still gets each tier as the connection deepens over the
+        ## 30 days. The old buy-3-in-a-row gate was too slow either way.
+        _noot_buys = sum(getattr(store, 'nootropic_uses', None) or [])
+        _noot_day  = day_cycle.current_day
         _NOOT_VIS = {
             1: True,
-            3: nootropic_tier_max >= 3,
-            5: flmodafinil_unlocked or nootropic_tier_max >= 5,
-            ## Black market shows up once your reputation is real.
-            ## 100 Coding = T3 "Solid Developer" — the chemist takes you seriously.
-            6: stats.coding_skill >= 100,
+            3: (_noot_day >= 5)  or (_noot_buys >= 2),
+            5: (_noot_day >= 11) or (_noot_buys >= 5) or flmodafinil_unlocked,
+            ## Black market also opens once your reputation is real (100 Coding).
+            6: (_noot_day >= 18) or (_noot_buys >= 8) or stats.coding_skill >= 100,
         }
         _noot_options = []
         for _tn in (1, 3, 5, 6):
@@ -1563,15 +1597,19 @@ label activity_nootropics:
             _hatred_sign = "+" if _ti["hatred"] >= 0 else ""
             _eff = "+{} Coding, {}{} Hatred, 1-of-3 card".format(
                 _ti["coding"], _hatred_sign, _ti["hatred"])
+            _noot_cost = adjusted_cost(_ti["cost"])
+            _noot_afford = stats.available_money >= _noot_cost
             _noot_options.append({
                 "label_name":     "_apply_noot_t{}".format(_tn),
                 "title":          _NOOT_TITLES[_tn],
                 "accent":         class_accent_color("biohacker"),
-                "cost_text":      "{:,} CZK".format(adjusted_cost(_ti["cost"])),
+                "cost_text":      "{:,} CZK".format(_noot_cost),
                 "effect_text":    _eff,
                 "flavor_text":    _NOOT_FLAVORS[_tn],
                 "class_relevant": True,
                 "visible":        _NOOT_VIS[_tn],
+                "locked":         not _noot_afford,
+                "lock_text":      "Need {:,} CZK.".format(_noot_cost),
             })
         ## RESEARCH PUBMED — free upgrade lane. Always visible. Routes to the
         ## deck upgrade picker (deck breadth vs deck quality is the BH axis).
@@ -1673,34 +1711,49 @@ label _apply_nootropic_tier:
         ##     wetware, matches the canonical T1 ingredient list.
         _BH_GRANT_POOLS = {
             1: {  # commons (LEGAL ESHOP — basic supplements)
-                "stimulant": ["microdose", "hrv_spike", "caffeine"],
+                "stimulant": ["microdose", "hrv_spike", "caffeine", "tweak", "ice_bath"],
                 "neurochem": ["n_of_one"],
                 "wetware":   ["mitochondrial"],
             },
             3: {  # uncommons (SHADY — Telegram-tier compounds)
-                "stimulant": ["stack_up", "adrenal_burst", "racetam", "ritalin"],
+                "stimulant": ["stack_up", "adrenal_burst", "racetam", "ritalin", "theragun", "redline"],
                 "neurochem": ["pattern_match", "cognitive_stack", "recall_protocol"],
-                "wetware":   ["telomere", "hyper_if"],
+                "wetware":   ["telomere", "hyper_if", "adrenaline", "red_light_therapy"],
+                "coding":    ["decompile", "algorithm"],
             },
             5: {  # rares (LAB GRADE — gray-market exotics)
-                "stimulant": ["megadose", "burnout", "catecholamine_spike", "flmodafinil", "override"],
+                "stimulant": ["megadose", "burnout", "catecholamine_spike", "flmodafinil", "override", "the_compound"],
                 "neurochem": ["big_tech_offer", "open_source_pr"],
-                "wetware":   ["pain_threshold"],
+                "wetware":   ["pain_threshold", "homeostasis"],
             },
             ## Black market draws from the rare T5 pool — buying at 25k
             ## should feel like the money chose for you. Same shape as T5.
             6: {
-                "stimulant": ["megadose", "burnout", "catecholamine_spike", "flmodafinil", "override"],
+                "stimulant": ["megadose", "burnout", "catecholamine_spike", "flmodafinil", "override", "the_compound"],
                 "neurochem": ["big_tech_offer", "open_source_pr"],
-                "wetware":   ["pain_threshold"],
+                "wetware":   ["pain_threshold", "homeostasis"],
             },
         }
         _pools = _BH_GRANT_POOLS.get(_tier, {})
-        _noot_trio = [
-            __import__('random').choice(_pools["stimulant"]),
-            __import__('random').choice(_pools["neurochem"]),
-            __import__('random').choice(_pools["wetware"]),
-        ]
+        ## Draw 3 DISTINCT cards from the WHOLE tier pool (not one rigid card per
+        ## archetype — that made low tiers repetitive: the same n_of_one +
+        ## mitochondrial every dose). Guarantee at least one Attack so every dose
+        ## offers a way to actually hit something. (random inlined — a stored
+        ## module ref breaks save pickling, per the note above.)
+        _noot_flat = []
+        for _noot_lst in _pools.values():
+            _noot_flat.extend(_noot_lst)
+        _noot_flat = list(dict.fromkeys(_noot_flat))
+        __import__('random').shuffle(_noot_flat)
+        _noot_trio = []
+        _noot_atk = [_c for _c in _noot_flat if CARD_LIBRARY.get(_c, {}).get("type") == "Attack"]
+        if _noot_atk:
+            _noot_trio.append(_noot_atk[0])
+        for _noot_c in _noot_flat:
+            if len(_noot_trio) >= 3:
+                break
+            if _noot_c not in _noot_trio:
+                _noot_trio.append(_noot_c)
 
         _outcome_str = "- {:,} CZK  |  +{} Coding  |  {} Hatred  |  STACK → {}".format(
             _cost, _coding_gain,

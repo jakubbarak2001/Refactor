@@ -2694,10 +2694,13 @@ screen fixer_shop(card_offers, relic_offers, cash, shred_price, can_shred, shred
             xalign 0.5
             spacing 20
             if can_shred and not shred_blocked:
-                textbutton "SHRED A CARD  ([shred_price:,] CZK)":
+                $ _shred_afford = (cash >= shred_price)
+                textbutton ("SHRED A CARD  ([shred_price:,] CZK)" if _shred_afford else "SHRED A CARD  (need [shred_price:,] CZK)"):
+                    sensitive _shred_afford
                     action Return(("shred", None))
                     text_color "#c08050"
                     text_hover_color "#ffffff"
+                    text_insensitive_color "#5a5042"
                     text_size 18
                     text_bold True
                     text_font "fonts/RobotoMono-Regular.ttf"
@@ -3690,7 +3693,7 @@ screen ending_screen(ending_label, ending_title, ending_flavor, ending_type, sco
 
             null height 6
 
-            text "REFACTOR":
+            text "REKURZE":
                 color "#ffffff"
                 size 30
                 bold True

@@ -243,9 +243,21 @@ label colonel_true_ending:
     "SYSTEM: BUILD SUCCESSFUL."
     "WELCOME TO PRODUCTION, JB."
 
-    "Three years later you run a fitness app with 40,000 active users. You wrote the backend yourself — ugly first, then clean, then elegant."
-    "But the thing you're quietly proudest of isn't the app, or the exit. It's that the loop never restarts in your head at 3 AM anymore."
-    "Most men just leave the building. You read it to the end, and you closed it. Nobody at the new place knows you were ever a cop. Your commit history doesn't mention it either."
+    python:
+        _ep_class = stats.player_class
+
+    if _ep_class == "biohacker":
+        "Three years later you're a developer at a pharma giant — the one whose deployment pipeline you rewrote in your first week. They gave you an office, a title, and a compound in trials with your initials buried in the methodology."
+        "But the thing you're quietly proudest of isn't the badge or the exit. It's that the loop never restarts in your head at 3 AM anymore — and you don't need a dose to keep it quiet. You read it to the end. You closed it."
+        "Nobody at the new place knows you were ever a cop. Your commit history doesn't mention it either."
+    elif _ep_class == "dark_empath":
+        "Three years later you lead UX research at a product company. You read users the way you once read suspects — except now what you learn ships cleaner software instead of closing folders."
+        "But the thing you're quietly proudest of isn't the title or the exit. It's that the loop never restarts in your head at 3 AM anymore. You read it to the end. You closed it."
+        "Nobody at the new place knows you were ever a cop. Your commit history doesn't mention it either."
+    else:
+        "Three years later you run a fitness app with 40,000 active users. You wrote the backend yourself — ugly first, then clean, then elegant."
+        "But the thing you're quietly proudest of isn't the app or the exit. It's that the loop never restarts in your head at 3 AM anymore. You read it to the end. You closed it."
+        "Most men just leave the building. Nobody at the new place knows you were ever a cop. Your commit history doesn't mention it either."
 
     python:
         ## True-ending score: same formula as good_ending, x1.5 for closing the

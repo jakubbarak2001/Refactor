@@ -905,12 +905,12 @@ init python:
         type       = "Attack",
         color      = "Special",
         cost       = 1,
-        rarity     = "boss",
+        rarity     = "rare",
         effect     = "the_compound",
         class_lock = "biohacker",
         archetype  = "stimulant",
         exhaust    = True,
-        flavor     = "Deal damage equal to current energy ×10. Lose 8 HP. The trial paid out.",
+        flavor     = "Deal damage equal to your energy ×8. Lose 8 HP. The trial paid out.",
     )
     register_card(
         "took_the_heat",
@@ -992,7 +992,7 @@ init python:
 
     register_card(
         "megadose",
-        name       = "Modafinil",
+        name       = "Megadose",
         type       = "Skill",
         color      = "Special",
         cost       = 1,
@@ -1131,6 +1131,124 @@ init python:
         flavor     = "Thirty-six hours dry. The autophagy receipt clears.",
     )
 
+    ## WETWARE finisher — the draftable rare that turns the regen engine into a
+    ## kill condition (heal() mirrors recovered HP as enemy damage). The lane's
+    ## answer to Breakdown/Barricade: sustain you can cash out.
+    register_card(
+        "homeostasis",
+        name       = "Homeostasis",
+        type       = "Power",
+        color      = "Special",
+        cost       = 1,
+        rarity     = "rare",
+        effect     = "homeostasis",
+        class_lock = "biohacker",
+        archetype  = "wetware",
+        flavor     = "The system finds its balance. What the body recovers, it returns in kind.",
+    )
+
+    ## ---------------------------------------------------------------------------
+    ## BH ATTACKS — the class was Skill/Power-heavy with almost no repeatable
+    ## punch. One attack per lane, plus Redline: the per-turn energy SINK the
+    ## ramp never had. Action-named on purpose (not another molecule).
+    ## ---------------------------------------------------------------------------
+
+    register_card(
+        "tweak",
+        name       = "Tweak",
+        type       = "Attack",
+        color      = "Special",
+        cost       = 1,
+        rarity     = "common",
+        effect     = "tweak",
+        class_lock = "biohacker",
+        archetype  = "stimulant",
+        flavor     = "Jaw tight, pupils blown, hands fast. The body does the talking.",
+    )
+
+    register_card(
+        "redline",
+        name       = "Redline",
+        type       = "Attack",
+        color      = "Special",
+        cost       = 1,
+        rarity     = "uncommon",
+        effect     = "redline",
+        class_lock = "biohacker",
+        archetype  = "stimulant",
+        flavor     = "Every drop of throttle straight into the hit. The more you've stacked, the more it lands.",
+    )
+
+    register_card(
+        "adrenaline",
+        name       = "Adrenaline",
+        type       = "Attack",
+        color      = "Special",
+        cost       = 1,
+        rarity     = "uncommon",
+        effect     = "adrenaline",
+        class_lock = "biohacker",
+        archetype  = "wetware",
+        flavor     = "Fight, not flight. The wound closes while the fist is still moving.",
+    )
+
+    register_card(
+        "decompile",
+        name       = "Decompile",
+        type       = "Attack",
+        color      = "Logic",
+        cost       = 1,
+        rarity     = "uncommon",
+        effect     = "decompile",
+        class_lock = "biohacker",
+        archetype  = "coding",
+        flavor     = "Read the trace, find the seam, break it. It hits as hard as you're smart.",
+    )
+
+    ## ---------------------------------------------------------------------------
+    ## BH ABSURD WELLNESS ATTACKS — the biohacker weaponizes his recovery gear.
+    ## (Same absurd-metaphor art register as the coding cards.)
+    ## ---------------------------------------------------------------------------
+
+    register_card(
+        "red_light_therapy",
+        name       = "Red Light Therapy",
+        type       = "Attack",
+        color      = "Special",
+        cost       = 1,
+        rarity     = "uncommon",
+        effect     = "red_light_therapy",
+        class_lock = "biohacker",
+        archetype  = "wetware",
+        flavor     = "660 nanometres of mitochondrial support, swung at full extension. Recovery is a contact sport.",
+    )
+
+    register_card(
+        "theragun",
+        name       = "Theragun",
+        type       = "Attack",
+        color      = "Special",
+        cost       = 1,
+        rarity     = "uncommon",
+        effect     = "theragun",
+        class_lock = "biohacker",
+        archetype  = "stimulant",
+        flavor     = "Percussive therapy. Forty hits a second, applied to the fascia, then the face.",
+    )
+
+    register_card(
+        "ice_bath",
+        name       = "Ice Bath",
+        type       = "Attack",
+        color      = "Special",
+        cost       = 1,
+        rarity     = "common",
+        effect     = "ice_bath",
+        class_lock = "biohacker",
+        archetype  = "stimulant",
+        flavor     = "Two minutes at four degrees. Theirs, not yours. The cold shock does wonders for your focus.",
+    )
+
     ## ---------------------------------------------------------------------------
     ## BH CODING-SCALED — "intelligence weaponized." Class-locked, eligible
     ## for the ladder reward pool. The Coding ramp now visibly pays out in
@@ -1148,7 +1266,7 @@ init python:
         rarity     = "common",
         effect     = "compile",
         class_lock = "biohacker",
-        archetype  = "neurochem",
+        archetype  = "coding",
         flavor     = "It builds. It runs. Damage scales with what you know.",
         upgrade    = {"effect": "compile_plus"},
     )
@@ -1162,7 +1280,7 @@ init python:
         rarity     = "uncommon",
         effect     = "algorithm",
         class_lock = "biohacker",
-        archetype  = "neurochem",
+        archetype  = "coding",
         flavor     = "The right pattern. Pulled from memory. Draws scale with tier.",
         upgrade    = {"effect": "algorithm_plus"},
     )
@@ -1176,7 +1294,7 @@ init python:
         rarity     = "rare",
         effect     = "big_tech_offer",
         class_lock = "biohacker",
-        archetype  = "neurochem",
+        archetype  = "coding",
         exhaust    = True,
         flavor     = "A recruiter pinged your inbox mid-fight. You close the deal one-handed.",
         upgrade    = {"effect": "big_tech_offer_plus"},
@@ -1191,7 +1309,7 @@ init python:
         rarity     = "rare",
         effect     = "open_source_pr",
         class_lock = "biohacker",
-        archetype  = "neurochem",
+        archetype  = "coding",
         flavor     = "Push to main. The repo loves you. Next Power is free.",
         upgrade    = {"effect": "open_source_pr_plus"},
     )
@@ -1564,7 +1682,7 @@ init python:
     register_upgrade("cognitive_stack",       effect="cognitive_stack_plus",       flavor="Draw 4 cards. Exhausts. The compound is dialed in.")
     register_upgrade("override",              effect="override_plus",              flavor="Deal 44 damage. -2 max energy next turn. Exhausts.")
     register_upgrade("the_dossier",           effect="the_dossier_plus",           flavor="Cancel one incoming attack. Deal 30. They know what you have.")
-    register_upgrade("the_compound",          effect="the_compound_plus",          flavor="Deal damage equal to current energy ×12. Lose 12 HP. Trial doubled.")
+    register_upgrade("the_compound",          effect="the_compound_plus",          flavor="Deal damage equal to your energy ×10. Lose 12 HP. Trial doubled.")
     register_upgrade("took_the_heat",         effect="took_the_heat_plus",         flavor="Gain 13 block. Draw 1. You owned it, twice.")
 
     ## New-archetype cards — Hatred. The three Powers upgrade by going free

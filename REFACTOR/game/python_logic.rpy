@@ -303,7 +303,7 @@ init python:
     CLASS_BASE_HP = {
         "bodybuilder": 115,
         "dark_empath": 75,
-        "biohacker":   90,
+        "biohacker":   105,
     }
 
     def class_max_hp(player_class=None, include_gym_bonus=True):

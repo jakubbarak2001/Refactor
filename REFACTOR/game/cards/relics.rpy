@@ -182,6 +182,7 @@ init python:
         archetype="iron", rarity="rare",
         hook="Keep half your remaining block each turn.",
         flavor="Twenty kilos of knurled steel. It has never once lied to you.",
+        class_lock="bodybuilder",
     )
 
     ## --- WRATH (Hatred engine) ---------------------------------------------
@@ -403,6 +404,60 @@ init python:
         class_lock="bodybuilder",
     )
 
+    ## ═══ EXPANSION POOL — BIOHACKER (class-locked) ═══════════════════════════
+    ## BH had ZERO class relics vs BB's 15. These give each lane gear to snowball
+    ## into, reusing engine buff keys the turn loop already reads (no new hooks
+    ## beyond the elif / on-victory branches below). STIMULANT = energy, CODING =
+    ## card flow, WETWARE = sustain (Peptide Vial pairs with Homeostasis).
+    register_relic(
+        "modafinil_bottle",
+        name="Modafinil (Bulk Bottle)",
+        archetype="wrath", rarity="common", shop_price=8000,
+        hook="+1 energy on the first turn of each fight.",
+        flavor="Two hundred tabs, blister-packed, shipped flat. You ration them like a man who won't.",
+        class_lock="biohacker",
+    )
+    register_relic(
+        "bulk_order",
+        name="Wholesale Order",
+        archetype="wrath", rarity="rare",
+        hook="+1 max energy every fight.",
+        flavor="You stopped buying doses and started buying inventory. The supplier calls you 'boss' now.",
+        class_lock="biohacker",
+    )
+    register_relic(
+        "standing_desk",
+        name="Standing Desk",
+        archetype="stack", rarity="common",
+        hook="Draw 2 extra cards on the first turn of each fight.",
+        flavor="You read it lowers all-cause mortality. You bought it for the focus. It does both.",
+        class_lock="biohacker",
+    )
+    register_relic(
+        "dual_monitors",
+        name="Dual Monitors",
+        archetype="stack", rarity="uncommon",
+        hook="Draw 1 extra card at the start of each turn.",
+        flavor="Twice the screen, twice the tabs open. The bottleneck was never the machine.",
+        class_lock="biohacker",
+    )
+    register_relic(
+        "recovery_ring",
+        name="Recovery Ring",
+        archetype="iron", rarity="uncommon",
+        hook="Heal 12 HP after each victory.",
+        flavor="Sleep score, HRV, readiness — a green number every morning. The body, quantified and coaxed.",
+        class_lock="biohacker",
+    )
+    register_relic(
+        "peptide_vial",
+        name="Peptide Vial (BPC-157)",
+        archetype="iron", rarity="rare",
+        hook="Heal 4 HP at the end of each turn.",
+        flavor="Reconstituted in the fridge door, drawn into an insulin pin. The tissue knits while you fight.",
+        class_lock="biohacker",
+    )
+
     ## ── Engine hooks ───────────────────────────────────────────────────────
 
     def relic_apply_battle_init(bs):
@@ -529,6 +584,18 @@ init python:
                     stats.increment_stats_pcr_hatred(10)
                     bs.add_log("[[Old Service Photo]: the man you were. +10 Hatred.")
 
+            ## --- EXPANSION: BIOHACKER ---
+            elif rid == "modafinil_bottle":
+                bs.buffs["relic_turn1_energy"] = bs.buffs.get("relic_turn1_energy", 0) + 1
+            elif rid == "bulk_order":
+                bs.max_energy += 1
+            elif rid == "standing_desk":
+                bs.buffs["first_turn_bonus_draw"] = bs.buffs.get("first_turn_bonus_draw", 0) + 2
+            elif rid == "dual_monitors":
+                bs.buffs["relic_extra_draw"] = bs.buffs.get("relic_extra_draw", 0) + 1
+            elif rid == "peptide_vial":
+                bs.buffs["telomere_heal"] = max(bs.buffs.get("telomere_heal", 0), 4)
+
             ## taser handled below (needs skip_attack_count, not a buff key)
             if rid == "taser":
                 bs.skip_attack_count += 1
@@ -640,6 +707,8 @@ init python:
         if has_relic("lucky_koruna"):
             _heal += 8
         if has_relic("mini_fridge"):
+            _heal += 12
+        if has_relic("recovery_ring"):
             _heal += 12
         if has_relic("service_photo") and stats is not None and stats.pcr_hatred > 60:
             _heal += 10
