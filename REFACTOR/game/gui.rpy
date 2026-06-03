@@ -87,7 +87,7 @@ define gui.title_text_size = 75
 ## Main and Game Menus #########################################################
 
 ## The images used for the main and game menus.
-image main_menu_bg = Movie(play="video/menu_bg.webm", loop=True, size=(1920, 1080))
+image main_menu_bg = Movie(play="video/title_refactor.webm", loop=True, size=(1920, 1080))
 define gui.main_menu_background = "main_menu_bg"
 define gui.game_menu_background = "gui/game_menu.png"
 
