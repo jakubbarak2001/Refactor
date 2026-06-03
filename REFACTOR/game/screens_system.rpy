@@ -621,7 +621,7 @@ screen main_menu():
         at mm_fade_in
 
     ## Title wordmark — pinned at y=272 to preserve the original placement.
-    text "REFACTOR":
+    text "REKURZE":
         style "mm_title"
         xpos 90
         ypos 272
@@ -631,7 +631,7 @@ screen main_menu():
     use main_menu_navigation
 
 
-screen dossier_top_bar(left_text="REFACTOR  //  case-file-jb", right_text=None):
+screen dossier_top_bar(left_text="REKURZE  //  case-file-jb", right_text=None):
     frame:
         xfill True
         ysize 36
@@ -886,7 +886,7 @@ screen game_menu(title, scroll=None, yinitial=0.0, spacing=0):
     else:
         add Solid("#0a0a0aee")
 
-    use dossier_top_bar(left_text="REFACTOR  //  case-file: " + title.lower())
+    use dossier_top_bar(left_text="REKURZE  //  case-file: " + title.lower())
     use dossier_bottom_bar()
 
     ## From the main menu the spine frames just the title + compact nav block;

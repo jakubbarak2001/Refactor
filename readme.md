@@ -1,8 +1,8 @@
-# REFACTOR
+# REKURZE
 
 > *"Code your way out, or lose your mind trying."*
 
-**REFACTOR** is a deckbuilder–life-sim set in Northern Bohemia. You play JB, a Czech cop on a 30-day countdown to a confrontation with his commanding officer — the Colonel — clawing his way out of policing and into software.
+**REKURZE** is a deckbuilder–life-sim set in Northern Bohemia. You play JB, a Czech cop on a 30-day countdown to a confrontation with his commanding officer — the Colonel — clawing his way out of policing and into software.
 
 The hook: **the deck you fight with is the 30 days you lived.** There is no curated card pool handed to you. Every day is a resource decision, and every decision writes a card into your deck. The Colonel fight is the reckoning for the deck — and the man — those 30 days produced.
 
