@@ -1,23 +1,23 @@
-# REKURZE — State of the Game & Roadmap
+# REFACTOR — State of the Game & Roadmap
 
-> **The game is now named REKURZE** (renamed from REFACTOR, 2026-06-03 — see the top handoff section). This doc keeps its old filename/history; "REFACTOR" in older sections is the former title.
+> **The game is now named REFACTOR** (renamed from REFACTOR, 2026-06-03 — see the top handoff section). This doc keeps its old filename/history; "REFACTOR" in older sections is the former title.
 
-**Last updated:** 2026-06-03 (evening: Biohacker overhaul + REKURZE rename; all pushed)
+**Last updated:** 2026-06-03 (evening: Biohacker overhaul + REFACTOR rename; all pushed)
 **Purpose:** the single go-forward reference. Where the game is, what we learned today, and what's next. Read this first, then `REFACTOR_PLAYBOOK.md` (how-to) and the auto-memory `MEMORY.md`.
 
 ---
 
-## ⏭️ 2026-06-03 (evening) — Biohacker overhaul + REKURZE rename / NEXT SESSION (2026-06-04)
+## ⏭️ 2026-06-03 (evening) — Biohacker overhaul + REFACTOR rename / NEXT SESSION (2026-06-04)
 
 > Read this first tomorrow. Two commits pushed to `origin/master`: `c39076e` (BH) + `d4d1c7a` (rename). Lint clean. **Not yet playtested by the user** — that's job #1.
 
 ### Shipped this session
 
-**1. Renamed the game REFACTOR → REKURZE** (`d4d1c7a`).
-- **Why:** "Refactor" is an exact-title collision on Steam (another unreleased game + a Chinese cut) *and* a saturated keyword. We live-searched Steam: every common word and clean CS term is taken (`exit` → 5,649 results; SIGKILL, SEGFAULT, Heisenbug, Halt, Daemon, Overclock, Kernel all exist). Only a coined/uncommon token survives — the Balatro/Inscryption/Noita play. **REKURZE** = Czech for "recursion," chosen over NULLCOP/HATEROOT/DECOMMIT (all also screened clear). It's on-theme: the 30-day loop is a recursive call, **Breakdown (hatred=100) is the stack overflow**, the true ending is the loop **terminating** (`exit code 0`), the Colonel is the recursion with no base case, the roguelike is recurrence.
+**1. Renamed the game REFACTOR → REFACTOR** (`d4d1c7a`).
+- **Why:** "Refactor" is an exact-title collision on Steam (another unreleased game + a Chinese cut) *and* a saturated keyword. We live-searched Steam: every common word and clean CS term is taken (`exit` → 5,649 results; SIGKILL, SEGFAULT, Heisenbug, Halt, Daemon, Overclock, Kernel all exist). Only a coined/uncommon token survives — the Balatro/Inscryption/Noita play. **REFACTOR** = Czech for "recursion," chosen over NULLCOP/HATEROOT/DECOMMIT (all also screened clear). It's on-theme: the 30-day loop is a recursive call, **Breakdown (hatred=100) is the stack overflow**, the true ending is the loop **terminating** (`exit code 0`), the Colonel is the recursion with no base case, the roguelike is recurrence.
 - **Done in code:** `config.name` + `build.name`; the hardcoded main-menu wordmark + `case-file //` top bars + the THANK-YOU-FOR-PLAYING end screen (these were hardcoded text in `screens_system.rpy:624/634/889` + `screens.rpy:3696`, NOT `config.name` — that's why the first pass missed them); README title + intro.
 - **Intentionally unchanged:** `config.save_directory` (would orphan saves), the repo folder `REFACTOR/` (codename ≠ store name), and the diegetic motif — the `coding_refactor` daily activity *titled* "REFACTOR" (you refactor/upgrade a card) and the colonel-ghost "It's REFACTORING time" title drop both stay.
-- **Cosmetic follow-ups (low priority):** README screenshots/folder paths + this doc still say "refactor"; the menu video filename `title_refactor.webm` is just JB-walking footage (the wordmark is text, already REKURZE) — no re-render needed.
+- **Cosmetic follow-ups (low priority):** README screenshots/folder paths + this doc still say "refactor"; the menu video filename `title_refactor.webm` is just JB-walking footage (the wordmark is text, already REFACTOR) — no re-render needed.
 
 **2. Biohacker overhaul** (`c39076e`) — **BH is back in scope** (was locked; user: "biohacker doesn't work… boring cards, core mechanics don't work; BB is the bar"). Dark Empath stays locked.
 - **THE headline fix — the "infinite energy / spam-fest, no thinking" bug.** Root cause was **`Open Source PR`**, a *draftable* coding Power that did `max_energy += 1` **permanently, every play** → draft 2–3 and the ceiling climbed unbounded → play your whole hand every turn → zero decisions. Reworked to one-shot tempo (gain energy now + draw 1 + next Power free). Steady-state BH energy now caps ~6. (Meditation was NOT the cause — but it had a *lying log* "+1 max energy this fight" that made it look guilty; removed. It's correctly +2 turn-1-only now.)

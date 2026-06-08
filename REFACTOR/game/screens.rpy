@@ -3693,7 +3693,7 @@ screen ending_screen(ending_label, ending_title, ending_flavor, ending_type, sco
 
             null height 6
 
-            text "REKURZE":
+            text "REFACTOR":
                 color "#ffffff"
                 size 30
                 bold True
