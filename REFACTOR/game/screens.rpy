@@ -4202,10 +4202,6 @@ screen class_selection_screen():
                                         size 25
                                         bold True
                                         font "fonts/RobotoMono-Regular.ttf"
-                                    text ("IN DEVELOPMENT"):
-                                        color ("#bdbdbd" if _focus == _i else "#9a9a9a")
-                                        size 14
-                                        font "fonts/RobotoMono-Regular.ttf"
                     else:
                         ## SELECT pill — the click affordance (the whole column
                         ## is the hit target; this just shows where to click).
