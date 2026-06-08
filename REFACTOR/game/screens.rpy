@@ -3788,7 +3788,7 @@ init python:
     DIFF_DATA = [
         {
             "key":     "easy",
-            "name":    "JUST LEARN TO CODE BRO",
+            "name":    "2022: JUST LEARN TO CODE BRO",
             "flavor":  "You googled 'how to become a developer in 30 days' and actually believed it.",
             "money":   "55,000",
             "coding":  "10",
@@ -3798,8 +3798,8 @@ init python:
         },
         {
             "key":     "hard",
-            "name":    "TECHNICAL DEBT",
-            "flavor":  "You burned half your savings on a course you haven't finished.",
+            "name":    "2025: AI MASS LAYOFFS",
+            "flavor":  "Your CV has a gap. Your wallet has a bigger one.",
             "money":   "35,000",
             "coding":  "5",
             "hatred":  "25",
@@ -3808,8 +3808,8 @@ init python:
         },
         {
             "key":     "insane",
-            "name":    "THANK YOU FOR YOUR APPLICATION",
-            "flavor":  "Your CV has a gap. Your wallet has a bigger one.",
+            "name":    "2026: THANK YOU FOR YOUR APPLICATION",
+            "flavor":  "IS ANYBODY OUT THERE???",
             "money":   "20,000",
             "coding":  "0",
             "hatred":  "35",
@@ -3834,7 +3834,7 @@ screen difficulty_selection_screen():
     modal True
     zorder 500
 
-    ## Currently focused difficulty (0=easiest, 3=hardest)
+    ## Currently focused difficulty (0=easiest, 2=hardest)
     default _hov = 0
 
     ## ── Background ──────────────────────────────────────────────────────────
@@ -3846,7 +3846,7 @@ screen difficulty_selection_screen():
         ypos 0
         xsize 720
         ysize 1080
-        background "#0d000033"
+        background "#1b030333"
 
     ## Vertical red separator line
     frame:
@@ -3862,34 +3862,21 @@ screen difficulty_selection_screen():
         ypos 72
         spacing 6
 
-        text "HOW HARD DO YOU WANT IT?":
+        text "WHAT IS THE JOB MARKET STATUS?":
             color "#cc2200"
             size 34
             bold True
             font "fonts/RobotoMono-Regular.ttf"
 
-        text "30 days. One life. No reloads.":
-            color "#888888"
-            size 16
-            font "fonts/RobotoMono-Regular.ttf"
-
-        text "Choose your suffering. This cannot be undone.":
-            color "#444444"
-            size 19
-            font "fonts/RobotoMono-Regular.ttf"
-
     ## ── Difficulty list (left) ──────────────────────────────────────────────
-    ## Whole-row click target — playtest hit on the ▶ glyph (passive marker)
-    ## three times with no response. The `button` wraps the entire 718x76
-    ## strip so anywhere in the row commits the choice.
     for _i, _diff in enumerate(DIFF_DATA):
         button:
             xpos 0
             ypos (220 + _i * 76)
             xsize 718
             ysize 76
-            background ("#cc220033" if _hov == _i else "#00000000")
-            hover_background "#cc220033"
+            background ("#e4290333" if _hov == _i else "#00000000")
+            hover_background "#ff2a0033"
             action [SetField(store, "_chosen_difficulty", _diff["key"]), Return()]
             hovered SetScreenVariable("_hov", _i)
 
@@ -3903,14 +3890,14 @@ screen difficulty_selection_screen():
                     xsize 22
                     ysize 76
                     background "#00000000"
-                text ("▶  " if _hov == _i else "   "):
+                text ("> " if _hov == _i else "   "):
                     color "#cc2200"
-                    size 28
+                    size 30
                     yalign 0.5
                     font "fonts/RobotoMono-Regular.ttf"
                 text _diff["name"]:
                     color ("#ffffff" if _hov == _i else "#555555")
-                    size  (32 if _hov == _i else 28)
+                    size  (26 if _hov == _i else 26)
                     bold  (_hov == _i)
                     font  "fonts/RobotoMono-Regular.ttf"
                     yalign 0.5
@@ -3920,47 +3907,39 @@ screen difficulty_selection_screen():
     ## Separator
     frame:
         xpos 70
-        ypos 580
+        ypos 480
         xsize 580
         ysize 2
         background "#2a0000"
 
     vbox:
         xpos 70
-        ypos 596
+        ypos 496
         spacing 8
 
-        ## Stats — monospace gold
-        text "Money   [DIFF_DATA[_hov]['money']] CZK":
+        ## Stats
+        text "💸 Money   [DIFF_DATA[_hov]['money']] CZK":
             color "#C8A44E"
             size 23
             font "fonts/RobotoMono-Regular.ttf"
 
-        text "Coding  [DIFF_DATA[_hov]['coding']]":
-            color "#C8A44E"
+        text "💻 Coding  [DIFF_DATA[_hov]['coding']]":
+            color "#4EC8C6"
             size 23
             font "fonts/RobotoMono-Regular.ttf"
 
-        text "Hatred  [DIFF_DATA[_hov]['hatred']]":
-            color "#C8A44E"
+        text "🤬 Hatred  [DIFF_DATA[_hov]['hatred']]":
+            color "#DA4621"
             size 23
             font "fonts/RobotoMono-Regular.ttf"
 
         ## Flavor text
         text "\"[DIFF_DATA[_hov]['flavor']]\"":
-            color "#666666"
+            color "#FFFFFF"
             size 18
             italic True
             font "fonts/RobotoMono-Regular.ttf"
             xmaximum 620
-
-    ## Confirm instruction
-    text "— CLICK OR PRESS ENTER TO CONFIRM YOUR FATE —":
-        xpos 70
-        ypos 970
-        color "#551100"
-        size 17
-        font "fonts/RobotoMono-Regular.ttf"
 
     ## ── Portrait (right side, centered in right half) ───────────────────────
     ## Swaps with fade on hover. Images are ~420x630.

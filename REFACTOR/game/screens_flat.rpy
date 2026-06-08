@@ -91,7 +91,7 @@ init python:
     _C_DART   = "images/jb_flat/colonel_dart1.png"
     _C_KNIFE  = "images/jb_flat/colonel_knife.png"
     _C_DEFACE = "images/jb_flat/colonel_deface.png"   # red-marker vandalism + ZRÁDCE over the photo
-    _C_WALL   = "images/jb_flat/colonel_wall.png"     # "ALL COPS ARE BEAUTIFUL (:" etc. on the wall
+    _C_WALL   = "images/jb_flat/colonel_wall.png"     # "ALL COPS ARE BEAUTIFUL (:" on the wall
     _C_BAZ    = "images/jb_flat/colonel_bazooka.png"
 
     COLONEL_THRESHOLDS = [20, 35, 50, 70, 82, 90]
