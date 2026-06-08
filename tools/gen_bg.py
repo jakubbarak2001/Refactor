@@ -35,6 +35,7 @@ SPRITES_DIR = REPO_ROOT / "REFACTOR" / "game" / "images" / "sprites"
 CARDS_DIR = REPO_ROOT / "REFACTOR" / "game" / "images" / "cards"
 EVENTS_DIR = REPO_ROOT / "REFACTOR" / "game" / "images" / "events"
 RELICS_DIR = REPO_ROOT / "REFACTOR" / "game" / "images" / "relics"
+PICTURES_DIR = REPO_ROOT / "REFACTOR" / "game" / "images" / "pictures"
 
 DEFAULT_MODEL = "gemini-3.1-flash-image-preview"
 
@@ -78,6 +79,8 @@ def main() -> int:
                    help="output to images/events/ as JPG (event_screen / event_outcome art panels)")
     p.add_argument("--relics", action="store_true",
                    help="output to images/relics/ as PNG (relic_tray picks these up by relic_id filename)")
+    p.add_argument("--pictures", action="store_true",
+                   help="output to images/pictures/ as PNG (difficulty portraits etc.)")
     args = p.parse_args()
 
     for ref in args.ref:
@@ -102,6 +105,8 @@ def main() -> int:
         out_dir, ext = EVENTS_DIR, "jpg"
     elif args.relics:
         out_dir, ext = RELICS_DIR, "png"
+    elif args.pictures:
+        out_dir, ext = PICTURES_DIR, "png"
     else:
         out_dir, ext = BG_DIR, "jpg"
     out_dir.mkdir(parents=True, exist_ok=True)

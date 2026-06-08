@@ -1,0 +1,20 @@
+CHARACTER PORTRAIT re-render — "JB" difficulty-select portrait for a cop-themed game.
+
+The FIRST attached image (hard_difficulty_pic.png) is the EXISTING version of this exact portrait — KEEP its composition, framing, pose, crop, outfit, expression and lighting mood. This is a clean RE-RENDER in a new style, NOT a redesign.
+
+The SECOND attached image (jb_bodybuilder.jpg) and THIRD (jb_neutral.png) define the TARGET RENDER STYLE and the canonical JB face. Match that style and face exactly.
+
+KEEP THE SAME (from the first image):
+- Composition: tight vertical head-and-shoulders / chest-up studio portrait, the man centered, facing the camera, a little headroom at top. Dark, near-black studio background with soft vignette and a subtle rim light.
+- Outfit: black tactical POLICE plate-carrier vest over a black t-shirt, with a yellow "POLICIE" patch on the chest. Keep all patch text short, bold and clean — the only word is "POLICIE". Do NOT produce garbled or invented lettering.
+- Expression: worn down but still standing — a tired, hard stare, jaw set, faint frown, no smile. Heavier stubble, slight shadows under the eyes, a little fatigue. This is the "hard" tier; the job is grinding him down but he holds.
+
+RENDER STYLE (copy from jb_bodybuilder.jpg / jb_neutral.png):
+- Smooth semi-realistic 3D character render — clean soft shading, subtle subsurface skin, gentle rim light, the idealized "video-game cinematic" look of the canon sprites. NO photographic grain, NO painterly brushstrokes, NO sketch lines, no anime.
+
+THE FACE (match canon exactly from jb_neutral.png):
+- Early-30s man, strong square jaw, defined cheekbones, short dark brown hair (neat tight side-part / fade), thick straight dark eyebrows, brown slightly-hooded eyes, stubble, warm-neutral skin tone (NO green/teal cast). Unmistakably the same man as jb_neutral.png.
+
+ABSOLUTE RULES:
+- Same composition + crop + outfit + lighting mood as the first attached image; ONLY the render style and the face change to match the canon sprites.
+- Crisp, clean image; no garbled text; no extra props or clutter.

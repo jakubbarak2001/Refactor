@@ -4218,7 +4218,7 @@ screen class_selection_screen():
                             frame:
                                 background "#0c0c0cdd"
                                 padding (22, 11)
-                                text "▶  SELECT":
+                                text ">  SELECT":
                                     color _accent
                                     size 24
                                     bold True
