@@ -2,11 +2,11 @@
 
 > *"Code your way out, or lose your mind trying."*
 
-**REKURZE** is a deckbuilder–life-sim set in Northern Bohemia. You play JB, a Czech cop on a 30-day countdown to a confrontation with his commanding officer — the Colonel — clawing his way out of policing and into software.
+**REFACTOR** is a deckbuilder–life-sim set in Northern Bohemia. You play as JB, a Czech cop on a 30-day countdown to a confrontation with his commanding officer - the Colonel - clawing his way out of policing and into software.
 
-The hook: **the deck you fight with is the 30 days you lived.** There is no curated card pool handed to you. Every day is a resource decision, and every decision writes a card into your deck. The Colonel fight is the reckoning for the deck — and the man — those 30 days produced.
+The hook: **the deck you fight with is the 30 days you lived.** There is no curated card pool handed to you. Every day is a resource decision, and every decision writes a card into your deck. 
 
-It's a Slay-the-Spire-shaped roguelike with a life-sim front half. Not a visual novel.
+It's a Slay-the-Spire inspired roguelike with a life-sim mechanics baked in.
 
 <p align="center">
   <img width="880" src="docs/screenshots/main_menu.png" alt="REFACTOR main menu">
@@ -17,13 +17,18 @@ It's a Slay-the-Spire-shaped roguelike with a life-sim front half. Not a visual 
 ## Preview
 
 <p align="center">
-  <img width="880" src="docs/screenshots/battle.png" alt="Card battle against a football hooligan">
-  <br><sub><i>Turn-based card combat. Every fight is a Northern-Bohemia police case — here, a football hooligan. Cards like <b>Heavy Set</b> scale with your hatred.</i></sub>
+  <img width="880" src="docs/screenshots/battle.png" alt="Card battle against a bar brawler">
+  <br><sub><i>Turn-based card combat. Every fight is a Northern-Bohemia police case.</i></sub>
 </p>
 
 <p align="center">
   <img width="880" src="docs/screenshots/daily_hub.png" alt="The daily hub in JB's flat">
-  <br><sub><i>The daily hub — JB's flat in Děčín. Pick one move; the calendar counts down to the Colonel.</i></sub>
+  <br><sub><i>The daily hub — JB's flat in Děčín.</i></sub>
+</p>
+
+<p align="center">
+  <img width="880" src="docs/screenshots/enemies_preview.gif" alt="Some of the enemies you can fight">
+  <br><sub><i>Some of the enemies you can meet during your playthrough.</i></sub>
 </p>
 
 ---
@@ -34,45 +39,40 @@ Each day you pick **one move**. Activities don't just shift stats — they seed 
 
 | Activity | What it does |
 |---|---|
-| **Gym** | Train. Upgrade a card, or heal and raise max HP. |
-| **Coding** | Freelance / Coach / Bootcamp. Raises coding skill — your escape velocity. |
-| **Bouncer** | High-risk cash at the club. Pays well; dangerous for a cop. |
-| **Overtime** | Trade time for money: +5,000 CZK, +15 hatred — and a "?" night that may turn into a fight. |
+| **Gym** |  Upgrade a card, or heal and raise max HP. |
+| **Coding** | Raises coding skill — your escape velocity. |
+| **Bouncer** | Your way to get some quick cash. Pays well; dangerous for a cop. |
+| **Overtime** | Trade time for money: +5,000 CZK, +15 hatred. Plenty of random events can heppen here. |
 
 Three stats run the campaign:
 
-- **Money (CZK)** — pays for coaching, courses, recovery. Hit zero and you're on the street.
+- **Money (CZK)** — pays for items, cards or skipping fights entirely. Hit zero and you're on the street.
 - **Coding Skill** — your way out, and it reaches into battle.
-- **Police Hatred (PČR)** — climbs every night. Hit 100 and JB breaks.
+- **Hatred** — climbs every night. Hit the cap and JB breaks.
 
-Story beats fire on fixed days; opportunity events appear at random. Your choices compound — there is no single winning strategy.
-
----
-
-## Hatred corrupts your deck
-
-Hatred isn't only a fail bar. As it climbs, **involuntary Rage cards** get jammed into your deck — high damage, self-corrupting (self-damage, hand discard, block-strip). A "hot" run hits hard and runs unstable. The Colonel weaponizes your own hatred against you.
+Your need to balance both your deck's strenght and your stats — there is no single winning strategy.
 
 ---
 
 ## Combat — the battle ladder
 
-A dozen-plus turn-based card battles are spread across the 30 days, each framed as a Northern-Bohemia police case: a market bust, a staging-lot standoff, an internal-affairs interrogation. A day slot rolls **either** a battle node or a narrative event.
+A dozen-plus turn-based card battles are spread across the 30 days, each framed as a Northern-Bohemia police case: a market bust, a staging-lot standoff, an internal-affairs interrogation. 
 
-Each fight uses conventional HP. **Losing is not game over** — it triggers a *forced detour* (hospital, suspension, debt) with its own choices and cost. Stack up enough stalls and the run degrades toward a worse ending.
-
-**The Colonel** is the capstone — a multi-phase deck-fight whose intent escalates with your hatred, built on mechanics the ladder telegraphs but never fully shows.
+You can complete this game without defeating a single enemy if that's your style.
 
 ---
 
 ## Classes
 
-<img align="right" width="240" src="REFACTOR/game/images/sprites/jb_bodybuilder.jpg" alt="JB, the Bodybuilder">
+<img  width="240" src="REFACTOR/game/images/sprites/jb_bodybuilder.jpg" alt="JB, the Bodybuilder">
+<img  width="240" src="REFACTOR/game/images/sprites/jb_dark_empath.jpg" alt="JB, the Dark Empath">
+<img  width="240" src="REFACTOR/game/images/sprites/jb_biohacker.jpg" alt="JB, the Biohacker">
 
-- **Bodybuilder** — playable. A body-and-block archetype: the gym is his card forge, and every rep is an argument.
-- **Dark Empath / Biohacker** — locked previews in this build.
+- **Bodybuilder** — FULLY playable: Increased hatred cap (100 -> 125), "Juggernaut/Berserk" class. You are pretty strong, but it comes at the price of slower coding. Your activities are: Gym, Bouncer, Coding and Overtime.
+- **Dark Empath** — IN DEVELOPMENT. 
+- **Biohacker** — PREVIEW available. Nootropics are your strongest weapons, you learn coding much faster. Your activities are: Recovery, Stack, Coding and Overtime.
 
-The class you pick is permanent and reshapes the daily loop, the deck you can build, and how the Colonel fight goes.
+The class you pick is permanent and reshapes the daily loop, the deck you can build, and how the Colonel fight goes. 
 
 <br clear="right">
 
@@ -80,18 +80,14 @@ The class you pick is permanent and reshapes the daily loop, the deck you can bu
 
 ## Endings
 
-Four ways the 30 days resolve:
-
-- **Breakdown** — hatred reaches 100 before the reckoning.
-- **Homeless** — money runs out.
-- **Escape** — you beat the Colonel and walk out clean.
-- **Reunion** — you survive the Colonel, but too broke or unskilled to truly leave.
+- **Good Ending** — you made it out... <i>or did you?</i>
+- **True Ending** — you finished it - <i>once and for all</i>
 
 ---
 
 ## Tone
 
-Dark comedy meets existential dread. JB isn't a victim who cries about his failures — he's a man trapped in a broken system who decides to fight his way out. The humor is dry, the stakes are real, and the bureaucracy is the true antagonist. The game doesn't moralize; it presents choices and lets the math do the talking.
+Dark comedy meets existential dread. JB isn't a victim who cries about his failures — he's a man trapped in a broken system who decides to fight his way out. The humor is dry, the stakes are real, and the bureaucracy is the true antagonist. 
 
 ---
 
@@ -99,11 +95,14 @@ Dark comedy meets existential dread. JB isn't a victim who cries about his failu
 
 - **Engine:** Ren'Py 8 — Python game logic in `init python` blocks
 - **Architecture:** modular `.rpy` codebase — daily loop, stat model, deck/battle engine, and content split across separate files
-- **Content:** 70+ cards across multiple archetypes; a dozen-plus enemy ladder plus the Colonel capstone
+- **Content:** 70+ cards across multiple archetypes; a dozen-plus enemy ladder.
 - **Art:** AI-generated and hand-curated (Nano Banana / Gemini pipeline)
 - **Music:** original AI-generated tracks
 
-Currently runs on one tuned difficulty; difficulty tiers and meta-progression are post-1.0. See `docs/REFACTOR_VISION.md` for the roadmap to Steam 1.0.
+Currently three difficulties are available: Easy, Medium, Insane
+<p align=left>
+<img width="880" src="docs/screenshots/difficulty.png" alt = "Refactor Difficulty">
+</p>
 
 ---
 
@@ -112,12 +111,6 @@ Currently runs on one tuned difficulty; difficulty tiers and meta-progression ar
 1. Download [Ren'Py 8](https://www.renpy.org/latest.html)
 2. Add the `REFACTOR/` folder as a project in the Ren'Py launcher
 3. Launch
-
-### Controls
-
-- **Left click / Space / Enter** — advance
-- **Escape** — game menu
-- **S** — screenshot · **H** — hide dialogue
 
 ---
 
