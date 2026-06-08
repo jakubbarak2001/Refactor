@@ -4010,8 +4010,8 @@ init python:
         "biohacker":   "BPM 58, HRV 84, cortisol low — ready for action.",
     }
     CLASS_IDENTITY = {
-        "bodybuilder": "Words bounce off muscle. The grind pays — in cash and calm. Code comes slower.",
-        "biohacker":   "The body is the lab. Today's protocol decides tomorrow's combat edge. Coding ramps fastest.",
+        "bodybuilder": "Hatred is your fuel. Words bounce off muscle.",
+        "biohacker":   "BPM 58, HRV 84, cortisol low — ready for action.",
     }
     CLASS_COL_W = 640   # 1920 / 3
 
