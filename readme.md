@@ -64,9 +64,9 @@ You can complete this game without defeating a single enemy if that's your style
 
 ## Classes
 
-<img  width="240" src="REFACTOR/game/images/sprites/jb_bodybuilder.jpg" alt="JB, the Bodybuilder">
-<img  width="240" src="REFACTOR/game/images/sprites/jb_dark_empath.jpg" alt="JB, the Dark Empath">
-<img  width="240" src="REFACTOR/game/images/sprites/jb_biohacker.jpg" alt="JB, the Biohacker">
+<img  align="center" width="240" src="REFACTOR/game/images/sprites/jb_bodybuilder.jpg" alt="JB, the Bodybuilder">
+<img  align="center" width="240" src="REFACTOR/game/images/sprites/jb_dark_empath.jpg" alt="JB, the Dark Empath">
+<img  align="center" width="240" src="REFACTOR/game/images/sprites/jb_biohacker.jpg" alt="JB, the Biohacker">
 
 - **Bodybuilder** — FULLY playable: Increased hatred cap (100 -> 125), "Juggernaut/Berserk" class. You are pretty strong, but it comes at the price of slower coding. Your activities are: Gym, Bouncer, Coding and Overtime.
 - **Dark Empath** — IN DEVELOPMENT. 
