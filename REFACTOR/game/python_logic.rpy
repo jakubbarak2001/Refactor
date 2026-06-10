@@ -288,6 +288,37 @@ init python:
                    "opp_rate": 20, "minigame_retries": 0, "colonel_deck_size": 9},
     }
 
+    ## ── Consecutive-day diminishing returns ──────────────────────────────
+    ## Doing the SAME activity on consecutive days bleeds its payout: 100%
+    ## fresh, then -25% per consecutive repeat day, floored at 25%. Any day
+    ## without that activity resets it to fresh. Tracked per activity key in
+    ## store._activity_streaks = {key: {"count": n, "last_day": d}} (reset
+    ## each run by init_game). Currently wired into GYM (regular + heavy
+    ## share the "gym" key) and BOUNCER.
+    def activity_repeat_tick(key):
+        """Advance `key`'s consecutive-day counter for today; returns the
+        effectiveness multiplier for today's payout. Safe against same-day
+        re-entry (no double tick)."""
+        streaks = getattr(store, "_activity_streaks", None) or {}
+        today = day_cycle.current_day if day_cycle is not None else 1
+        s = streaks.get(key)
+        if s and s.get("last_day") == today:
+            pass
+        elif s and s.get("last_day") == today - 1:
+            s = {"count": s.get("count", 1) + 1, "last_day": today}
+        else:
+            s = {"count": 1, "last_day": today}
+        streaks[key] = s
+        store._activity_streaks = streaks
+        return max(0.25, 1.0 - 0.25 * (s["count"] - 1))
+
+    def activity_repeat_tag(mult):
+        """Outcome-panel suffix for a diminished day ('' when fresh). No
+        square brackets — outcome text interpolates them."""
+        if mult >= 1.0:
+            return ""
+        return "   ·   REPEAT -{}%".format(int(round((1.0 - mult) * 100)))
+
     def diff_setting(key, default=None):
         """Read a difficulty rule field. Safe before init_game runs."""
         if stats is None or stats.difficulty is None:
@@ -506,6 +537,8 @@ init python:
         ## new run gets a fresh pool of 10 enemies.
         store.battle_ladder_pool = None
         store._ladder_skip_tomorrow = False
+        ## Consecutive-day activity tracker (diminishing returns) — fresh per run.
+        store._activity_streaks = {}
         ## Overtime "?" pity counter for the enemy roll (resets to the 10%
         ## floor on a fight). See _roll_overtime in events/overtime_events.rpy.
         store.overtime_enemy_chance = 10

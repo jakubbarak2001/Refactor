@@ -429,9 +429,11 @@ label activity_gym:
                 _streak_add = min(store.gym_streak * 3, 15)
                 ## Base relief is 33% of the hatred cap (was a 10/15/25 roll —
                 ## the roll now only picks the narration). BB + streak bonuses
-                ## ride on top.
+                ## ride on top. Consecutive gym days (regular OR heavy — they
+                ## share the key) bleed the whole payout 25% per repeat day.
+                _gym_mult = activity_repeat_tick("gym")
                 _gym_base_red = int(round(hatred_cap() * 0.33))
-                _total_red = _gym_base_red + _bb_bonus + _streak_add
+                _total_red = int(round((_gym_base_red + _bb_bonus + _streak_add) * _gym_mult))
                 if _roll == 1:
                     _gym_text = "Personal record. The bar tells the truth. The Colonel doesn't exist for 90 minutes."
                 elif _roll == 2:
@@ -466,7 +468,7 @@ label activity_gym:
                     store.run_hp_max = class_max_hp()
                     store.run_hp = store.run_hp_max
                 _heal_max_future = store.run_hp_max + _gym_max_bump
-                _gym_heal = int(round(_heal_max_future * 0.33))
+                _gym_heal = int(round(_heal_max_future * 0.33 * _gym_mult))
                 _heal_parts = []
                 if _gym_max_bump > 0:
                     _heal_parts.append("{{color=#00cc88}}+{} MAX HP{{/color}}".format(_gym_max_bump))
@@ -475,6 +477,8 @@ label activity_gym:
                 _heal_parts.append("{{color=#00cc88}}+{} HP{{/color}}".format(_gym_heal))
                 if _streak_add:
                     _heal_parts.append("[STREAK x{}]".format(store.gym_streak))
+                if _gym_mult < 1.0:
+                    _heal_parts.append("REPEAT -{}%".format(int(round((1.0 - _gym_mult) * 100))))
                 _gym_heal_text = ", ".join(_heal_parts)
 
             label .choice_loop:
@@ -558,9 +562,13 @@ label activity_gym_heavy:
                 grant_card("iron_stance", silent=True)
         ## Pre-compute heavy-session HEAL payload (heavier than regular gym:
         ## -30 hatred + +15 HP, but no Max HP bump — that's the regular gym's
-        ## job). Numbers only applied if the player picks HEAL.
-        _heavy_heal = 15
-        _heavy_heal_text = "- {:,} CZK, -30 PCR HATRED, +1 SOMA, +{} HP".format(_heavy_cost, _heavy_heal)
+        ## job). Numbers only applied if the player picks HEAL. Shares the
+        ## "gym" diminishing-returns key with regular gym, so alternating
+        ## the two doesn't dodge the consecutive-day penalty.
+        _heavy_mult = activity_repeat_tick("gym")
+        _heavy_heal = int(round(15 * _heavy_mult))
+        _heavy_relief = int(round(30 * _heavy_mult))
+        _heavy_heal_text = "- {:,} CZK, -{} PCR HATRED, +1 SOMA, +{} HP{}".format(_heavy_cost, _heavy_relief, _heavy_heal, activity_repeat_tag(_heavy_mult))
 
     call soma_ten_reward from _call_soma_ten_reward_heavy
 
@@ -583,7 +591,7 @@ label activity_gym_heavy:
     else:
         python:
             ## HEAL path — apply hatred relief + HP heal.
-            stats.increment_stats_pcr_hatred(-30)
+            stats.increment_stats_pcr_hatred(-_heavy_relief)
             _rh = getattr(store, 'run_hp', None)
             _rhm = getattr(store, 'run_hp_max', None)
             if _rh is not None and _rhm is not None:
@@ -816,24 +824,27 @@ label activity_bouncer:
         _roll = __import__('random').randint(1, 100)
         _bb_cash = 2500 if stats.player_class == "bodybuilder" else 0
         _bb_tag = " [BODYBUILDER BONUS]" if _bb_cash else ""
+        ## Flat 20k base — always, on a fresh night. Consecutive bouncer
+        ## nights bleed it 25% per repeat day (resets after a day off); the
+        ## roll only picks the night's story + hatred swing now.
+        _bnc_mult = activity_repeat_tick("bouncer")
+        _pending_money = int(round(20000 * _bnc_mult)) + _bb_cash
+        _bnc_tag = activity_repeat_tag(_bnc_mult)
         if _roll <= 60:
             ## Common — the everyday grind. Pays, but the night recognises you.
-            _pending_money = 12500 + _bb_cash
             _pending_hatred = 10
             _btext = "Six hours in a doorway, nodding at people happier than you. Two drunks square up over a woman interested in neither; you step in and one of them makes you — 'TO JE PŘECE POLDA!'\nYou take the night's cut and the group chat home in equal measure."
-            _boutcome = "+ {:,} CZK, +10 PCR HATRED{}".format(stats.money_gain_preview(_pending_money), _bb_tag)
+            _boutcome = "+ {:,} CZK, +10 PCR HATRED{}{}".format(stats.money_gain_preview(_pending_money), _bb_tag, _bnc_tag)
         elif _roll <= 90:
             ## Uncommon — a clean, busy night. Tips run heavy.
-            _pending_money = 17500 + _bb_cash
             _pending_hatred = 5
             _btext = "Busy night, clean night. The regulars tip like they're trying to impress someone, and the manager slips you extra for keeping it from going sideways.\nNobody bleeds. Nobody films you. You almost don't mind the work."
-            _boutcome = "+ {:,} CZK, +5 PCR HATRED{}".format(stats.money_gain_preview(_pending_money), _bb_tag)
+            _boutcome = "+ {:,} CZK, +5 PCR HATRED{}{}".format(stats.money_gain_preview(_pending_money), _bb_tag, _bnc_tag)
         else:
             ## Rare — the night everything lines up.
-            _pending_money = 22500 + _bb_cash
             _pending_hatred = -10
             _btext = "Everything lines up — a private party in the back, cash folded into your palm all night, not one incident on the floor.\nDriving home at 4 AM with the windows down, you catch yourself not hating your life. Closest thing to joy you've felt all week."
-            _boutcome = "+ {:,} CZK, -10 PCR HATRED{}".format(stats.money_gain_preview(_pending_money), _bb_tag)
+            _boutcome = "+ {:,} CZK, -10 PCR HATRED{}{}".format(stats.money_gain_preview(_pending_money), _bb_tag, _bnc_tag)
 
     "[_btext]"
 
