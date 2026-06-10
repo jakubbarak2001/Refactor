@@ -3307,6 +3307,10 @@ screen card_upgrade_preview(base_id):
         _cup_plus = CARD_LIBRARY.get(_cup_plus_id, {}) if _cup_plus_id else {}
         _cup_color = card_type_color(_cup_base, "frame")
         _cup_upg_accent = "#ffaa44"
+        ## Plain strings for the headline — dict .get() inside displayed text
+        ## doesn't interpolate (the old `substitute False` band-aid rendered
+        ## the raw expression on screen instead).
+        _cup_headline = "{}   →   {}".format(_cup_base.get("name", base_id), _cup_plus.get("name", "?"))
 
     vbox:
         xalign 0.5
@@ -3320,7 +3324,7 @@ screen card_upgrade_preview(base_id):
             bold True
             font "fonts/RobotoMono-Regular.ttf"
 
-        text "[_cup_base.get('name', base_id)]   →   [_cup_plus.get('name', '?')]" substitute False:
+        text _cup_headline:
             xalign 0.5
             color _cup_upg_accent
             size 16

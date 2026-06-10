@@ -721,13 +721,18 @@ init python:
 
 ## ---------------------------------------------------------------------------
 ## relic_tray — horizontal strip of owned-relic chips. Reused in battle
-## (top-left) and the deck viewer (under the header). Each chip is a
-## tooltip button: name + rarity + mechanic surface on hover via the host
-## screen's GetTooltip() consumer. Glyph-only so it stays compact; safe initial
-## letter instead of emoji (render bug). The chip border reads archetype; a
-## thin top rule reads rarity (gold = rare).
+## (top-left) and the deck viewer (under the header). Two hover surfaces:
+##   inspect_panel=False (default) — classic tooltip; name + rarity + mechanic
+##       surface via the host screen's GetTooltip() consumer (deck viewer).
+##   inspect_panel=True — fixer-shop-style info panel anchored beside the
+##       hovered chip, drawn by this screen itself (battle).
+## Glyph-only so it stays compact; safe initial letter instead of emoji
+## (render bug). The chip border reads archetype; a thin top rule reads
+## rarity (gold = rare).
 ## ---------------------------------------------------------------------------
-screen relic_tray(size=44):
+screen relic_tray(size=44, inspect_panel=False):
+    ## (relic_id, row, col) under the cursor — drives the inspect panel.
+    default _rt_hover = None
     $ _relics = owned_relics()
     if _relics:
         ## Wrap into rows of at most 5 chips so a long collection stacks
@@ -735,10 +740,10 @@ screen relic_tray(size=44):
         $ _relic_rows = [_relics[_i:_i + 5] for _i in range(0, len(_relics), 5)]
         vbox:
             spacing 6
-            for _row in _relic_rows:
+            for _rt_ri, _row in enumerate(_relic_rows):
                 hbox:
                     spacing 6
-                    for _rl in _row:
+                    for _rt_ci, _rl in enumerate(_row):
                         $ _rhex = relic_hex(_rl["id"])
                         $ _rrhex = relic_rarity_hex(_rl["id"])
                         ## No square brackets in tooltip text — Ren'Py's Text engine
@@ -749,7 +754,9 @@ screen relic_tray(size=44):
                             background Frame(Solid(_rhex), 3, 3)
                             padding (3, 3)
                             action NullAction()
-                            tooltip _rtip
+                            tooltip (None if inspect_panel else _rtip)
+                            hovered (SetScreenVariable("_rt_hover", (_rl["id"], _rt_ri, _rt_ci)) if inspect_panel else NullAction())
+                            unhovered (SetScreenVariable("_rt_hover", None) if inspect_panel else NullAction())
                             vbox:
                                 xfill True
                                 yfill True
@@ -775,3 +782,34 @@ screen relic_tray(size=44):
                                             size int(size * 0.5)
                                             bold True
                                             font "fonts/RobotoMono-Regular.ttf"
+
+        ## Hover-inspect panel — anchored beside the hovered chip, same look
+        ## as the fixer shop's gear panel. Drawn after the grid so it layers
+        ## on top; position math mirrors the chip stride (size + 6 spacing).
+        if inspect_panel and _rt_hover is not None:
+            $ _rt_meta = RELIC_LIBRARY.get(_rt_hover[0], {})
+            $ _rt_hex  = relic_hex(_rt_hover[0])
+            frame:
+                xpos ((_rt_hover[2] + 1) * (size + 6) + 10)
+                ypos (_rt_hover[1] * (size + 6))
+                background Frame("#0d0a08f0", 4, 4)
+                padding (18, 14)
+                xmaximum 460
+                at inspect_overlay_in
+                vbox:
+                    spacing 6
+                    text _rt_meta.get("name", _rt_hover[0]):
+                        color _rt_hex
+                        size 22
+                        bold True
+                        font "fonts/RobotoMono-Regular.ttf"
+                    text (_rt_meta.get("rarity", "common").upper()):
+                        color "#8a7a64"
+                        size 13
+                        bold True
+                        font "fonts/RobotoMono-Regular.ttf"
+                    text _rt_meta.get("hook", ""):
+                        color "#e2d8c4"
+                        size 17
+                        xmaximum 420
+                        font "fonts/RobotoMono-Regular.ttf"

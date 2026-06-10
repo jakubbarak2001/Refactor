@@ -1203,7 +1203,7 @@ screen battle_screen():
         xpos 24
         ypos 24
         background None
-        use relic_tray(size=88)
+        use relic_tray(size=88, inspect_panel=True)
 
     if bs is None:
         text "[[BATTLE STATE NULL]" xalign 0.5 yalign 0.5 color "#ff0000" size 32
