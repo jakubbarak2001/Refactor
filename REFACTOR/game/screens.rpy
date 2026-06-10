@@ -3779,199 +3779,211 @@ screen affection_panel(points, max_points=12):
 ## Returns via SetVariable("stats.player_class", "bodybuilder") etc.
 ## ---------------------------------------------------------------------------
 ## ---------------------------------------------------------------------------
-## Difficulty Selection Screen — Wolfenstein-style image cards
+## Difficulty Selection Screen — full-bleed triptych (matches class selection)
 ## ---------------------------------------------------------------------------
-## Difficulty data — drives the selection screen and init_game()
+## Difficulty data — drives the selection screen and init_game(). `crop` is the
+## (x, y, w, h) window cut from the source png before it's scaled to fill a
+## 640x1080 column (sources are ~843x1264; 749px wide matches the column's
+## aspect, x centres the subject).
 ## ---------------------------------------------------------------------------
 
 init python:
     DIFF_DATA = [
         {
             "key":     "easy",
-            "name":    "2022: JUST LEARN TO CODE BRO",
+            "year":    "2022",
+            "title":   "JUST LEARN TO CODE BRO",
             "flavor":  "You googled 'how to become a developer in 30 days' and actually believed it.",
-            "money":   "55,000",
-            "coding":  "10",
-            "hatred":  "15",
-            "portrait": "diff_easy",
+            "money":   "50,000",
+            "coding":  "25",
+            "hatred":  "10",
+            "portrait": "images/pictures/easy_difficulty_pic.png",
+            "crop":    (49, 0, 749, 1264),
             "color":   "#66cc66",
         },
         {
             "key":     "hard",
-            "name":    "2025: AI MASS LAYOFFS",
+            "year":    "2025",
+            "title":   "AI MASS LAYOFFS",
             "flavor":  "Your CV has a gap. Your wallet has a bigger one.",
-            "money":   "35,000",
-            "coding":  "5",
-            "hatred":  "25",
-            "portrait": "diff_hard",
+            "money":   "30,000",
+            "coding":  "10",
+            "hatred":  "20",
+            "portrait": "images/pictures/hard_difficulty_pic.png",
+            "crop":    (49, 0, 749, 1264),
             "color":   "#ffaa33",
         },
         {
             "key":     "insane",
-            "name":    "2026: THANK YOU FOR YOUR APPLICATION",
+            "year":    "2026",
+            "title":   "THANK YOU FOR YOUR APPLICATION",
             "flavor":  "IS ANYBODY OUT THERE???",
             "money":   "20,000",
             "coding":  "0",
-            "hatred":  "35",
-            "portrait": "diff_insane",
+            "hatred":  "30",
+            "portrait": "images/pictures/insane_difficulty_pic.png",
+            "crop":    (49, 0, 749, 1264),
             "color":   "#ff4444",
         },
     ]
-
-## Portrait swap — fades in whenever a new portrait is shown
-transform _diff_portrait_anim:
-    on show:
-        alpha 0.0
-        linear 0.18 alpha 1.0
-    alpha 1.0
+    DIFF_COL_W = 640   # 1920 / 3
+    DIFF_TITLE_H = 64  # full-width question band along the top
 
 ## ---------------------------------------------------------------------------
-## Difficulty Selection Screen — Wolfenstein-style
-## Left: vertical list + stats. Right: large portrait that swaps on hover.
+## Difficulty Selection Screen — triptych. One full-bleed column per
+## difficulty, escalating left→right. Reuses the class-selection transforms
+## (_classcol_enter / _classcol_hero / _select_pulse) so the two screens read
+## as one set.
 ## ---------------------------------------------------------------------------
 
 screen difficulty_selection_screen():
     modal True
     zorder 500
 
-    ## Currently focused difficulty (0=easiest, 2=hardest)
-    default _hov = 0
+    add "#050505"
 
-    ## ── Background ──────────────────────────────────────────────────────────
-    add "#0a0a0a"
+    ## --- The three columns ---
+    for _i, _diff in enumerate(DIFF_DATA):
+        $ _accent = _diff["color"]
+        $ _x      = _i * DIFF_COL_W
+        ## Plain strings for the text widgets — dict lookups inside displayed
+        ## text are a known crash (see memory: dict interpolation).
+        $ _money_line  = "💸 Money   " + _diff["money"] + " CZK"
+        $ _coding_line = "💻 Coding  " + _diff["coding"]
+        $ _hatred_line = "🤬 Hatred  " + _diff["hatred"]
+        $ _flavor_line = "\"" + _diff["flavor"] + "\""
 
-    ## Subtle dark red wash on left panel
+        button:
+            xpos _x
+            ypos 0
+            xsize DIFF_COL_W
+            ysize 1080
+            background "#00000000"
+            ## Kill the default 6px button borders (gui.button_borders) —
+            ## they inset the whole column's content, leaving a dead strip
+            ## of background along the column's left/top edge.
+            padding (0, 0)
+            action [SetField(store, "_chosen_difficulty", _diff["key"]), Return()]
+
+            fixed:
+                ## Outer fixed: whole-column fade-up on entry; overlays stay
+                ## crisp — only the portrait layer gets the hover treatment.
+                at _classcol_enter
+
+                ## --- Portrait layer (zooms + brightens on hover). The
+                ## viewport clips the hover zoom to the column, so it can't
+                ## bleed over the separators into a neighbouring column. ---
+                viewport:
+                    xysize (DIFF_COL_W, 1080)
+                    fixed:
+                        at _classcol_hero
+                        add _diff["portrait"]:
+                            crop _diff["crop"]
+                            xysize (DIFF_COL_W, 1080)
+
+                ## Bottom info. The identity plate lives down here (not over
+                ## the upper portrait like the class screen) because these
+                ## sources have almost no headroom — anything up top covers
+                ## the hair. Identity (year + tagline + flavor) sits left,
+                ## the stats block sits against the right edge, both
+                ## bottom-aligned on the same line above the SELECT pill.
+
+                ## Year + tagline + flavor (bottom-left)
+                frame:
+                    xpos 32
+                    yalign 1.0
+                    yoffset -96
+                    background "#0b0b0bba"
+                    padding (14, 10)
+                    xmaximum 314
+                    vbox:
+                        spacing 4
+                        text _diff["year"]:
+                            color _accent
+                            size 44
+                            bold True
+                            font "fonts/RobotoMono-Regular.ttf"
+                        text _diff["title"]:
+                            color "#ffffff"
+                            size 19
+                            bold True
+                            font "fonts/RobotoMono-Regular.ttf"
+                        text _flavor_line:
+                            color "#e2e2e2"
+                            size 16
+                            italic True
+                            xmaximum 286
+                            font "fonts/RobotoMono-Regular.ttf"
+
+                ## Stats block (bottom-right)
+                frame:
+                    xanchor 1.0
+                    xpos (DIFF_COL_W - 32)
+                    yalign 1.0
+                    yoffset -96
+                    background "#0b0b0bba"
+                    padding (14, 10)
+                    vbox:
+                        spacing 6
+                        text _money_line:
+                            color "#C8A44E"
+                            size 19
+                            font "fonts/RobotoMono-Regular.ttf"
+                        text _coding_line:
+                            color "#4EC8C6"
+                            size 19
+                            font "fonts/RobotoMono-Regular.ttf"
+                        text _hatred_line:
+                            color "#DA4621"
+                            size 19
+                            font "fonts/RobotoMono-Regular.ttf"
+
+                ## SELECT pill — accent-bordered, breathing, same as the
+                ## class screen's affordance.
+                frame:
+                    xpos 32
+                    yalign 1.0
+                    yoffset -32
+                    background (_accent + "cc")
+                    padding (2, 2)
+                    at _select_pulse
+                    frame:
+                        background "#0c0c0cdd"
+                        padding (22, 11)
+                        text ">  SELECT":
+                            color _accent
+                            size 24
+                            bold True
+                            outlines [(1, "#000000", 0, 0)]
+                            font "fonts/RobotoMono-Regular.ttf"
+
+    ## --- Full-width question band along the top (over all columns) ---
     frame:
         xpos 0
         ypos 0
-        xsize 720
-        ysize 1080
-        background "#1b030333"
-
-    ## Vertical red separator line
-    frame:
-        xpos 718
-        ypos 0
-        xsize 3
-        ysize 1080
-        background "#cc2200"
-
-    ## ── Title (top-left) ────────────────────────────────────────────────────
-    vbox:
-        xpos 70
-        ypos 72
-        spacing 6
-
-        text "WHAT IS THE JOB MARKET STATUS?":
+        xsize 1920
+        ysize DIFF_TITLE_H
+        background "#0a0a0aee"
+        text "WHAT IS THE JOB MARKET SITUATION?":
+            align (0.5, 0.5)
             color "#cc2200"
-            size 34
+            size 28
             bold True
             font "fonts/RobotoMono-Regular.ttf"
-
-    ## ── Difficulty list (left) ──────────────────────────────────────────────
+    ## Per-difficulty accent bars — drawn after the band so they can sit on
+    ## top of it (4px above the band's bottom edge); anything drawn inside
+    ## the columns would be hidden behind the band's near-opaque background.
     for _i, _diff in enumerate(DIFF_DATA):
-        button:
-            xpos 0
-            ypos (220 + _i * 76)
-            xsize 718
-            ysize 76
-            background ("#e4290333" if _hov == _i else "#00000000")
-            hover_background "#ff2a0033"
-            action [SetField(store, "_chosen_difficulty", _diff["key"]), Return()]
-            hovered SetScreenVariable("_hov", _i)
+        add Solid(_diff["color"]):
+            at _classcol_enter
+            xpos (_i * DIFF_COL_W)
+            ypos (DIFF_TITLE_H - 4)
+            xysize (DIFF_COL_W, 6)
 
-            hbox:
-                yalign 0.5
-                frame:
-                    xsize 5
-                    ysize 76
-                    background ("#cc2200" if _hov == _i else "#1a0000")
-                frame:
-                    xsize 22
-                    ysize 76
-                    background "#00000000"
-                text ("> " if _hov == _i else "   "):
-                    color "#cc2200"
-                    size 30
-                    yalign 0.5
-                    font "fonts/RobotoMono-Regular.ttf"
-                text _diff["name"]:
-                    color ("#ffffff" if _hov == _i else "#555555")
-                    size  (26 if _hov == _i else 26)
-                    bold  (_hov == _i)
-                    font  "fonts/RobotoMono-Regular.ttf"
-                    yalign 0.5
-
-    ## ── Stats block (bottom-left) ───────────────────────────────────────────
-
-    ## Separator
-    frame:
-        xpos 70
-        ypos 480
-        xsize 580
-        ysize 2
-        background "#2a0000"
-
-    vbox:
-        xpos 70
-        ypos 496
-        spacing 8
-
-        ## Stats
-        text "💸 Money   [DIFF_DATA[_hov]['money']] CZK":
-            color "#C8A44E"
-            size 23
-            font "fonts/RobotoMono-Regular.ttf"
-
-        text "💻 Coding  [DIFF_DATA[_hov]['coding']]":
-            color "#4EC8C6"
-            size 23
-            font "fonts/RobotoMono-Regular.ttf"
-
-        text "🤬 Hatred  [DIFF_DATA[_hov]['hatred']]":
-            color "#DA4621"
-            size 23
-            font "fonts/RobotoMono-Regular.ttf"
-
-        ## Flavor text
-        text "\"[DIFF_DATA[_hov]['flavor']]\"":
-            color "#FFFFFF"
-            size 18
-            italic True
-            font "fonts/RobotoMono-Regular.ttf"
-            xmaximum 620
-
-    ## ── Portrait (right side, centered in right half) ───────────────────────
-    ## Swaps with fade on hover. Images are ~420x630.
-
-    ## Red border: outer red frame (2px larger each side) + black mask center
-    frame:
-        xpos 1048
-        ypos 218
-        xsize 424
-        ysize 634
-        background "#cc2200"
-    frame:
-        xpos 1050
-        ypos 220
-        xsize 420
-        ysize 630
-        background "#0a0a0a"
-
-    if _hov == 0:
-        add "diff_easy"   at _diff_portrait_anim xpos 1050 ypos 220
-    elif _hov == 1:
-        add "diff_hard"   at _diff_portrait_anim xpos 1050 ypos 220
-    elif _hov == 2:
-        add "diff_insane" at _diff_portrait_anim xpos 1050 ypos 220
-    elif _hov == 3:
-        add "diff_ultra"  at _diff_portrait_anim xpos 1050 ypos 220
-
-    ## ── Keyboard navigation ─────────────────────────────────────────────────
-    key "K_UP"       action SetScreenVariable("_hov", max(0, _hov - 1))
-    key "K_DOWN"     action SetScreenVariable("_hov", min(len(DIFF_DATA) - 1, _hov + 1))
-    key "K_RETURN"   action [SetField(store, "_chosen_difficulty", DIFF_DATA[_hov]["key"]), Return()]
-    key "K_KP_ENTER" action [SetField(store, "_chosen_difficulty", DIFF_DATA[_hov]["key"]), Return()]
+    ## Keyboard nav is Ren'Py's built-in button focus: Left/Right move focus
+    ## between the columns, Enter activates the focused one — same path as a
+    ## click. (Matches the class screen; no explicit `key` handlers, which
+    ## would double-dispatch against the focused button's own activation.)
 
 
 ## Class display data — order + portrait + flavor. Triptych layout: one
