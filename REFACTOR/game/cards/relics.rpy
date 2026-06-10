@@ -755,8 +755,12 @@ screen relic_tray(size=44, inspect_panel=False):
                             padding (3, 3)
                             action NullAction()
                             tooltip (None if inspect_panel else _rtip)
-                            hovered (SetScreenVariable("_rt_hover", (_rl["id"], _rt_ri, _rt_ci)) if inspect_panel else NullAction())
-                            unhovered (SetScreenVariable("_rt_hover", None) if inspect_panel else NullAction())
+                            ## SetLocalVariable, NOT SetScreenVariable: this
+                            ## screen is `use`d with parameters, so it has its
+                            ## own scope — SetScreenVariable would write to
+                            ## the top-level screen and never reach _rt_hover.
+                            hovered (SetLocalVariable("_rt_hover", (_rl["id"], _rt_ri, _rt_ci)) if inspect_panel else NullAction())
+                            unhovered (SetLocalVariable("_rt_hover", None) if inspect_panel else NullAction())
                             vbox:
                                 xfill True
                                 yfill True
