@@ -471,10 +471,14 @@ screen damage_popup_player_inner(damage, delay=0.0, xoff=0):
 ## 220×316 slot footprint so neighbours don't get shoved around; the
 ## scaled content bleeds outside the slot (intentional — neighbours may
 ## be partially occluded, exactly like StS).
+## `insensitive` must drop the lift too: when the last energy is spent while
+## a card is hovered, the button under the cursor flips straight from hover
+## to insensitive (never idle) — without that handler the card froze in its
+## lifted/zoomed pose until something re-sensitized it.
 transform card_hover_lift:
     on hover:
         ease 0.14 zoom 1.55 yoffset -140
-    on idle:
+    on idle, insensitive:
         ease 0.14 zoom 1.0 yoffset 0
 
 ## Slow alpha breath on the playable-card halo. Signals castability across
