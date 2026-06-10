@@ -3893,7 +3893,7 @@ screen difficulty_selection_screen():
                     xpos 32
                     yalign 1.0
                     yoffset -96
-                    background "#0b0b0bba"
+                    background "#0b0b0bf0"
                     padding (14, 10)
                     xmaximum 314
                     vbox:
@@ -3921,7 +3921,7 @@ screen difficulty_selection_screen():
                     xpos (DIFF_COL_W - 32)
                     yalign 1.0
                     yoffset -96
-                    background "#0b0b0bba"
+                    background "#0b0b0bf0"
                     padding (14, 10)
                     vbox:
                         spacing 6
