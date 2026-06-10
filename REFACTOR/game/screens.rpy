@@ -151,13 +151,17 @@ screen stats_bar():
             ysize 2
             background Frame(_class_color, 0, 0)
 
-        ## ═══ Main strip — content-sized, no longer full-bleed ═══
+        ## ═══ Main strip — full-bleed band, content centered. A floating
+        ## content-sized box read as a widget; a full-width band reads as
+        ## the game's chrome. ═══
         frame:
-            padding (16, 6)
+            xfill True
+            padding (24, 8)
             background Frame(DOSSIER_BG_BAR, 0, 0)
 
             hbox:
-                spacing 14
+                xalign 0.5
+                spacing 18
                 yalign 0.5
 
                 ## ── LEFT ZONE — class identity ────────────────────────────
@@ -672,13 +676,27 @@ screen _activity_chip_row(chips):
 ## ---------------------------------------------------------------------------
 
 ## Activity-tile hover lift — gentle pop when the cursor lands on a tile.
-## Smaller scale than reward cards because tiles are bigger and the row
-## of four shouldn't shove around dramatically.
+## yoffset ONLY, deliberately no zoom: a zoomed child reports its scaled
+## size back to the parent hbox, which re-flows the whole row — the old
+## 1.04 zoom made every neighbouring tile shift and bounce on hover.
 transform activity_hover_lift:
     on hover:
-        ease 0.15 zoom 1.04 yoffset -12
-    on idle:
-        ease 0.15 zoom 1.0 yoffset 0
+        ease 0.15 yoffset -10
+    on idle, insensitive:
+        ease 0.15 yoffset 0
+
+## Hero-tile art hover — zoom + brighten INSIDE the tile's clipping viewport
+## (same pattern as the class/difficulty columns), so the motion never
+## leaks into layout or neighbouring tiles.
+transform _acttile_art_hover:
+    anchor (0.5, 0.5)
+    pos (0.5, 0.5)
+    zoom 1.0
+    matrixcolor BrightnessMatrix(0.0)
+    on hover:
+        ease 0.20 zoom 1.07 matrixcolor BrightnessMatrix(0.07)
+    on idle, insensitive:
+        ease 0.20 zoom 1.0 matrixcolor BrightnessMatrix(0.0)
 
 ## Default glyph per activity title — keeps the icon zone meaningful without
 ## requiring every call site to pass an art_glyph. Falls through to ★.
@@ -697,12 +715,15 @@ default _ACT_DEFAULT_GLYPHS = {
     "VISIT FIXER": "×",
 }
 
-screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effect_chips=None, locked=False, lock_text="", class_relevant=False, flavor_text="", art_glyph="", cost_unaffordable=False, stat_lines=None):
-    ## Layered construction mirrors the StS card render:
-    ##   L2: drop shadow
-    ##   L3: accent-colored border
-    ##   L4: warm-dark inner panel (#1a1410)
-    ##   L5: zoned content (title banner → underline → glyph zone → cost → chips → flavor)
+screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effect_chips=None, locked=False, lock_text="", class_relevant=False, flavor_text="", art_glyph="", cost_unaffordable=False, stat_lines=None, art=None, art_xoff=0, tile_w=340, tile_h=320):
+    ## Two render modes off one screen:
+    ##   art != None  → HERO tile: full-bleed illustration on top (clipped
+    ##                  hover-zoom), title plate + text zone under it. Used by
+    ##                  the top-level PICK TODAY'S MOVE row.
+    ##   art == None  → classic glyph tile (submenus). Same frame language.
+    ## The OUTER fixed pins the layout footprint — hover motion (yoffset on
+    ## the button, zoom inside the art viewport) can never re-flow the row.
+    ## Hover feedback: border brightens (hover_background) + art zooms.
     python:
         if locked:
             _at_title_color   = "#554434"
@@ -724,152 +745,149 @@ screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effe
             _at_cost_color = "#ff4444"
         else:
             _at_cost_color = "#ffd700"
+        _at_inner_w = tile_w - 6
+        ## Art zone: everything above the title plate (44) + text zone (130).
+        _at_art_h   = max(0, tile_h - 6 - 44 - 130)
 
-    button:
-        xsize 340
-        ysize 320
-        background None
-        hover_background None
-        sensitive (not locked)
-        action Jump(label_name)
-        at activity_hover_lift
+    fixed:
+        xysize (tile_w, tile_h)
 
-        ## L2: drop shadow
-        add Solid("#00000099") xpos 22 ypos 22 xysize (320, 280)
+        button:
+            xysize (tile_w, tile_h)
+            ## The 3px periphery around the inner panel IS the border — the
+            ## hover swap lights it up in the accent without moving a pixel.
+            background Frame(Solid(_at_border_color + ("44" if locked else "77")), 0, 0)
+            hover_background Frame(Solid(accent), 0, 0)
+            padding (3, 3)
+            sensitive (not locked)
+            action Jump(label_name)
+            at activity_hover_lift
 
-        ## L3 + L4: accent border wrapping warm-dark inner panel.
-        frame:
-            xpos 10
-            ypos 10
-            xsize 320
-            ysize 280
-            background Frame(_at_border_color, 6, 6)
-            padding (6, 6)
-
-            frame:
-                xfill True
-                yfill True
-                background Frame("#1a1410", 4, 4)
-                padding (10, 8)
+            fixed:
+                add Solid("#14100c")
 
                 vbox:
-                    xfill True
-                    spacing 5
+                    xsize _at_inner_w
 
-                    ## TITLE BANNER — gold on dark ribbon
+                    if art:
+                        ## ART — full-bleed, clipped; zooms + brightens on
+                        ## hover via _acttile_art_hover. Locked art reads as
+                        ## a grey ghost.
+                        viewport:
+                            xysize (_at_inner_w, _at_art_h)
+                            fixed:
+                                at _acttile_art_hover
+                                ## art_xoff pans the cover-cropped image inside
+                                ## the clipping viewport (negative = slide the
+                                ## picture left) so the subject can be framed
+                                ## per-tile without touching the source file.
+                                add art:
+                                    xoffset art_xoff
+                                    xysize (_at_inner_w, _at_art_h)
+                                    fit "cover"
+                                    matrixcolor (SaturationMatrix(0.15) * BrightnessMatrix(-0.25) if locked else IdentityMatrix())
+                    else:
+                        ## GLYPH ZONE — accent-tinted backdrop, large symbol.
+                        frame:
+                            xfill True
+                            ysize max(64, _at_art_h)
+                            background Frame(accent + "22", 4, 4)
+                            text _at_glyph:
+                                xalign 0.5
+                                yalign 0.5
+                                size 38
+                                color _at_glyph_color
+                                bold True
+                                outlines [(2, "#000000", 0, 0)]
+
+                    ## TITLE PLATE — sits between art and text zone.
                     frame:
                         xfill True
-                        ysize 38
-                        background Frame("#0a0806", 4, 4)
+                        ysize 44
+                        background Frame("#0a0806", 0, 0)
                         text title:
                             color _at_title_color
                             size 22
                             bold True
                             xalign 0.5
                             yalign 0.5
-                            xmaximum 280
+                            xmaximum (_at_inner_w - 20)
                             text_align 0.5
                             font "fonts/RobotoMono-Regular.ttf"
 
-                    ## CLASS-RELEVANT UNDERLINE — 2px gold hairline. Visual
-                    ## cue beyond the title color that this tile is the one
-                    ## the current class is built around.
-                    if class_relevant and not locked:
+                    ## TITLE UNDERLINE — 2px hairline on every tile: gold for
+                    ## the class-relevant one, the tile's own accent otherwise.
+                    if not locked:
                         frame:
                             xfill True
                             ysize 2
-                            background Frame("#e8c878", 0, 0)
+                            background Frame(("#e8c878" if class_relevant else accent), 0, 0)
 
-                    ## GLYPH ZONE — accent-tinted backdrop with a large symbol.
+                    ## TEXT ZONE — cost (only when it costs something; FREE
+                    ## carries no info), then lock note / stat lines / flavor.
                     frame:
                         xfill True
-                        ysize 64
-                        background Frame(accent + "22", 4, 4)
-                        text _at_glyph:
-                            xalign 0.5
-                            yalign 0.5
-                            size 38
-                            color _at_glyph_color
-                            bold True
-                            outlines [(2, "#000000", 0, 0)]
+                        yfill True
+                        background None
+                        padding (14, 10)
+                        vbox:
+                            xfill True
+                            spacing 5
 
-                    ## COST — only render when the activity actually costs
-                    ## something. FREE is the default and carries no info, so
-                    ## suppressing it lets the outcome chips below be the
-                    ## visual headline (was the #1 playtest complaint: the
-                    ## big bold FREE made players miss the real outcomes).
-                    if cost_text and cost_text != "FREE":
-                        text cost_text:
-                            color _at_cost_color
-                            size 16
-                            bold True
-                            xalign 0.5
-                            font "fonts/RobotoMono-Regular.ttf"
+                            if cost_text and cost_text != "FREE":
+                                text cost_text:
+                                    color _at_cost_color
+                                    size 16
+                                    bold True
+                                    xalign 0.5
+                                    font "fonts/RobotoMono-Regular.ttf"
 
-                    ## EFFECT chips DELIBERATELY NOT RENDERED. The previous
-                    ## XCOM-style "+ HP", "+/-", "?", "+ Card", "+5,000 CZK"
-                    ## pill row felt clinical and dated. Modern hybrids
-                    ## (StS, Hades) lean on prose + icons. Outcome is
-                    ## carried by `flavor_text` below; cost is carried by
-                    ## `cost_text` above. `effect_chips` / `effect_text`
-                    ## parameters are kept on the signature so existing
-                    ## call sites don't break, but they no longer render.
-
-                    ## STAT LINES — structured per-stat readout. Pass
-                    ## stat_lines=[(label, value), ...] in the option dict
-                    ## when the tile should show explicit stat deltas
-                    ## instead of prose flavor. Used by Recovery so each
-                    ## modality shows BATTLE BONUS / HP / HATRED on its
-                    ## own line. Value polarity drives color: HP+ green,
-                    ## HP- red, HATRED- green (relief), HATRED+ red.
-                    null height 4
-                    if locked and lock_text:
-                        text lock_text:
-                            color "#554434"
-                            size 11
-                            italic True
-                            xalign 0.5
-                            text_align 0.5
-                            xmaximum 280
-                    elif stat_lines:
-                        for _sl_label, _sl_value in stat_lines:
-                            python:
-                                _sl_sign = _sl_value[0] if _sl_value else ""
-                                if _sl_label == "BATTLE BONUS":
-                                    _sl_color = "#ffd700"
-                                elif _sl_value in ("", "—"):
-                                    _sl_color = "#777777"
-                                elif _sl_label == "HP":
-                                    _sl_color = "#55dd66" if _sl_sign == "+" else ("#dd5544" if _sl_sign == "-" else "#cccccc")
-                                elif _sl_label == "HATRED":
-                                    _sl_color = "#55dd66" if _sl_sign == "-" else ("#dd5544" if _sl_sign == "+" else "#cccccc")
-                                else:
-                                    _sl_color = "#cccccc"
-                            hbox:
-                                xfill True
-                                spacing 6
-                                text _sl_label:
-                                    color "#888070"
+                            if locked and lock_text:
+                                text lock_text:
+                                    color "#554434"
                                     size 12
-                                    bold True
-                                    font "fonts/RobotoMono-Regular.ttf"
-                                    xsize 110
-                                text _sl_value:
-                                    color _sl_color
-                                    size 13
-                                    bold True
-                                    font "fonts/RobotoMono-Regular.ttf"
-                                    xalign 1.0
-                    elif flavor_text:
-                        text flavor_text:
-                            color "#aaa090"
-                            size 13
-                            italic True
-                            xalign 0.5
-                            yalign 0.5
-                            text_align 0.5
-                            xmaximum 280
-                            line_spacing 2
+                                    italic True
+                                    xalign 0.5
+                                    text_align 0.5
+                                    xmaximum (_at_inner_w - 28)
+                            elif stat_lines:
+                                for _sl_label, _sl_value in stat_lines:
+                                    python:
+                                        _sl_sign = _sl_value[0] if _sl_value else ""
+                                        if _sl_label == "BATTLE BONUS":
+                                            _sl_color = "#ffd700"
+                                        elif _sl_value in ("", "—"):
+                                            _sl_color = "#777777"
+                                        elif _sl_label == "HP":
+                                            _sl_color = "#55dd66" if _sl_sign == "+" else ("#dd5544" if _sl_sign == "-" else "#cccccc")
+                                        elif _sl_label == "HATRED":
+                                            _sl_color = "#55dd66" if _sl_sign == "-" else ("#dd5544" if _sl_sign == "+" else "#cccccc")
+                                        else:
+                                            _sl_color = "#cccccc"
+                                    hbox:
+                                        xfill True
+                                        spacing 6
+                                        text _sl_label:
+                                            color "#888070"
+                                            size 12
+                                            bold True
+                                            font "fonts/RobotoMono-Regular.ttf"
+                                            xsize 110
+                                        text _sl_value:
+                                            color _sl_color
+                                            size 13
+                                            bold True
+                                            font "fonts/RobotoMono-Regular.ttf"
+                                            xalign 1.0
+                            elif flavor_text:
+                                text flavor_text:
+                                    color "#aaa090"
+                                    size 14
+                                    italic True
+                                    xalign 0.5
+                                    text_align 0.5
+                                    xmaximum (_at_inner_w - 28)
+                                    line_spacing 2
 
 
 ## ---------------------------------------------------------------------------
@@ -898,13 +916,17 @@ screen activity_submenu(title, options, subtitle="", back_label="daily_menu"):
     add "#0a0a0acc"
 
     ## Title, subtitle, and tile grid live in a single vbox so the subtitle
-    ## can't overlap the cards (it used to: title was top-pinned, grid was
-    ## yalign 0.5 → on a 4-tile 2x2 the grid climbed into the subtitle).
+    ## can't overlap the cards. Up to 5 visible options lay out as ONE row of
+    ## hero tiles (same visual language as PICK TODAY'S MOVE — art on top via
+    ## the option's "art" key, glyph fallback otherwise); 6+ falls back to a
+    ## compact 3-wide grid of the classic glyph tiles.
     python:
         _opts_visible = [o for o in options if o.get("visible", True)]
-        ## 4 options → 2x2 (symmetric). Anything else → 3-wide.
-        _per_row = 2 if len(_opts_visible) == 4 else 3
-        _rows = [_opts_visible[i:i + _per_row] for i in range(0, len(_opts_visible), _per_row)]
+        _sub_hero  = (len(_opts_visible) <= 5)
+        _per_row   = len(_opts_visible) if _sub_hero else 3
+        _rows      = [_opts_visible[i:i + _per_row] for i in range(0, len(_opts_visible), _per_row)]
+        _sub_tw    = 340
+        _sub_th    = 560 if _sub_hero else 320
 
     vbox:
         xalign 0.5
@@ -937,7 +959,7 @@ screen activity_submenu(title, options, subtitle="", back_label="daily_menu"):
 
             for _row in _rows:
                 hbox:
-                    spacing 28
+                    spacing 22
                     xalign 0.5
 
                     for _opt in _row:
@@ -954,6 +976,10 @@ screen activity_submenu(title, options, subtitle="", back_label="daily_menu"):
                             flavor_text       = _opt.get("flavor_text", ""),
                             art_glyph         = _opt.get("art_glyph", ""),
                             stat_lines        = _opt.get("stat_lines", None),
+                            art               = (_opt.get("art") if _sub_hero else None),
+                            art_xoff          = _opt.get("art_xoff", 0),
+                            tile_w            = _sub_tw,
+                            tile_h            = _sub_th,
                         )
 
     ## Floating BACK button - same spot as the parent screen for muscle memory.
@@ -1071,7 +1097,7 @@ screen activity_select_screen():
 
     vbox:
         xalign 0.5
-        ypos 270
+        ypos 130
         spacing 6
 
         text "PICK TODAY'S MOVE":
@@ -1089,12 +1115,19 @@ screen activity_select_screen():
             italic True
             font "fonts/RobotoMono-Regular.ttf"
 
-    ## Tile row — 4 tiles in a single row. Slot 1 is the class-locked relief
-    ## activity (only that class sees that tile). Slots 2-4 are universal.
+    ## Tile row — hero art tiles. Slot 1 is the class-locked relief activity
+    ## (only that class sees that tile). Slots 2-4 are universal. When the
+    ## Fixer is in town a fifth tile joins on the right — free time, so it
+    ## belongs on the board but reads as a side door, not a daily move.
+    python:
+        _act_today      = day_cycle.current_day if day_cycle is not None else 1
+        _act_fixer_here = fixer_visits_today(_act_today)
+        _act_fixer_done = bool(getattr(store, '_fixer_shredded_today', False))
+
     hbox:
         xalign 0.5
-        yalign 0.5
-        spacing 28
+        ypos 248
+        spacing 22
 
         ## Slot 1 - CLASS-LOCKED relief activity. Each class sees only their own.
         if _is_bb:
@@ -1103,9 +1136,12 @@ screen activity_select_screen():
                 title             = "GYM",
                 accent            = class_accent_color("bodybuilder"),
                 cost_text         = "FREE",
-                effect_chips      = [("Upgrade", "Upgrade a card"), ("Card", "or Heal + Max HP")],
                 flavor_text       = "An hour where the bar tells the truth.",
                 class_relevant    = True,
+                art               = "images/pictures/act_gym.png",
+                art_xoff          = -140,
+                tile_w            = 340,
+                tile_h            = 560,
             )
         elif _is_de:
             use _activity_tile(
@@ -1113,9 +1149,10 @@ screen activity_select_screen():
                 title          = "COLD READ",
                 accent         = class_accent_color("dark_empath"),
                 cost_text      = "FREE",
-                effect_chips   = [("Hatred", -20)],
                 flavor_text    = "Regular for the card. Deep for the profile.",
                 class_relevant = True,
+                tile_w         = 340,
+                tile_h         = 560,
             )
         elif _is_bh:
             use _activity_tile(
@@ -1123,9 +1160,11 @@ screen activity_select_screen():
                 title          = "RECOVERY",
                 accent         = class_accent_color("biohacker"),
                 cost_text      = "FREE",
-                effect_chips   = [("HP", "+ HP"), ("?", "+/- ?")],
                 flavor_text    = "Sauna, meditation, cold plunge, red light — today the body picks.",
                 class_relevant = True,
+                art            = "images/pictures/act_recovery.png",
+                tile_w         = 340,
+                tile_h         = 560,
             )
 
         ## Slot 2 - money/stack lane. BH gets the NOOTROPICS LAB tile (was a
@@ -1137,9 +1176,11 @@ screen activity_select_screen():
                 title          = "NOOTROPICS LAB",
                 accent         = class_accent_color("biohacker"),
                 cost_text      = "VARIES",
-                effect_chips   = [("Coding", "+ Coding"), ("Card", "+ Card")],
                 flavor_text    = "Three tiers + Research PubMed. Build the stack, build the deck.",
                 class_relevant = True,
+                art            = "images/pictures/act_nootropics.png",
+                tile_w         = 340,
+                tile_h         = 560,
             )
         else:
             use _activity_tile(
@@ -1147,9 +1188,11 @@ screen activity_select_screen():
                 title          = "BOUNCER",
                 accent         = "#ffd700",
                 cost_text      = "FREE",
-                effect_chips   = [("CZK", "+ CZK"), ("Hatred", "+ Hatred")],
                 flavor_text    = "Moonlighting pays well, but it's dangerous for cops.",
-                class_relevant = False,
+                art            = "images/pictures/act_bouncer.png",
+                art_xoff       = -80,
+                tile_w         = 340,
+                tile_h         = 560,
             )
 
         ## CODING - everyone needs to learn the trade.
@@ -1158,9 +1201,11 @@ screen activity_select_screen():
             title          = "CODING",
             accent         = "#00ccff",
             cost_text      = "FREE",
-            effect_chips   = [("Card", "+ Card")],
             flavor_text    = "Study sessions. The keyboard pays in cards.",
-            class_relevant = False,
+            art            = "images/pictures/act_coding.png",
+            art_xoff       = -60,
+            tile_w         = 340,
+            tile_h         = 560,
         )
 
         ## OVERTIME - shared money + hatred trade.
@@ -1169,10 +1214,27 @@ screen activity_select_screen():
             title          = "OVERTIME",
             accent         = "#3388cc",
             cost_text      = "FREE",
-            effect_chips   = [("CZK", +5000), ("Hatred", +15)],
             flavor_text    = "Trade time for money.",
-            class_relevant = False,
+            art            = "images/pictures/act_overtime.png",
+            tile_w         = 340,
+            tile_h         = 560,
         )
+
+        ## THE FIXER — free time, no daily slot. Only when he's in town.
+        if _act_fixer_here:
+            use _activity_tile(
+                label_name = "activity_fixer",
+                title      = "THE FIXER",
+                accent     = "#c08050",
+                cost_text  = "FREE",
+                flavor_text = ("He's done for the day." if _act_fixer_done else "Cards, gear, the shredder. Cash only."),
+                locked     = _act_fixer_done,
+                lock_text  = "He's done for the day.",
+                art        = "images/backgrounds/bg_fixer_shop.jpg",
+                art_xoff   = -150,
+                tile_w     = 340,
+                tile_h     = 560,
+            )
 
     ## Floating BACK button - bottom-left, deliberately separate from the
     ## activity grid so it reads as navigation, not a tile.
@@ -1252,43 +1314,8 @@ screen daily_hub_screen():
             _hub_cta_color = "#cc2200"
             _hub_cta_hover = "#ff4422"
 
-    ## ── Sidebar — FIXER (every 5th day; one shred per day; free time, doesn't
-    ## burn your daily activity). fixer_visits_today rolls a visit off any day
-    ## whose hub is skipped by a forced fight (15 -> 16). Dimmed and disabled
-    ## after today's shred. Arrival is announced in daily_menu.
-    if fixer_visits_today(_today):
-        $ _fixer_done = bool(getattr(store, '_fixer_shredded_today', False))
-        frame:
-            xpos 1700
-            ypos 240
-            xsize 200
-            padding (14, 14)
-            background Frame("#0a0a0aee", 4, 4)
-
-            vbox:
-                spacing 8
-                xfill True
-
-                textbutton ("FIXER · DONE" if _fixer_done else "× FIXER"):
-                    xalign 0.5
-                    action Jump("activity_fixer")
-                    sensitive (not _fixer_done)
-                    text_color ("#5a5550" if _fixer_done else "#9a8060")
-                    text_hover_color "#ffffff"
-                    text_size 18
-                    text_bold True
-                    text_font "fonts/RobotoMono-Regular.ttf"
-                    background "#00000000"
-                    hover_background Frame("#1a1410dd", 3, 3)
-                    padding (10, 8)
-                    xfill True
-
-                text ("He's done for the day." if _fixer_done else "Shred a card. Free time."):
-                    xalign 0.5
-                    color "#888888"
-                    size 12
-                    italic True
-                    font "fonts/RobotoMono-Regular.ttf"
+    ## (No hub-level FIXER widget — when the Fixer is in town his tile joins
+    ## the PICK TODAY'S MOVE board instead; the hub stays clean.)
 
     ## ── BB only: the WHEY tub on the counter is a clickable shortcut to the gym ──
     default whey_hover = False
@@ -2348,15 +2375,20 @@ screen card_reward_trio_screen(cards):
             ## Indexed by position in the trio; 4th+ slot defaults to no shift.
             $ _hover_xoff = (-36, 0, 36)[_ctp_i] if _ctp_i < 3 else 0
 
-            button:
-                xsize 420
-                ysize 580
-                background None
-                hover_background None
-                action Return(_cid)
-                at reward_card_hover(_hover_xoff)
+            ## The fixed pins this slot's layout footprint — the hover zoom
+            ## happens inside it, so the hbox never re-flows and the other
+            ## two cards stay planted (same fix as the activity tiles).
+            fixed:
+                xysize (420, 580)
+                button:
+                    xsize 420
+                    ysize 580
+                    background None
+                    hover_background None
+                    action Return(_cid)
+                    at reward_card_hover(_hover_xoff)
 
-                use battle_card_view(cid=_cid, mode="inspect", playable=True)
+                    use battle_card_view(cid=_cid, mode="inspect", playable=True)
 
     textbutton "SKIP":
         xalign 0.5
@@ -2519,13 +2551,15 @@ screen fixer_removal_screen(entries, price, next_price):
                         for _ci, _fcid in enumerate(_shred_row):
                             fixed:
                                 xysize (220, 320)
+                                ## Sensitive even when the price is out of
+                                ## reach — inspecting your own deck must keep
+                                ## working broke; only the SHRED action gates.
                                 button:
                                     xsize 220
                                     ysize 316
                                     background None
                                     hover_background None
-                                    sensitive _f_affordable
-                                    action Return(("remove", _fcid))
+                                    action (Return(("remove", _fcid)) if _f_affordable else NullAction())
                                     hovered [SetScreenVariable("_fx_hover_cid", _fcid), SetScreenVariable("_fx_hover_rc", (_ri, _ci))]
                                     unhovered SetScreenVariable("_fx_hover_cid", None)
                                     at fixer_card_nudge
@@ -2636,6 +2670,9 @@ screen fixer_shop(card_offers, relic_offers, cash, shred_price, can_shred, shred
                     bold True
                     font "fonts/RobotoMono-Regular.ttf"
         else:
+            ## Stays sensitive even when unaffordable — hover-inspect must
+            ## keep working with an empty wallet (insensitive buttons emit
+            ## no hover events); only the BUY action is gated.
             button:
                 xpos _ox
                 ypos _SH_CARD_Y
@@ -2644,8 +2681,7 @@ screen fixer_shop(card_offers, relic_offers, cash, shred_price, can_shred, shred
                 background None
                 hover_background None
                 padding (0, 0)
-                sensitive _oafford
-                action Return(("buy_card", _ocid))
+                action (Return(("buy_card", _ocid)) if _oafford else NullAction())
                 hovered SetScreenVariable("_sh_hover", ("card", _ocid, _ci))
                 unhovered SetScreenVariable("_sh_hover", None)
                 at fixer_card_nudge
@@ -2691,8 +2727,7 @@ screen fixer_shop(card_offers, relic_offers, cash, shred_price, can_shred, shred
                 background Frame(Solid(_rhex + "55"), 3, 3)
                 hover_background Frame(Solid(_rhex + "99"), 3, 3)
                 padding (4, 4)
-                sensitive _rafford
-                action Return(("buy_relic", _rrid))
+                action (Return(("buy_relic", _rrid)) if _rafford else NullAction())
                 hovered SetScreenVariable("_sh_hover", ("relic", _rrid, _gi))
                 unhovered SetScreenVariable("_sh_hover", None)
                 frame:
@@ -2733,8 +2768,7 @@ screen fixer_shop(card_offers, relic_offers, cash, shred_price, can_shred, shred
         background Frame(Solid("#c0805055" if _shred_usable else "#3a302855"), 3, 3)
         hover_background Frame(Solid("#c0805099"), 3, 3)
         padding (4, 4)
-        sensitive _shred_usable
-        action Return(("shred", None))
+        action (Return(("shred", None)) if _shred_usable else NullAction())
         hovered SetScreenVariable("_sh_hover", ("shred",))
         unhovered SetScreenVariable("_sh_hover", None)
         frame:

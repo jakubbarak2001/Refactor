@@ -466,7 +466,7 @@ label activity_gym:
                     store.run_hp_max = class_max_hp()
                     store.run_hp = store.run_hp_max
                 _heal_max_future = store.run_hp_max + _gym_max_bump
-                _gym_heal = int(round(_heal_max_future * 0.25))
+                _gym_heal = int(round(_heal_max_future * 0.33))
                 _heal_parts = []
                 if _gym_max_bump > 0:
                     _heal_parts.append("{{color=#00cc88}}+{} MAX HP{{/color}}".format(_gym_max_bump))
@@ -662,6 +662,7 @@ label activity_recovery:
                 "accent":         _bh_accent,
                 "cost_text":      "FREE",
                 "class_relevant": True,
+                "art":            "images/backgrounds/bh_recovery_sauna.jpg",
                 "art_glyph":      "~",
                 "stat_lines": [
                     ("BATTLE BONUS", "All heals +100%"),
@@ -675,6 +676,7 @@ label activity_recovery:
                 "accent":         _bh_accent,
                 "cost_text":      "FREE",
                 "class_relevant": True,
+                "art":            "images/backgrounds/bh_recovery_meditation.jpg",
                 "art_glyph":      "○",
                 "stat_lines": [
                     ("BATTLE BONUS", "+2 energy (turn 1)"),
@@ -688,6 +690,7 @@ label activity_recovery:
                 "accent":         _bh_accent,
                 "cost_text":      "FREE",
                 "class_relevant": True,
+                "art":            "images/backgrounds/bh_recovery_coldplunge.jpg",
                 "art_glyph":      "*",
                 "stat_lines": [
                     ("BATTLE BONUS", "+25 starting block"),
@@ -701,6 +704,7 @@ label activity_recovery:
                 "accent":         _bh_accent,
                 "cost_text":      "FREE",
                 "class_relevant": True,
+                "art":            "images/backgrounds/bh_recovery_redlight.jpg",
                 "art_glyph":      "●",
                 "stat_lines": [
                     ("BATTLE BONUS", "+5 HP/turn regen"),
@@ -892,6 +896,8 @@ label activity_coding:
                     "title":          "STUDY",
                     "accent":         _bh_accent,
                     "cost_text":      "FREE",
+                    "art":            "images/pictures/act_coding.png",
+                    "art_xoff":       -60,
                     "effect_text":    "+18 Coding XP",
                     "flavor_text":    "Documentation tabs. A side project. No paycheck — pure investment.",
                     "class_relevant": True,
@@ -943,6 +949,8 @@ label activity_coding:
                     "title":          "STUDY",
                     "accent":         _bh_accent,
                     "cost_text":      "FREE",
+                    "art":            "images/pictures/act_coding.png",
+                    "art_xoff":       -60,
                     "effect_text":    ("Pick a card  ·  +12 Coding" if stats.player_class == "bodybuilder" else "Pick from a 3-card offer"),
                     "flavor_text":    ("Bootcamp tier: high-rarity offers." if _bc_done else "An hour at the keyboard. A card to keep — and the skill sticks."),
                     "class_relevant": False,
@@ -952,6 +960,7 @@ label activity_coding:
                     "title":          "REFACTOR",
                     "accent":         _bh_accent,
                     "cost_text":      "FREE",
+                    "art":            "images/pictures/act_refactor.png",
                     "effect_text":    ("Upgrade a card  ·  +12 Coding  ({} left)".format(_rf_left) if not _rf_locked else "Upgrade a card  ·  +12 Coding"),
                     "flavor_text":    "Rewrite what you've already got. Cleaner, meaner. Coding tier sets how many.",
                     "class_relevant": True,
@@ -963,6 +972,7 @@ label activity_coding:
                     "title":          "JOIN BOOTCAMP",
                     "accent":         _bh_accent,
                     "cost_text":      _bc_cost_text,
+                    "art":            "images/pictures/act_bootcamp.png",
                     "effect_text":    "Study days roll rare cards",
                     "flavor_text":    _bc_flavor,
                     "class_relevant": False,
@@ -1593,6 +1603,12 @@ label activity_nootropics:
             ## Black market also opens once your reputation is real (100 Coding).
             6: (_noot_day >= 18) or (_noot_buys >= 8) or stats.coding_skill >= 100,
         }
+        _NOOT_ART = {
+            1: "images/pictures/act_noot_t1.png",
+            3: "images/pictures/act_noot_t2.png",
+            5: "images/pictures/act_noot_t3.png",
+            6: "images/pictures/act_noot_t4.png",
+        }
         _noot_options = []
         for _tn in (1, 3, 5, 6):
             _ti = NOOTROPIC_TIERS[_tn]
@@ -1612,6 +1628,7 @@ label activity_nootropics:
                 "visible":        _NOOT_VIS[_tn],
                 "locked":         not _noot_afford,
                 "lock_text":      "Need {:,} CZK.".format(_noot_cost),
+                "art":            _NOOT_ART[_tn],
             })
         ## RESEARCH PUBMED — free upgrade lane. Always visible. Routes to the
         ## deck upgrade picker (deck breadth vs deck quality is the BH axis).
@@ -1620,6 +1637,7 @@ label activity_nootropics:
             "title":          "RESEARCH PUBMED",
             "accent":         class_accent_color("biohacker"),
             "cost_text":      "FREE",
+            "art":            "images/pictures/act_research.png",
             "effect_text":    "Upgrade 1 card",
             "flavor_text":    bh_research_flavor(),
             "class_relevant": True,
