@@ -277,13 +277,13 @@ init python:
     #   colonel_deck_size       — Colonel boss deck size (Phase 1+)
     # ---------------------------------------------------------------------------
     DIFFICULTY_SETTINGS = {
-        "easy":   {"money": 55000, "coding": 10,  "hatred": 15,
+        "easy":   {"money": 50000, "coding": 25,  "hatred": 10,
                    "nightly_hatred_mult": 0.8, "salary_mult": 1.10, "purchase_mult": 0.95, "score_mult": 1.0,
                    "opp_rate": 50, "minigame_retries": 2, "colonel_deck_size": 5},
-        "hard":   {"money": 35000, "coding":  5,  "hatred": 25,
+        "hard":   {"money": 30000, "coding": 10,  "hatred": 20,
                    "nightly_hatred_mult": 1.0, "salary_mult": 1.00, "purchase_mult": 1.15, "score_mult": 2.5,
                    "opp_rate": 30, "minigame_retries": 1, "colonel_deck_size": 7},
-        "insane": {"money": 20000, "coding":  0,  "hatred": 35,
+        "insane": {"money": 20000, "coding":  0,  "hatred": 30,
                    "nightly_hatred_mult": 1.2, "salary_mult": 0.85, "purchase_mult": 1.30, "score_mult": 5.0,
                    "opp_rate": 20, "minigame_retries": 0, "colonel_deck_size": 9},
     }
