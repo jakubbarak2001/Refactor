@@ -673,14 +673,14 @@ init python:
 
     register_card(
         "body_check",
-        name       = "Probable Cause",
+        name       = "Police Brutality",
         type       = "Attack",
         color      = "Police",
         cost       = 2,
         rarity     = "uncommon",
         effect     = "body_check",
         archetype  = "neutral",
-        flavor     = "You had reason to believe. You usually do.",
+        flavor     = "The report says he fell.",
     )
 
     register_card(
@@ -1661,7 +1661,7 @@ init python:
 
     ## Neutral
     register_upgrade("gut_punch",             effect="gut_punch_plus",             flavor="He resisted harder. So did you.")
-    register_upgrade("body_check",            effect="body_check_plus",            flavor="More reason. More belief.")
+    register_upgrade("body_check",            effect="body_check_plus",            flavor="The report says he fell twice.")
     register_upgrade("breath_test",           effect="breath_test_plus",           flavor="'Blow into the tube.' The swing barely lands at all.")
     register_upgrade("killing_blow",          effect="killing_blow_plus",          flavor="The form has room for a second line.")
     register_upgrade("last_stand",            effect="last_stand_plus",            flavor="Radio's still dead. Hit like it.")
