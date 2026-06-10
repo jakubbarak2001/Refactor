@@ -2400,9 +2400,27 @@ screen card_reward_trio_screen(cards):
 ##   ("leave", None)     — free reconnaissance, no day consumed.
 ## ---------------------------------------------------------------------------
 
+## Subtle hover cue for the fixer grid — the real preview is the inspect
+## overlay; the grid card itself just lifts a touch. Kept small so it stays
+## inside the grid's gutters/padding (no neighbour occlusion, no viewport
+## clipping — the big card_hover_lift zoom got shredded by both).
+transform fixer_card_nudge:
+    on hover:
+        ease 0.12 yoffset -8
+    on idle, insensitive:
+        ease 0.12 yoffset 0
+
+
 screen fixer_removal_screen(entries, price, next_price):
     modal True
     zorder 700
+
+    ## Card instance under the cursor + its (row, col) grid slot — drives the
+    ## inspect overlay and its anchor position. The adjustment tracks the
+    ## grid's vertical scroll so the anchor stays glued while scrolled.
+    default _fx_hover_cid = None
+    default _fx_hover_rc  = (0, 0)
+    default _fx_yadj      = ui.adjustment()
 
     add Transform("images/backgrounds/bg_fixer.jpg", size=(config.screen_width, config.screen_height))
     add "#0a0a0acc"
@@ -2424,10 +2442,13 @@ screen fixer_removal_screen(entries, price, next_price):
         _f_affordable = (stats.available_money >= price)
         _f_price_color = ("#ffd700" if _f_affordable else "#a04040")
 
+    ## Header — FIXED position (not centered-flow) so the grid below sits at
+    ## known coordinates: the hover-inspect overlay anchors to the hovered
+    ## card's slot, which needs deterministic grid geometry.
     vbox:
         xalign 0.5
-        yalign 0.5
-        spacing 14
+        ypos 30
+        spacing 10
 
         text "FIXER · RUN A CARD THROUGH THE SHREDDER":
             xalign 0.5
@@ -2436,13 +2457,6 @@ screen fixer_removal_screen(entries, price, next_price):
             bold True
             font "fonts/RobotoMono-Regular.ttf"
             outlines [(2, "#000000", 0, 0)]
-
-        text "He doesn't take cards. He shreds them. Pick what disappears.":
-            xalign 0.5
-            color "#888888"
-            size 15
-            italic True
-            font "fonts/RobotoMono-Regular.ttf"
 
         ## Pricing strip — current visit's flat price + escalation telegraph.
         hbox:
@@ -2470,26 +2484,39 @@ screen fixer_removal_screen(entries, price, next_price):
                 bold True
                 font "fonts/RobotoMono-Regular.ttf"
 
-        viewport:
-            xsize 1480
-            ysize 660
-            scrollbars "vertical"
-            mousewheel True
-            draggable True
-            xalign 0.5
+    ## Grid geometry constants — shared by the layout below AND the overlay
+    ## anchor math. Slot stride = card (220/320) + gutter (16/24).
+    python:
+        _FXG_VX, _FXG_VY = 220, 150   ## viewport screen position
+        _FXG_PAD         = 36         ## inner padding (gem overhang room)
+        _FXG_SX, _FXG_SY = 236, 344   ## slot stride x/y
 
-            ## Same card UI as inspecting your own deck — full card faces, so the
-            ## shred decision sees exactly what each card DOES, not just a name.
-            ## 6 per row; click a card to run it through the shredder. Cards dim
-            ## when you can't cover tonight's price.
-            $ _shred_rows = [entries[i:i+6] for i in range(0, len(entries), 6)]
+    viewport:
+        xpos _FXG_VX
+        ypos _FXG_VY
+        xsize 1480
+        ysize 740
+        yadjustment _fx_yadj
+        scrollbars "vertical"
+        mousewheel True
+        draggable True
+
+        ## Same card UI as inspecting your own deck — full card faces, so the
+        ## shred decision sees exactly what each card DOES, not just a name.
+        ## 6 per row; click a card to run it through the shredder. Cards dim
+        ## when you can't cover tonight's price. The padded frame gives the
+        ## cost gems (which overhang each card's top-left by 22px) room
+        ## inside the viewport's clip area.
+        $ _shred_rows = [entries[i:i+6] for i in range(0, len(entries), 6)]
+        frame:
+            background None
+            padding (_FXG_PAD, _FXG_PAD)
             vbox:
                 spacing 24
-                xalign 0.5
-                for _shred_row in _shred_rows:
+                for _ri, _shred_row in enumerate(_shred_rows):
                     hbox:
                         spacing 16
-                        for _fcid in _shred_row:
+                        for _ci, _fcid in enumerate(_shred_row):
                             fixed:
                                 xysize (220, 320)
                                 button:
@@ -2499,20 +2526,42 @@ screen fixer_removal_screen(entries, price, next_price):
                                     hover_background None
                                     sensitive _f_affordable
                                     action Return(("remove", _fcid))
-                                    at card_hover_lift
+                                    hovered [SetScreenVariable("_fx_hover_cid", _fcid), SetScreenVariable("_fx_hover_rc", (_ri, _ci))]
+                                    unhovered SetScreenVariable("_fx_hover_cid", None)
+                                    at fixer_card_nudge
                                     use battle_card_view(cid=_fcid, mode="hand", playable=_f_affordable)
 
-        textbutton "[[ ← LEAVE — no time lost ]":
-            xalign 0.5
-            action Return(("leave", None))
-            text_color "#888888"
-            text_hover_color "#ffffff"
-            text_size 18
-            text_bold True
-            text_font "fonts/RobotoMono-Regular.ttf"
-            background Frame("#0d0d0dee", 3, 3)
-            hover_background Frame("#1a1a1aee", 3, 3)
-            padding (24, 10)
+    textbutton "[[ ← LEAVE — no time lost ]":
+        xalign 0.5
+        ypos 930
+        action Return(("leave", None))
+        text_color "#888888"
+        text_hover_color "#ffffff"
+        text_size 18
+        text_bold True
+        text_font "fonts/RobotoMono-Regular.ttf"
+        background Frame("#0d0d0dee", 3, 3)
+        hover_background Frame("#1a1a1aee", 3, 3)
+        padding (24, 10)
+
+    ## Hover-inspect overlay — the full-size card, drawn after (= on top of)
+    ## the grid so it's never clipped by the viewport or occluded by the
+    ## neighbouring cards. Anchored to the hovered card's slot: it floats at
+    ## the card's upper-right, flipping to the upper-left for the rightmost
+    ## column so it never runs offscreen. Vertical position is clamped to the
+    ## screen and tracks the viewport scroll.
+    if _fx_hover_cid:
+        python:
+            _ins_slot_x = _FXG_VX + _FXG_PAD + _fx_hover_rc[1] * _FXG_SX
+            _ins_slot_y = _FXG_VY + _FXG_PAD + _fx_hover_rc[0] * _FXG_SY - int(_fx_yadj.value)
+            _ins_x = (_ins_slot_x - 414) if _fx_hover_rc[1] >= 4 else (_ins_slot_x + 234)
+            _ins_y = max(16, min(_ins_slot_y - 200, 1080 - 588))
+        fixed:
+            xpos _ins_x
+            ypos _ins_y
+            xysize (400, 572)
+            at inspect_overlay_in
+            use battle_card_view(cid=_fx_hover_cid, mode="inspect", playable=True)
 
     key "K_ESCAPE" action Return(("leave", None))
 
@@ -2533,206 +2582,275 @@ screen fixer_shop(card_offers, relic_offers, cash, shred_price, can_shred, shred
     modal True
     zorder 700
 
-    add Transform("images/backgrounds/bg_fixer.jpg", size=(config.screen_width, config.screen_height))
-    add "#0a0a0acc"
-    use class_color_frame(thickness=3, alpha_suffix="aa")
+    ## What the cursor is on: ("card", cid, col) / ("relic", rid, col) /
+    ## ("shred",). Drives the hover-inspect overlays.
+    default _sh_hover = None
 
-    vbox:
-        xalign 0.5
-        ypos 26
-        spacing 12
+    ## The scene IS the shop — full-bright, no dim wash, no header bar. The
+    ## goods are laid out spatially on the Fixer's table; every item carries
+    ## only a price tag. Hover an item to inspect it.
+    add Transform("images/backgrounds/bg_fixer_shop.jpg", size=(config.screen_width, config.screen_height))
 
-        text "THE FIXER":
-            xalign 0.5
-            color "#9a8060"
-            size 46
-            bold True
-            font "fonts/RobotoMono-Regular.ttf"
-            outlines [(2, "#000000", 0, 0)]
-        text "Third floor. Cash on the table. He's a ghost by morning.":
-            xalign 0.5
-            color "#888888"
-            size 15
-            italic True
-            font "fonts/RobotoMono-Regular.ttf"
-        text "WALLET:  [cash:,] CZK":
-            xalign 0.5
+    python:
+        ## Slot geometry — shared by layout + hover-overlay anchor math.
+        _SH_CARD_W, _SH_CARD_GAP = 220, 36
+        _SH_CARD_N  = max(len(card_offers), 1)
+        _SH_CARD_X0 = (1920 - (_SH_CARD_N * _SH_CARD_W + (_SH_CARD_N - 1) * _SH_CARD_GAP)) // 2
+        _SH_CARD_Y  = 330
+        _SH_GEAR_X0, _SH_GEAR_Y = 360, 740
+        _SH_GEAR_W,  _SH_GEAR_GAP = 150, 56
+        _SH_SHRED_X, _SH_SHRED_Y = 1370, 710
+
+    ## ── WALLET — small corner chip (the only readout on screen) ───────────
+    frame:
+        xanchor 1.0
+        xpos 1894
+        ypos 20
+        background Frame("#0d0d0dcc", 4, 4)
+        padding (16, 8)
+        text "[cash:,] CZK":
             color "#ffd700"
-            size 22
+            size 20
             bold True
             font "fonts/RobotoMono-Regular.ttf"
 
-        null height 2
-
-        text "ON THE TABLE":
-            xalign 0.5
-            color "#6a6055"
-            size 14
-            bold True
-            font "fonts/RobotoMono-Regular.ttf"
-        if card_offers:
-            hbox:
-                xalign 0.5
-                spacing 26
-                for _o in card_offers:
-                    python:
-                        _ocid   = _o["card_id"]
-                        _oprice = _o["price"]
-                        _oafford = (cash >= _oprice)
-                    button:
-                        background None
-                        hover_background None
-                        sensitive _oafford
-                        action Return(("buy_card", _ocid))
-                        vbox:
-                            spacing 6
-                            fixed:
-                                xysize (220, 316)
-                                ## Dim the whole card uniformly via playable=False
-                                ## (frame desaturates, gem darkens, desc fades) — the
-                                ## old Solid overlay sat on top and grey-blotched the
-                                ## overhanging cost gem. Matches the shred screen.
-                                use battle_card_view(cid=_ocid, mode="hand", playable=_oafford)
-                            text "[_oprice:,] CZK":
-                                xalign 0.5
-                                color ("#ffd700" if _oafford else "#a04040")
-                                size 20
-                                bold True
-                                font "fonts/RobotoMono-Regular.ttf"
-        else:
-            text "Sold out of paper tonight.":
-                xalign 0.5
-                color "#5a5042"
-                size 16
-                italic True
-                font "fonts/RobotoMono-Regular.ttf"
-
-        null height 4
-
-        text "GEAR":
-            xalign 0.5
-            color "#6a6055"
-            size 14
-            bold True
-            font "fonts/RobotoMono-Regular.ttf"
-        if relic_offers:
-            hbox:
-                xalign 0.5
-                spacing 16
-                for _ro in relic_offers:
-                    python:
-                        _rrid   = _ro["relic_id"]
-                        _rprice = _ro["price"]
-                        _rmeta  = RELIC_LIBRARY.get(_rrid, {})
-                        _rname  = _rmeta.get("name", _rrid)
-                        _rhook  = _rmeta.get("hook", "")
-                        _rafford = (cash >= _rprice)
-                        _rhex   = relic_hex(_rrid) if _rafford else "#5a5042"
-                        _rprice_color = ("#ffd700" if _rafford else "#a04040")
-                        _rtip = "{}  ·  {}  ·  {}".format(_rname, _rmeta.get("rarity", "common").upper(), _rhook)
-                    button:
-                        xysize (340, 150)
-                        background Frame(Solid("#161210"), 4, 4)
-                        hover_background Frame(Solid("#322617"), 4, 4)
-                        sensitive _rafford
-                        action Return(("buy_relic", _rrid))
-                        tooltip _rtip
-                        vbox:
-                            spacing 6
-                            yalign 0.5
-                            hbox:
-                                spacing 12
-                                yalign 0.5
-                                frame:
-                                    xysize (58, 58)
-                                    yalign 0.5
-                                    background Frame(Solid(_rhex), 3, 3)
-                                    padding (3, 3)
-                                    frame:
-                                        xfill True
-                                        yfill True
-                                        background "#11110caa"
-                                        padding (0, 0)
-                                        $ _ricon = relic_art_disp(_rrid, 48)
-                                        if _ricon is not None:
-                                            add _ricon xalign 0.5 yalign 0.5 alpha (1.0 if _rafford else 0.3)
-                                        else:
-                                            text relic_glyph(_rrid):
-                                                xalign 0.5
-                                                yalign 0.5
-                                                color _rhex
-                                                size 26
-                                                bold True
-                                                font "fonts/RobotoMono-Regular.ttf"
-                                text "[_rname]":
-                                    color _rhex
-                                    size 17
-                                    bold True
-                                    yalign 0.5
-                                    xsize 240
-                                    font "fonts/RobotoMono-Regular.ttf"
-                            text "[_rhook]":
-                                color ("#ccc4b4" if _rafford else "#5a5042")
-                                size 13
-                                font "fonts/RobotoMono-Regular.ttf"
-                            text "[_rprice:,] CZK":
-                                color _rprice_color
-                                size 19
-                                bold True
-                                font "fonts/RobotoMono-Regular.ttf"
-        else:
-            text "No gear tonight. It moves fast.":
-                xalign 0.5
-                color "#5a5042"
-                size 16
-                italic True
-                font "fonts/RobotoMono-Regular.ttf"
-
-        null height 6
-
-        hbox:
-            xalign 0.5
-            spacing 20
-            if can_shred and not shred_blocked:
-                $ _shred_afford = (cash >= shred_price)
-                textbutton ("SHRED A CARD  ([shred_price:,] CZK)" if _shred_afford else "SHRED A CARD  (need [shred_price:,] CZK)"):
-                    sensitive _shred_afford
-                    action Return(("shred", None))
-                    text_color "#c08050"
-                    text_hover_color "#ffffff"
-                    text_insensitive_color "#5a5042"
-                    text_size 18
-                    text_bold True
-                    text_font "fonts/RobotoMono-Regular.ttf"
-                    background Frame("#1a1410ee", 4, 4)
-                    hover_background Frame("#322617ee", 4, 4)
-                    padding (20, 12)
-            else:
-                text ("Shredder's cooled for tonight." if shred_blocked else "Nothing here worth shredding."):
-                    color "#5a5042"
-                    size 15
-                    italic True
-                    yalign 0.5
+    ## ── CARDS — one row on the table, price tag under each ────────────────
+    for _ci, _o in enumerate(card_offers):
+        python:
+            _ocid    = _o["card_id"]
+            _oprice  = _o["price"]
+            _osold   = bool(_o.get("sold"))
+            _oafford = (not _osold) and (cash >= _oprice)
+            _ox      = _SH_CARD_X0 + _ci * (_SH_CARD_W + _SH_CARD_GAP)
+        if _osold:
+            ## SOLD slot — the goods are gone, the spot stays (no reflow).
+            frame:
+                xpos _ox
+                ypos _SH_CARD_Y
+                xysize (220, 316)
+                background Frame("#0a0806b4", 4, 4)
+                text "SOLD":
+                    align (0.5, 0.5)
+                    color "#6a5a48"
+                    size 30
+                    bold True
                     font "fonts/RobotoMono-Regular.ttf"
-            textbutton "LEAVE":
-                action Return(("leave", None))
-                text_color "#888888"
-                text_hover_color "#ffffff"
-                text_size 18
-                text_bold True
-                text_font "fonts/RobotoMono-Regular.ttf"
-                background Frame("#0d0d0dee", 4, 4)
-                hover_background Frame("#1a1a1aee", 4, 4)
-                padding (20, 12)
+        else:
+            button:
+                xpos _ox
+                ypos _SH_CARD_Y
+                xsize 220
+                ysize 316
+                background None
+                hover_background None
+                padding (0, 0)
+                sensitive _oafford
+                action Return(("buy_card", _ocid))
+                hovered SetScreenVariable("_sh_hover", ("card", _ocid, _ci))
+                unhovered SetScreenVariable("_sh_hover", None)
+                at fixer_card_nudge
+                use battle_card_view(cid=_ocid, mode="hand", playable=_oafford)
+            frame:
+                xanchor 0.5
+                xpos (_ox + 110)
+                ypos (_SH_CARD_Y + 326)
+                background Frame("#0d0d0dcc", 4, 4)
+                padding (14, 5)
+                text "[_oprice:,] CZK":
+                    color ("#ffd700" if _oafford else "#a04040")
+                    size 19
+                    bold True
+                    font "fonts/RobotoMono-Regular.ttf"
 
-    $ _ftt = GetTooltip()
-    if _ftt:
-        text "[_ftt]":
-            xalign 0.5
-            yalign 0.97
-            color "#cdbd97"
-            size 15
-            font "fonts/RobotoMono-Regular.ttf"
+    ## ── GEAR — relic objects on the table's left, price tag under each ────
+    for _gi, _ro in enumerate(relic_offers):
+        python:
+            _rrid    = _ro["relic_id"]
+            _rprice  = _ro["price"]
+            _rsold   = bool(_ro.get("sold"))
+            _rafford = (not _rsold) and (cash >= _rprice)
+            _rhex    = relic_hex(_rrid) if _rafford else "#5a5042"
+            _rx      = _SH_GEAR_X0 + _gi * (_SH_GEAR_W + _SH_GEAR_GAP)
+        if _rsold:
+            frame:
+                xpos _rx
+                ypos _SH_GEAR_Y
+                xysize (_SH_GEAR_W, _SH_GEAR_W)
+                background Frame("#0a0806b4", 3, 3)
+                text "SOLD":
+                    align (0.5, 0.5)
+                    color "#6a5a48"
+                    size 20
+                    bold True
+                    font "fonts/RobotoMono-Regular.ttf"
+        else:
+            button:
+                xpos _rx
+                ypos _SH_GEAR_Y
+                xysize (_SH_GEAR_W, _SH_GEAR_W)
+                background Frame(Solid(_rhex + "55"), 3, 3)
+                hover_background Frame(Solid(_rhex + "99"), 3, 3)
+                padding (4, 4)
+                sensitive _rafford
+                action Return(("buy_relic", _rrid))
+                hovered SetScreenVariable("_sh_hover", ("relic", _rrid, _gi))
+                unhovered SetScreenVariable("_sh_hover", None)
+                frame:
+                    xfill True
+                    yfill True
+                    background "#11110cd0"
+                    $ _ricon = relic_art_disp(_rrid, 118)
+                    if _ricon is not None:
+                        add _ricon align (0.5, 0.5) alpha (1.0 if _rafford else 0.35)
+                    else:
+                        text relic_glyph(_rrid):
+                            align (0.5, 0.5)
+                            color _rhex
+                            size 48
+                            bold True
+                            font "fonts/RobotoMono-Regular.ttf"
+            frame:
+                xanchor 0.5
+                xpos (_rx + _SH_GEAR_W // 2)
+                ypos (_SH_GEAR_Y + _SH_GEAR_W + 10)
+                background Frame("#0d0d0dcc", 4, 4)
+                padding (12, 4)
+                text "[_rprice:,] CZK":
+                    color ("#ffd700" if _rafford else "#a04040")
+                    size 17
+                    bold True
+                    font "fonts/RobotoMono-Regular.ttf"
+
+    ## ── SHREDDER — the removal service as an object on the table ──────────
+    python:
+        _shred_afford = (cash >= shred_price)
+        _shred_open   = can_shred and not shred_blocked
+        _shred_usable = _shred_open and _shred_afford
+    button:
+        xpos _SH_SHRED_X
+        ypos _SH_SHRED_Y
+        xysize (190, 190)
+        background Frame(Solid("#c0805055" if _shred_usable else "#3a302855"), 3, 3)
+        hover_background Frame(Solid("#c0805099"), 3, 3)
+        padding (4, 4)
+        sensitive _shred_usable
+        action Return(("shred", None))
+        hovered SetScreenVariable("_sh_hover", ("shred",))
+        unhovered SetScreenVariable("_sh_hover", None)
+        frame:
+            xfill True
+            yfill True
+            background "#11110cd0"
+            add Transform("images/pictures/shredder_icon.png", fit="contain", xysize=(170, 170)):
+                align (0.5, 0.5)
+                alpha (1.0 if _shred_usable else 0.4)
+    frame:
+        xanchor 0.5
+        xpos (_SH_SHRED_X + 95)
+        ypos (_SH_SHRED_Y + 200)
+        background Frame("#0d0d0dcc", 4, 4)
+        padding (12, 4)
+        if _shred_open:
+            text "[shred_price:,] CZK":
+                color ("#ffd700" if _shred_afford else "#a04040")
+                size 17
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
+        else:
+            text ("COOLED OFF" if shred_blocked else "NOTHING TO SHRED"):
+                color "#6a5a48"
+                size 14
+                bold True
+                font "fonts/RobotoMono-Regular.ttf"
+
+    ## ── LEAVE — corner ribbon, StS style ──────────────────────────────────
+    textbutton "← LEAVE":
+        xpos 40
+        ypos 980
+        action Return(("leave", None))
+        text_color "#c8b8a0"
+        text_hover_color "#ffffff"
+        text_size 24
+        text_bold True
+        text_font "fonts/RobotoMono-Regular.ttf"
+        background Frame("#1a0d08ee", 4, 4)
+        hover_background Frame("#33201270", 4, 4)
+        padding (28, 14)
+
+    ## ── HOVER-INSPECT OVERLAYS — drawn last, layered over everything ──────
+    if _sh_hover is not None and _sh_hover[0] == "card":
+        python:
+            _ins_slot_x = _SH_CARD_X0 + _sh_hover[2] * (_SH_CARD_W + _SH_CARD_GAP)
+            _ins_x = (_ins_slot_x - 414) if _sh_hover[2] >= (_SH_CARD_N - 2) else (_ins_slot_x + 234)
+            _ins_y = max(16, min(_SH_CARD_Y - 200, 1080 - 588))
+        fixed:
+            xpos _ins_x
+            ypos _ins_y
+            xysize (400, 572)
+            at inspect_overlay_in
+            use battle_card_view(cid=_sh_hover[1], mode="inspect", playable=True)
+
+    elif _sh_hover is not None and _sh_hover[0] == "relic":
+        python:
+            _rh_rid  = _sh_hover[1]
+            _rh_meta = RELIC_LIBRARY.get(_rh_rid, {})
+            _rh_hex  = relic_hex(_rh_rid)
+            _rh_x    = _SH_GEAR_X0 + _sh_hover[2] * (_SH_GEAR_W + _SH_GEAR_GAP)
+        frame:
+            xpos _rh_x
+            yanchor 1.0
+            ypos (_SH_GEAR_Y - 14)
+            background Frame("#0d0a08f0", 4, 4)
+            padding (18, 14)
+            xmaximum 460
+            at inspect_overlay_in
+            vbox:
+                spacing 6
+                text _rh_meta.get("name", _rh_rid):
+                    color _rh_hex
+                    size 22
+                    bold True
+                    font "fonts/RobotoMono-Regular.ttf"
+                text (_rh_meta.get("rarity", "common").upper()):
+                    color "#8a7a64"
+                    size 13
+                    bold True
+                    font "fonts/RobotoMono-Regular.ttf"
+                text _rh_meta.get("hook", ""):
+                    color "#e2d8c4"
+                    size 17
+                    xmaximum 420
+                    font "fonts/RobotoMono-Regular.ttf"
+
+    elif _sh_hover is not None and _sh_hover[0] == "shred":
+        python:
+            _sh_next = fixer_buy_price(fixer_next_price())
+        frame:
+            xanchor 1.0
+            xpos (_SH_SHRED_X - 14)
+            yanchor 1.0
+            ypos (_SH_SHRED_Y + 190)
+            background Frame("#0d0a08f0", 4, 4)
+            padding (18, 14)
+            xmaximum 460
+            at inspect_overlay_in
+            vbox:
+                spacing 6
+                text "THE SHREDDER":
+                    color "#c08050"
+                    size 22
+                    bold True
+                    font "fonts/RobotoMono-Regular.ttf"
+                text "Runs one card from your deck through. Permanently.":
+                    color "#e2d8c4"
+                    size 17
+                    xmaximum 420
+                    font "fonts/RobotoMono-Regular.ttf"
+                text "Next shred: [_sh_next:,] CZK":
+                    color "#8a7a64"
+                    size 14
+                    italic True
+                    font "fonts/RobotoMono-Regular.ttf"
 
     key "K_ESCAPE" action Return(("leave", None))
 

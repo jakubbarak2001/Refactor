@@ -1272,13 +1272,13 @@ label activity_fixer:
     ## so re-entering the hub doesn't reroll the shelf (no StS reroll-scumming).
     ## Buying removes that offer from the cached stock so it can't be re-bought.
 
-    scene bg_fixer
+    scene bg_fixer_shop
 
     python:
         _today = day_cycle.current_day
         if getattr(store, '_fixer_stock_day', None) != _today:
             store._fixer_stock_day   = _today
-            store._fixer_card_stock  = build_card_shop_offers(3)
+            store._fixer_card_stock  = build_card_shop_offers(5)
             store._fixer_relic_stock = build_relic_shop_offers(3)
 
     "A flat on the third floor of a panelák. The doorbell doesn't work; he knew you'd be here."
@@ -1310,14 +1310,16 @@ label fixer_shop_loop:
 
     if _shop_act == "buy_card":
         python:
-            _cbuy_offer = next((o for o in store._fixer_card_stock if o["card_id"] == _shop_arg), None)
+            ## Mark the offer SOLD (don't drop it) — the shop screen keeps the
+            ## slot in place with a SOLD stamp, StS-style, instead of reflowing.
+            _cbuy_offer = next((o for o in store._fixer_card_stock if o["card_id"] == _shop_arg and not o.get("sold")), None)
             _cbuy_ok = False
             _cbuy_price = 0
             if _cbuy_offer is not None:
                 _cbuy_price = fixer_buy_price(_cbuy_offer["price"])
                 if stats.try_spend_money(_cbuy_price):
                     grant_card(_cbuy_offer["card_id"], silent=True)
-                    store._fixer_card_stock = [o for o in store._fixer_card_stock if o["card_id"] != _shop_arg]
+                    _cbuy_offer["sold"] = True
                     _cbuy_name = CARD_LIBRARY.get(_shop_arg, {}).get("name", _shop_arg)
                     _cbuy_ok = True
         if _cbuy_ok:
@@ -1330,14 +1332,14 @@ label fixer_shop_loop:
 
     if _shop_act == "buy_relic":
         python:
-            _rbuy_offer = next((o for o in store._fixer_relic_stock if o["relic_id"] == _shop_arg), None)
+            _rbuy_offer = next((o for o in store._fixer_relic_stock if o["relic_id"] == _shop_arg and not o.get("sold")), None)
             _rbuy_ok = False
             _rbuy_price = 0
             if _rbuy_offer is not None and not has_relic(_shop_arg):
                 _rbuy_price = fixer_buy_price(_rbuy_offer["price"])
                 if stats.try_spend_money(_rbuy_price):
                     grant_relic(_shop_arg, silent=True)
-                    store._fixer_relic_stock = [o for o in store._fixer_relic_stock if o["relic_id"] != _shop_arg]
+                    _rbuy_offer["sold"] = True
                     _rbuy_meta = RELIC_LIBRARY.get(_shop_arg, {})
                     _rbuy_name = _rbuy_meta.get("name", _shop_arg)
                     _rbuy_hook = _rbuy_meta.get("hook", "")

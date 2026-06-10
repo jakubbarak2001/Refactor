@@ -545,9 +545,20 @@ init -1 python:
         """Roll up to n archetype-biased cards for a card shop, each priced by
         rarity. Returns a list of {'card_id': str, 'price': int} dicts. Prices
         run through adjusted_cost so difficulty purchase_mult applies (parity
-        with gym / coding / bootcamp spending)."""
+        with gym / coding / bootcamp spending).
+
+        pick_battle_rewards returns exactly 3, so shelves bigger than the
+        reward trio top up with unique extra rolls from the same eligible
+        pool (unbiased — the trio already carries the archetype bias)."""
+        import random as _r
+        rolled = list(pick_battle_rewards("medium"))
+        if len(rolled) < n:
+            _extra = [cid for cid, c in CARD_LIBRARY.items()
+                      if _ladder_pool_eligible(c) and cid not in rolled]
+            _r.shuffle(_extra)
+            rolled.extend(_extra[:n - len(rolled)])
         offers = []
-        for cid in pick_battle_rewards("medium")[:n]:
+        for cid in rolled[:n]:
             c = CARD_LIBRARY.get(cid, {})
             price = CARD_SHOP_PRICES.get(c.get("rarity", "common"), 4000)
             offers.append({"card_id": cid, "price": adjusted_cost(price)})
