@@ -427,16 +427,16 @@ label activity_gym:
                     if _newly_unlocked and stats.player_class == "bodybuilder":
                         grant_card("iron_stance", silent=True)
                 _streak_add = min(store.gym_streak * 3, 15)
-                ## Three narrative flavors per session — cosmetic only now that
-                ## card grants are gone (replaced by the upgrade choice).
+                ## Base relief is 33% of the hatred cap (was a 10/15/25 roll —
+                ## the roll now only picks the narration). BB + streak bonuses
+                ## ride on top.
+                _gym_base_red = int(round(hatred_cap() * 0.33))
+                _total_red = _gym_base_red + _bb_bonus + _streak_add
                 if _roll == 1:
-                    _total_red = 25 + _bb_bonus + _streak_add
                     _gym_text = "Personal record. The bar tells the truth. The Colonel doesn't exist for 90 minutes."
                 elif _roll == 2:
-                    _total_red = 15 + _bb_bonus + _streak_add
                     _gym_text = "Solid session. Head's quieter than this morning."
                 else:
-                    _total_red = 10 + _bb_bonus + _streak_add
                     _gym_text = "Heavy day. You finish anyway. Slightly less likely to flip a desk today."
 
             "[_gym_text]"

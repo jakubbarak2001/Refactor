@@ -1699,7 +1699,7 @@ init python:
     register_upgrade("last_nerve",            effect="last_nerve_plus",            flavor="He's still standing on it. You stopped flinching.")
     register_upgrade("embrace_it",            effect="embrace_it_plus",            flavor="Stop fighting the worst of yourself. Aim it better.")
     register_upgrade("sparring_partner",      effect="sparring_partner_plus",      flavor="He still doesn't pull. You stopped flinching first.")
-    register_upgrade("breakdown",             cost=1, flavor="It comes quicker now. It always did.")
+    register_upgrade("breakdown",             effect="breakdown_plus", flavor="It comes quicker now. It always did.")
 
     ## New-archetype cards — Stoic
     register_upgrade("iron_posture",          effect="iron_posture",          cost=0, flavor="You never learned to drop your guard. Now it's reflex.")

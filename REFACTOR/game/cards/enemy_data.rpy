@@ -473,7 +473,7 @@ init -1 python:
         is_boss      = True,
         no_flee      = False,
         act          = 2,
-        max_hp       = 275,
+        max_hp       = 380,
         no_double_passive = True,
         flee_label   = "BRIBE THEM",
         flee_relief  = 0,
@@ -483,8 +483,11 @@ init -1 python:
             "You don't reach for a weapon. You reach for cash — more than a cop should be carrying, exactly as much as three men in balaclavas came expecting.",
             "They take it without a word and melt back around the van. The Colonel will hear that you paid rather than fought. That's the point of sending them. That's the hook going in.",
         ],
+        ## One block slot traded for a second Breach Swing — the old split
+        ## (2 blocks + a buff in 7 cards) played out as "1 attack then 2
+        ## turns of nothing". 5 aggressive / 2 passive keeps the pressure on.
         deck_template = [
-            "breach_swing", "shield_wall", "gas_throw",
+            "breach_swing", "breach_swing", "gas_throw",
             "baton_combo", "formation_buff", "phalanx_block", "clear_room",
         ],
         wrinkle      = "formation_strength",

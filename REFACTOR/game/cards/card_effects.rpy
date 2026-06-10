@@ -81,6 +81,7 @@ init python:
         "embrace_it":              "Exhaust a Rage card in your hand: gain 15 block and draw 2 cards.",
         "sparring_partner":        "Lose 5 HP. Gain 10 Hatred. Draw 2 cards.",
         "breakdown":               "Deal damage equal to your Hatred, then lose all of it. Exhausts.",
+        "breakdown_plus":          "Deal damage equal to your Hatred, then lose only half of it. Exhausts.",
         ## Stoic archetype
         "bracing":                 "Gain 5 block. Free.",
         "backup":                  "Gain 10 block.",
@@ -341,6 +342,8 @@ init python:
             return "Deal {} damage (half your Hatred). Lose 25 Hatred.".format(h // 2)
         if effect_id == "breakdown":
             return "Deal {} damage (all your Hatred), then lose it all. Exhausts.".format(h)
+        if effect_id == "breakdown_plus":
+            return "Deal {} damage (all your Hatred), then lose only half ({}). Exhausts.".format(h, h // 2)
         if effect_id == "snap_decision":
             return "Deal {} damage. (18 at 60+ Hatred)".format(18 if h >= 60 else 9)
         if effect_id == "counterweight":
@@ -488,6 +491,17 @@ init python:
         if _h > 0:
             state.gain_hatred(-_h)
         state.add_log("Breakdown: {} damage, Hatred spent to zero.".format(_h))
+
+    @register_effect("breakdown_plus")
+    def _eff_breakdown_plus(state, source, target):
+        ## Upgrade keeps the full-Hatred hit but only spends half the fuel —
+        ## the detonator becomes re-armable within the same run.
+        _h = stats.pcr_hatred if stats else 0
+        state.deal_damage(target, _h)
+        _spend = _h // 2
+        if _spend > 0:
+            state.gain_hatred(-_spend)
+        state.add_log("Breakdown+: {} damage, only half the Hatred spent.".format(_h))
 
     @register_effect("bottled_rage")
     def _eff_bottled_rage(state, source, target):
