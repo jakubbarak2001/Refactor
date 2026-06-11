@@ -393,18 +393,7 @@ label activity_gym:
 
     scene bg_bb_gym
 
-    python:
-        ## Gym streak tracking
-        if not hasattr(store, 'gym_streak'):
-            store.gym_streak = 0
-        _streak_bonus = min(store.gym_streak * 3, 15)  ## +3 extra hatred reduction per streak day, max +15
-
     "You head to the gym with your trainer.\nTraining will help you relax."
-    python:
-        _streak_msg = ""
-        if store.gym_streak >= 1:
-            _streak_msg = "\n[STREAK: {} days in a row — extra -{} Hatred bonus]".format(store.gym_streak, _streak_bonus)
-    "Gym attendance: [store.gym_streak] day streak.[_streak_msg]"
 
     menu:
         "We go gym!":
@@ -418,22 +407,21 @@ label activity_gym:
             python:
                 _bb_bonus = 5 if stats.player_class == "bodybuilder" else 0
                 ## Always-apply progression (you completed the session — UPGRADE or HEAL):
-                store.gym_streak += 1
-                ## BB-only common: spotter granted at the 3-day streak.
-                if store.gym_streak == 3 and stats.player_class == "bodybuilder":
+                store.gym_sessions = getattr(store, 'gym_sessions', 0) + 1
+                ## BB-only common: spotter granted on the 3rd session of the run.
+                if store.gym_sessions == 3 and stats.player_class == "bodybuilder":
                     grant_card("hold_the_line", silent=True)
-                if store.gym_streak >= 5:
+                if store.gym_sessions >= 5:
                     _newly_unlocked = unlock_achievement("gym_rat")
                     if _newly_unlocked and stats.player_class == "bodybuilder":
                         grant_card("iron_stance", silent=True)
-                _streak_add = min(store.gym_streak * 3, 15)
                 ## Base relief is 33% of the hatred cap (was a 10/15/25 roll —
-                ## the roll now only picks the narration). BB + streak bonuses
-                ## ride on top. Consecutive gym days (regular OR heavy — they
+                ## the roll now only picks the narration). The BB bonus rides
+                ## on top. Consecutive gym days (regular OR heavy — they
                 ## share the key) bleed the whole payout 25% per repeat day.
                 _gym_mult = activity_repeat_tick("gym")
                 _gym_base_red = int(round(hatred_cap() * 0.33))
-                _total_red = int(round((_gym_base_red + _bb_bonus + _streak_add) * _gym_mult))
+                _total_red = int(round((_gym_base_red + _bb_bonus) * _gym_mult))
                 if _roll == 1:
                     _gym_text = "Personal record. The bar tells the truth. The Colonel doesn't exist for 90 minutes."
                 elif _roll == 2:
@@ -475,8 +463,6 @@ label activity_gym:
                 else:
                     _heal_parts.append("MAX HP capped")
                 _heal_parts.append("{{color=#00cc88}}+{} HP{{/color}}".format(_gym_heal))
-                if _streak_add:
-                    _heal_parts.append("[STREAK x{}]".format(store.gym_streak))
                 if _gym_mult < 1.0:
                     _heal_parts.append("REPEAT -{}%".format(int(round((1.0 - _gym_mult) * 100))))
                 _gym_heal_text = ", ".join(_heal_parts)
@@ -515,7 +501,6 @@ label activity_gym:
 
             python:
                 activity_selected = True
-                store.gym_day = True
             jump end_day
 
         "Return to menu.":
@@ -540,10 +525,6 @@ label activity_gym_heavy:
         if not stats.try_spend_money(_heavy_cost):
             renpy.say(None, "[[INSUFFICIENT FUNDS] Heavy session needs {:,} CZK. The good gym isn't free.".format(_heavy_cost))
             renpy.jump("select_activity")
-        ## Lazy-init gym_streak — same guard activity_gym uses, since HEAVY SESSION
-        ## might be a player's first gym-equivalent activity on Day 1.
-        if not hasattr(store, 'gym_streak'):
-            store.gym_streak = 0
 
     "The owner meets you at the door. Doesn't say hello. Looks at your shoulders, then your eyes, then nods once."
     "'Heavy day. We go until you can't grip the bar.'"
@@ -552,11 +533,11 @@ label activity_gym_heavy:
 
     python:
         ## Always-apply progression — you completed the session.
-        store.gym_streak += 1
+        store.gym_sessions = getattr(store, 'gym_sessions', 0) + 1
         add_soma(1)
-        if store.gym_streak == 3 and stats.player_class == "bodybuilder":
+        if store.gym_sessions == 3 and stats.player_class == "bodybuilder":
             grant_card("hold_the_line", silent=True)
-        if store.gym_streak >= 5:
+        if store.gym_sessions >= 5:
             _newly_unlocked = unlock_achievement("gym_rat")
             if _newly_unlocked and stats.player_class == "bodybuilder":
                 grant_card("iron_stance", silent=True)
@@ -605,7 +586,6 @@ label activity_gym_heavy:
 
     python:
         activity_selected = True
-        store.gym_day = True
     jump end_day
 
 
@@ -821,30 +801,33 @@ label activity_bouncer:
     scene bg_havana_club
 
     python:
-        _roll = __import__('random').randint(1, 100)
         _bb_cash = 2500 if stats.player_class == "bodybuilder" else 0
         _bb_tag = " [BODYBUILDER BONUS]" if _bb_cash else ""
         ## Flat 20k base — always, on a fresh night. Consecutive bouncer
-        ## nights bleed it 25% per repeat day (resets after a day off); the
-        ## roll only picks the night's story + hatred swing now.
+        ## nights bleed it 25% per repeat day (resets after a day off) AND
+        ## escalate the night itself: the longer the same cop stands in the
+        ## same doorway, the more the city notices him standing in it.
         _bnc_mult = activity_repeat_tick("bouncer")
+        _bnc_n = store._activity_streaks.get("bouncer", {}).get("count", 1)
         _pending_money = int(round(20000 * _bnc_mult)) + _bb_cash
         _bnc_tag = activity_repeat_tag(_bnc_mult)
-        if _roll <= 60:
-            ## Common — the everyday grind. Pays, but the night recognises you.
-            _pending_hatred = 10
-            _btext = "Six hours in a doorway, nodding at people happier than you. Two drunks square up over a woman interested in neither; you step in and one of them makes you — 'TO JE PŘECE POLDA!'\nYou take the night's cut and the group chat home in equal measure."
-            _boutcome = "+ {:,} CZK, +10 PCR HATRED{}{}".format(stats.money_gain_preview(_pending_money), _bb_tag, _bnc_tag)
-        elif _roll <= 90:
-            ## Uncommon — a clean, busy night. Tips run heavy.
+        if _bnc_n <= 1:
+            ## Fresh night — full pay, no heat.
+            _pending_hatred = 0
+            _btext = "A quiet shift. IDs, nods, one umbrella handed back at two in the morning. The envelope is full and nobody asked what you do during the day."
+        elif _bnc_n == 2:
             _pending_hatred = 5
-            _btext = "Busy night, clean night. The regulars tip like they're trying to impress someone, and the manager slips you extra for keeping it from going sideways.\nNobody bleeds. Nobody films you. You almost don't mind the work."
-            _boutcome = "+ {:,} CZK, +5 PCR HATRED{}{}".format(stats.money_gain_preview(_pending_money), _bb_tag, _bnc_tag)
+            _btext = "Same doorway, same playlist. A drunk regular won't leave at closing, so you walk him out by the collar while he explains he knows his rights. He doesn't know the half of it."
+        elif _bnc_n == 3:
+            _pending_hatred = 10
+            _btext = "Third night straight. Somebody calls the police on a fight you already broke up — the patrol takes one look at you and grins. 'Moonlighting, kolego?' By morning the whole precinct knows."
         else:
-            ## Rare — the night everything lines up.
-            _pending_hatred = -10
-            _btext = "Everything lines up — a private party in the back, cash folded into your palm all night, not one incident on the floor.\nDriving home at 4 AM with the windows down, you catch yourself not hating your life. Closest thing to joy you've felt all week."
-            _boutcome = "+ {:,} CZK, -10 PCR HATRED{}{}".format(stats.money_gain_preview(_pending_money), _bb_tag, _bnc_tag)
+            _pending_hatred = 15
+            _btext = "Fourth night running. The drunk from Tuesday is back with two friends and a phone already filming. By sunrise you're a clip with subtitles, and the Colonel has seen it twice."
+        if _pending_hatred > 0:
+            _boutcome = "+ {:,} CZK, +{} PCR HATRED{}{}".format(stats.money_gain_preview(_pending_money), _pending_hatred, _bb_tag, _bnc_tag)
+        else:
+            _boutcome = "+ {:,} CZK{}{}".format(stats.money_gain_preview(_pending_money), _bb_tag, _bnc_tag)
 
     "[_btext]"
 
@@ -877,9 +860,9 @@ label activity_coding:
         _bc_label = "coding_bootcamp_de" if _is_de else "coding_bootcamp"
         _bc_cost = adjusted_cost(28000) if _is_de else adjusted_cost(35000)
         _bc_cost_text = "{:,} CZK".format(_bc_cost)
-        _bc_flavor = "Six weeks. Study days roll high-tier cards after."
+        _bc_flavor = "Six weeks. Study days roll high-tier cards after. Enrolling doesn't spend the hour."
         if _is_de:
-            _bc_flavor = "Six weeks. You'll read the instructor for a discount. Study days roll high-tier cards after."
+            _bc_flavor = "Six weeks. You'll read the instructor for a discount. Study days roll high-tier cards after. Enrolling doesn't spend the hour."
         _bh_accent = class_accent_color("biohacker")
 
         ## ── BH gets a SPLIT coding picker ──────────────────────────────
@@ -909,7 +892,7 @@ label activity_coding:
                     "cost_text":      "FREE",
                     "art":            "images/pictures/act_coding.png",
                     "art_xoff":       -60,
-                    "effect_text":    "+18 Coding XP",
+                    "effect_text":    "+15 Coding XP",
                     "flavor_text":    "Documentation tabs. A side project. No paycheck — pure investment.",
                     "class_relevant": True,
                 },
@@ -930,7 +913,7 @@ label activity_coding:
                     "accent":         _bh_accent,
                     "cost_text":      _bc_cost_text,
                     "effect_text":    "+25 Coding now  ·  +5 Coding/night",
-                    "flavor_text":    "Six weeks of deadlines and code reviews. The fastest way to tier up the protocol.",
+                    "flavor_text":    "Six weeks of deadlines and code reviews. The fastest way to tier up the protocol. Enrolling doesn't spend the hour.",
                     "class_relevant": True,
                     "locked":         _bc_done,
                     "lock_text":      "Already enrolled. The buff is live.",
@@ -962,7 +945,7 @@ label activity_coding:
                     "cost_text":      "FREE",
                     "art":            "images/pictures/act_coding.png",
                     "art_xoff":       -60,
-                    "effect_text":    ("Pick a card  ·  +12 Coding" if stats.player_class == "bodybuilder" else "Pick from a 3-card offer"),
+                    "effect_text":    ("Pick a card  ·  +15 Coding" if stats.player_class == "bodybuilder" else "Pick from a 3-card offer"),
                     "flavor_text":    ("Bootcamp tier: high-rarity offers." if _bc_done else "An hour at the keyboard. A card to keep — and the skill sticks."),
                     "class_relevant": False,
                 },
@@ -972,7 +955,7 @@ label activity_coding:
                     "accent":         _bh_accent,
                     "cost_text":      "FREE",
                     "art":            "images/pictures/act_refactor.png",
-                    "effect_text":    ("Upgrade a card  ·  +12 Coding  ({} left)".format(_rf_left) if not _rf_locked else "Upgrade a card  ·  +12 Coding"),
+                    "effect_text":    ("Upgrade a card  ·  +15 Coding  ({} left)".format(_rf_left) if not _rf_locked else "Upgrade a card  ·  +15 Coding"),
                     "flavor_text":    "Rewrite what you've already got. Cleaner, meaner. Coding tier sets how many.",
                     "class_relevant": True,
                     "locked":         _rf_locked,
@@ -1165,16 +1148,16 @@ label coding_bootcamp:
     python:
         stats.increment_stats_coding_skill(25)
         grant_card("production_push", silent=True)
-        _bc_outcome = "- {:,} CZK, +25 CODING, +5 Coding/night".format(_bc_cost)
+        _bc_outcome = "- {:,} CZK, +25 CODING, +5 Coding/night. The hour is still yours.".format(_bc_cost)
 
     window hide
     call screen card_grant_screen(card_id="production_push")
     show screen outcome_panel(_bc_outcome)
     pause
     hide screen outcome_panel
-    python:
-        activity_selected = True
-    jump end_day
+    ## Enrolment is a purchase, not the day's hour — back to the coding
+    ## picker with the slot still unspent (the tile now reads enrolled).
+    jump activity_coding
 
 
 label coding_bootcamp_de:
@@ -1192,16 +1175,16 @@ label coding_bootcamp_de:
     python:
         stats.increment_stats_coding_skill(25)
         grant_card("production_push", silent=True)
-        _bc_outcome = "- {:,} CZK [DE DISCOUNT], +25 CODING, +5 Coding/night".format(_bc_cost)
+        _bc_outcome = "- {:,} CZK [DE DISCOUNT], +25 CODING, +5 Coding/night. The hour is still yours.".format(_bc_cost)
 
     window hide
     call screen card_grant_screen(card_id="production_push")
     show screen outcome_panel(_bc_outcome)
     pause
     hide screen outcome_panel
-    python:
-        activity_selected = True
-    jump end_day
+    ## Enrolment is a purchase, not the day's hour — back to the coding
+    ## picker with the slot still unspent (the tile now reads enrolled).
+    jump activity_coding
 
 
 ## ---------------------------------------------------------------------------
@@ -1293,7 +1276,11 @@ label activity_fixer:
     ## so re-entering the hub doesn't reroll the shelf (no StS reroll-scumming).
     ## Buying removes that offer from the cached stock so it can't be re-bought.
 
-    scene bg_fixer_shop
+    ## Lights-on entry: a beat of black, the bulb clicks, the shop fades in.
+    scene black with Dissolve(0.2)
+    $ renpy.pause(0.3, hard=True)
+    play sound "audio/sfx/bulb.mp3"
+    scene bg_fixer_shop with Dissolve(0.5)
 
     python:
         _today = day_cycle.current_day
@@ -1514,10 +1501,6 @@ label do_end_day:
         # Defensive: scrub any stale module refs from older saves so the
         # next quicksave doesn't crash pickle.
         _bh_scrub_stale_module_refs()
-        # Reset gym streak if player didn't go to gym today
-        if not getattr(store, 'gym_day', False):
-            store.gym_streak = 0
-        store.gym_day = False
 
     python:
         # Check loss conditions after passives

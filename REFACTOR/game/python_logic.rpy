@@ -156,14 +156,19 @@ init python:
             if self.available_money >= 200000:
                 unlock_achievement("deep_pockets")
 
+        def coding_ceiling(self):
+            ## Per-class hard cap on Coding skill — single source of truth for
+            ## the increment clamp and the HUD "Coding X/cap" readout.
+            cls = getattr(self, "player_class", None)
+            if cls and cls in CLASS_DATA:
+                return CLASS_DATA[cls].get("coding_ceiling", 250)
+            return 250
+
         def increment_stats_coding_skill(self, amount):
             ## Per-class hard ceiling on Coding skill (all classes 250 today).
             ## The clamp also bounds the BB STUDY coding lane (see coding_study)
             ## so the tech ramp can't overshoot tier 5.
-            ceiling = 250
-            cls = getattr(self, "player_class", None)
-            if cls and cls in CLASS_DATA:
-                ceiling = CLASS_DATA[cls].get("coding_ceiling", 250)
+            ceiling = self.coding_ceiling()
             self.coding_skill += amount
             if self.coding_skill >= ceiling:
                 self.coding_skill = ceiling
@@ -318,6 +323,31 @@ init python:
         if mult >= 1.0:
             return ""
         return "   ·   REPEAT -{}%".format(int(round((1.0 - mult) * 100)))
+
+    def activity_repeat_preview(key):
+        """Read-only twin of activity_repeat_tick: (count, multiplier) the
+        activity WOULD land on if picked today. No state change — safe for
+        the tile grid to call on every render."""
+        streaks = getattr(store, "_activity_streaks", None) or {}
+        today = day_cycle.current_day if day_cycle is not None else 1
+        s = streaks.get(key)
+        if s and s.get("last_day") == today:
+            n = s.get("count", 1)
+        elif s and s.get("last_day") == today - 1:
+            n = s.get("count", 1) + 1
+        else:
+            n = 1
+        return n, max(0.25, 1.0 - 0.25 * (n - 1))
+
+    def activity_repeat_tile_warn(key, what):
+        """Red tile-footer line for a repeat-penalized activity ('' when
+        fresh): '-25% pay · 2nd day in a row'. `what` names the payout."""
+        n, mult = activity_repeat_preview(key)
+        if mult >= 1.0:
+            return ""
+        _ord = {2: "2nd", 3: "3rd"}.get(n, "{}th".format(n))
+        return ("\n{color=#ff6655}-" + str(int(round((1.0 - mult) * 100)))
+                + "% " + what + " · " + _ord + " day in a row{/color}")
 
     def diff_setting(key, default=None):
         """Read a difficulty rule field. Safe before init_game runs."""
@@ -539,6 +569,9 @@ init python:
         store._ladder_skip_tomorrow = False
         ## Consecutive-day activity tracker (diminishing returns) — fresh per run.
         store._activity_streaks = {}
+        ## Total gym sessions this run (regular + heavy) — drives the spotter
+        ## card grant and the gym_rat achievement. Plain count, not a streak.
+        store.gym_sessions = 0
         ## Overtime "?" pity counter for the enemy roll (resets to the 10%
         ## floor on a fight). See _roll_overtime in events/overtime_events.rpy.
         store.overtime_enemy_chance = 10
@@ -692,7 +725,7 @@ init python:
     # ---------------------------------------------------------------------------
     ACHIEVEMENTS = {
         "first_blood":      {"category": "Story",      "name": "First Blood",            "desc": "Lose money for the first time.",                                "hint": "Spend more than you can afford."},
-        "gym_rat":          {"category": "Collection", "name": "Gym Rat",                 "desc": "Hit a 5-day gym streak.",                                       "hint": "Hit the gym 5 days in a row."},
+        "gym_rat":          {"category": "Collection", "name": "Gym Rat",                 "desc": "Hit the gym 5 times in one run.",                               "hint": "Train at the gym 5 days in a single run."},
         "deep_pockets":     {"category": "Collection", "name": "Deep Pockets",            "desc": "Save over 200,000 CZK.",                                        "hint": "Accumulate 200,000 CZK in savings."},
         "code_god":         {"category": "Collection", "name": "Code God",                "desc": "Reach 200+ Coding Skill.",                                      "hint": "Reach 200 Coding Skill."},
         "dark_night":       {"category": "Story",      "name": "Dark Night of the Soul",  "desc": "Complete The Midnight Call.",                                   "hint": "Take the Day-15 phone call."},

@@ -125,7 +125,7 @@ label martin_phase1_preparation:
             pause
             hide screen outcome_panel
 
-        "{color=#ff6633}{b}[[BODYBUILDER]{/b}{/color} Hit the gym first. (+1 AFFECTION, free)" if stats.player_class == "bodybuilder" and (getattr(store, 'gym_streak', 0) >= 5 or getattr(store, 'bb_soma', 0) >= 5):
+        "{color=#ff6633}{b}[[BODYBUILDER]{/b}{/color} Hit the gym first. (+1 AFFECTION, free)" if stats.player_class == "bodybuilder" and (getattr(store, 'gym_sessions', 0) >= 5 or getattr(store, 'bb_soma', 0) >= 5):
             python:
                 martin_affection += 1
                 mm_outfit = "collar"
