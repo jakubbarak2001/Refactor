@@ -86,8 +86,10 @@ screen stats_bar():
                 _class_track = "STACK {}".format(_proto)
 
         ## Coding tier (1-5) — surfaced next to the raw skill so the player can
-        ## read the live value every coding-scaled card refers to.
+        ## read the live value every coding-scaled card refers to. The cap is
+        ## shown too (X/cap) so the ceiling is never a surprise.
         _coding_tier = _coding_tier_int()
+        _coding_cap = stats.coding_ceiling()
 
         ## ── Tooltips (threshold-gated) ────────────────────────────────────
         _coding_tt = None
@@ -407,12 +409,12 @@ screen stats_bar():
                                 background None
                                 padding (0, 0)
                                 yalign 0.5
-                                text "Coding [stats.coding_skill] · T[_coding_tier]":
+                                text "Coding [stats.coding_skill]/[_coding_cap] · T[_coding_tier]":
                                     color "#00ccff"
                                     size 15
                                     font DOSSIER_FONT
                         else:
-                            text "Coding [stats.coding_skill] · T[_coding_tier]":
+                            text "Coding [stats.coding_skill]/[_coding_cap] · T[_coding_tier]":
                                 color "#00ccff"
                                 size 15
                                 yalign 0.5
@@ -469,6 +471,13 @@ screen deck_viewer():
     modal True
     zorder 400
 
+    ## Hovered card + its content-space slot origin — drives the anchored
+    ## hover-inspect overlay (same pattern as fixer_removal_screen). Tuple is
+    ## (cid, slot_x, slot_y, col); the adjustment tracks the grid's vertical
+    ## scroll so the anchor stays glued while scrolled.
+    default _dv_hover = None
+    default _dv_yadj  = ui.adjustment()
+
     add "#0d0d11ee"
 
     python:
@@ -488,9 +497,12 @@ screen deck_viewer():
     ## Class-color outer frame — "this is YOUR deck" without overriding per-card colors.
     use class_color_frame(thickness=3, alpha_suffix="aa")
 
+    ## Header — FIXED position (not centered-flow) so the grid below sits at
+    ## known coordinates: the hover-inspect overlay anchors to the hovered
+    ## card's slot, which needs deterministic grid geometry (fixer pattern).
     vbox:
         xalign 0.5
-        yalign 0.5
+        ypos 24
         spacing 10
 
         text "> YOUR DECK <":
@@ -519,21 +531,40 @@ screen deck_viewer():
                     size 15
                     font "fonts/RobotoMono-Regular.ttf"
 
-        ## ── Grid layout ───────────────────────────────────────────────────
-        ## Six cards per row at hand-mode size (220×316). Row pitch leaves
-        ## clearance for the cost-gem overhang (-12px above each card) so
-        ## adjacent rows don't visually collide. Viewport 1600×880 fits
-        ## 6×220 + 5×16 = 1400 wide with margin to spare; tall enough to
-        ## show a full row + group header without scrolling on small decks.
-        viewport:
-            xsize 1600
-            ysize 880
-            scrollbars "vertical"
-            mousewheel True
-            draggable True
+    ## Grid geometry constants — shared by the layout below AND the overlay
+    ## anchor math. Slot stride = card (220/320) + gutter (16/28); group
+    ## headers take a FIXED height so the content-space y cursor stays exact.
+    python:
+        _DV_VX, _DV_VY = 160, 210     ## viewport screen position
+        _DV_PAD        = 36           ## inner padding (gem overhang room)
+        _DV_SX, _DV_SY = 236, 348     ## slot stride x/y
+        _DV_HDR_H      = 30           ## group-header band height
 
+    ## ── Grid layout ───────────────────────────────────────────────────────
+    ## Six cards per row at hand-mode size (220×316) via the canonical
+    ## battle_card_view renderer. Hover a card for the full-size inspect
+    ## overlay, same as the fixer. The padded frame gives the cost gems
+    ## (which overhang each card's top-left) room inside the viewport's
+    ## clip area. Viewport fits 6×220 + 5×16 = 1400 wide with margin.
+    viewport:
+        xpos _DV_VX
+        ypos _DV_VY
+        xsize 1600
+        ysize 720
+        yadjustment _dv_yadj
+        scrollbars "vertical"
+        mousewheel True
+        draggable True
+
+        frame:
+            background None
+            padding (_DV_PAD, _DV_PAD)
             vbox:
                 spacing 24
+
+                ## Content-space y cursor — advanced group by group below so
+                ## every card's slot origin is exact for the overlay anchor.
+                $ _dv_y = _DV_PAD
 
                 for _grp in CARD_VISUAL_TYPES:
                     if _deck_by_group.get(_grp):
@@ -541,42 +572,53 @@ screen deck_viewer():
                         $ _grp_cards = _deck_by_group[_grp]
 
                         ## Group header — type label, color-coded, with count.
-                        ## xoffset matches the row offset below so the header
-                        ## color bar lines up with the first card's left edge.
+                        ## Color bar to the left of the label gives the
+                        ## header weight and matches the card frames below.
                         hbox:
                             spacing 12
-                            yalign 0.5
-                            xoffset 28
-                            ## Color bar to the left of the label gives the
-                            ## header weight and matches the card frames below.
+                            ysize _DV_HDR_H
                             frame:
                                 ysize 22
                                 xsize 8
+                                yalign 0.5
                                 background Frame(_grp_hex, 0, 0)
                             text "{} ({})".format(_grp.upper(), len(_grp_cards)):
+                                yalign 0.5
                                 color _grp_hex
                                 size 22
                                 bold True
                                 font "fonts/RobotoMono-Regular.ttf"
                                 outlines [(1, "#000000", 0, 0)]
 
-                        ## Six cards per row, full StS card visuals via the
-                        ## canonical battle_card_view renderer. xoffset 28
-                        ## reserves room for the cost-gem overhang on the
-                        ## leftmost card in each row (gem hangs xpos -22
-                        ## from the card frame; without the shift the row's
-                        ## first gem gets clipped at the viewport edge).
+                        ## Rows begin under the header + one vbox gap.
+                        $ _dv_y += _DV_HDR_H + 24
                         $ _rows = [_grp_cards[i:i+6] for i in range(0, len(_grp_cards), 6)]
                         vbox:
                             spacing 28
-                            xoffset 28
-                            for _row in _rows:
+                            for _ri, _row in enumerate(_rows):
                                 hbox:
                                     spacing 16
-                                    for _cid in _row:
+                                    for _ci, _cid in enumerate(_row):
+                                        $ _slot_x = _DV_PAD + _ci * _DV_SX
+                                        $ _slot_y = _dv_y + _ri * _DV_SY
                                         fixed:
                                             xysize (220, 320)
-                                            use battle_card_view(cid=_cid, mode="hand", playable=True)
+                                            ## Hover-tracking button — no
+                                            ## click action; the viewer is
+                                            ## read-only.
+                                            button:
+                                                xsize 220
+                                                ysize 316
+                                                background None
+                                                hover_background None
+                                                action NullAction()
+                                                hovered SetScreenVariable("_dv_hover", (_cid, _slot_x, _slot_y, _ci))
+                                                unhovered SetScreenVariable("_dv_hover", None)
+                                                at fixer_card_nudge
+                                                use battle_card_view(cid=_cid, mode="hand", playable=True)
+
+                        ## Advance the cursor past this group's rows + gap.
+                        $ _dv_y += len(_rows) * _DV_SY - 28 + 24
 
                 if not _deck_cards:
                     text "Your deck is empty.\nDo activities, attend events, or talk to Martin to collect cards.":
@@ -586,17 +628,36 @@ screen deck_viewer():
                         xalign 0.5
                         text_align 0.5
 
-        textbutton "[[ CLOSE ]":
-            xalign 0.5
-            ## Hide self — the Dossier HUD strip (zorder 100) renders above
-            ## this modal anyway, so no other layer needs restoring. No
-            ## Return() — Return is what triggered the "back to main menu"
-            ## bug when called outside a label.
-            action Hide("deck_viewer")
-            text_style "class_select_btn"
-            background "#220000"
-            hover_background "#440000"
-            padding (20, 10)
+    textbutton "[[ CLOSE ]":
+        xalign 0.5
+        ypos 950
+        ## Hide self — the Dossier HUD strip (zorder 100) renders above
+        ## this modal anyway, so no other layer needs restoring. No
+        ## Return() — Return is what triggered the "back to main menu"
+        ## bug when called outside a label.
+        action Hide("deck_viewer")
+        text_style "class_select_btn"
+        background "#220000"
+        hover_background "#440000"
+        padding (20, 10)
+
+    ## Hover-inspect overlay — the full-size card, drawn after (= on top of)
+    ## the grid so it's never clipped by the viewport or occluded by the
+    ## neighbouring cards. Anchored to the hovered card's slot, flipping to
+    ## the upper-left for the rightmost columns so it never runs offscreen.
+    ## Vertical position is clamped to the screen and tracks the scroll.
+    if _dv_hover:
+        python:
+            _dv_slot_x = _DV_VX + _dv_hover[1]
+            _dv_slot_y = _DV_VY + _dv_hover[2] - int(_dv_yadj.value)
+            _dv_ins_x = (_dv_slot_x - 414) if _dv_hover[3] >= 4 else (_dv_slot_x + 234)
+            _dv_ins_y = max(16, min(_dv_slot_y - 200, 1080 - 588))
+        fixed:
+            xpos _dv_ins_x
+            ypos _dv_ins_y
+            xysize (400, 572)
+            at inspect_overlay_in
+            use battle_card_view(cid=_dv_hover[0], mode="inspect", playable=True)
 
 
 ## ---------------------------------------------------------------------------
@@ -1123,6 +1184,10 @@ screen activity_select_screen():
         _act_today      = day_cycle.current_day if day_cycle is not None else 1
         _act_fixer_here = fixer_visits_today(_act_today)
         _act_fixer_done = bool(getattr(store, '_fixer_shredded_today', False))
+        ## Repeat-penalty footers — red "(-X% · nth day in a row)" on the
+        ## tiles whose payout bleeds on consecutive days (gym + bouncer).
+        _act_gym_warn = activity_repeat_tile_warn("gym", "relief")
+        _act_bnc_warn = activity_repeat_tile_warn("bouncer", "pay")
 
     hbox:
         xalign 0.5
@@ -1136,7 +1201,7 @@ screen activity_select_screen():
                 title             = "GYM",
                 accent            = class_accent_color("bodybuilder"),
                 cost_text         = "FREE",
-                flavor_text       = "An hour where the bar tells the truth.",
+                flavor_text       = "An hour where the bar tells the truth." + _act_gym_warn,
                 class_relevant    = True,
                 art               = "images/pictures/act_gym.png",
                 art_xoff          = -140,
@@ -1188,7 +1253,7 @@ screen activity_select_screen():
                 title          = "BOUNCER",
                 accent         = "#ffd700",
                 cost_text      = "FREE",
-                flavor_text    = "Moonlighting pays well, but it's dangerous for cops.",
+                flavor_text    = "Moonlighting pays well, but it's dangerous for cops." + _act_bnc_warn,
                 art            = "images/pictures/act_bouncer.png",
                 art_xoff       = -80,
                 tile_w         = 340,
@@ -3148,7 +3213,12 @@ screen deck_upgrade_picker():
     modal True
     zorder 700
 
-    default _dup_tab = "deck"
+    ## Hovered card + its content-space slot origin — drives the anchored
+    ## hover-inspect overlay (same pattern as fixer_removal_screen). Tuple is
+    ## (cid, slot_x, slot_y, col); the adjustment tracks the grid's vertical
+    ## scroll so the anchor stays glued while scrolled.
+    default _dup_hover = None
+    default _dup_yadj  = ui.adjustment()
 
     add "#0d0d11ee"
 
@@ -3171,10 +3241,13 @@ screen deck_upgrade_picker():
 
     use class_color_frame(thickness=3, alpha_suffix="aa")
 
+    ## Header — FIXED position (not centered-flow) so the grid below sits at
+    ## known coordinates: the hover-inspect overlay anchors to the hovered
+    ## card's slot, which needs deterministic grid geometry (fixer pattern).
     vbox:
         xalign 0.5
-        yalign 0.5
-        spacing 14
+        ypos 30
+        spacing 10
 
         text "> UPGRADE A CARD <":
             xalign 0.5
@@ -3188,19 +3261,41 @@ screen deck_upgrade_picker():
             color "#888888"
             size 16
 
-        ## ── Grid layout — full StS card visuals, click an upgradeable card
-        ## to preview its `+` form. Non-upgradeable cards are dimmed (passed
-        ## `playable=False` to battle_card_view) and not clickable. Matches
-        ## the deck_viewer grid; same 6-per-row pitch.
-        viewport:
-            xsize 1600
-            ysize 760
-            scrollbars "vertical"
-            mousewheel True
-            draggable True
+    ## Grid geometry constants — shared by the layout below AND the overlay
+    ## anchor math. Slot stride = card (220/320) + gutter (16/28); group
+    ## headers take a FIXED height so the content-space y cursor stays exact.
+    python:
+        _DUP_VX, _DUP_VY = 160, 150   ## viewport screen position
+        _DUP_PAD         = 36         ## inner padding (gem overhang room)
+        _DUP_SX, _DUP_SY = 236, 348   ## slot stride x/y
+        _DUP_HDR_H       = 30         ## group-header band height
 
+    ## ── Grid layout — full StS card visuals, click an upgradeable card to
+    ## preview its `+` form. Non-upgradeable cards are dimmed (passed
+    ## `playable=False` to battle_card_view) but stay hover-inspectable —
+    ## only the pick action gates. Hover any card for the full-size inspect
+    ## overlay, same as the fixer. Matches the deck_viewer grid; same
+    ## 6-per-row pitch. The padded frame gives the cost gems (which overhang
+    ## each card's top-left) room inside the viewport's clip area.
+    viewport:
+        xpos _DUP_VX
+        ypos _DUP_VY
+        xsize 1600
+        ysize 760
+        yadjustment _dup_yadj
+        scrollbars "vertical"
+        mousewheel True
+        draggable True
+
+        frame:
+            background None
+            padding (_DUP_PAD, _DUP_PAD)
             vbox:
                 spacing 24
+
+                ## Content-space y cursor — advanced group by group below so
+                ## every card's slot origin is exact for the overlay anchor.
+                $ _dup_y = _DUP_PAD
 
                 for _col in _dup_group_order:
                     if _dup_by_group.get(_col):
@@ -3210,46 +3305,55 @@ screen deck_upgrade_picker():
                         ## Group header — color bar + count.
                         hbox:
                             spacing 12
-                            yalign 0.5
+                            ysize _DUP_HDR_H
                             frame:
                                 ysize 22
                                 xsize 8
+                                yalign 0.5
                                 background Frame(_col_hex, 0, 0)
                             text "{} ({})".format(_col.upper(), len(_col_cards)):
+                                yalign 0.5
                                 color _col_hex
                                 size 22
                                 bold True
                                 font "fonts/RobotoMono-Regular.ttf"
                                 outlines [(1, "#000000", 0, 0)]
 
+                        ## Rows begin under the header + one vbox gap.
+                        $ _dup_y += _DUP_HDR_H + 24
                         $ _rows = [_col_cards[i:i+6] for i in range(0, len(_col_cards), 6)]
                         vbox:
                             spacing 28
-                            for _row in _rows:
+                            for _ri, _row in enumerate(_rows):
                                 hbox:
                                     spacing 16
-                                    for _cid in _row:
+                                    for _ci, _cid in enumerate(_row):
                                         $ _can_up = is_upgradeable(_cid)
+                                        $ _slot_x = _DUP_PAD + _ci * _DUP_SX
+                                        $ _slot_y = _dup_y + _ri * _DUP_SY
 
-                                        ## fixed wrapper reserves the slot
-                                        ## so non-upgradeable cards (no
-                                        ## button) take the same footprint
-                                        ## as the clickable ones.
+                                        ## fixed wrapper reserves the slot so
+                                        ## the hover nudge never reflows the
+                                        ## row.
                                         fixed:
                                             xysize (220, 320)
-                                            if _can_up:
-                                                button:
-                                                    xsize 220
-                                                    ysize 316
-                                                    background None
-                                                    hover_background None
-                                                    action Return(_cid)
-                                                    at card_hover_lift
-                                                    use battle_card_view(cid=_cid, mode="hand", playable=True)
-                                            else:
-                                                ## Dimmed via playable=False — frame desaturates,
-                                                ## cost gem darkens, description fades. No hover lift.
-                                                use battle_card_view(cid=_cid, mode="hand", playable=False)
+                                            ## Sensitive even when dimmed —
+                                            ## inspecting the card must keep
+                                            ## working; only the pick action
+                                            ## gates on upgradeability.
+                                            button:
+                                                xsize 220
+                                                ysize 316
+                                                background None
+                                                hover_background None
+                                                action (Return(_cid) if _can_up else NullAction())
+                                                hovered SetScreenVariable("_dup_hover", (_cid, _slot_x, _slot_y, _ci))
+                                                unhovered SetScreenVariable("_dup_hover", None)
+                                                at fixer_card_nudge
+                                                use battle_card_view(cid=_cid, mode="hand", playable=_can_up)
+
+                        ## Advance the cursor past this group's rows + gap.
+                        $ _dup_y += len(_rows) * _DUP_SY - 28 + 24
 
                 if not _dup_cards:
                     text "Your deck is empty.":
@@ -3259,30 +3363,49 @@ screen deck_upgrade_picker():
                         xalign 0.5
                         text_align 0.5
 
-        ## Class-aware back label — BB upgrades from gym, DE from cold-read
-        ## (currently routed through gym-equivalent flow), BH from PubMed
-        ## research. Falls back to plain BACK for unknown class.
+    ## Class-aware back label — BB upgrades from gym, DE from cold-read
+    ## (currently routed through gym-equivalent flow), BH from PubMed
+    ## research. Falls back to plain BACK for unknown class.
+    python:
+        _dup_pc = stats.player_class if stats else None
+        if _dup_pc == "biohacker":
+            _dup_back_label = "[[ ← BACK TO RESEARCH ]"
+        elif _dup_pc == "bodybuilder":
+            _dup_back_label = "[[ ← BACK TO GYM ]"
+        elif _dup_pc == "dark_empath":
+            _dup_back_label = "[[ ← BACK ]"
+        else:
+            _dup_back_label = "[[ ← BACK ]"
+    textbutton _dup_back_label:
+        xalign 0.5
+        ypos 940
+        action Return("cancel")
+        text_color "#aaaaaa"
+        text_hover_color "#ffffff"
+        text_size 20
+        text_bold True
+        text_font "fonts/RobotoMono-Regular.ttf"
+        background Frame("#1a1a1aee", 4, 4)
+        hover_background Frame("#2a2a2aee", 4, 4)
+        padding (24, 10)
+
+    ## Hover-inspect overlay — the full-size card, drawn after (= on top of)
+    ## the grid so it's never clipped by the viewport or occluded by the
+    ## neighbouring cards. Anchored to the hovered card's slot, flipping to
+    ## the upper-left for the rightmost columns so it never runs offscreen.
+    ## Vertical position is clamped to the screen and tracks the scroll.
+    if _dup_hover:
         python:
-            _dup_pc = stats.player_class if stats else None
-            if _dup_pc == "biohacker":
-                _dup_back_label = "[[ ← BACK TO RESEARCH ]"
-            elif _dup_pc == "bodybuilder":
-                _dup_back_label = "[[ ← BACK TO GYM ]"
-            elif _dup_pc == "dark_empath":
-                _dup_back_label = "[[ ← BACK ]"
-            else:
-                _dup_back_label = "[[ ← BACK ]"
-        textbutton _dup_back_label:
-            xalign 0.5
-            action Return("cancel")
-            text_color "#aaaaaa"
-            text_hover_color "#ffffff"
-            text_size 20
-            text_bold True
-            text_font "fonts/RobotoMono-Regular.ttf"
-            background Frame("#1a1a1aee", 4, 4)
-            hover_background Frame("#2a2a2aee", 4, 4)
-            padding (24, 10)
+            _ins_slot_x = _DUP_VX + _dup_hover[1]
+            _ins_slot_y = _DUP_VY + _dup_hover[2] - int(_dup_yadj.value)
+            _ins_x = (_ins_slot_x - 414) if _dup_hover[3] >= 4 else (_ins_slot_x + 234)
+            _ins_y = max(16, min(_ins_slot_y - 200, 1080 - 588))
+        fixed:
+            xpos _ins_x
+            ypos _ins_y
+            xysize (400, 572)
+            at inspect_overlay_in
+            use battle_card_view(cid=_dup_hover[0], mode="inspect", playable=True)
 
     key "K_ESCAPE" action Return("cancel")
 
@@ -3467,7 +3590,9 @@ screen upgrade_reveal_screen(plus_id):
 
 
 ## ---------------------------------------------------------------------------
-## Card Acquired Toast — slides in from top-right when grant_card fires non-silently.
+## Forced-card Toast — slides in from top-right ONLY for corruption cards
+## (Rage / Compromise) jammed into the deck by grant_card. Voluntary grants
+## no longer toast (the pick flow already showed the card).
 ## ---------------------------------------------------------------------------
 
 transform _card_toast_anim:

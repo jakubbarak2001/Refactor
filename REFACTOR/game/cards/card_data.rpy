@@ -356,7 +356,11 @@ init -1 python:
         if c.get("class_lock") and stats is not None and c["class_lock"] != stats.player_class:
             return False
         player_deck.add(card_id)
-        if not silent:
+        ## No generic "CARD ACQUIRED" toast — every voluntary grant follows a
+        ## pick the player just made, so the slide was pure noise. Forced
+        ## corruption cards (Rage / Compromise) still toast: they land without
+        ## a pick and the slide is their only announcement.
+        if not silent and (c.get("is_rage") or c.get("is_compromise")):
             try:
                 renpy.show_screen("card_acquired_toast", card=c)
                 renpy.sound.play("audio/achivement_unlocked.mp3", channel="sound")
