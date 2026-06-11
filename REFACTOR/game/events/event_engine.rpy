@@ -62,12 +62,6 @@ init python:
     ## fallback whenever an event slot has no marquee event queued.
     RECURRING_EVENTS = ["evr_the_briefing", "evr_coffee_machine", "evr_locker_room", "evr_bad_call"]
 
-    ## Days that force a narrative beat even if ladder fights remain — so the
-    ## ARC-banded marquee events reliably surface (battles otherwise pre-empt
-    ## them, per roll_ladder_or_event). One early + one late slot; the BB arc
-    ## (class_arc_check) owns days 6/15/21, the act bosses own 24/colonel.
-    EVENT_GUARANTEE_DAYS = {9, 18}
-
     _BAND_FALLBACK = {
         "early": ["early", "mid", "late"],
         "mid":   ["mid", "early", "late"],

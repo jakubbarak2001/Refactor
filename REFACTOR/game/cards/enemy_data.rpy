@@ -71,6 +71,11 @@ init -1 python:
             "flee_relief":      None,
             "flee_czk_penalty": 0,
             "flee_hatred_cost": 0,
+            ## flee_min_hatred_pct gates the flee option behind a minimum
+            ## Hatred (fraction of hatred_cap, e.g. 0.75); flee_gate_text is
+            ## the locked-button line, "{}" = the computed threshold.
+            "flee_min_hatred_pct": 0,
+            "flee_gate_text":   None,
             "flee_daily_income": 0,
             "flee_heal":        0,
             "flee_max_hp":      0,
@@ -216,6 +221,15 @@ init -1 python:
         log_name     = "Taggers",
         tier         = "easy",
         max_hp       = 80,
+        ## Walking away from kids with spray cans buys no peace — they own the
+        ## tunnel the moment you turn around, and they make sure you know it.
+        flee_relief  = 0,
+        flee_hatred_cost = 25,
+        flee_narration = [
+            "You wave it off. Three of them watch you turn around, and nobody even runs — that's the part that stays with you.",
+            "Two steps toward the car your boot lands in a wide, wet stripe of fresh paint. Laid down across the whole pavement, right where you'd walk. A courtesy. They left it for you.",
+            "You drag silver all the way to the car like a snail with a pension. Somewhere behind you, a can rattles in applause.",
+        ],
         deck_template = ["tag_quick", "tag_team", "spray_blind", "vandal_block"],
         wrinkle      = "tag_stack",
         intro_lines  = [
@@ -323,10 +337,13 @@ init -1 python:
         ## little harder than it found you — relief + a heal + a permanent +10 Max
         ## HP. Fighting still pays better (the relic + cash + a card draft); the
         ## batch is the low-risk line for a build that would rather not bleed its
-        ## way through the Act I wall.
+        ## way through the Act I wall. Gated: only a cop past 75% of the hatred
+        ## cap says yes to the tray — anyone steadier has to fight him.
         flee_relief  = 20,
         flee_heal    = 22,
         flee_max_hp  = 10,
+        flee_min_hatred_pct = 0.75,
+        flee_gate_text = "You put the tray down without thinking about it. Need {}+ Hatred.",
         flee_narration = [
             "Grundza doesn't reach for a weapon. He reaches for the tray — fresh off the rig, still warm — and slides it across the counter.",
             "'On the house. New batch.' You shouldn't. You climbed three flights telling yourself you wouldn't. You do anyway. The edges of the night go soft, the pressure behind your eyes drains, and for once the body feels like it's winning.",

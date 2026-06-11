@@ -128,13 +128,11 @@ init python:
             ('event',  None, None)      fall through to narrative pool
             (None,     None, None)      silent slot (Easy-loss penalty)
 
-        Battles take priority over narrative events on normal days: as long as
-        the current tier's battle pool has enemies, the slot is a battle. Two
-        exceptions ensure the ARC-banded events actually surface:
-          - EVENT_GUARANTEE_DAYS force an event even when fights remain.
-          - When a tier's battle pool is drained, the slot is always an event
-            (recurring "station texture" beats guarantee one even after every
-            marquee event has been seen — no more dead-air silent slots).
+        Battles take priority over narrative events, full stop: as long as
+        the current tier's battle pool has enemies, the slot is a battle.
+        When the pool is drained, the slot is always an event (recurring
+        "station texture" beats guarantee one even after every marquee event
+        has been seen — no more dead-air silent slots).
         """
         import random as _r
         _ladder_init_pool()
@@ -142,11 +140,6 @@ init python:
         if getattr(store, '_ladder_skip_tomorrow', False):
             store._ladder_skip_tomorrow = False
             return (None, None, None)
-
-        ## Guaranteed event day — force a banded marquee/recurring beat even if
-        ## ladder fights remain (otherwise battles pre-empt events all run).
-        if day in EVENT_GUARANTEE_DAYS:
-            return ("event", None, None)
 
         tier = _battle_ladder_band(day)
         battle_pool = store.battle_ladder_pool.get(tier, [])
@@ -284,6 +277,14 @@ screen encounter_choice(enemy_id, tier="medium", can_flee=True):
         _enc_flee_afford = (_enc_fe["penalty"] <= 0) or (stats is not None and stats.available_money >= _enc_fe["penalty"])
         if not _enc_flee_afford:
             _enc_flee_sub = "Need {:,} CZK to make this offer.".format(_enc_fe["penalty"])
+        ## Hatred-gated flees (Grundza's batch): the line only opens for a cop
+        ## already running hot enough to say yes. Below the bar, you fight.
+        _enc_flee_hgate = _enc_e.get("flee_min_hatred_pct", 0)
+        if _enc_flee_afford and _enc_flee_hgate > 0 and stats is not None:
+            _enc_hg_need = int(round(hatred_cap() * _enc_flee_hgate))
+            if stats.pcr_hatred < _enc_hg_need:
+                _enc_flee_afford = False
+                _enc_flee_sub = (_enc_e.get("flee_gate_text") or "Need {}+ Hatred.").format(_enc_hg_need)
 
     add "#0a0a0a"
     if renpy.loadable(_enc_bg):
