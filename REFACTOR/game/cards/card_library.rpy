@@ -1606,19 +1606,6 @@ init python:
         flavor        = "The smell stays in the wood for a week. Long after the burn.",
     )
 
-    register_card(
-        "pills_probably",
-        name          = "Pills, Probably",
-        type          = "Skill",
-        color         = "Physical",
-        cost          = 0,
-        rarity        = "uncommon",
-        effect        = "pills_probably",
-        exhaust       = True,
-        pool_excluded = True,
-        flavor        = "No markings. No two of them quite the same. No way to know until you take one.",
-    )
-
     ## ---------------------------------------------------------------------------
     ## UPGRADE TABLE — `_plus` variants for every upgradeable base card.
     ## New-archetype cards get their `_plus` variants in a later pass; status /

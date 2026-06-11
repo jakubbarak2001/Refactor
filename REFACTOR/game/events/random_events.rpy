@@ -605,9 +605,10 @@ label ev_colonel_regards:
 
 ## ---------------------------------------------------------------------------
 ## PILLS, PROBABLY — three verbs on a found bag of unmarked pills:
-##   CONFISCATE: pocket the bag off the books — gain the Pills, Probably card.
-##               The gamble (50/50 heal 25 / hurt 22 + Compromise) lives in
-##               your deck now and resolves in some future fight, not here.
+##   CONFISCATE: pocket the bag off the books — one a night until they're
+##               gone. +8 Max HP (Biohacker +10: he reads the compound and
+##               doses it properly). Routed through run_max_hp_bonus so
+##               battle_init's max-HP resync keeps it.
 ##   LEAVE:      shut the bag back in the seat well, walk away. -6 Hatred.
 ##   REPORT:     book the driver by the book. +3,000 CZK, +8 Hatred. Doing
 ##               your job inside a rotten precinct grinds you, not heals you.
@@ -625,12 +626,12 @@ label ev_pills:
             "The driver swears they aren't his. They are never anyone's.",
             "Your hand hovers over the bag. The shift has six hours left in it and you have not slept properly since March.",
         ]
+        _pl_hp = 10 if stats.player_class == "biohacker" else 8
         _pl_choices = [
             {
                 "id": "confiscate",
                 "label": "[ CONFISCATE THE PILLS ]",
-                "desc": ec("Gain Pills, Probably.") + "  Evidence collected. Off the books.",
-                "preview_card": "pills_probably",
+                "desc": eg("+ {} Max HP.".format(_pl_hp)) + "  Evidence collected. Off the books.",
             },
             {
                 "id": "leave",
@@ -652,19 +653,23 @@ label ev_pills:
 
     if _pl_pick == "confiscate":
         python:
-            grant_card("pills_probably", silent=True)
+            _event_ensure_run_hp()
+            ## Same accumulator the vitamin man uses — battle_init's max-HP
+            ## resync folds run_max_hp_bonus in, a raw run_hp_max write dies.
+            store.run_max_hp_bonus = getattr(store, 'run_max_hp_bonus', 0) + _pl_hp
+            store.run_hp_max = class_max_hp()
+            store.run_hp = min(store.run_hp_max, store.run_hp + _pl_hp)
             if stats.player_class == "biohacker":
                 _pl_res = [
                     "You don't need the test kit. One look at the pressing, the binder, the faint bitter edge — you know exactly what these are, and they are not random. Someone with a real lab made these.",
-                    "You pocket the bag the way you'd pocket your own prescription. No gamble here: you know precisely what each one does, and every one of them does something you want.",
-                    ec("Gained Pills, Probably."),
+                    "You pocket the bag the way you'd pocket your own prescription and dose it like one — measured, spaced, logged. Every one of them does something you want.",
+                    eg("+ {} Max HP.".format(_pl_hp)),
                 ]
             else:
                 _pl_res = [
                     "You slide the bag into the inside pocket of your jacket and finish the shift like a man who has just decided something. You do not write up the search.",
-                    "The bag rides home with you. It rides into the kitchen, into the drawer with the gas-bill receipts, and then it rides somewhere you do not look at for a while.",
-                    "You will know when you reach for it. Some night you have not picked yet.",
-                    ec("Gained Pills, Probably."),
+                    "One a night, after the shift, washed down at the kitchen sink. By the time the bag is empty the mirror has stopped arguing: whatever they were, they worked.",
+                    eg("+ {} Max HP.".format(_pl_hp)),
                 ]
 
     elif _pl_pick == "leave":
@@ -1319,6 +1324,10 @@ label ev_the_collector:
 ## three SEEN relics, one per currency lane: pocket the hot one (+Hatred), buy
 ## the clean one (its real shop price), or haul the heavy one (HP). The choose-
 ## one-of-three gear shelf — distinct from lost_and_found's blind box.
+## Hovering a lane previews the actual gear (sprite + mechanic) via the
+## event_screen preview_relic panel. No walk-away consolation: once you're
+## in the lock-up, you leave with something — the only exit choice appears
+## when the bench is bare.
 ## ---------------------------------------------------------------------------
 
 label ev_the_quartermaster:
@@ -1353,7 +1362,7 @@ label ev_the_quartermaster:
                 "id": "slot_hatred",
                 "label": "[ POCKET THE HOT ONE ]",
                 "desc": ek(_qm_m.get("name", "a piece of kit")) + " — " + _qm_m.get("hook", "") + "  " + ec("+ 12 Hatred") + ".",
-                "preview_card": None,
+                "preview_relic": _qm_r_hat,
             })
         if _qm_r_czk:
             _qm_m = RELIC_LIBRARY.get(_qm_r_czk, {})
@@ -1363,6 +1372,7 @@ label ev_the_quartermaster:
                 "desc": ek(_qm_m.get("name", "a piece of kit")) + " — " + _qm_m.get("hook", "") + "  " + ec("- {:,} CZK".format(_qm_czk_price)) + ".",
                 "enabled": stats.available_money >= _qm_czk_price,
                 "locked": ek(_qm_m.get("name", "a piece of kit")) + " — you're {:,} CZK short of a clean buy.".format(max(0, _qm_czk_price - stats.available_money)),
+                "preview_relic": _qm_r_czk,
             })
         if _qm_r_hp:
             _qm_m = RELIC_LIBRARY.get(_qm_r_hp, {})
@@ -1370,12 +1380,15 @@ label ev_the_quartermaster:
                 "id": "slot_hp",
                 "label": "[ HAUL THE HEAVY ONE ]",
                 "desc": ek(_qm_m.get("name", "a piece of kit")) + " — " + _qm_m.get("hook", "") + "  " + ec("- 15 HP") + ".",
+                "preview_relic": _qm_r_hp,
             })
-        _qm_choices.append({
-            "id": "walk",
-            "label": "[ TAKE NOTHING ]",
-            "desc": eg("- 3 Hatred") + ".  Roll the door down, owe him nothing.",
-        })
+        if not _qm_choices:
+            ## Bare bench (pool drained) — the only thing left is the door.
+            _qm_choices.append({
+                "id": "walk",
+                "label": "[ ROLL THE DOOR DOWN ]",
+                "desc": "Nothing on the bench tonight. The drive back is all there is.",
+            })
 
     call screen event_screen(title="THE QUARTERMASTER", art=_qm_art, body=_qm_body, choices=_qm_choices)
 
@@ -1410,11 +1423,10 @@ label ev_the_quartermaster:
                 eg("Gear: {}.".format(_qm_nm)) + "   " + ec("- {} HP.".format(_qm_lost)),
             ]
         else:
-            stats.increment_stats_pcr_hatred(-3)
+            ## Bare-bench exit — no consolation prize, just the drive home.
             _qm_res = [
-                "You look at what's on offer, and you put your hands back in your pockets. The Quartermaster nods like you've finally understood the garage.",
-                "You roll the door down and leave the bench exactly as full as you found it. Out on the ring road you're emptier-handed and, strange thing, a grain less haunted for it.",
-                eg("- 3 Hatred."),
+                "He's back at the crossword before the door is half down. A bare bench is nobody's fault.",
+                "The ring road takes you home the long way it always does.",
             ]
 
     call screen event_outcome(title="THE QUARTERMASTER", art=_qm_art, result=_qm_res)
@@ -1602,10 +1614,13 @@ label ev_the_tail:
 
 
 ## ---------------------------------------------------------------------------
-## THE SIDE GIG [coding] — a freelance ticket due by morning. The all-nighter
-## buys Coding for HP; ship-it-half-done buys cash + a little Coding; sleep is
-## Hatred relief at the cost of the gig. A reachable Coding-for-HP source so the
-## tech lane is buildable without the bootcamp wall.
+## THE SIDE GIG [coding] — a freelance ticket due by morning, and the first
+## place the run reads your Coding skill back at you. FIX IT PROPERLY is the
+## skill check: at 100+ Coding the same ticket is two clean hours at full
+## rate (+12k, +10 Coding, no cost) — below that it stays on the screen,
+## locked, so the player sees exactly what the skill buys. The all-nighter
+## brute-forces Coding for HP; ship-it-half-done is small clean cash; sleep
+## is Hatred relief at the cost of the gig.
 ## ---------------------------------------------------------------------------
 
 label ev_the_side_gig:
@@ -1615,15 +1630,23 @@ label ev_the_side_gig:
 
     python:
         _sg_art = "images/events/ev_the_side_gig.jpg"
+        _sg_pro = (stats.coding_skill >= 100)
         _sg_body = [
             "A message from a guy who knows a guy: a real freelance ticket, due by morning, off the books — the only kind your name can take right now.",
             "The laptop's open on the kitchen table. The shift starts in six hours. The bug doesn't care about either.",
         ]
         _sg_choices = [
             {
+                "id": "pro",
+                "label": "[ FIX IT PROPERLY ]",
+                "enabled": _sg_pro,
+                "desc": eg("+ {:,} CZK".format(stats.money_gain_preview(12000))) + ".  " + eg("+ 10 Coding") + ".  Two hours, clean diff, full rate.",
+                "locked": "You open the repo and the bug looks back from three layers deeper than you can read. Need 100+ Coding.",
+            },
+            {
                 "id": "grind",
                 "label": "[ PULL THE ALL-NIGHTER ]",
-                "desc": ec("- 12 HP") + ".  " + eg("+ 22 Coding") + ".  Burn the night, ship it clean.",
+                "desc": ec("- 15 HP") + ".  " + eg("+ 25 Coding") + ".  Burn the night, ship it clean.",
             },
             {
                 "id": "ship",
@@ -1642,12 +1665,21 @@ label ev_the_side_gig:
     python:
         _sg_pick = _return
         _sg_res = []
-        if _sg_pick == "grind":
-            _sg_lost = event_hurt(12)
-            stats.increment_stats_coding_skill(22)
+        if _sg_pick == "pro":
+            _sg_gain = stats.money_gain_preview(12000)
+            stats.increment_stats_value_money(12000)
+            stats.increment_stats_coding_skill(10)
+            _sg_res = [
+                "You read the stack trace like a gas bill. Two hours, one clean diff, tests green — you bill the whole night anyway, because that's what the rate card says.",
+                "The guy who knows a guy saves your number under a real name. Somewhere out there your future CV grew a line nobody at the precinct will ever see.",
+                eg("+ {:,} CZK.".format(_sg_gain)) + "   " + eg("+ 10 Coding."),
+            ]
+        elif _sg_pick == "grind":
+            _sg_lost = event_hurt(15)
+            stats.increment_stats_coding_skill(25)
             _sg_res = [
                 "You don't sleep. You ship at 06:40, twenty minutes before the alarm, and the thing actually runs. You learned more in one night than in a month of the academy.",
-                ec("- {} HP.".format(_sg_lost)) + "   " + eg("+ 22 Coding."),
+                ec("- {} HP.".format(_sg_lost)) + "   " + eg("+ 25 Coding."),
             ]
         elif _sg_pick == "ship":
             _sg_gain = stats.money_gain_preview(5000)
