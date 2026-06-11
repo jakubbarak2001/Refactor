@@ -325,6 +325,14 @@ transform turn_banner_atl:
     pause 0.7
     ease 0.4 alpha 0.0 xoffset 400
 
+## ENEMY TURN banner slide-in — mounts when the staged enemy phase starts,
+## holds while it lasts (the frame unmounts when the phase clears, so no
+## slide-out is needed).
+transform _enemy_turn_banner_atl:
+    alpha 0.0
+    xoffset 400
+    ease 0.25 alpha 1.0 xoffset 0
+
 ## End-turn warn pulse — slow alpha breathing on the END TURN button when
 ## the player still has unspent energy. Visual nag, not a hard block.
 transform _energy_warn_pulse:
@@ -1124,9 +1132,52 @@ init python:
         bs = battle_state
         if bs is None or getattr(bs, 'over', None):
             return
-        battle_end_player_turn()
+        _battle_end_turn_staged()
+
+    ## ── Staged END TURN ──────────────────────────────────────────────────
+    ## The engine resolves the whole enemy phase in one synchronous call,
+    ## which made END TURN unreadable: the intent resolved, the damage
+    ## popups flew, and the NEXT intent appeared all in the same frame —
+    ## playtesters couldn't tell whether the icon above the enemy's head
+    ## was upcoming or already applied. The staged driver spreads it out:
+    ##   windup  (0.75s) — "ENEMY TURN" banner, the about-to-fire intent
+    ##                     still on screen, captioned NOW.
+    ##   resolve (0.85s) — the intent fires (lunge, flash, popups); the
+    ##                     intent chips are HIDDEN so the result lands
+    ##                     without the next intent photobombing it.
+    ##   done            — next player turn starts: TURN banner plays and
+    ##                     the new intent chips return, captioned NEXT TURN.
+    ## store._bt_enemy_phase: None | "windup" | "resolve". Timers in
+    ## battle_screen advance the phases.
+    def _battle_end_turn_staged():
+        bs = battle_state
+        if bs is None or bs.is_over() or store._bt_enemy_phase is not None:
+            return
+        store._bt_enemy_phase = "windup"
+        _play_battle_sfx("end_turn")
+        bs.discard_hand()
         renpy.restart_interaction()
 
+    def _battle_enemy_phase_resolve():
+        bs = battle_state
+        if bs is None or bs.is_over() or store._bt_enemy_phase != "windup":
+            store._bt_enemy_phase = None
+            return
+        battle_resolve_enemy()
+        store._bt_enemy_phase = None if bs.is_over() else "resolve"
+        renpy.restart_interaction()
+
+    def _battle_enemy_phase_done():
+        bs = battle_state
+        store._bt_enemy_phase = None
+        if bs is not None and not bs.is_over():
+            battle_start_player_turn()
+        renpy.restart_interaction()
+
+
+## Staged END TURN phase — None | "windup" | "resolve" (see the staged
+## driver above). default'd here so saves/rollback track it.
+default _bt_enemy_phase = None
 
 screen battle_screen():
     modal True
@@ -1149,6 +1200,13 @@ screen battle_screen():
         key "K_RETURN" action Function(_battle_key_end_turn)
         key "K_KP_ENTER" action Function(_battle_key_end_turn)
         key "K_e" action Function(_battle_key_end_turn)
+
+    ## Staged END TURN drivers — each phase arms exactly one timer; the
+    ## phase-change restarts the interaction, which arms the next one.
+    if _bt_enemy_phase == "windup":
+        timer 0.75 action Function(_battle_enemy_phase_resolve)
+    elif _bt_enemy_phase == "resolve":
+        timer 0.85 action Function(_battle_enemy_phase_done)
 
     python:
         bs = battle_state
@@ -1414,7 +1472,18 @@ screen battle_screen():
                         if bs.turn > 0 and bs.turn % _cad == 0:
                             _lawyer_cite_bonus = _lwd.get("bonus_dmg", 6)
 
-                if _peek:
+                if _peek and _bt_enemy_phase != "resolve":
+                    ## Caption pins the chips' tense: during the player's turn
+                    ## (and the windup beat) the displayed intent is what fires
+                    ## when the turn ends; during "resolve" the chips hide so
+                    ## the landing hit isn't photobombed by the next intent.
+                    text ("NOW" if _bt_enemy_phase == "windup" else "NEXT TURN"):
+                        xalign 0.5
+                        size 14
+                        bold True
+                        color ("#ff4422" if _bt_enemy_phase == "windup" else "#9a8f78")
+                        font "fonts/RobotoMono-Regular.ttf"
+                        outlines [(2, "#000000", 0, 0)]
                     hbox:
                         spacing 12
                         xalign 0.5
@@ -1897,7 +1966,8 @@ screen battle_screen():
         textbutton _et_label:
             xpos 1700
             ypos 700
-            action [Function(battle_end_player_turn), Function(renpy.restart_interaction)]
+            sensitive (_bt_enemy_phase is None)
+            action Function(_battle_end_turn_staged)
             text_color _et_color
             text_hover_color _et_hover
             text_size 22
@@ -2007,6 +2077,22 @@ screen battle_screen():
         ## quietly until the next turn change re-keys the id.
         if bs.turn > 0:
             use turn_banner_inner(turn_n=bs.turn) id "turn_banner_{}".format(bs.turn)
+
+        ## ── ENEMY TURN banner — up for the whole staged enemy phase, gone
+        ## the moment the next player turn starts (the TURN banner takes over).
+        if _bt_enemy_phase is not None:
+            frame:
+                xalign 0.5
+                ypos 240
+                padding (40, 16)
+                background Frame("#1a0000ee", 4, 4)
+                at _enemy_turn_banner_atl
+                text "ENEMY TURN":
+                    color "#ff4422"
+                    size 56
+                    bold True
+                    font "fonts/RobotoMono-Regular.ttf"
+                    outlines [(3, "#000000", 0, 0)]
 
         ## ── Auto-end VICTORY / DEFEAT fanfare (Phase D) ──────────────────────
         ## Rendered LAST in the screen so the dim overlay + splash card layer

@@ -642,6 +642,10 @@ init python:
         global battle_state
         bs = BattleState()
 
+        ## Staged END TURN phase flag (battle_screen) — never carry a stale
+        ## mid-phase value into a fresh fight.
+        store._bt_enemy_phase = None
+
         ## Enemy identity — pull from ENEMY_LIBRARY with Colonel-safe fallbacks.
         _enemy = ENEMY_LIBRARY.get(enemy_id, {})
         bs.enemy_id = enemy_id
@@ -1256,7 +1260,13 @@ init python:
 
 
     def battle_end_player_turn():
-        """Player ends their turn — discard hand, resolve enemy intent."""
+        """Player ends their turn — discard hand, resolve enemy intent.
+
+        Synchronous, all in one call — kept as the engine-internal path
+        (FLMod skip-turn at battle_start_player_turn). The interactive
+        END TURN routes through _battle_end_turn_staged in battle_screen
+        instead, which spreads the same steps across timed beats so the
+        enemy phase is readable."""
         bs = battle_state
         if bs is None or bs.is_over():
             return
