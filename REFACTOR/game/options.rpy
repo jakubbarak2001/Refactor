@@ -87,6 +87,15 @@ define config.intra_transition = dissolve
 define config.after_load_transition = None
 
 
+## In-game pause menu (Esc) lands here. The engine default is the save screen,
+## but manual save/load was removed for anti-save-scum — landing on a save grid
+## is both confusing and a scumming loophole — so open Settings instead. The nav
+## sidebar still reaches history / trophies / main menu / about / help. Late
+## init so it wins over the engine's layout default.
+init 999 python:
+    _game_menu_screen = "preferences"
+
+
 ## Used when entering the main menu after the game has ended.
 
 define config.end_game_transition = None

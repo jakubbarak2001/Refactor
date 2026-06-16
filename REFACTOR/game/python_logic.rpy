@@ -750,6 +750,19 @@ init python:
         "i_dont_need_it":   {"category": "Secret",     "name": "I Don't Need IT",         "desc": "Reach the escape ending without signing the bootcamp contract.",    "hint": "Find another way out of the uniform."},
     }
 
+    def continue_slot():
+        """Newest save slot the main-menu 'continue' resumes from. The game is
+        autosave-only now (manual save/load removed for anti-save-scum), so
+        prefer the rolling autosave, then any legacy numbered save. Ren'Py's
+        internal _reload/_quit slots are excluded by the patterns. Returns a
+        full slot name, or None when there's nothing to resume.
+
+        IMPORTANT: the return value is a FULL slot name, so FileLoad must be
+        called with slot=True. Without it, FileLoad treats the name as a
+        page+number and builds a bogus slotname (e.g. "A-auto-1") that can't
+        load — which is exactly why 'continue' was greying out."""
+        return renpy.newest_slot(r"auto-") or renpy.newest_slot(r"\d+")
+
     def unlock_achievement(key):
         """Unlock an achievement by key. Safe to call multiple times. Stored in
         Ren'Py `persistent` so the trophy wall survives across runs (it used to

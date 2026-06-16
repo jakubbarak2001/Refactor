@@ -686,9 +686,18 @@ screen main_menu_navigation():
         spacing 8
         at mm_fade_in
 
-        textbutton _("►  new investigation") style "mm_button" action Start("mm_start_fade") hovered _mm_hover_sfx
+        ## Autosave-only continue: resume the rolling autosave. FileLoad needs
+        ## slot=True because continue_slot() returns a full slot name.
+        $ _continue_slot = continue_slot()
 
-        textbutton _("►  continue") style "mm_button" action FileLoad(renpy.newest_slot()) hovered _mm_hover_sfx
+        if _continue_slot is not None:
+            ## A case file exists — starting fresh overwrites it (one rolling
+            ## save, no scumming), so confirm first.
+            textbutton _("►  new investigation") style "mm_button" action Confirm(_("Start a new investigation? This overwrites your current case file — there's only one, and continuing won't bring it back."), Start("mm_start_fade")) hovered _mm_hover_sfx
+        else:
+            textbutton _("►  new investigation") style "mm_button" action Start("mm_start_fade") hovered _mm_hover_sfx
+
+        textbutton _("►  continue") style "mm_button" action FileLoad(_continue_slot, slot=True, confirm=False) sensitive (_continue_slot is not None) hovered _mm_hover_sfx
 
         textbutton _("►  trophies") style "mm_button" action [Hide("phone_screen"), ShowMenu("trophies_menu")] hovered _mm_hover_sfx
 
