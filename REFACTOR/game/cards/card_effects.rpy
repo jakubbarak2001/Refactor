@@ -298,7 +298,7 @@ init python:
             _t = min(5, _t + 1)
         return _t
 
-    def effect_description(effect_id):
+    def _effect_description_base(effect_id):
         if not effect_id:
             return ""
         h = stats.pcr_hatred if stats else 0
@@ -362,6 +362,38 @@ init python:
                     min(battle_state.player_block, COUNTERWEIGHT_CAP) + 4)
             return "Deal damage equal to your current block + 4 (max {}).".format(COUNTERWEIGHT_CAP + 4)
         return EFFECT_DESCRIPTIONS.get(effect_id, "")
+
+    def _strength_adjust_damage(text, strength):
+        """Bump the damage numbers a card SHOWS by the player's Strength, so the
+        text matches what deal_damage actually hits for (Strength is added to
+        every apply_strength attack hit). Conservative on purpose: only numbers
+        in an active-attack context are touched —
+            'Deal N ...'      the card's own hit(s) (incl. 'Deal N damage twice')
+            'deal N more'     a conditional second hit (e.g. Killing Blow)
+            'N instead'       conditional alternate damage (e.g. Production Push)
+        Power / retaliate text ('deal N damage', 'strike back — N'), block, HP,
+        Hatred, energy, %, and enemy-attack numbers are left untouched (those
+        hits run apply_strength=False or aren't player damage). The bumped
+        number is greened so it reads clearly as Strength-boosted."""
+        if not strength or not text:
+            return text
+        import re
+        _pat = re.compile(r'\bDeal\s+(\d+)|\bdeal\s+(\d+)\s+more|\b(\d+)\s+instead')
+        def _bump(m):
+            _g = m.group(1) or m.group(2) or m.group(3)
+            _new = "{color=#88ff88}" + str(int(_g) + strength) + "{/color}"
+            return m.group(0).replace(_g, _new, 1)
+        return _pat.sub(_bump, text)
+
+    def effect_description(effect_id):
+        """Card text as shown to the player. Live-adjusts displayed damage for
+        the player's current Strength while in a fight (battle_state set); out
+        of battle there's no Strength, so base numbers show."""
+        _txt = _effect_description_base(effect_id)
+        _str = getattr(battle_state, "player_strength", 0) if battle_state is not None else 0
+        if _str:
+            _txt = _strength_adjust_damage(_txt, _str)
+        return _txt
 
     ## ---------------------------------------------------------------------------
     ## BASIC & SIGNATURE
