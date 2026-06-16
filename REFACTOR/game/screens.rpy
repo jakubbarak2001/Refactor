@@ -4735,11 +4735,11 @@ screen _achievements_list():
                                                     font _FNT
                                                     xmaximum 480
 
-                            ## Keep column widths stable when a row is short.
-                            for _i in range(_COLS - len(_row)):
-                                frame:
-                                    xsize _CARD_W
-                                    background None
+                            ## NOTE: no empty placeholder for short rows. An empty
+                            ## Ren'Py frame (no child) expands to fill all available
+                            ## vertical space, which blows a huge gap into the wall.
+                            ## Cards left-align in the hbox, so columns stay aligned
+                            ## without one.
 
 
 ## ---------------------------------------------------------------------------
