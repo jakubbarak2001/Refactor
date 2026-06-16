@@ -1352,7 +1352,7 @@ label fixer_shop_loop:
                     _rbuy_hook = _rbuy_meta.get("hook", "")
                     _rbuy_ok = True
         if _rbuy_ok:
-            "He lifts it off the table like it's nothing. To you it isn't."
+            "Sold."
             "[_rbuy_name] — [_rbuy_hook]"
             window hide
             show screen outcome_panel("- {:,} CZK   + {}".format(_rbuy_price, _rbuy_name))
