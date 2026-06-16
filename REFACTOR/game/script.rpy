@@ -1330,6 +1330,7 @@ label fixer_shop_loop:
                     _cbuy_name = CARD_LIBRARY.get(_shop_arg, {}).get("name", _shop_arg)
                     _cbuy_ok = True
         if _cbuy_ok:
+            play sound "audio/sfx/cash_register.mp3"
             "'Pleasure.' He slides the card across the table."
             window hide
             show screen outcome_panel("- {:,} CZK   + {}".format(_cbuy_price, _cbuy_name))
@@ -1352,6 +1353,7 @@ label fixer_shop_loop:
                     _rbuy_hook = _rbuy_meta.get("hook", "")
                     _rbuy_ok = True
         if _rbuy_ok:
+            play sound "audio/sfx/cash_register.mp3"
             "Sold."
             "[_rbuy_name] — [_rbuy_hook]"
             window hide
