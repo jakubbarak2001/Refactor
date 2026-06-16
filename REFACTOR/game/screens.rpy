@@ -58,6 +58,17 @@ screen class_color_frame(thickness=3, alpha_suffix=""):
 ## Stats Bar — displayed during gameplay via "show screen stats_bar"
 ## ---------------------------------------------------------------------------
 
+## Hatred CRITICAL alarm — slow bright/dim throb so the readout pulses like a
+## warning light. _hud_no_pulse is the no-op applied below the threshold.
+transform hatred_alarm_pulse:
+    alpha 1.0
+    easein 0.6 alpha 0.5
+    easeout 0.6 alpha 1.0
+    repeat
+
+transform _hud_no_pulse:
+    alpha 1.0
+
 ## Dossier HUD strip — the always-on top band. Three zones (class identity |
 ## day countdown + 4-day strip | resource gauges), bracketed by class-color
 ## hairlines. Folds the former separate day_calendar screen into the center
@@ -131,6 +142,21 @@ screen stats_bar():
             _hatred_bar_color = "#ff8844"
         else:
             _hatred_bar_color = "#ff4444"
+
+        ## ── Hatred — CRITICAL alarm. Near the breakdown ceiling the readout
+        ## glows + pulses + flags with "!" so it can't be missed mid-event/fight.
+        ## BB runs hotter (cap 125), so it alarms at 100; everyone else at 80.
+        _hatred_warn_at = 100 if (stats.player_class == "bodybuilder") else 80
+        _hatred_alarm = stats.pcr_hatred >= _hatred_warn_at
+        _hatred_label = "Hatred {}/{}".format(stats.pcr_hatred, _hatred_cap)
+        if _hatred_alarm:
+            _hatred_label = "! " + _hatred_label
+            _hatred_text_color = "#ff2a2a"
+            _hatred_outlines = [(3, "#ff0000cc", 0, 0)]
+            _hatred_bar_color = "#ff2a2a"
+        else:
+            _hatred_text_color = "#ff4444"
+            _hatred_outlines = []
 
         ## ── Day countdown + 4-day strip (folded in from day_calendar) ────
         _today = day_cycle.current_day if day_cycle is not None else 1
@@ -380,17 +406,21 @@ screen stats_bar():
                                     tooltip _hatred_tt
                                     background None
                                     padding (0, 0)
-                                    text "Hatred [stats.pcr_hatred]/[_hatred_cap]":
-                                        color "#ff4444"
+                                    text "[_hatred_label]":
+                                        color _hatred_text_color
                                         size 16
                                         bold True
                                         font DOSSIER_FONT
+                                        outlines _hatred_outlines
+                                        at (hatred_alarm_pulse if _hatred_alarm else _hud_no_pulse)
                             else:
-                                text "Hatred [stats.pcr_hatred]/[_hatred_cap]":
-                                    color "#ff4444"
+                                text "[_hatred_label]":
+                                    color _hatred_text_color
                                     size 16
                                     bold True
                                     font DOSSIER_FONT
+                                    outlines _hatred_outlines
+                                    at (hatred_alarm_pulse if _hatred_alarm else _hud_no_pulse)
 
                             frame:
                                 xsize 120
