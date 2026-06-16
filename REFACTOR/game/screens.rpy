@@ -1243,7 +1243,7 @@ screen activity_select_screen():
         _ot_stat_lines = [
             ("PAY", "+{:,} CZK".format(_ot_pay)),
             ("HATRED", "+15"),
-            ("THEN", "?"),
+            ("THEN", "random event"),
         ]
 
     hbox:
@@ -1338,7 +1338,6 @@ screen activity_select_screen():
             accent         = "#3388cc",
             cost_text      = "FREE",
             stat_lines     = _ot_stat_lines,
-            flavor_text    = "Then the night rolls: a callout, an event, or quiet.",
             art            = "images/pictures/act_overtime.png",
             tile_w         = 340,
             tile_h         = 560,

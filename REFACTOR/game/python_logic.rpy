@@ -485,14 +485,9 @@ init python:
         for _d in FIXER_DAYS:
             marks[_d] = ("FIXER", "#5f8190")
 
-        ## Bodybuilder "The Trainer" arc interludes (Iron Garden).
-        if stats.player_class == "bodybuilder":
-            for _d in (7, 13, 19):
-                marks[_d] = ("TRAINER", "#c9a23a")
-
-        ## Fixed beats / economy.
+        ## Fixed beats / economy. (Only days that actually fire are marked —
+        ## no TRAINER/CALL previews, those aren't reliably wired.)
         marks[14] = ("SALARY",  "#ffd700")
-        marks[16] = ("CALL",    "#9a6ad0")   ## the midnight call
         marks[24] = ("ELITE",   "#b0482e")   ## the Colonel's Guard
         marks[25] = ("MARTIN",  "#33aacc")
         ## Colonel day depends on the Martin Meeting timing choice (26 or 30).
