@@ -1355,7 +1355,6 @@ label fixer_shop_loop:
         if _rbuy_ok:
             play sound "audio/sfx/cash_register.mp3"
             "Sold."
-            "[_rbuy_name] — [_rbuy_hook]"
             window hide
             show screen outcome_panel("- {:,} CZK   + {}".format(_rbuy_price, _rbuy_name))
             pause
