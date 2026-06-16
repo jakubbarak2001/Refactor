@@ -507,6 +507,9 @@ label martin_phase8_ending:
     "You walk out into the cold street. The wind hits your face."
 
     python:
+        ## BFF — close the meeting having banked 10 Affection with Martin.
+        if martin_affection >= 10:
+            unlock_achievement("bff")
         if martin_affection >= 7:
             renpy.jump("martin_good_ending_selection")
         elif martin_affection >= 3:
