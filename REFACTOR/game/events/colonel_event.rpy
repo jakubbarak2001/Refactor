@@ -301,6 +301,9 @@ label colonel_victory_resolution:
         ## skipped no fight (every ladder rung + act boss engaged, none fled).
         if getattr(store, '_run_fled', 0) == 0:
             unlock_achievement("peace_never_option")
+        ## Low Profile — beat the Colonel with police hatred never reaching 50.
+        if not getattr(store, '_run_hatred_breached_50', False):
+            unlock_achievement("low_profile")
 
     ## True ending if you broke the loop inside the machine; otherwise the
     ## normal escape. The pacifist / peace checks above apply to BOTH paths.

@@ -474,9 +474,6 @@ label midnight_phase6:
     "You open your laptop."
     "You code until sunrise."
     python:
-        unlock_achievement("dark_night")
-
-    python:
         stats.increment_stats_coding_skill(5)
 
     window hide

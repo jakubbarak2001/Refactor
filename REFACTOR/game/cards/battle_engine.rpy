@@ -1750,6 +1750,13 @@ init python:
             bs = battle_state
             if bs.over == "victory":
                 store.run_hp = max(1, bs.player_hp)
+                ## "Hotfix" — enemy down before a second player turn ever began
+                ## (bs.turn ticks up at each player turn start; 1 == one-turn kill).
+                if getattr(bs, "turn", 99) <= 1:
+                    try:
+                        unlock_achievement("hotfix")
+                    except Exception:
+                        pass
                 ## Biohacker — Coding ramps through PLAY: every fight won
                 ## teaches you something, so the smart build comes online
                 ## without sacrificing survival days to STUDY (the coding lane

@@ -4572,66 +4572,78 @@ screen _achievements_list():
     $ _meta_wins = persistent.runs_won or 0
     $ _meta_best = persistent.best_score or 0
     $ _ach_frac  = (_ach_count / float(_ach_total)) if _ach_total else 0.0
+    $ _bar_w = 480
+    ## Full-width three-column grid: the whole wall fits without a long scroll.
+    $ _GRID_W = 1712
+    $ _COLS   = 3
+    $ _CARD_W = 560
 
     vbox:
         spacing 16
 
-        ## ── Header: completion meter + cross-run record ───────────────────
-        text "CASE FILE · COMMENDATIONS":
-            color "#6a6055"
-            size 14
-            bold True
-            font _FNT
-
-        hbox:
-            spacing 12
-            text "[_ach_count]":
-                color "#ffcc44"
-                size 48
-                bold True
-                font _FNT
-                outlines [(2, "#000000", 0, 0)]
-            text "/ [_ach_total]  unlocked":
-                color "#888888"
-                size 18
-                yalign 1.0
-                yoffset -8
-                font _FNT
-
-        ## Completion meter — manual fill so it reads at a glance.
+        ## ── Header band: completion meter (left) + cross-run records (right) ──
         fixed:
-            xysize (660, 12)
-            add Solid("#15151a") xysize (660, 12)
-            add Solid("#ffcc44") xysize (max(3, int(660 * _ach_frac)), 12)
-            add Solid("#00000000") xysize (660, 12)
+            xysize (_GRID_W, 108)
+            add Solid("#13100bf2")
 
-        ## Record chips — the meta-progression chase, persisted.
-        hbox:
-            spacing 14
-            frame:
-                background Frame("#14141aee", 4, 4)
-                padding (18, 9)
+            ## Completion: count + at-a-glance meter.
+            vbox:
+                xpos 26
+                yalign 0.5
+                spacing 8
+                text "CASE FILE · COMMENDATIONS":
+                    color "#8a7a58"
+                    size 13
+                    bold True
+                    font _FNT
                 hbox:
+                    spacing 10
+                    yalign 1.0
+                    text "[_ach_count]":
+                        color "#ffcc44"
+                        size 42
+                        bold True
+                        font _FNT
+                        outlines [(2, "#000000", 0, 0)]
+                    text "/ [_ach_total] unlocked":
+                        color "#8a8a8a"
+                        size 17
+                        yalign 1.0
+                        yoffset -8
+                        font _FNT
+                fixed:
+                    xysize (_bar_w, 8)
+                    add Solid("#241d12") xysize (_bar_w, 8)
+                    add Solid("#ffcc44") xysize (max(3, int(_bar_w * _ach_frac)), 8)
+
+            ## Cross-run records — the persisted meta-progression chase.
+            vbox:
+                xpos (_GRID_W - 26)
+                xanchor 1.0
+                yalign 0.5
+                spacing 12
+                hbox:
+                    xalign 1.0
                     spacing 10
                     text "RUNS WON":
                         color "#6a6055"
                         size 13
                         yalign 0.5
+                        min_width 132
                         font _FNT
                     text "[_meta_wins]":
                         color "#cdbd97"
                         size 24
                         bold True
                         font _FNT
-            frame:
-                background Frame("#14141aee", 4, 4)
-                padding (18, 9)
                 hbox:
+                    xalign 1.0
                     spacing 10
                     text "BEST SCORE":
                         color "#6a6055"
                         size 13
                         yalign 0.5
+                        min_width 132
                         font _FNT
                     text "[_meta_best]":
                         color "#ffd700"
@@ -4639,41 +4651,39 @@ screen _achievements_list():
                         bold True
                         font _FNT
 
-        null height 6
-
+        ## ── Category sections ─────────────────────────────────────────────
         for _cat in _ach_categories:
             if _ach_by_cat.get(_cat):
                 $ _cat_done, _cat_total = _ach_cat_counts.get(_cat, (0, 0))
 
-                ## Category header + divider rule.
-                hbox:
-                    spacing 12
-                    yalign 0.5
-                    text "[_cat!u]":
-                        color "#cc4422"
-                        size 17
-                        bold True
-                        font _FNT
-                    text "[_cat_done] / [_cat_total]":
-                        color "#6a6055"
-                        size 15
-                        yalign 0.5
-                        font _FNT
-                add Solid("#2a1a14") xysize (974, 2)
+                vbox:
+                    spacing 10
 
-                $ _entries = _ach_by_cat[_cat]
-                $ _pairs = [(_entries[i], _entries[i+1] if i+1 < len(_entries) else None) for i in range(0, len(_entries), 2)]
-
-                for _left, _right in _pairs:
+                    ## Category header + divider rule.
                     hbox:
-                        spacing 14
+                        spacing 12
+                        yalign 0.5
+                        text "[_cat!u]":
+                            color "#cc4422"
+                            size 17
+                            bold True
+                            font _FNT
+                        text "[_cat_done] / [_cat_total]":
+                            color "#6a6055"
+                            size 15
+                            yalign 0.5
+                            yoffset 1
+                            font _FNT
+                    add Solid("#2a1a14") xysize (_GRID_W, 2)
 
-                        for _entry in (_left, _right):
-                            if _entry is None:
-                                frame:
-                                    xsize 480
-                                    background None
-                            else:
+                    $ _entries = _ach_by_cat[_cat]
+                    $ _rows = [_entries[_i:_i + _COLS] for _i in range(0, len(_entries), _COLS)]
+
+                    for _row in _rows:
+                        hbox:
+                            spacing 16
+
+                            for _entry in _row:
                                 $ _ach_key, _ach_data = _entry
                                 $ _is_unlocked = _ach_key in _unlocked
                                 $ _is_secret   = _ach_data.get("category") == "Secret"
@@ -4681,32 +4691,35 @@ screen _achievements_list():
                                     if _is_unlocked:
                                         _acc, _fbg, _glyph, _gc, _nc, _dc = "#ffcc44", "#16120af6", "✓", "#ffcc44", "#ffdd55", "#c8c0b0"
                                     elif _is_secret:
-                                        _acc, _fbg, _glyph, _gc, _nc, _dc = "#5a2018", "#0a0a0af6", "?", "#7a3a2a", "#5a5a5a", "#444444"
+                                        _acc, _fbg, _glyph, _gc, _nc, _dc = "#3a1812", "#0c0a08f6", "?", "#7a3a2a", "#6a6a6a", "#4a4a4a"
                                     else:
-                                        _acc, _fbg, _glyph, _gc, _nc, _dc = "#2a2a2a", "#0a0a0af6", "·", "#555555", "#7a7a7a", "#5a5a5a"
-                                    _nm = "???" if (_is_secret and not _is_unlocked) else _ach_data["name"]
+                                        _acc, _fbg, _glyph, _gc, _nc, _dc = "#2a2620", "#0c0a08f6", "·", "#555555", "#8a8a8a", "#5a5a5a"
+                                    ## Names always show (so every real trophy is visible on
+                                    ## the wall); only a locked secret's criterion stays masked.
+                                    _nm = _ach_data["name"]
                                     if _is_unlocked:
                                         _ds = _ach_data["desc"]
                                     elif _is_secret:
-                                        _ds = "Secret — discover it to reveal."
+                                        _ds = "Classified — unlock to reveal."
                                     else:
                                         _ds = _ach_data.get("hint", "Locked.")
                                 ## Accent-bordered card (gold = earned, pops off the bg).
                                 frame:
-                                    xsize 480
+                                    xsize _CARD_W
                                     background _acc
-                                    padding (3, 3)
+                                    padding (2, 2)
                                     frame:
                                         background _fbg
-                                        padding (13, 11)
+                                        padding (14, 11)
                                         xfill True
                                         hbox:
-                                            spacing 12
+                                            spacing 13
                                             text _glyph:
                                                 color _gc
                                                 size 22
                                                 bold True
-                                                min_width 26
+                                                min_width 24
+                                                yalign 0.0
                                                 font _FNT
                                             vbox:
                                                 spacing 3
@@ -4720,18 +4733,79 @@ screen _achievements_list():
                                                     size 13
                                                     italic (not _is_unlocked)
                                                     font _FNT
-                                                    xmaximum 420
+                                                    xmaximum 480
+
+                            ## Keep column widths stable when a row is short.
+                            for _i in range(_COLS - len(_row)):
+                                frame:
+                                    xsize _CARD_W
+                                    background None
 
 
 ## ---------------------------------------------------------------------------
-## Trophies Menu — opened from the navigation/escape menu.
+## Trophies Menu — dedicated full-screen wall (NOT routed through game_menu, so
+## the content pins high under the title instead of dropping into game_menu's
+## ~235px top band). Three-column grid means the whole roster fits with little
+## or no scroll. Opened from the main menu and the in-game pause sidebar.
 ## ---------------------------------------------------------------------------
 
 screen trophies_menu():
     tag menu
+    modal True
 
-    use game_menu(_("Trophies"), scroll="viewport"):
+    if main_menu:
+        add gui.main_menu_background
+    else:
+        add Solid("#0a0a0af2")
+
+    use dossier_top_bar(left_text="REFACTOR  //  case-file: trophies")
+    use dossier_bottom_bar(right_text="[[esc] back")
+
+    ## Title pinned high — the trophy wall starts right beneath it.
+    add Solid("#cc2200"):
+        xpos 72
+        ypos 64
+        xsize 4
+        ysize 58
+        at mm_fade_in
+
+    text "TROPHIES":
+        style "mm_title"
+        size 60
+        kerning 3
+        xpos 90
+        ypos 52
+        at mm_fade_in
+
+    ## Compact back control (mm_button forces xsize 560, so style it inline).
+    textbutton _("◄  back"):
+        xpos 1830
+        xanchor 1.0
+        ypos 64
+        padding (12, 6)
+        background None
+        hover_background Frame("#1a0000dd", 8, 4)
+        text_font "fonts/RobotoMono-Regular.ttf"
+        text_size 26
+        text_color "#9aa8b8"
+        text_hover_color "#ff4422"
+        action (ShowMenu("main_menu") if main_menu else Return())
+
+    viewport:
+        xpos 90
+        ypos 150
+        xsize 1760
+        ysize 842
+        scrollbars "vertical"
+        mousewheel True
+        draggable True
+        pagekeys True
+        side_yfill True
+        at mm_fade_in
+
         use _achievements_list
+
+    key "game_menu" action (ShowMenu("main_menu") if main_menu else Return())
 
 
 ## ---------------------------------------------------------------------------

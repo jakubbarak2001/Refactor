@@ -223,8 +223,7 @@ label day_start:
 
     ## Day 16 — THE MIDNIGHT CALL. The ARC II Colonel interlude (a 2AM phone
     ## call): a second Colonel touchpoint before day 30. On day 16 (not a
-    ## LADDER_EVENT_DAY) so a battle/event slot can't swallow it. Unlocks the
-    ## "dark_night" achievement, previously unobtainable.
+    ## LADDER_EVENT_DAY) so a battle/event slot can't swallow it.
     if current_day == 16:
         call midnight_call from _call_midnight_call_daystart
 

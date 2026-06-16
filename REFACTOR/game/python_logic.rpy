@@ -174,8 +174,6 @@ init python:
                 self.coding_skill = ceiling
             if self.coding_skill >= 250:
                 unlock_achievement("hackerman")
-            if self.coding_skill >= 200:
-                unlock_achievement("code_god")
             ## Meta: reaching Coding tier 3 proves the tech lane — unlock Pipeline.
             if self.coding_skill >= 100:
                 unlock_card("pipeline")
@@ -184,6 +182,10 @@ init python:
             self.pcr_hatred += amount
             if self.pcr_hatred < 0:
                 self.pcr_hatred = 0
+            ## Run-level high-water mark for the "Low Profile" achievement: once
+            ## hatred touches 50 the cool-head run is blown, even if it later drops.
+            if self.pcr_hatred >= 50:
+                store._run_hatred_breached_50 = True
             ## Hatred corrupts (vision §1 pillar 2). Each threshold crossing
             ## jams a permanent Rage card into the deck. One-shot per threshold
             ## — dipping below and back up does NOT re-grant.
@@ -621,6 +623,10 @@ init python:
         ## reach + beat the Colonel with this at 0. Incremented on every
         ## battle_with victory; fleeing or losing never bumps it.
         store._run_kills = 0
+        ## Police hatred ever reached 50 this run. Drives "Low Profile": reach +
+        ## beat the Colonel with this still False. Set in increment_stats_pcr_hatred;
+        ## starting hatred (10/20/30 by difficulty) is always under 50, so False is correct.
+        store._run_hatred_breached_50 = False
         ## Fights fled (LET THEM GO / WALK AWAY) this run. Drives "Peace Was
         ## Never An Option": reach + beat the Colonel with this at 0. Bumped in
         ## battle_with's flee branch only — losing a fight you engaged is not a skip.
@@ -724,14 +730,12 @@ init python:
     # hint: shown for locked non-secret achievements; secrets stay obscured until unlocked.
     # ---------------------------------------------------------------------------
     ACHIEVEMENTS = {
-        "first_blood":      {"category": "Story",      "name": "First Blood",            "desc": "Lose money for the first time.",                                "hint": "Spend more than you can afford."},
         "gym_rat":          {"category": "Collection", "name": "Gym Rat",                 "desc": "Hit the gym 5 times in one run.",                               "hint": "Train at the gym 5 days in a single run."},
         "deep_pockets":     {"category": "Collection", "name": "Deep Pockets",            "desc": "Save over 200,000 CZK.",                                        "hint": "Accumulate 200,000 CZK in savings."},
-        "code_god":         {"category": "Collection", "name": "Code God",                "desc": "Reach 200+ Coding Skill.",                                      "hint": "Reach 200 Coding Skill."},
-        "dark_night":       {"category": "Story",      "name": "Dark Night of the Soul",  "desc": "Complete The Midnight Call.",                                   "hint": "Take the Day-15 phone call."},
-        "dark_empath_win":  {"category": "Combat",     "name": "Mirror Mirror",           "desc": "Use the FATAL STRIKE as Dark Empath.",                          "hint": "Dark Empath only — find the Colonel's hidden vulnerability."},
-        "biohacker_win":    {"category": "Combat",     "name": "Optimized",               "desc": "Auto-counter Safety Net as Biohacker.",                         "hint": "Biohacker only — let the Colonel try the safety net argument."},
         "hackerman":        {"category": "Collection", "name": "Hackerman",               "desc": "Max out coding skill to 250. You are the compiler now.",        "hint": "Reach 250 Coding Skill (the cap)."},
+        ## --- Combat feats ---
+        "hotfix":           {"category": "Combat",     "name": "Hotfix",                  "desc": "Defeat an enemy in a single turn.",                             "hint": "Defeat an enemy in a single turn."},
+        "low_profile":      {"category": "Combat",     "name": "Low Profile",             "desc": "Beat the Colonel with police hatred never reaching 50.",        "hint": "Win the run with police hatred never reaching 50."},
         ## --- Class arc achievements ---
         "bring_the_lt":     {"category": "Story",      "name": "Bring The Lieutenant",    "desc": "Expose Kovář's flagged report to journalists.",                  "hint": "Dark Empath only — choose to expose, not leverage or comply."},
         "subject_zero":     {"category": "Story",      "name": "Subject Zero",            "desc": "Become the trial. Document everything. Lose your baseline.",     "hint": "Biohacker only — agree to the 21-day compound trial."},

@@ -469,9 +469,6 @@ screen quick_menu():
                 textbutton _("history") action ShowMenu('history')
                 textbutton _("skip") action Skip() alternate Skip(fast=True, confirm=True)
                 textbutton _("auto") action Preference("auto-forward", "toggle")
-                textbutton _("save") action ShowMenu('save')
-                textbutton _("q.save") action QuickSave()
-                textbutton _("q.load") action QuickLoad()
                 textbutton _("settings") action ShowMenu('preferences')
 
 
@@ -548,10 +545,6 @@ screen navigation():
         else:
 
             textbutton _("►  history") action ShowMenu("history")
-
-            textbutton _("►  save") action ShowMenu("save")
-
-            textbutton _("►  load") action ShowMenu("load")
 
             textbutton _("►  settings") action ShowMenu("preferences")
 
@@ -695,17 +688,14 @@ screen main_menu_navigation():
 
         textbutton _("►  new investigation") style "mm_button" action Start("mm_start_fade") hovered _mm_hover_sfx
 
-        if renpy.newest_slot() is not None:
-            textbutton _("►  continue") style "mm_button" action FileLoad(renpy.newest_slot()) hovered _mm_hover_sfx
+        textbutton _("►  continue") style "mm_button" action FileLoad(renpy.newest_slot()) hovered _mm_hover_sfx
 
-        textbutton _("►  case archive") style "mm_button" action ShowMenu("load") hovered _mm_hover_sfx
-
-        if stats is not None:
-            textbutton _("►  trophies") style "mm_button" action [Hide("phone_screen"), ShowMenu("trophies_menu")] hovered _mm_hover_sfx
+        textbutton _("►  trophies") style "mm_button" action [Hide("phone_screen"), ShowMenu("trophies_menu")] hovered _mm_hover_sfx
 
         textbutton _("►  settings") style "mm_button" action ShowMenu("preferences") hovered _mm_hover_sfx
 
         textbutton _("►  about") style "mm_button" action ShowMenu("about") hovered _mm_hover_sfx
+        
 
         if renpy.variant("pc"):
             textbutton _("►  exit") style "mm_button" action Quit(confirm=True) hovered _mm_hover_sfx
