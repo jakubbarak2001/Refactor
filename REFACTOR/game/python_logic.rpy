@@ -462,14 +462,40 @@ init python:
                     triggered.add(threshold)
 
     def get_key_event_days():
-        """Return dict[day -> (label, color)] for calendar markers."""
+        """Return dict[day -> (label, color)] for the calendar strip + phone
+        grid. Surfaces each day's headline so the player can plan instead of
+        staring at blank day numbers: case/fight slots, paydays, the Fixer
+        shop, story beats and the Colonel. Color becomes the cell background
+        (white text), so the tier color also reads escalation at a glance.
+
+        Later assignments win for a shared day, so the order below is the
+        priority: case < fixer < class arc < fixed beats < Colonel."""
         if stats is None:
             return {}
-        marks = {
-            14: ("SALARY",   "#ffd700"),
-            25: ("MARTIN",   "#33aacc"),
-        }
-        ## Colonel day depends on Martin Meeting timing choice
+        marks = {}
+
+        ## Case slots — the fixed days a police case lands. It's a fight while
+        ## the day's tier still has enemies in the pool, and a narrative beat
+        ## once that pool drains; either way the day is spoken for. Tier-colored.
+        _tier_color = {"easy": "#4f9a52", "medium": "#c2913a", "hard": "#c0503a"}
+        for _d in LADDER_EVENT_DAYS:
+            marks[_d] = ("CASE", _tier_color.get(_battle_ladder_band(_d), "#8a8a8a"))
+
+        ## Fixer (deck-shred shop) open days — useful to plan a trim around.
+        for _d in FIXER_DAYS:
+            marks[_d] = ("FIXER", "#5f8190")
+
+        ## Bodybuilder "The Trainer" arc interludes (Iron Garden).
+        if stats.player_class == "bodybuilder":
+            for _d in (7, 13, 19):
+                marks[_d] = ("TRAINER", "#c9a23a")
+
+        ## Fixed beats / economy.
+        marks[14] = ("SALARY",  "#ffd700")
+        marks[16] = ("CALL",    "#9a6ad0")   ## the midnight call
+        marks[24] = ("ELITE",   "#b0482e")   ## the Colonel's Guard
+        marks[25] = ("MARTIN",  "#33aacc")
+        ## Colonel day depends on the Martin Meeting timing choice (26 or 30).
         marks[stats.colonel_day] = ("COLONEL", "#cc2200")
         return marks
 
