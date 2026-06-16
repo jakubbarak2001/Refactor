@@ -1937,7 +1937,7 @@ screen battle_screen():
         ## sits ABOVE the END TURN button at ypos 700; number offset slightly
         ## down because the inset isn't dead-center vertically in the artwork.
         fixed:
-            xpos 1710
+            xpos 1510
             ypos 510
             xysize (180, 180)
             at energy_pulse
@@ -1964,7 +1964,7 @@ screen battle_screen():
             _et_hover_bg = Frame("#3a3000ee", 4, 4) if _et_has_energy else Frame("#330000ee", 4, 4)
 
         textbutton _et_label:
-            xpos 1700
+            xpos 1500
             ypos 700
             sensitive (_bt_enemy_phase is None)
             action Function(_battle_end_turn_staged)
