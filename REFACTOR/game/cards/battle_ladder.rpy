@@ -279,12 +279,29 @@ screen encounter_choice(enemy_id, tier="medium", can_flee=True):
             _enc_flee_sub = "Need {:,} CZK to make this offer.".format(_enc_fe["penalty"])
         ## Hatred-gated flees (Grundza's batch): the line only opens for a cop
         ## already running hot enough to say yes. Below the bar, you fight.
+        ## An absolute flee_min_hatred wins over the cap-relative pct.
+        _enc_flee_habs  = _enc_e.get("flee_min_hatred", 0)
         _enc_flee_hgate = _enc_e.get("flee_min_hatred_pct", 0)
-        if _enc_flee_afford and _enc_flee_hgate > 0 and stats is not None:
-            _enc_hg_need = int(round(hatred_cap() * _enc_flee_hgate))
+        if _enc_flee_afford and (_enc_flee_habs > 0 or _enc_flee_hgate > 0) and stats is not None:
+            _enc_hg_need = _enc_flee_habs if _enc_flee_habs > 0 else int(round(hatred_cap() * _enc_flee_hgate))
             if stats.pcr_hatred < _enc_hg_need:
                 _enc_flee_afford = False
                 _enc_flee_sub = (_enc_e.get("flee_gate_text") or "Need {}+ Hatred.").format(_enc_hg_need)
+
+        ## ── Optional third line — ABANDON the case entirely (pure cost, no
+        ## reward, no relief). Data-driven: only enemies with abandon_label show
+        ## it (Grundza). Always available — it's the give-up door.
+        _enc_abandon_label = _enc_e.get("abandon_label")
+        _enc_abandon_parts = []
+        if _enc_abandon_label:
+            if _enc_e.get("abandon_hatred", 0) > 0:
+                _enc_abandon_parts.append("+{} Hatred".format(_enc_e["abandon_hatred"]))
+            if _enc_e.get("abandon_czk", 0) > 0:
+                _enc_abandon_parts.append("-{:,} CZK".format(_enc_e["abandon_czk"]))
+            if _enc_e.get("abandon_hp", 0) > 0:
+                _enc_abandon_parts.append("-{} HP".format(_enc_e["abandon_hp"]))
+            _enc_abandon_parts.append("forfeit the rewards")
+        _enc_abandon_sub = " · ".join(_enc_abandon_parts)
 
     add "#0a0a0a"
     if renpy.loadable(_enc_bg):
@@ -369,6 +386,28 @@ screen encounter_choice(enemy_id, tier="medium", can_flee=True):
                         size 16
                         font "fonts/RobotoMono-Regular.ttf"
 
+        ## Third line — walk away from the bust entirely (Grundza). Pure cost.
+        if _enc_abandon_label:
+            button:
+                xysize (560, 96)
+                background Frame(Solid("#241712"), 4, 4)
+                hover_background Frame(Solid("#43291c"), 4, 4)
+                action Return("abandon")
+                vbox:
+                    yalign 0.5
+                    xfill True
+                    text "[_enc_abandon_label]":
+                        xalign 0.5
+                        color "#c08a6a"
+                        size 32
+                        bold True
+                        font "fonts/RobotoMono-Regular.ttf"
+                    text "[_enc_abandon_sub]":
+                        xalign 0.5
+                        color "#b06a55"
+                        size 16
+                        font "fonts/RobotoMono-Regular.ttf"
+
 
 ## ---------------------------------------------------------------------------
 ## battle_with — generalised entry point for any ENEMY_LIBRARY enemy.
@@ -441,6 +480,36 @@ label battle_with(enemy_id, tier):
             "Not tonight. You let it go — and the pressure behind your eyes drops a notch."
         window hide
         show screen outcome_panel(_flee_outcome)
+        pause
+        hide screen outcome_panel
+        return
+
+    if _return == "abandon":
+        python:
+            _ab = ENEMY_LIBRARY.get(enemy_id, {})
+            ## Walking away from the case counts as a skip (breaks Peace Was
+            ## Never An Option), never a kill — so Pacifist stays reachable.
+            store._run_fled = getattr(store, '_run_fled', 0) + 1
+            _ab_parts = []
+            if _ab.get("abandon_hatred", 0) > 0:
+                stats.increment_stats_pcr_hatred(_ab["abandon_hatred"])
+                _ab_parts.append("+ {} Hatred".format(_ab["abandon_hatred"]))
+            if _ab.get("abandon_czk", 0) > 0:
+                stats.try_spend_money(_ab["abandon_czk"])
+                _ab_parts.append("- {:,} CZK".format(_ab["abandon_czk"]))
+            if _ab.get("abandon_hp", 0) > 0:
+                _event_ensure_run_hp()
+                ## Floor at 1 — leaving costs blood, but never ends the run here.
+                store.run_hp = max(1, store.run_hp - _ab["abandon_hp"])
+                _ab_parts.append("- {} HP".format(_ab["abandon_hp"]))
+            _ab_outcome = "   ".join(_ab_parts)
+            _ab_narration = _ab.get("abandon_narration")
+        if _ab_narration:
+            python:
+                for _ln in _ab_narration:
+                    renpy.say(None, _ln)
+        window hide
+        show screen outcome_panel(_ab_outcome)
         pause
         hide screen outcome_panel
         return

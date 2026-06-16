@@ -332,21 +332,33 @@ init -1 python:
         no_flee      = False,
         act          = 1,
         max_hp       = 160,
-        flee_label   = "TRY HIS NEW BATCH",
+        flee_label   = "TAKE THE TRAY",
         ## The batch is a corrupting relief that patches you up AND leaves you a
         ## little harder than it found you — relief + a heal + a permanent +10 Max
         ## HP. Fighting still pays better (the relic + cash + a card draft); the
         ## batch is the low-risk line for a build that would rather not bleed its
-        ## way through the Act I wall. Gated: only a cop past 75% of the hatred
-        ## cap says yes to the tray — anyone steadier has to fight him.
+        ## way through the Act I wall. Gated at 85 Hatred (absolute) — only a cop
+        ## already running that hot reaches for the tray; anyone steadier fights.
         flee_relief  = 20,
         flee_heal    = 22,
         flee_max_hp  = 10,
-        flee_min_hatred_pct = 0.75,
+        flee_min_hatred = 85,
         flee_gate_text = "You put the tray down without thinking about it. Need {}+ Hatred.",
         flee_narration = [
             "Grundza doesn't reach for a weapon. He reaches for the tray — fresh off the rig, still warm — and slides it across the counter.",
             "'On the house. New batch.' You shouldn't. You climbed three flights telling yourself you wouldn't. You do anyway. The edges of the night go soft, the pressure behind your eyes drains, and for once the body feels like it's winning.",
+        ],
+        ## Third option — walk away from the bust entirely. No relief, just cost:
+        ## the lab floods the district (Hatred), his people tax your silence (CZK),
+        ## and you take a few on the stairs for your trouble (HP). Punishing, but
+        ## it's the door for a run that can neither win the fight nor stomach the tray.
+        abandon_label    = "LEAVE HIM BE",
+        abandon_hatred   = 20,
+        abandon_czk      = 10000,
+        abandon_hp       = 20,
+        abandon_narration = [
+            "You back down the stairs. The rig keeps ticking behind you; by morning the batch is in every doorway from the station to the river.",
+            "Two of his people walk you to the street — slowly, so you feel it — and lighten your pockets on the way 'for the inconvenience.' One parting shot to the ribs makes the point stick.",
         ],
         deck_template = ["fume_swipe", "chem_burn", "chem_stoke", "lab_check", "gas_release"],
         wrinkle      = "lab_timer",
