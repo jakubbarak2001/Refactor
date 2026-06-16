@@ -941,44 +941,50 @@ screen _activity_tile(label_name, title, accent, cost_text, effect_text="", effe
                                     xalign 0.5
                                     text_align 0.5
                                     xmaximum (_at_inner_w - 28)
-                            elif stat_lines:
-                                for _sl_label, _sl_value in stat_lines:
-                                    python:
-                                        _sl_sign = _sl_value[0] if _sl_value else ""
-                                        if _sl_label == "BATTLE BONUS":
-                                            _sl_color = "#ffd700"
-                                        elif _sl_value in ("", "—"):
-                                            _sl_color = "#777777"
-                                        elif _sl_label == "HP":
-                                            _sl_color = "#55dd66" if _sl_sign == "+" else ("#dd5544" if _sl_sign == "-" else "#cccccc")
-                                        elif _sl_label == "HATRED":
-                                            _sl_color = "#55dd66" if _sl_sign == "-" else ("#dd5544" if _sl_sign == "+" else "#cccccc")
-                                        else:
-                                            _sl_color = "#cccccc"
-                                    hbox:
-                                        xfill True
-                                        spacing 6
-                                        text _sl_label:
-                                            color "#888070"
-                                            size 12
-                                            bold True
-                                            font "fonts/RobotoMono-Regular.ttf"
-                                            xsize 110
-                                        text _sl_value:
-                                            color _sl_color
-                                            size 13
-                                            bold True
-                                            font "fonts/RobotoMono-Regular.ttf"
-                                            xalign 1.0
-                            elif flavor_text:
-                                text flavor_text:
-                                    color "#aaa090"
-                                    size 14
-                                    italic True
-                                    xalign 0.5
-                                    text_align 0.5
-                                    xmaximum (_at_inner_w - 28)
-                                    line_spacing 2
+                            else:
+                                ## Outcome readout first (when supplied), then the
+                                ## flavor / note under it — so a tile can show both
+                                ## "what you get" and a mood line or repeat warning.
+                                if stat_lines:
+                                    for _sl_label, _sl_value in stat_lines:
+                                        python:
+                                            _sl_sign = _sl_value[0] if _sl_value else ""
+                                            if _sl_label == "BATTLE BONUS":
+                                                _sl_color = "#ffd700"
+                                            elif _sl_value in ("", "—"):
+                                                _sl_color = "#777777"
+                                            elif _sl_label in ("MONEY", "CZK", "PAY"):
+                                                _sl_color = "#ffd700"
+                                            elif _sl_label == "HP":
+                                                _sl_color = "#55dd66" if _sl_sign == "+" else ("#dd5544" if _sl_sign == "-" else "#cccccc")
+                                            elif _sl_label == "HATRED":
+                                                _sl_color = "#55dd66" if _sl_sign == "-" else ("#dd5544" if _sl_sign == "+" else "#cccccc")
+                                            else:
+                                                _sl_color = "#cccccc"
+                                        hbox:
+                                            xfill True
+                                            spacing 6
+                                            text _sl_label:
+                                                color "#888070"
+                                                size 12
+                                                bold True
+                                                font "fonts/RobotoMono-Regular.ttf"
+                                                xsize 110
+                                            text _sl_value:
+                                                color _sl_color
+                                                size 13
+                                                bold True
+                                                font "fonts/RobotoMono-Regular.ttf"
+                                                xalign 1.0
+                                if flavor_text:
+                                    text flavor_text:
+                                        color "#aaa090"
+                                        size 14
+                                        italic True
+                                        xalign 0.5
+                                        text_align 0.5
+                                        xmaximum (_at_inner_w - 28)
+                                        line_spacing 2
 
 
 ## ---------------------------------------------------------------------------
@@ -1219,6 +1225,27 @@ screen activity_select_screen():
         _act_gym_warn = activity_repeat_tile_warn("gym", "relief")
         _act_bnc_warn = activity_repeat_tile_warn("bouncer", "pay")
 
+        ## ── Pre-pick outcome previews for the money tiles ────────────────
+        ## Read-only: money_gain_preview folds in economy relics (e.g. Golden
+        ## Handcuffs +25%), activity_repeat_preview reads the streak without
+        ## ticking it, so the tile shows exactly what tonight banks.
+        _bnc_n, _bnc_mult = activity_repeat_preview("bouncer")
+        _bnc_bb_cash = 2500 if _is_bb else 0
+        _bnc_pay = stats.money_gain_preview(int(round(20000 * _bnc_mult)) + _bnc_bb_cash) if stats else 0
+        _bnc_hatred = {1: 0, 2: 5, 3: 10}.get(_bnc_n, 15)
+        _bnc_stat_lines = [("PAY", "+{:,} CZK".format(_bnc_pay))]
+        if _bnc_hatred > 0:
+            _bnc_stat_lines.append(("HATRED", "+{}".format(_bnc_hatred)))
+
+        ## Overtime — flat shift pay + heat, then a "?" night (fight / event /
+        ## quiet roll). Money folds in economy relics like the tiles above.
+        _ot_pay = stats.money_gain_preview(5000) if stats else 5000
+        _ot_stat_lines = [
+            ("PAY", "+{:,} CZK".format(_ot_pay)),
+            ("HATRED", "+15"),
+            ("THEN", "?"),
+        ]
+
     hbox:
         xalign 0.5
         ypos 248
@@ -1283,6 +1310,7 @@ screen activity_select_screen():
                 title          = "BOUNCER",
                 accent         = "#ffd700",
                 cost_text      = "FREE",
+                stat_lines     = _bnc_stat_lines,
                 flavor_text    = "Moonlighting pays well, but it's dangerous for cops." + _act_bnc_warn,
                 art            = "images/pictures/act_bouncer.png",
                 art_xoff       = -80,
@@ -1303,13 +1331,14 @@ screen activity_select_screen():
             tile_h         = 560,
         )
 
-        ## OVERTIME - shared money + hatred trade.
+        ## OVERTIME - shared money + hatred trade, then a "?" night.
         use _activity_tile(
             label_name     = "activity_overtime",
             title          = "OVERTIME",
             accent         = "#3388cc",
             cost_text      = "FREE",
-            flavor_text    = "Trade time for money.",
+            stat_lines     = _ot_stat_lines,
+            flavor_text    = "Then the night rolls: a callout, an event, or quiet.",
             art            = "images/pictures/act_overtime.png",
             tile_w         = 340,
             tile_h         = 560,
