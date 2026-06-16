@@ -1330,12 +1330,9 @@ label fixer_shop_loop:
                     _cbuy_name = CARD_LIBRARY.get(_shop_arg, {}).get("name", _shop_arg)
                     _cbuy_ok = True
         if _cbuy_ok:
+            ## Instant buy — just the ka-ching. The shop re-renders with the
+            ## SOLD stamp + updated cash, so no confirmation frames are needed.
             play sound "audio/sfx/cash_register.mp3"
-            "'Pleasure.' He slides the card across the table."
-            window hide
-            show screen outcome_panel("- {:,} CZK   + {}".format(_cbuy_price, _cbuy_name))
-            pause
-            hide screen outcome_panel
         jump fixer_shop_loop
 
     if _shop_act == "buy_relic":
@@ -1353,12 +1350,9 @@ label fixer_shop_loop:
                     _rbuy_hook = _rbuy_meta.get("hook", "")
                     _rbuy_ok = True
         if _rbuy_ok:
+            ## Instant buy — just the ka-ching. The shop re-renders with the
+            ## SOLD stamp + updated cash, so no confirmation frames are needed.
             play sound "audio/sfx/cash_register.mp3"
-            "Sold."
-            window hide
-            show screen outcome_panel("- {:,} CZK   + {}".format(_rbuy_price, _rbuy_name))
-            pause
-            hide screen outcome_panel
         jump fixer_shop_loop
 
     jump fixer_shop_loop
