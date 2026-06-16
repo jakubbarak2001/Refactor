@@ -4584,7 +4584,7 @@ screen _achievements_list():
         ## ── Header band: completion meter (left) + cross-run records (right) ──
         fixed:
             xysize (_GRID_W, 108)
-            add Solid("#13100bf2")
+            add Solid("#13100bff")
 
             ## Completion: count + at-a-glance meter.
             vbox:
@@ -4689,11 +4689,11 @@ screen _achievements_list():
                                 $ _is_secret   = _ach_data.get("category") == "Secret"
                                 python:
                                     if _is_unlocked:
-                                        _acc, _fbg, _glyph, _gc, _nc, _dc = "#ffcc44", "#16120af6", "✓", "#ffcc44", "#ffdd55", "#c8c0b0"
+                                        _acc, _fbg, _glyph, _gc, _nc, _dc = "#ffcc44", "#1a1408ff", "✓", "#ffcc44", "#ffdd55", "#d4ccbc"
                                     elif _is_secret:
-                                        _acc, _fbg, _glyph, _gc, _nc, _dc = "#3a1812", "#0c0a08f6", "?", "#7a3a2a", "#6a6a6a", "#4a4a4a"
+                                        _acc, _fbg, _glyph, _gc, _nc, _dc = "#4a2418", "#100c0aff", "?", "#8a4632", "#8a8a8a", "#6a6a6a"
                                     else:
-                                        _acc, _fbg, _glyph, _gc, _nc, _dc = "#2a2620", "#0c0a08f6", "·", "#555555", "#8a8a8a", "#5a5a5a"
+                                        _acc, _fbg, _glyph, _gc, _nc, _dc = "#3a352c", "#100e0aff", "·", "#666666", "#a8a8a8", "#7a7a7a"
                                     ## Names always show (so every real trophy is visible on
                                     ## the wall); only a locked secret's criterion stays masked.
                                     _nm = _ach_data["name"]
@@ -4755,8 +4755,11 @@ screen trophies_menu():
 
     if main_menu:
         add gui.main_menu_background
+        ## Heavy scrim over the menu video so the wall reads — without it the
+        ## bokeh / JB's vest bleed through the cards and kill legibility.
+        add Solid("#070707ee")
     else:
-        add Solid("#0a0a0af2")
+        add Solid("#0a0a0af7")
 
     use dossier_top_bar(left_text="REFACTOR  //  case-file: trophies")
     use dossier_bottom_bar(right_text="[[esc] back")

@@ -217,10 +217,10 @@ label colonel_glitch_phase:
     pause 0.6
 
     ## Coding gate — the TRUE ending. A real coder doesn't just notice the loop;
-    ## he can read it, reach in, and kill the process. Tier 3 (Coding >= 100).
-    ## This is the bar that makes the coding lane the route to the game's best
-    ## outcome — without touching the gym. Tunable.
-    if (stats.coding_skill or 0) >= 100:
+    ## he can read it, reach in, and kill the process. Tier 5 (Coding >= 200) —
+    ## "God Tier, you see the Matrix." This is the bar that makes the coding lane
+    ## the route to the game's best outcome — without touching the gym. Tunable.
+    if (stats.coding_skill or 0) >= 200:
         jump colonel_ghost_phase
 
     show jb smirk at char_left
